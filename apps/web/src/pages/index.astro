@@ -3,35 +3,100 @@ import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { faqs, services, site } from "../lib/site.ts";
+
+const featured = services.slice(0, 4);
 ---
 
 <BaseLayout title="Private chauffeur requests" description={site.description}>
-  <section class="wrap hero">
-    <div class="hero__copy">
-      <p class="muted">Macau · request-based chauffeur service</p>
-      <h1>Travel with a private chauffeur, confirmed by people—not an automatic checkout.</h1>
-      <p class="lede">
-        Tell us the journey. We review the request, confirm availability, and only then treat it as
-        a booking.
-      </p>
-      <ul class="reassurance">
-        <li>One form on desktop and mobile</li>
-        <li>Human confirmation after every request</li>
-        <li>Quote-based — no online payment in this release</li>
-      </ul>
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <div class="hero__copy">
+        <p class="kicker">Macau · private chauffeur requests</p>
+        <h1>Macau’s premier luxury chauffeur service</h1>
+        <p class="lede">Private journeys, reviewed by people—then confirmed.</p>
+        <div class="hero-actions" style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;">
+          <BookingLauncher client:load sourcePage="/" sourceTrigger="hero-cta" label="Book now" />
+          <a class="btn btn--on-dark" href="/about">Learn more</a>
+        </div>
+      </div>
+      <div class="hero-booking">
+        <BookingEmbedded client:load sourcePage="/" />
+      </div>
     </div>
-    <div class="hero-booking">
-      <BookingEmbedded client:load sourcePage="/" />
+    <div class="hero-stats">
+      <div class="wrap hero-stats__grid">
+        <div>
+          <strong>Request</strong>
+          <span>Share the journey</span>
+        </div>
+        <div>
+          <strong>Review</strong>
+          <span>The team checks fit</span>
+        </div>
+        <div>
+          <strong>Confirm</strong>
+          <span>Only then is it booked</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap content-grid">
+      <div>
+        <p class="eyebrow">About us</p>
+        <h2>About Kai Yue Travel</h2>
+        <hr class="gold-rule" />
+        <p class="lede">
+          {site.name} helps guests request private chauffeur journeys in Macau. Submit a request; a person
+          confirms availability before any trip is treated as booked.
+        </p>
+        <div class="grid-3" style="margin: 2rem 0;">
+          <div class="stat-chip">
+            <strong>Macau</strong>
+            <span>Service area in this release</span>
+          </div>
+          <div class="stat-chip">
+            <strong>24h</strong>
+            <span>Notice window on the form</span>
+          </div>
+          <div class="stat-chip">
+            <strong>Quote</strong>
+            <span>No online payment yet</span>
+          </div>
+        </div>
+        <a class="btn btn--secondary" href="/about">Learn more</a>
+      </div>
+      <div class="grid-2">
+        <div class="photo-tile" role="img" aria-label="Representative luxury chauffeur vehicle">
+        </div>
+        <div class="photo-tile" role="img" aria-label=""></div>
+        <div class="photo-tile" role="img" aria-label=""></div>
+        <div class="photo-tile" role="img" aria-label=""></div>
+      </div>
     </div>
   </section>
 
   <section class="section section--muted">
     <div class="wrap">
-      <h2>Services you can request</h2>
-      <div class="grid-3">
+      <div class="section-heading section-heading--center">
+        <p class="eyebrow">Services</p>
+        <h2>Professional luxury chauffeur requests</h2>
+        <hr class="gold-rule" />
+      </div>
+      <div class="grid-4">
         {
-          services.slice(0, 6).map((service) => (
-            <article class="card">
+          featured.map((service) => (
+            <article class="card service-card">
+              <div class="service-icon" aria-hidden="true">
+                {service.icon === "plane"
+                  ? "✈"
+                  : service.icon === "briefcase"
+                    ? "◆"
+                    : service.icon === "clock"
+                      ? "◷"
+                      : "▣"}
+              </div>
               <h3>
                 <a href={`/services/${service.slug}`}>{service.title}</a>
               </h3>
@@ -48,13 +113,18 @@ import { faqs, services, site } from "../lib/site.ts";
           ))
         }
       </div>
+      <p style="text-align:center;margin-top:2rem;">
+        <a href="/services">All services</a>
+      </p>
     </div>
   </section>
 
   <section class="section">
-    <div class="wrap grid-2">
+    <div class="wrap content-grid">
       <div>
-        <h2>How booking works</h2>
+        <p class="eyebrow">How booking works</p>
+        <h2>Request. Review. Confirmation.</h2>
+        <hr class="gold-rule" />
         <ol class="steps">
           <li><strong>Request.</strong> Share journey and contact details.</li>
           <li><strong>Review.</strong> The team checks timing, vehicle fit, and notes.</li>
@@ -64,20 +134,24 @@ import { faqs, services, site } from "../lib/site.ts";
         </ol>
       </div>
       <div>
-        <h2>Fleet and comfort</h2>
+        <p class="eyebrow">Our fleet</p>
+        <h2>Comfort confirmed after review</h2>
+        <hr class="gold-rule" />
         <p>
-          We arrange premium private vehicles for the request. Specific models, seat counts, and
-          features are confirmed when the team replies—not claimed automatically on this page.
+          We arrange a private vehicle suited to the passengers and luggage you list. Specific
+          models and features are confirmed when the team replies.
         </p>
-        <a href="/fleet">See the fleet page</a>
+        <p><a class="btn btn--secondary" href="/fleet">See the fleet page</a></p>
       </div>
     </div>
   </section>
 
   <section class="section section--muted">
-    <div class="wrap grid-2">
+    <div class="wrap content-grid">
       <div>
-        <h2>Corporate travel</h2>
+        <p class="eyebrow">Corporate</p>
+        <h2>Programmes and guest movements</h2>
+        <hr class="gold-rule" />
         <p>
           Hotels, companies, and event coordinators can send a programme inquiry instead of a single
           trip request.
@@ -85,7 +159,9 @@ import { faqs, services, site } from "../lib/site.ts";
         <a class="btn btn--secondary" href="/corporate">Corporate inquiry</a>
       </div>
       <div>
+        <p class="eyebrow">FAQ</p>
         <h2>Questions</h2>
+        <hr class="gold-rule" />
         {
           faqs.slice(0, 3).map((item) => (
             <details>
@@ -98,19 +174,11 @@ import { faqs, services, site } from "../lib/site.ts";
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap">
+  <section class="section section--dark">
+    <div class="wrap" style="text-align:center;">
       <h2>Ready when you are</h2>
-      <p>Open the same booking form from any page.</p>
+      <p class="lede">Open the same booking form from any page.</p>
       <BookingLauncher client:load sourcePage="/" sourceTrigger="final-cta" />
     </div>
   </section>
 </BaseLayout>
-
-<style>
-  @media (max-width: 879px) {
-    .hero-booking {
-      display: none;
-    }
-  }
-</style>

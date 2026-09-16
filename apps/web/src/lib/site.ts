@@ -2,7 +2,7 @@ export const site = {
   name: "Kai Yue Travel",
   legalNameDraft: "Kai Yue Travel Group",
   chineseName: "凱悅旅遊",
-  tagline: "Private chauffeur requests in Macau",
+  tagline: "Macau's premier luxury chauffeur service",
   description:
     "Request a private chauffeur in Macau. Submit a booking request and our team will confirm availability before any trip is confirmed.",
   url: "https://example.invalid",
@@ -17,6 +17,7 @@ export const site = {
   timezone: "Asia/Macau",
   locale: "en",
   contentStatus: "draft-unverified",
+  logo: "/images/logo.svg",
 } as const;
 
 export const nav = [
@@ -31,7 +32,7 @@ export const nav = [
 export const services = [
   {
     slug: "airport-transfer",
-    serviceType: "airport_transfer",
+    serviceType: "airport_transfer" as const,
     title: "Airport transfer",
     summary: "Scheduled airport pickup or drop-off for arriving and departing guests.",
     description:
@@ -43,10 +44,11 @@ export const services = [
       "Flight-aware scheduling review",
     ],
     notIncluded: ["Guaranteed live flight tracking", "Automatic confirmation"],
+    icon: "plane",
   },
   {
     slug: "hotel-transfer",
-    serviceType: "hotel_transfer",
+    serviceType: "hotel_transfer" as const,
     title: "Hotel transfer",
     summary: "Point-to-point hotel pickup and drop-off around Macau.",
     description:
@@ -54,20 +56,22 @@ export const services = [
     useCases: ["Hotel check-in", "Inter-hotel moves", "Restaurant drop-off"],
     included: ["Private vehicle request", "Named passenger list"],
     notIncluded: ["Room booking", "Event tickets"],
+    icon: "building",
   },
   {
     slug: "point-to-point",
-    serviceType: "point_to_point",
+    serviceType: "point_to_point" as const,
     title: "Point to point",
     summary: "A single private journey between two addresses.",
     description: "Tell us pickup, destination, and timing. We confirm the request after review.",
     useCases: ["City transfers", "Meetings", "One-way journeys"],
     included: ["Direct journey request", "Passenger count and luggage notes"],
     notIncluded: ["Open-ended waiting unless requested as hourly charter"],
+    icon: "route",
   },
   {
     slug: "hourly-charter",
-    serviceType: "hourly_charter",
+    serviceType: "hourly_charter" as const,
     title: "Hourly charter",
     summary: "A dedicated vehicle for a block of time rather than a single drop-off.",
     description:
@@ -75,10 +79,11 @@ export const services = [
     useCases: ["Half-day movements", "Multiple stops", "Flexible itineraries"],
     included: ["Time-block request", "Itinerary notes"],
     notIncluded: ["Unlimited overtime without confirmation"],
+    icon: "clock",
   },
   {
     slug: "sightseeing",
-    serviceType: "sightseeing",
+    serviceType: "sightseeing" as const,
     title: "Macau sightseeing",
     summary: "Private sightseeing transport around Macau with a dedicated chauffeur.",
     description:
@@ -86,10 +91,11 @@ export const services = [
     useCases: ["City highlights", "Custom stops", "Family or guest touring"],
     included: ["Private vehicle request", "Suggested stop notes"],
     notIncluded: ["Guided tour tickets or attraction admission"],
+    icon: "map",
   },
   {
     slug: "corporate",
-    serviceType: "corporate",
+    serviceType: "corporate" as const,
     title: "Corporate transport",
     summary: "Executive and guest movements for companies, hotels, and event coordinators.",
     description:
@@ -97,6 +103,7 @@ export const services = [
     useCases: ["Executive travel", "Hotel guest programmes", "Event guest movements"],
     included: ["Named contact and company details", "Human follow-up"],
     notIncluded: ["Dispatch apps or live GPS in this release"],
+    icon: "briefcase",
   },
 ] as const;
 

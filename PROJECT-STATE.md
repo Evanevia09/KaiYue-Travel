@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-16  
 **Phase:** 1–3 scaffold — foundation, public site, booking/API, and lightweight admin  
 **Overall status:** Release 1 application scaffold implemented in-repo; not deployed; business facts still unverified  
-**Current objective:** Review the first vertical slice (public pages → shared booking form → Worker/D1 → notification stub → protected admin) and verify it in a non-production environment once Cloudflare/Resend accounts exist.
+**Current objective:** Continue Release 1 against the homepage mocks’ visual system while keeping unverified claims out of copy.
 
 ## Quick handoff
 
@@ -108,6 +108,13 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 - Decision/evidence: Workers-hosted Astro per current `@astrojs/cloudflare` docs; Pages no longer supported by the adapter.
 - Verified: `pnpm test` (24 tests), `pnpm typecheck`, and `pnpm --filter @kaiyue/web build`.
 - Not verified or follow-up: Cloudflare/Resend provisioning, deployed E2E, visual/accessibility QA, and business-approved copy.
+
+### 2026-09-16 — Public site visual match to homepage mocks
+
+- Changed: restyled the public site to the amber-gold luxury system (Playfair/Noto Serif headings, Inter/Noto Sans UI, full-bleed dark hero, gold CTAs, logo wordmark, service icon cards, dark footer).
+- Decision/evidence: coordinator stored mocks at `internal/design-refs/homepage-desktop.png` and `homepage-mobile.png`; this worker matched the existing Kai Yue visual language those mocks represent. Exact PNG files were not mounted on this VM. Unverified license/fleet/spec claims were not copied into copy.
+- Verified: `pnpm test` 24/24; `astro build`; desktop/mobile browser pass of the restyled homepage (hero, services, CTA, booking sheet).
+- Not verified or follow-up: pixel-perfect comparison to the original mock PNGs (files were not mounted on this worker); original photography CDN returned 403.
 
 ## Update template
 
