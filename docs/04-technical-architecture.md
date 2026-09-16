@@ -20,15 +20,15 @@ The exact Cloudflare packaging—Pages with Functions or a Workers-hosted Astro 
 
 ## Stack rationale
 
-| Choice | Why it fits | Boundary |
-|---|---|---|
-| Astro | Fast content pages with minimal browser JavaScript and strong SEO defaults | Do not force admin/form state into static components |
-| React islands | Mature state/form ecosystem for the widget and admin interactions | Hydrate only interactive regions |
-| Cloudflare Workers | One edge runtime for APIs and server behavior close to the deployed site | Design for the Workers runtime, not Node-only APIs |
-| Cloudflare D1 | Managed SQLite-style relational storage suited to a modest booking/inquiry workload | Review limits, migrations, backup/export, and recovery before launch |
-| Resend | Focused transactional email API and delivery visibility | Email is notification, not the source of truth |
-| Cloudflare Access | Removes custom password/session handling for a small internal team | Worker-side authorization and offboarding policy remain required |
-| GitHub + Cloudflare | Reviewable version history, automated previews, and repeatable releases | Protect branches and keep secrets out of Git |
+| Choice              | Why it fits                                                                         | Boundary                                                             |
+| ------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Astro               | Fast content pages with minimal browser JavaScript and strong SEO defaults          | Do not force admin/form state into static components                 |
+| React islands       | Mature state/form ecosystem for the widget and admin interactions                   | Hydrate only interactive regions                                     |
+| Cloudflare Workers  | One edge runtime for APIs and server behavior close to the deployed site            | Design for the Workers runtime, not Node-only APIs                   |
+| Cloudflare D1       | Managed SQLite-style relational storage suited to a modest booking/inquiry workload | Review limits, migrations, backup/export, and recovery before launch |
+| Resend              | Focused transactional email API and delivery visibility                             | Email is notification, not the source of truth                       |
+| Cloudflare Access   | Removes custom password/session handling for a small internal team                  | Worker-side authorization and offboarding policy remain required     |
+| GitHub + Cloudflare | Reviewable version history, automated previews, and repeatable releases             | Protect branches and keep secrets out of Git                         |
 
 ## Frontend responsibilities
 
@@ -92,11 +92,19 @@ A single-app layout is also acceptable at this scale; keep domain folders and sh
 - Keep user-visible strings centralized when multilingual support is likely.
 - Log metadata and IDs, not full messages, phone numbers, email addresses, or journey notes.
 
-## Key architecture decisions to confirm
+## Implementation defaults recorded 2026-09-16
 
-- Pages/Functions versus Workers deployment model.
-- Package manager and test runner.
-- Business timezone and localization plan.
-- Whether booking drafts may use session storage.
-- Whether staff actions send customer status emails in Release 1.
+These are proposed defaults used by the first application scaffold. They can be changed during review.
 
+- **Packaging:** Astro 7 with `@astrojs/cloudflare` on Cloudflare Workers. Cloudflare Pages is not used; current official adapter support is Workers-only.
+- **Package manager / tests:** pnpm workspaces and Vitest.
+- **Timezone / locale:** `Asia/Macau` display timezone; English-only public copy until multilingual support is approved.
+- **Draft persistence:** in-memory plus `sessionStorage` for journey fields only (service, locations, times, counts). Contact details are not written to storage.
+- **Status emails:** staff/customer status-change email is not sent in Release 1. Create-time staff notification is attempted only when `RESEND_API_KEY` is present.
+- **Admin auth:** Cloudflare Access JWT verification when `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are set. `DEV_ADMIN_BYPASS=true` is honored only when `ENVIRONMENT=development`.
+
+## Remaining architecture decisions
+
+- Production promotion/approval model and Access policy details.
+- Error-monitoring and consent-compliant analytics choices.
+- Whether customer acknowledgements are required at launch in addition to staff alerts.

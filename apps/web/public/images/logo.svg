@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 48" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">Kai Yue Travel Group</title>
+  <polygon fill="#12B5ED" points="0,2 14,2 14,22 6,19 0,15"/>
+  <polygon fill="#2ECC71" points="0,46 14,46 14,26 6,29 0,33"/>
+  <polygon fill="#F5C518" points="16,2 40,2 40,13 28,19 16,13"/>
+  <polygon fill="#F39200" points="16,46 40,46 40,35 28,29 16,35"/>
+  <text x="52" y="22" fill="#d08a24" font-family="Inter, Noto Sans TC, system-ui, sans-serif" font-size="13" font-weight="700" letter-spacing="1.6">KAI YUE TRAVEL GROUP</text>
+  <text x="52" y="40" fill="#d08a24" font-family="Noto Sans TC, Inter, sans-serif" font-size="12" font-weight="600">??????</text>
+</svg>

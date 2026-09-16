@@ -1,0 +1,47 @@
+---
+import "../styles/global.css";
+
+type Props = {
+  title: string;
+};
+
+const { title } = Astro.props;
+const path = Astro.url.pathname;
+const links = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/bookings", label: "Bookings" },
+  { href: "/admin/calendar", label: "Calendar" },
+  { href: "/admin/contacts", label: "Contacts" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · Admin</title>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="admin-nav">
+        <p><strong>Kai Yue Admin</strong></p>
+        <nav aria-label="Admin">
+          {
+            links.map((link) => (
+              <a href={link.href} aria-current={path === link.href ? "page" : undefined}>
+                {link.label}
+              </a>
+            ))
+          }
+        </nav>
+        <p class="draft-note">Protected by Cloudflare Access in deployed environments.</p>
+      </aside>
+      <div class="admin-main">
+        <h1>{title}</h1>
+        <slot />
+      </div>
+    </div>
+  </body>
+</html>

@@ -14,6 +14,8 @@ This folder is the build guide for the Kai Yue Travel website. It records the ag
 - Cloudflare Access is preferred for admin protection.
 - GitHub is the source of truth and drives Cloudflare deployments.
 
+Homepage visual mocks live in `design-refs/homepage-desktop.png` and `design-refs/homepage-mobile.png`. They are the visual source of truth for public-site color, type, layout, and booking-card chrome.
+
 ## Documentation map
 
 1. [Product scope and delivery principles](01-product-scope.md)

@@ -1,0 +1,9 @@
+---
+export const prerender = false;
+import { CalendarPanel } from "../../components/admin/CalendarPanel.tsx";
+import AdminLayout from "../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Calendar">
+  <CalendarPanel client:load />
+</AdminLayout>

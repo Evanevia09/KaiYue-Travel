@@ -20,10 +20,11 @@ Dedicated service routes should exist only for confirmed, sufficiently distinct 
 
 ## Navigation
 
-- Primary: Services, Fleet, Corporate, About, FAQ, Contact.
-- Persistent action: Book now.
+- Primary header (from the homepage mocks): Home, Services, Corporate, About, Contact.
+- Fleet and FAQ remain published routes and appear in the footer.
+- Persistent action: gold “Need Help?” phone pill in the desktop header; Book now on inner pages and as a mobile sticky control except on the homepage, where the form is inline.
 - Corporate is visible but does not compete visually with the consumer booking action.
-- On mobile, use a compact menu and a separate persistent booking trigger.
+- On mobile, use a compact menu and a separate persistent booking trigger except on the homepage.
 
 ## Content model
 

@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+import { BookingDetailPanel } from "../../../components/admin/BookingDetailPanel.tsx";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+const reference = Astro.params.reference ?? "";
+---
+
+<AdminLayout title={`Booking ${reference}`}>
+  <p><a href="/admin/bookings">Back to bookings</a></p>
+  <BookingDetailPanel client:load reference={reference} />
+</AdminLayout>

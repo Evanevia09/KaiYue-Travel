@@ -1,0 +1,11 @@
+---
+export const prerender = false;
+import { ContactsPanel } from "../../../components/admin/ContactsPanel.tsx";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+const status = Astro.url.searchParams.get("status") ?? "";
+---
+
+<AdminLayout title="Contacts">
+  <ContactsPanel client:load initialStatus={status} />
+</AdminLayout>

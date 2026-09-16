@@ -6,9 +6,25 @@ The agreed direction is a B2C-first, booking-focused website with secondary corp
 
 ## Current status
 
-The project is in the **planning and documentation phase**. This repository currently establishes the business reference, Release 1 scope, design and architecture guidance, delivery controls, and agent operating rules. Application implementation and production deployment are not yet verified.
+Release 1 is **scaffolded in this repository** and is **not deployed**. The public Astro site, shared booking form, Workers API, D1 migration, Resend placeholders, and lightweight admin are present. Business facts, Cloudflare/Resend accounts, and production verification remain open.
 
 Read [PROJECT-STATE.md](PROJECT-STATE.md) for the latest status, open decisions, and next action.
+
+## Local development
+
+```bash
+pnpm install
+cp .env.example apps/web/.dev.vars
+pnpm test
+pnpm dev
+```
+
+- Public site: `http://localhost:4321`
+- Booking fallback: `/booking`
+- Admin (development bypass only): `/admin`
+- API: `/api/v1/*`
+
+Do not put live secrets in Git. Leave `RESEND_API_KEY` empty to stub notifications; bookings and inquiries still persist when a D1 binding is available.
 
 ## Start here
 
@@ -53,5 +69,3 @@ Read these files in order before making changes:
 ## Documentation maintenance
 
 `PROJECT-STATE.md` is the living handoff document. Update it after meaningful work so the next person or agent can quickly understand what is confirmed, what changed, what remains open, what was verified, and what should happen next.
-
-

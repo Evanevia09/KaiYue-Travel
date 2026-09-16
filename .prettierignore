@@ -1,0 +1,12 @@
+node_modules
+dist
+.astro
+.wrangler
+pnpm-lock.yaml
+coverage
+test-results
+playwright-report
+worker-configuration.d.ts
+AGENTS.md
+BUSINESS_INFORMATION.md
+docs

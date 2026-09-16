@@ -1,0 +1,11 @@
+ENVIRONMENT=development
+PUBLIC_SITE_URL=http://localhost:4321
+BUSINESS_TIMEZONE=Asia/Macau
+BOOKING_NOTICE_HOURS=24
+RESEND_API_KEY=
+RESEND_FROM=Kai Yue Travel <notifications@example.invalid>
+RESEND_STAFF_TO=ops@example.invalid
+RESEND_REPLY_TO=
+ACCESS_TEAM_DOMAIN=
+ACCESS_AUD=
+DEV_ADMIN_BYPASS=true
