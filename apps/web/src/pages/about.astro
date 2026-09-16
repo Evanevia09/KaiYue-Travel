@@ -1,0 +1,34 @@
+---
+import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../lib/site.ts";
+---
+
+<BaseLayout
+  title="About"
+  description="Kai Yue Travel is a Macau-based chauffeur request service. Public claims remain under review."
+>
+  <section class="wrap section">
+    <h1>About Kai Yue Travel</h1>
+    <p class="lede">
+      {site.name} helps guests request private chauffeur journeys in Macau. The website’s job is to make
+      that request clear, then let the operations team confirm it.
+    </p>
+    <div class="card">
+      <h2>What we will not claim yet</h2>
+      <p>
+        License status, commercial partnerships, fleet size, cross-border coverage, testimonials,
+        and vehicle specifications are recorded as source material for review. They are not
+        presented here as verified facts.
+      </p>
+      <p>
+        Contact details shown on this site come from the existing public listing and still require
+        business-owner reconfirmation before launch.
+      </p>
+    </div>
+    <p style="margin-top: 2rem;">
+      <BookingLauncher client:load sourcePage="/about" sourceTrigger="about-cta" />
+      <a class="btn btn--secondary" href="/contact">Contact</a>
+    </p>
+  </section>
+</BaseLayout>

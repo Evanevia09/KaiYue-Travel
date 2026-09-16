@@ -1,0 +1,116 @@
+---
+import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
+import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { faqs, services, site } from "../lib/site.ts";
+---
+
+<BaseLayout title="Private chauffeur requests" description={site.description}>
+  <section class="wrap hero">
+    <div class="hero__copy">
+      <p class="muted">Macau · request-based chauffeur service</p>
+      <h1>Travel with a private chauffeur, confirmed by people—not an automatic checkout.</h1>
+      <p class="lede">
+        Tell us the journey. We review the request, confirm availability, and only then treat it as
+        a booking.
+      </p>
+      <ul class="reassurance">
+        <li>One form on desktop and mobile</li>
+        <li>Human confirmation after every request</li>
+        <li>Quote-based — no online payment in this release</li>
+      </ul>
+    </div>
+    <div class="hero-booking">
+      <BookingEmbedded client:load sourcePage="/" />
+    </div>
+  </section>
+
+  <section class="section section--muted">
+    <div class="wrap">
+      <h2>Services you can request</h2>
+      <div class="grid-3">
+        {
+          services.slice(0, 6).map((service) => (
+            <article class="card">
+              <h3>
+                <a href={`/services/${service.slug}`}>{service.title}</a>
+              </h3>
+              <p>{service.summary}</p>
+              <BookingLauncher
+                client:load
+                sourcePage="/"
+                sourceTrigger={`home-${service.slug}`}
+                serviceType={service.serviceType}
+                label="Book this service"
+                className="btn btn--secondary"
+              />
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap grid-2">
+      <div>
+        <h2>How booking works</h2>
+        <ol class="steps">
+          <li><strong>Request.</strong> Share journey and contact details.</li>
+          <li><strong>Review.</strong> The team checks timing, vehicle fit, and notes.</li>
+          <li>
+            <strong>Confirmation.</strong> You receive a separate confirmation if the trip can proceed.
+          </li>
+        </ol>
+      </div>
+      <div>
+        <h2>Fleet and comfort</h2>
+        <p>
+          We arrange premium private vehicles for the request. Specific models, seat counts, and
+          features are confirmed when the team replies—not claimed automatically on this page.
+        </p>
+        <a href="/fleet">See the fleet page</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--muted">
+    <div class="wrap grid-2">
+      <div>
+        <h2>Corporate travel</h2>
+        <p>
+          Hotels, companies, and event coordinators can send a programme inquiry instead of a single
+          trip request.
+        </p>
+        <a class="btn btn--secondary" href="/corporate">Corporate inquiry</a>
+      </div>
+      <div>
+        <h2>Questions</h2>
+        {
+          faqs.slice(0, 3).map((item) => (
+            <details>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>Ready when you are</h2>
+      <p>Open the same booking form from any page.</p>
+      <BookingLauncher client:load sourcePage="/" sourceTrigger="final-cta" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  @media (max-width: 879px) {
+    .hero-booking {
+      display: none;
+    }
+  }
+</style>

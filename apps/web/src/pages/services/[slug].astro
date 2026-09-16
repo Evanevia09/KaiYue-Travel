@@ -1,0 +1,44 @@
+---
+import { BookingLauncher } from "../../components/booking/BookingLauncher.tsx";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { services } from "../../lib/site.ts";
+
+export function getStaticPaths() {
+  return services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+
+const { service } = Astro.props;
+---
+
+<BaseLayout title={service.title} description={service.summary}>
+  <article class="wrap section">
+    <p><a href="/services">All services</a></p>
+    <h1>{service.title}</h1>
+    <p class="lede">{service.description}</p>
+    <BookingLauncher
+      client:load
+      sourcePage={`/services/${service.slug}`}
+      sourceTrigger="service-detail"
+      serviceType={service.serviceType}
+      label="Book this service"
+    />
+    <div class="grid-2" style="margin-top: 2rem;">
+      <div class="card">
+        <h2>Typical uses</h2>
+        <ul>
+          {service.useCases.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Included in the request</h2>
+        <ul>
+          {service.included.map((item) => <li>{item}</li>)}
+        </ul>
+        <h3>Not included</h3>
+        <ul>
+          {service.notIncluded.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+    </div>
+  </article>
+</BaseLayout>

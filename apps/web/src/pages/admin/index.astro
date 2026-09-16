@@ -1,0 +1,9 @@
+---
+export const prerender = false;
+import { DashboardPanel } from "../../components/admin/DashboardPanel.tsx";
+import AdminLayout from "../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Dashboard">
+  <DashboardPanel client:load />
+</AdminLayout>

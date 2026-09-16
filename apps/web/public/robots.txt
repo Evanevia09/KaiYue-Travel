@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /booking/confirmation
+Disallow: /api/
+
+Sitemap: /sitemap-index.xml

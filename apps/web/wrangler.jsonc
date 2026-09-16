@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kaiyue-travel",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-dev",
+      // Placeholder only. Replace per environment after a D1 database is created.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../../migrations",
+    },
+  ],
+  "vars": {
+    "ENVIRONMENT": "development",
+    "PUBLIC_SITE_URL": "http://localhost:4321",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "RESEND_FROM": "Kai Yue Travel <notifications@example.invalid>",
+    "RESEND_STAFF_TO": "ops@example.invalid",
+    "RESEND_REPLY_TO": "",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "DEV_ADMIN_BYPASS": "true",
+  },
+}

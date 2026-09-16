@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+import { ContactDetailPanel } from "../../../components/admin/ContactDetailPanel.tsx";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+const id = Astro.params.id ?? "";
+---
+
+<AdminLayout title="Inquiry">
+  <p><a href="/admin/contacts">Back to contacts</a></p>
+  <ContactDetailPanel client:load id={id} />
+</AdminLayout>

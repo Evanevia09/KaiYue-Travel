@@ -1,0 +1,22 @@
+---
+import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { faqs } from "../lib/site.ts";
+---
+
+<BaseLayout title="FAQ" description="How chauffeur requests, confirmation, and quotes work.">
+  <section class="wrap section">
+    <h1>Frequently asked questions</h1>
+    {
+      faqs.map((item) => (
+        <details>
+          <summary>{item.question}</summary>
+          <p>{item.answer}</p>
+        </details>
+      ))
+    }
+    <p style="margin-top: 2rem;">
+      <BookingLauncher client:load sourcePage="/faq" sourceTrigger="faq-cta" />
+    </p>
+  </section>
+</BaseLayout>

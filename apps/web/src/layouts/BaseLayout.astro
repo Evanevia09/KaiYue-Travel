@@ -1,0 +1,85 @@
+---
+import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
+import { BookingSheet } from "../components/booking/BookingSheet.tsx";
+import { nav, site } from "../lib/site.ts";
+import "../styles/global.css";
+
+type Props = {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+};
+
+const { title, description = site.description, noindex = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
+const path = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {site.name}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:title" content={`${title} · ${site.name}`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap site-header__inner">
+        <a class="logo" href="/">
+          <strong>{site.name}</strong>
+          <span>{site.chineseName}</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          {
+            nav.map((item) => (
+              <a href={item.href} aria-current={path.startsWith(item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+        <div class="header-actions">
+          <BookingLauncher client:load sourcePage={path} sourceTrigger="header" />
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <div class="mobile-book">
+      <BookingLauncher
+        client:load
+        sourcePage={path}
+        sourceTrigger="mobile-persistent"
+        label="Book a chauffeur"
+      />
+    </div>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p><strong>{site.name}</strong> · {site.chineseName}</p>
+        <p>{site.addressLines.join(", ")}</p>
+        <p>
+          <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
+          · <a href="/contact">Contact</a>
+          · <a href="/corporate">Corporate</a>
+          · <a href="/privacy">Privacy</a>
+          · <a href="/terms">Terms</a>
+        </p>
+        <p class="draft-note">
+          Public copy is draft. License, fleet, coverage, and commercial claims are not published as
+          verified facts.
+        </p>
+      </div>
+    </footer>
+    <BookingSheet client:load />
+  </body>
+</html>

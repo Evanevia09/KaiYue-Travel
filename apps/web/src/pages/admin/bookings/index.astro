@@ -1,0 +1,11 @@
+---
+export const prerender = false;
+import { BookingsPanel } from "../../../components/admin/BookingsPanel.tsx";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+const status = Astro.url.searchParams.get("status") ?? "";
+---
+
+<AdminLayout title="Bookings">
+  <BookingsPanel client:load initialStatus={status} />
+</AdminLayout>
