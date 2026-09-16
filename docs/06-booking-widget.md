@@ -14,8 +14,8 @@ The variants share fields, validation, request payload, analytics names, error h
 
 Use a single screen if the final field count remains short. Otherwise use these three steps:
 
-1. **Journey:** service type, pickup, destination, pickup date/time, optional return.
-2. **Passengers:** passenger/luggage count, optional vehicle preference, optional notes.
+1. **Journey:** pickup, destination, service type, pickup date/time, passengers (matches the homepage mock’s first screen).
+2. **Details:** optional return, luggage count, optional vehicle preference, optional notes.
 3. **Contact and review:** name, phone, optional email/company, privacy acknowledgement, summary, submit.
 
 Conditional fields must be driven by the selected service type and approved business rules—not duplicated per page.

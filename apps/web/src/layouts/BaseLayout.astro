@@ -1,18 +1,28 @@
 ---
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
-import { nav, site } from "../lib/site.ts";
+import { footerNav, nav, site } from "../lib/site.ts";
 import "../styles/global.css";
 
 type Props = {
   title: string;
   description?: string;
   noindex?: boolean;
+  showMobileBook?: boolean;
 };
 
-const { title, description = site.description, noindex = false } = Astro.props;
+const {
+  title,
+  description = site.description,
+  noindex = false,
+  showMobileBook = true,
+} = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
 const path = Astro.url.pathname;
+
+function isCurrent(href: string) {
+  return href === "/" ? path === "/" : path.startsWith(href);
+}
 ---
 
 <!doctype html>
@@ -31,46 +41,57 @@ const path = Astro.url.pathname;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&family=Playfair+Display:wght@600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
     <slot name="head" />
   </head>
-  <body>
+  <body class:list={{ "page-no-mobile-book": !showMobileBook }}>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap site-header__inner">
         <a class="logo" href="/">
-          <span class="logo-mark" aria-hidden="true">凱</span>
+          <img class="logo-mark" src="/images/mark.svg" width="40" height="40" alt="" />
           <span class="logo-text">
-            <strong>KAI YUE</strong>
-            <span>TRAVEL · {site.chineseName}</span>
+            <strong>{site.legalNameDraft.toUpperCase()}</strong>
+            <span>{site.chineseGroupName}</span>
           </span>
         </a>
         <nav class="nav" aria-label="Primary">
           {
             nav.map((item) => (
-              <a href={item.href} aria-current={path.startsWith(item.href) ? "page" : undefined}>
+              <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
                 {item.label}
               </a>
             ))
           }
         </nav>
         <div class="header-actions">
-          <BookingLauncher client:load sourcePage={path} sourceTrigger="header" />
+          {path !== "/" && <BookingLauncher client:load sourcePage={path} sourceTrigger="header" />}
+          <a class="help-pill" href={`tel:${site.phone.replaceAll(" ", "")}`}>
+            <span class="help-pill__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M6.6 4.8c.4-.8 1.3-1.2 2.2-1l2 .5c.8.2 1.3 1 1.2 1.9l-.3 2.1c-.1.6-.4 1.1-1 1.4l-1.3.7c.9 1.8 2.4 3.3 4.3 4.3l.7-1.3c.3-.5.8-.9 1.4-1l2.1-.3c.9-.1 1.7.4 1.9 1.2l.5 2c.2.9-.2 1.8-1 2.2-1.2.6-2.6.9-4 .9C10.4 20.4 4 14 4 6.8c0-1.4.3-2.8.9-4z"
+                  fill="currentColor"></path>
+              </svg>
+            </span>
+            <span>
+              <small>Need Help?</small>
+              {site.phone}
+            </span>
+          </a>
           <details class="mobile-nav">
             <summary class="btn btn--ghost" aria-label="Open menu">Menu</summary>
             <nav class="mobile-nav__panel" aria-label="Mobile">
               {
                 nav.map((item) => (
-                  <a
-                    href={item.href}
-                    aria-current={path.startsWith(item.href) ? "page" : undefined}
-                  >
+                  <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
                     {item.label}
                   </a>
                 ))
               }
+              <a href={`tel:${site.phone.replaceAll(" ", "")}`}>Call {site.phone}</a>
             </nav>
           </details>
         </div>
@@ -91,10 +112,10 @@ const path = Astro.url.pathname;
       <div class="wrap site-footer__grid">
         <div>
           <a class="logo" href="/">
-            <span class="logo-mark" aria-hidden="true">凱</span>
+            <img class="logo-mark" src="/images/mark.svg" width="40" height="40" alt="" />
             <span class="logo-text">
-              <strong>KAI YUE</strong>
-              <span>TRAVEL · {site.chineseName}</span>
+              <strong>{site.legalNameDraft.toUpperCase()}</strong>
+              <span>{site.chineseGroupName}</span>
             </span>
           </a>
           <p>{site.chineseName}</p>
@@ -106,10 +127,13 @@ const path = Astro.url.pathname;
         <div>
           <h2>Explore</h2>
           <ul>
-            <li><a href="/services">Services</a></li>
-            <li><a href="/fleet">Fleet</a></li>
-            <li><a href="/booking">Book now</a></li>
-            <li><a href="/contact">Contact</a></li>
+            {
+              footerNav.map((item) => (
+                <li>
+                  <a href={item.href}>{item.label}</a>
+                </li>
+              ))
+            }
           </ul>
         </div>
         <div>
@@ -117,6 +141,7 @@ const path = Astro.url.pathname;
           <ul>
             <li><a href="/about">About</a></li>
             <li><a href="/corporate">Corporate</a></li>
+            <li><a href="/faq">FAQ</a></li>
             <li><a href="/privacy">Privacy</a></li>
             <li><a href="/terms">Terms</a></li>
           </ul>

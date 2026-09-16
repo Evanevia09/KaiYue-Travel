@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="markTitle">
+  <title id="markTitle">Kai Yue Travel</title>
+  <!-- Geometric K: cyan / green stem, yellow / orange arms -->
+  <polygon fill="#12B5ED" points="4,3 18,3 18,23 10,20 4,16"/>
+  <polygon fill="#2ECC71" points="4,45 18,45 18,25 10,28 4,32"/>
+  <polygon fill="#F5C518" points="20,3 44,3 44,14 32,20 20,14"/>
+  <polygon fill="#F39200" points="20,45 44,45 44,34 32,28 20,34"/>
+</svg>

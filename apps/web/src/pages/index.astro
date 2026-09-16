@@ -7,36 +7,34 @@ import { faqs, services, site } from "../lib/site.ts";
 const featured = services.slice(0, 4);
 ---
 
-<BaseLayout title="Private chauffeur requests" description={site.description}>
+<BaseLayout
+  title="Private chauffeur requests"
+  description={site.description}
+  showMobileBook={false}
+>
   <section class="hero">
+    <div class="hero__visual">
+      <img
+        src="/images/hero-vehicle.jpg"
+        width="860"
+        height="400"
+        alt="Private chauffeur vehicle on a plaza in Macau"
+      />
+    </div>
     <div class="wrap hero__inner">
       <div class="hero__copy">
-        <p class="kicker">Macau · private chauffeur requests</p>
-        <h1>Macau’s premier luxury chauffeur service</h1>
-        <p class="lede">Private journeys, reviewed by people—then confirmed.</p>
-        <div class="hero-actions" style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;">
-          <BookingLauncher client:load sourcePage="/" sourceTrigger="hero-cta" label="Book now" />
-          <a class="btn btn--on-dark" href="/about">Learn more</a>
-        </div>
+        <p class="kicker">Explore Macao with confidence</p>
+        <h1>Private Car &amp; Chauffeur Service in Macau</h1>
+        <p class="hero-services">
+          Airport transfers · City travel · Sightseeing · Corporate transport
+        </p>
+        <p class="lede">
+          Your travel partner in Macau. Comfortable journeys for every occasion. Submit a request
+          and a person confirms availability before any trip is treated as booked.
+        </p>
       </div>
       <div class="hero-booking">
         <BookingEmbedded client:load sourcePage="/" />
-      </div>
-    </div>
-    <div class="hero-stats">
-      <div class="wrap hero-stats__grid">
-        <div>
-          <strong>Request</strong>
-          <span>Share the journey</span>
-        </div>
-        <div>
-          <strong>Review</strong>
-          <span>The team checks fit</span>
-        </div>
-        <div>
-          <strong>Confirm</strong>
-          <span>Only then is it booked</span>
-        </div>
       </div>
     </div>
   </section>
@@ -68,7 +66,7 @@ const featured = services.slice(0, 4);
         <a class="btn btn--secondary" href="/about">Learn more</a>
       </div>
       <div class="grid-2">
-        <div class="photo-tile" role="img" aria-label="Representative luxury chauffeur vehicle">
+        <div class="photo-tile" role="img" aria-label="Representative private chauffeur vehicle">
         </div>
         <div class="photo-tile" role="img" aria-label=""></div>
         <div class="photo-tile" role="img" aria-label=""></div>
@@ -81,7 +79,7 @@ const featured = services.slice(0, 4);
     <div class="wrap">
       <div class="section-heading section-heading--center">
         <p class="eyebrow">Services</p>
-        <h2>Professional luxury chauffeur requests</h2>
+        <h2>Private chauffeur requests</h2>
         <hr class="gold-rule" />
       </div>
       <div class="grid-4">

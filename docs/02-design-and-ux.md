@@ -2,21 +2,21 @@
 
 ## Experience direction
 
-The interface should feel premium, calm, dependable, and easy to act on. Visual polish must support clarity rather than add friction. The booking action is the dominant interaction; corporate content remains visible but secondary.
+The public site’s visual source of truth is the homepage mocks at `docs/design-refs/homepage-desktop.png` and `docs/design-refs/homepage-mobile.png`: bright teal-and-gold, sans-serif type, a light Macau plaza scene, and a booking card with a teal header and gold primary action. Visual polish must support clarity rather than add friction. The booking action is the dominant interaction; corporate content remains visible but secondary.
 
 ## Design tokens
 
-Final brand values require approval. Until then, implement semantic tokens rather than hard-coded colors.
+Final brand values still require owner approval. Current public-site tokens are derived from the homepage mocks and are not a substitute for that approval.
 
 ```css
 :root {
-  --color-brand: /* approved primary */;
-  --color-accent: /* approved CTA */;
+  --color-brand: #039a9e;
+  --color-accent: #e3a531;
   --color-surface: #ffffff;
-  --color-surface-muted: #f5f6f8;
-  --color-text: #17191c;
-  --color-text-muted: #5c626b;
-  --color-border: #d9dde3;
+  --color-surface-muted: #f4fafc;
+  --color-text: #1f2933;
+  --color-text-muted: #5c6b76;
+  --color-border: #e4e8ee;
   --color-success: #18794e;
   --color-warning: #9a6700;
   --color-danger: #b42318;
@@ -34,15 +34,16 @@ Final brand values require approval. Until then, implement semantic tokens rathe
 }
 ```
 
-- Use one approved display/body family with system fallbacks; limit the weight set.
+- Use Inter / Noto Sans TC with system fallbacks; limit the weight set. Headlines are bold sans-serif teal, not serif.
 - Use a consistent 4 px spacing base and restrained corner radius/shadow scale.
 - Meet WCAG 2.2 AA contrast. Color never carries status alone.
 
 ## Page layout
 
-- **Header:** logo, concise primary navigation, corporate link, contact route, and visually dominant “Book now”.
-- **Desktop hero:** clear headline and reassurance on one side; embedded booking widget on the other. Keep the primary form visible without requiring a scroll at common laptop sizes.
-- **Mobile:** compact header plus persistent bottom booking CTA where it does not obscure content. The CTA opens the reusable bottom sheet.
+- **Header:** colorful geometric K mark, gold “KAI YUE TRAVEL GROUP / 凱悅旅遊集團” lockup, concise primary navigation, and a gold “Need Help?” phone pill. Desktop inner pages also keep a Book now control; the homepage does not, because the form is already visible.
+- **Desktop hero:** light sky Macau scene; teal headline and service line on the left; vehicle photography lower-left; embedded booking widget overlaying the right. Keep the primary form visible without requiring a scroll at common laptop sizes.
+- **Mobile homepage:** stacked copy, vehicle photo, then the same booking card. No persistent bottom booking bar on the homepage.
+- **Other mobile pages:** compact header plus persistent bottom booking CTA where it does not obscure content. The CTA opens the reusable bottom sheet.
 - **Content sections:** short introduction, services, fleet, reasons to trust, process, testimonial/proof only when verified, FAQ, and final CTA.
 - **Footer:** business contact details, service area, corporate route, legal links, and copyright.
 

@@ -3,13 +3,13 @@
 **Last updated:** 2026-09-16  
 **Phase:** 1–3 scaffold — foundation, public site, booking/API, and lightweight admin  
 **Overall status:** Release 1 application scaffold implemented in-repo; not deployed; business facts still unverified  
-**Current objective:** Continue Release 1 against the homepage mocks’ visual system while keeping unverified claims out of copy.
+**Current objective:** Continue Release 1 against the in-repo homepage mocks while keeping unverified claims out of copy.
 
 ## Quick handoff
 
-Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. Desktop home embeds the booking widget; other pages open the same form as a bottom sheet; `/booking` is the no-JS-enhancement fallback. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
+Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. Desktop home embeds the booking widget; the homepage also shows that form on mobile, stacked under the vehicle photo. Other pages open the same form as a bottom sheet; `/booking` is the no-JS-enhancement fallback. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
-No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. Public copy is conservative and does not publish unverified license, partnership, fleet-size, cross-border, testimonial, or vehicle-specification claims.
+No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. Public copy is conservative and does not publish unverified license, partnership, fleet-size, cross-border, testimonial, or vehicle-specification claims. CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
 ## Confirmed decisions
 
@@ -34,7 +34,8 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
   - `migrations/0001_init.sql` — bookings, contacts, notes, audit, idempotency, rate limits
   - Vitest unit/integration tests and GitHub Actions CI
 - Local/integration tests cover booking create + idempotency, contact validation, admin allow/deny, and audited status transitions.
-- Production build and browser/end-to-end verification against workerd/D1 are not yet complete at the time this status was written.
+- Public-site visual system is matched to `docs/design-refs/homepage-desktop.png` and `docs/design-refs/homepage-mobile.png` (teal/gold/white, sans-serif, Macau plaza + vehicle hero, teal booking header, gold CTA).
+- GitHub Actions `check` job is pinned to the `package.json` `packageManager` version only.
 
 ## Not yet verified or implemented
 
@@ -79,11 +80,11 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 
 ## Next recommended actions
 
-1. Review this scaffold and the draft PR.
+1. Review this scaffold and the draft PR against the homepage mocks.
 2. Confirm service types, booking fields, and customer confirmation language.
 3. Provision non-production Cloudflare Workers, D1, Access, and Resend placeholders—without committing secrets.
 4. Apply `migrations/0001_init.sql` to a local/preview D1 and verify the slice with real bindings.
-5. Continue business validation of facts before replacing draft copy.
+5. Continue business validation of facts before replacing draft copy. Commission original photography to replace the mock-derived hero crop.
 
 ## Verification record
 
@@ -115,6 +116,13 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 - Decision/evidence: coordinator stored mocks at `internal/design-refs/homepage-desktop.png` and `homepage-mobile.png`; this worker matched the existing Kai Yue visual language those mocks represent. Exact PNG files were not mounted on this VM. Unverified license/fleet/spec claims were not copied into copy.
 - Verified: `pnpm test` 24/24; `astro build`; desktop/mobile browser pass of the restyled homepage (hero, services, CTA, booking sheet).
 - Not verified or follow-up: pixel-perfect comparison to the original mock PNGs (files were not mounted on this worker); original photography CDN returned 403.
+
+### 2026-09-16 — Restyle to in-repo homepage mocks and CI pnpm pin
+
+- Changed: public site now follows `docs/design-refs/homepage-desktop.png` and `homepage-mobile.png` (teal headlines, gold CTAs, white header, colorful K mark, stacked mobile booking card, vehicle crop from the mock). Header nav matches the mock (Home, Services, Corporate, About, Contact). Booking chrome is a teal “Book Your Journey” header with a gold full-width action. CI `pnpm/action-setup` no longer sets `version`; `packageManager: pnpm@10.15.0` is the single source.
+- Decision/evidence: user designated the in-repo mocks as visual source of truth. Mock help number `+853 6288 1234` and Greater Bay Area copy were not published; phone remains the source-listed `+853 2833 8882`.
+- Verified: recorded after automated checks and browser review in this change.
+- Not verified or follow-up: original licensed photography, owner-approved brand tokens, language switcher, deployed preview.
 
 ## Update template
 

@@ -2,7 +2,8 @@ export const site = {
   name: "Kai Yue Travel",
   legalNameDraft: "Kai Yue Travel Group",
   chineseName: "凱悅旅遊",
-  tagline: "Macau's premier luxury chauffeur service",
+  chineseGroupName: "凱悅旅遊集團",
+  tagline: "Private Car & Chauffeur Service in Macau",
   description:
     "Request a private chauffeur in Macau. Submit a booking request and our team will confirm availability before any trip is confirmed.",
   url: "https://example.invalid",
@@ -21,11 +22,17 @@ export const site = {
 } as const;
 
 export const nav = [
+  { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
-  { href: "/fleet", label: "Fleet" },
   { href: "/corporate", label: "Corporate" },
   { href: "/about", label: "About" },
-  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact" },
+] as const;
+
+export const footerNav = [
+  { href: "/services", label: "Services" },
+  { href: "/fleet", label: "Fleet" },
+  { href: "/booking", label: "Book now" },
   { href: "/contact", label: "Contact" },
 ] as const;
 

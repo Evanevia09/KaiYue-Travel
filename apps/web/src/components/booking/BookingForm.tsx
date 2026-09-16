@@ -10,7 +10,7 @@ import {
   updateDraft,
 } from "./store.ts";
 
-const steps = ["Journey", "Passengers", "Contact"] as const;
+const steps = ["Journey", "Details", "Contact"] as const;
 
 async function submitBooking(): Promise<void> {
   const current = getBookingState();
@@ -124,10 +124,15 @@ export function BookingForm() {
         void submitBooking();
       }}
     >
-      <ol className="muted" style={{ display: "flex", gap: "1rem", padding: 0, listStyle: "none" }}>
+      <ol className="booking-steps">
         {steps.map((label, index) => (
-          <li key={label} aria-current={step === index + 1 ? "step" : undefined}>
-            {index + 1}. {label}
+          <li
+            key={label}
+            className={step > index + 1 ? "is-done" : undefined}
+            aria-current={step === index + 1 ? "step" : undefined}
+          >
+            <span className="booking-steps__num">{index + 1}</span>
+            {label}
           </li>
         ))}
       </ol>
@@ -140,9 +145,38 @@ export function BookingForm() {
       ) : null}
 
       {step === 1 ? (
-        <>
+        <div className="booking-fields booking-fields--journey">
           <div className="field">
-            <label htmlFor="serviceType">Service type</label>
+            <label htmlFor="pickupLocation">Pickup Location</label>
+            <input
+              id="pickupLocation"
+              value={draft.pickupLocation}
+              onChange={(event) => updateDraft({ pickupLocation: event.target.value })}
+              placeholder="e.g. Macau International Airport"
+              autoComplete="street-address"
+            />
+            {fieldErrors.pickupLocation ? (
+              <p className="field-error">{fieldErrors.pickupLocation}</p>
+            ) : null}
+          </div>
+          <div className="field">
+            <label htmlFor="destination">Destination</label>
+            <input
+              id="destination"
+              value={draft.destination}
+              onChange={(event) => updateDraft({ destination: event.target.value })}
+              placeholder={
+                draft.serviceType === "hourly_charter"
+                  ? "Optional for hourly charter"
+                  : "e.g. Macau hotel / city / other"
+              }
+            />
+            {fieldErrors.destination ? (
+              <p className="field-error">{fieldErrors.destination}</p>
+            ) : null}
+          </div>
+          <div className="field">
+            <label htmlFor="serviceType">Service Type</label>
             <select
               id="serviceType"
               value={draft.serviceType}
@@ -158,33 +192,7 @@ export function BookingForm() {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="pickupLocation">Pickup location</label>
-            <input
-              id="pickupLocation"
-              value={draft.pickupLocation}
-              onChange={(event) => updateDraft({ pickupLocation: event.target.value })}
-              autoComplete="street-address"
-            />
-            {fieldErrors.pickupLocation ? (
-              <p className="field-error">{fieldErrors.pickupLocation}</p>
-            ) : null}
-          </div>
-          <div className="field">
-            <label htmlFor="destination">Destination</label>
-            <input
-              id="destination"
-              value={draft.destination}
-              onChange={(event) => updateDraft({ destination: event.target.value })}
-              placeholder={
-                draft.serviceType === "hourly_charter" ? "Optional for hourly charter" : ""
-              }
-            />
-            {fieldErrors.destination ? (
-              <p className="field-error">{fieldErrors.destination}</p>
-            ) : null}
-          </div>
-          <div className="field">
-            <label htmlFor="pickupAt">Pickup date and time (your local time)</label>
+            <label htmlFor="pickupAt">Date &amp; Time</label>
             <input
               id="pickupAt"
               type="datetime-local"
@@ -194,21 +202,6 @@ export function BookingForm() {
             {fieldErrors.pickupAt ? <p className="field-error">{fieldErrors.pickupAt}</p> : null}
           </div>
           <div className="field">
-            <label htmlFor="returnAt">Optional return time</label>
-            <input
-              id="returnAt"
-              type="datetime-local"
-              value={draft.returnAt}
-              onChange={(event) => updateDraft({ returnAt: event.target.value })}
-            />
-            {fieldErrors.returnAt ? <p className="field-error">{fieldErrors.returnAt}</p> : null}
-          </div>
-        </>
-      ) : null}
-
-      {step === 2 ? (
-        <>
-          <div className="field">
             <label htmlFor="passengerCount">Passengers</label>
             <input
               id="passengerCount"
@@ -217,7 +210,23 @@ export function BookingForm() {
               max={14}
               value={draft.passengerCount}
               onChange={(event) => updateDraft({ passengerCount: Number(event.target.value) })}
+              placeholder="e.g. 2 passengers"
             />
+          </div>
+        </div>
+      ) : null}
+
+      {step === 2 ? (
+        <>
+          <div className="field">
+            <label htmlFor="returnAt">Optional return time</label>
+            <input
+              id="returnAt"
+              type="datetime-local"
+              value={draft.returnAt}
+              onChange={(event) => updateDraft({ returnAt: event.target.value })}
+            />
+            {fieldErrors.returnAt ? <p className="field-error">{fieldErrors.returnAt}</p> : null}
           </div>
           <div className="field">
             <label htmlFor="luggageCount">Luggage (optional)</label>
@@ -324,7 +333,7 @@ export function BookingForm() {
         </>
       ) : null}
 
-      <div style={{ display: "flex", gap: "0.75rem" }}>
+      <div className="booking-actions">
         {step > 1 ? (
           <button
             type="button"
@@ -336,14 +345,14 @@ export function BookingForm() {
         ) : null}
         <button
           type="submit"
-          className="btn btn--primary"
+          className="btn btn--primary btn--block"
           disabled={state.status === "open.submitting"}
         >
           {state.status === "open.submitting"
             ? "Sending request…"
             : step < 3
-              ? "Continue"
-              : "Submit request"}
+              ? "Continue →"
+              : "Book Now →"}
         </button>
       </div>
       <p className="muted" aria-live="polite">
