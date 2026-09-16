@@ -26,9 +26,11 @@ export function BookingSheet() {
       }
     };
     document.addEventListener("keydown", onKey);
+    document.body.classList.add("booking-open");
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
+      document.body.classList.remove("booking-open");
       document.body.style.overflow = "";
       previous?.focus();
     };
@@ -81,11 +83,9 @@ export function BookingSheet() {
             <h2 id={titleId}>Book Your Journey</h2>
             <p>Fast. Easy. Reliable.</p>
           </div>
-        </div>
-        <div className="booking-sheet__toolbar">
           <button
             type="button"
-            className="btn btn--ghost"
+            className="booking-card__close"
             onClick={attemptClose}
             aria-label="Close booking form"
           >

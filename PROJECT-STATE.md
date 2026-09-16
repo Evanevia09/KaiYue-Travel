@@ -88,11 +88,12 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 
 ## Verification record
 
-| Date       | Verification                                                   | Result                                                             | Limits                                                            |
-| ---------- | -------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| 2026-09-16 | Inspected repository root before documentation commit          | Only `BUSINESS_INFORMATION.md` was present                         | Does not prove absence of external deployments or infrastructure  |
-| 2026-09-16 | Checked documentation index links and requested-topic coverage | All documentation links resolved; required topics present          | Documentation review is not implementation or visual QA           |
-| 2026-09-16 | Implemented Release 1 scaffold and ran automated checks        | `pnpm test` 24/24; `pnpm typecheck` clean; `astro build` completed | Not a deployed, Access-protected, or browser-verified environment |
+| Date       | Verification                                                   | Result                                                                                                                                                                     | Limits                                                                                           |
+| ---------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 2026-09-16 | Inspected repository root before documentation commit          | Only `BUSINESS_INFORMATION.md` was present                                                                                                                                 | Does not prove absence of external deployments or infrastructure                                 |
+| 2026-09-16 | Checked documentation index links and requested-topic coverage | All documentation links resolved; required topics present                                                                                                                  | Documentation review is not implementation or visual QA                                          |
+| 2026-09-16 | Implemented Release 1 scaffold and ran automated checks        | `pnpm test` 24/24; `pnpm typecheck` clean; `astro build` completed                                                                                                         | Not a deployed, Access-protected, or browser-verified environment                                |
+| 2026-09-16 | Restyled public site to in-repo homepage mocks; pinned CI pnpm | GitHub Actions `check` succeeded (run 35063368522). Local `pnpm test` 24/24, typecheck, build. Desktop/mobile browser pass of homepage, booking steps, and services sheet. | Not pixel-perfect to the mock photography (hero is a crop plus CSS sky). Not a deployed preview. |
 
 ## Change log
 
@@ -121,7 +122,7 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 
 - Changed: public site now follows `docs/design-refs/homepage-desktop.png` and `homepage-mobile.png` (teal headlines, gold CTAs, white header, colorful K mark, stacked mobile booking card, vehicle crop from the mock). Header nav matches the mock (Home, Services, Corporate, About, Contact). Booking chrome is a teal “Book Your Journey” header with a gold full-width action. CI `pnpm/action-setup` no longer sets `version`; `packageManager: pnpm@10.15.0` is the single source.
 - Decision/evidence: user designated the in-repo mocks as visual source of truth. Mock help number `+853 6288 1234` and Greater Bay Area copy were not published; phone remains the source-listed `+853 2833 8882`.
-- Verified: recorded after automated checks and browser review in this change.
+- Verified: GitHub Actions `check` green (run 35063368522) after removing the workflow pnpm `version`. Local `pnpm test` 24/24, `pnpm typecheck`, `astro build`. Browser pass of desktop hero/booking widget (continue/back), mobile stacked homepage, and services booking sheet.
 - Not verified or follow-up: original licensed photography, owner-approved brand tokens, language switcher, deployed preview.
 
 ## Update template
