@@ -79,7 +79,9 @@ Vehicle capacity and series/model claims must be verified before publication.
 
 ### Corporate
 
-State supported use cases, service approach, coverage, contact expectations, and the information needed for follow-up. Avoid implying contracted response times or capabilities until approved.
+B2B pages follow the owner-approved Kai Yue Group portfolio: alliance (Kai Yue Travel Group Limited + Mingmen Tourism + Mingmen Technology), dual-plate Greater Bay Area coverage, 200+ Alphard 40 Series, 7×24 dispatch, Venetian wording, programme commitments, and group-portfolio phones. The website form remains an inquiry; a person follows up. Do not imply that this site itself provides live GPS, instant assignment, or online payment.
+
+Travel agency and hotels & resorts pages reuse the same source, tailored to partner and property coordinators.
 
 ### Contact
 

@@ -1,15 +1,15 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-09-16  
+**Last updated:** 2026-09-17  
 **Phase:** 1–3 scaffold — foundation, public site, booking/API, and lightweight admin  
-**Overall status:** Release 1 application scaffold implemented in-repo; not deployed; business facts still unverified  
-**Current objective:** Continue Release 1 against the Transfeero-inspired public design while keeping unverified claims out of copy.
+**Overall status:** Release 1 application scaffold implemented in-repo; not deployed. Legal names and B2B copy now follow the Kai Yue Group portfolio; B2C booking copy stays Macau-only and quote-after-review.  
+**Current objective:** Continue Release 1 against the Transfeero-inspired public design. Keep B2C claims conservative; keep B2B pages aligned with the group portfolio.
 
 ## Quick handoff
 
 Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark, centered hero copy, and a compact Transfer / Hourly From–To bar. Desktop home embeds that widget on a 100vh full-bleed hero; other public pages use the same dark hero treatment with title and lede only (no hero Book now button). Other pages open the same form as a bottom sheet; `/booking` is the no-JS-enhancement fallback. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
-No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. Public copy is conservative and does not publish unverified license, partnership, fleet-size, cross-border, testimonial, or vehicle-specification claims. CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
+No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy is conservative (Macau, quote-after-review). B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
 ## Confirmed decisions
 
@@ -24,6 +24,8 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
 - Cloudflare Access is preferred for admin protection; the Worker also checks identity.
 - GitHub is the versioning and deployment source of truth.
 - Booking submission creates a request awaiting human confirmation.
+- Legal names: Kai Yue Group Limited / Kai Yue Travel Group Limited, per the group portfolio.
+- B2B pages follow the Kai Yue Group portfolio; B2C booking pages remain Macau-only quote-after-review.
 
 ## Verified repository state
 
@@ -34,22 +36,21 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
   - `migrations/0001_init.sql` — bookings, contacts, notes, audit, idempotency, rate limits
   - Vitest unit/integration tests and GitHub Actions CI
 - Local/integration tests cover booking create + idempotency, contact validation, admin allow/deny, and audited status transitions.
-- Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, pill nav, compact booking bar, dark footer). The journey bar uses a custom dual-month date/time picker instead of the native datetime control. Copy remains Macau-only and quote-after-review. Public heroes are 100vh full-width backgrounds using `apps/web/public/images/hero-home.jpg` with a dark cinematic overlay. Header booking is not duplicated; inner-page heroes no longer include Book now. Homepage embeds the form; other pages book from in-content CTAs or the mobile sticky control.
+- Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, pill nav, compact booking bar, dark footer). The journey bar uses a custom dual-month date/time picker instead of the native datetime control. B2C copy remains Macau-only and quote-after-review. B2B pages (`/corporate`, `/business/travel-agency`, `/business/hotels-resorts`) follow the group portfolio. Public heroes are 100vh full-width backgrounds using `apps/web/public/images/hero-home.jpg` with a dark cinematic overlay. Header booking is not duplicated; inner-page heroes no longer include Book now. Homepage embeds the form; other pages book from in-content CTAs or the mobile sticky control.
 - Each chauffeur service has an SEO landing page under `/services/[slug]`. Header Business is a dropdown to Travel agency, Corporate solution, and Hotels & resorts. `/services` redirects to airport transfer. Homepage service cards cover all six services. `/pricing` is a quote table without published fares.
 - GitHub Actions `check` job is pinned to the `package.json` `packageManager` version only.
 
 ## Not yet verified or implemented
 
-- Business-owner approval of public claims and policies.
 - Final brand system, original high-resolution assets, and image usage rights.
-- Final services, service areas, pricing/quote behavior, lead time, cancellation terms, capacity rules, languages, and customer-response expectations.
+- Final B2C services, pricing/quote behavior, lead time, cancellation terms, capacity rules, languages, and customer-response expectations.
 - Real D1 databases, Resend domain/sender/recipients, and Cloudflare Access policy.
 - Preview/staging/production environments, DNS, analytics, observability, backup/recovery, and runbooks.
 - Deployed public-site, booking, admin, accessibility, performance, or security verification.
 
 ## Business validation required
 
-Unchanged: confirm legal names, license, address/phone, hours, services, fleet, coverage, partnerships, testimonials, booking policies, languages, and notification recipients before launch. Do not treat source-reported claims in `BUSINESS_INFORMATION.md` as current confirmation.
+Legal names and B2B offer copy are owner-directed to the group portfolio (2026-09-17). Still confirm before launch: B2C phone/hours/address vs B2B phones; whether 200+ may appear on B2C fleet pages; licence number 0162; Hong Kong coverage (not in the group portfolio); notification recipients; privacy/terms. B2C pages must not absorb group-portfolio fleet, GPS, or 7×24 claims.
 
 ## Open product and technical decisions
 
@@ -71,7 +72,7 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 
 | Risk                                                         | Current safeguard                                                 |
 | ------------------------------------------------------------ | ----------------------------------------------------------------- |
-| Unverified claims are published as fact                      | Conservative public copy plus `BUSINESS_INFORMATION.md` warnings  |
+| Unverified B2C claims are published as fact              | B2C copy stays Macau quote-after-review; B2B claims are owner-directed to the group portfolio and framed as programme standards, not website-form guarantees |
 | Duplicate or uncertain booking submissions                   | Idempotency keys; unknown-outcome copy reuses the same key        |
 | Admin UI is hidden but API remains exposed                   | Access JWT verification; bypass only in `ENVIRONMENT=development` |
 | Email failure loses a valid request                          | D1 persist-first; notification state recorded separately          |
@@ -91,6 +92,8 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 
 | Date       | Verification                                                   | Result                                                                                                                                                                     | Limits                                                                                           |
 | ---------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 2026-09-17 | Owner-directed B2B pages from group portfolio; legal names adopted | Desktop: `/corporate`, `/business/travel-agency`, `/business/hotels-resorts`, `/about`, `/contact`, homepage. Mobile 390: corporate + contact. Inquiry form filled and submitted (API did not persist without D1). | Not a deployed preview. Inquiry persistence not verified. |
+| 2026-09-17 | Compared group-portfolio Chinese copy with `BUSINESS_INFORMATION.md` | Shared: 2009, Macau, Mingmen alliance, Alphard 40, Venetian wording. Conflicts: legal name, 200+ vs 15+ fleet, phones, hours, HK vs Mainland dual-plate, instant dispatch vs quote-after-review. | Later owner decision adopted group names and B2B copy. |
 | 2026-09-16 | Inspected repository root before documentation commit          | Only `BUSINESS_INFORMATION.md` was present                                                                                                                                 | Does not prove absence of external deployments or infrastructure                                 |
 | 2026-09-16 | Checked documentation index links and requested-topic coverage | All documentation links resolved; required topics present                                                                                                                  | Documentation review is not implementation or visual QA                                          |
 | 2026-09-16 | Implemented Release 1 scaffold and ran automated checks        | `pnpm test` 24/24; `pnpm typecheck` clean; `astro build` completed                                                                                                         | Not a deployed, Access-protected, or browser-verified environment                                |
@@ -100,6 +103,20 @@ Unchanged: confirm legal names, license, address/phone, hours, services, fleet, 
 | 2026-09-16 | Homepage booking bar restored; inner-page hero Book now removed | See changelog below. | Mobile 390 viewport and full booking submit not re-checked in this pass until browser verification completes. |
 
 ## Change log
+
+### 2026-09-17 — B2B pages follow group portfolio; legal names adopted
+
+- Changed: recorded legal names as Kai Yue Group Limited and Kai Yue Travel Group Limited. Rewrote `/corporate`, `/business/travel-agency`, `/business/hotels-resorts`, and About from the group portfolio. B2C booking copy stays Macau quote-after-review. Website forms remain human-reviewed inquiries.
+- Decision/evidence: owner said the group-portfolio legal name is correct and B2B should follow that document.
+- Verified: desktop pass of `/corporate` (alliance, 200 Alphards, four scenarios, programme phones, inquiry form fill/submit), `/business/travel-agency`, `/business/hotels-resorts` (Venetian wording), `/about` legal names, `/contact` phone split, homepage still Macau quote-after-review. Mobile 390: corporate hero + contact phones. Typecheck clean.
+- Not verified or follow-up: inquiry did not persist (no local D1). B2C phone/hours vs B2B phones still split. This site still has no live GPS, instant dispatch, or payment.
+
+### 2026-09-17 — Kai Yue Group portfolio English translation and alignment
+
+- Changed: added English translation of the group-portfolio Chinese source at `c:\cursor\Kaiyue-website\Kai-Yue-Group-Website-Content.md`. Recorded alignment and conflicts in `BUSINESS_INFORMATION.md`. Public site copy was not changed.
+- Decision/evidence: user supplied `凱悅集團-網站內容.md` as another Kai Yue business portfolio and asked to translate it and check it against this repo’s business file.
+- Verified: side-by-side read of both documents; alignment table written from that comparison.
+- Not verified or follow-up: none of the group-document claims (200+ fleet, new phones, 24/7, dual-plate, SLAs) were independently confirmed. Owner still must choose which source is canonical for this website.
 
 ### 2026-09-16 — Documentation and agent-handoff baseline
 

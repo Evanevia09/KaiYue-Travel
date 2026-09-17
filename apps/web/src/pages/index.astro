@@ -4,6 +4,7 @@ import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import HeroBackdrop from "../components/content/HeroBackdrop.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { faqs, serviceIconGlyph, services, site } from "../lib/site.ts";
+import { business } from "../lib/business.ts";
 ---
 
 <BaseLayout
@@ -114,10 +115,11 @@ import { faqs, serviceIconGlyph, services, site } from "../lib/site.ts";
       </div>
       <div>
         <p class="eyebrow">Business</p>
-        <h2>Guest and executive movements</h2>
+        <h2>Corporate mobility across the Greater Bay Area</h2>
         <p>
-          Hotels, companies, and event coordinators can send a programme inquiry instead of a single
-          trip request.
+          {site.groupLegalName} works with Mingmen Tourism and Mingmen Technology on compliant
+          corporate, hotel, and agency programmes — including Macau–Mainland dual-plate{" "}
+          {business.vehicle} service. Send a programme inquiry rather than a single trip request.
         </p>
         <p><a class="btn btn--secondary" href="/corporate">Business inquiry</a></p>
       </div>

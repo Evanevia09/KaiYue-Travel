@@ -48,7 +48,7 @@ Final brand values still require owner approval. Current public-site tokens are 
 - **Mobile homepage:** stacked copy then the same booking card over the full-bleed hero. No persistent bottom booking bar on the homepage.
 - **Other mobile pages:** compact header plus persistent bottom booking CTA where it does not obscure content. The CTA opens the reusable bottom sheet.
 - **Content sections:** short introduction, services, process, business teaser, FAQ, and final CTA.
-- **Footer:** dark background, service links, company links, contact details, and a draft-note that unverified claims remain unpublished.
+- **Footer:** dark background, service links, company links, contact details, legal name, and a note that B2C bookings are Macau quote-after-review while B2B pages follow the group portfolio.
 
 
 ## Core components

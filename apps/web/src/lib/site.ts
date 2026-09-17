@@ -1,14 +1,18 @@
 export const site = {
   name: "Kai Yue Travel",
-  legalNameDraft: "Kai Yue Travel Group",
+  legalName: "Kai Yue Travel Group Limited",
+  legalNameZh: "凱悅旅遊集團有限公司",
+  groupLegalName: "Kai Yue Group Limited",
+  groupLegalNameZh: "凱悅集團有限公司",
   chineseName: "凱悅旅遊",
-  chineseGroupName: "凱悅旅遊集團",
+  chineseGroupName: "凱悅旅遊集團有限公司",
   tagline: "Your reliable private chauffeur in Macau",
   description:
     "Request a private airport transfer or chauffeur in Macau. Submit a booking request; a person confirms availability before any trip is treated as booked.",
   url: "https://example.invalid",
   phone: "+853 2833 8882",
   fax: "+853 2833 8885",
+  businessPhones: ["+853 6366 6665", "+853 6654 8888", "+853 6588 9999"],
   addressLines: [
     "600-E Avenida do Dr. Rodrigo Rodrigues",
     "First International Commercial Centre, 16/F, P16-07",
@@ -17,7 +21,7 @@ export const site = {
   addressLocal: "澳門羅理基博士大馬路600-E號 第一國際商業中心16樓P16-07",
   timezone: "Asia/Macau",
   locale: "en",
-  contentStatus: "draft-unverified",
+  contentStatus: "b2c-conservative-b2b-group-portfolio",
   logo: "/images/logo.svg",
   defaultOgImage: "/images/hero-home.jpg",
 } as const;
@@ -257,7 +261,7 @@ export const services = [
     description:
       "For recurring or multi-guest programmes, use the corporate inquiry form so the team can follow up.",
     intro:
-      "Corporate transport covers chauffeur requests for executives, hotel guests, and event movements in Macau. A single trip can use the booking form. Recurring programmes, multiple vehicles, or event-day coordination should also go through the corporate inquiry path so the team can follow up.",
+      "Corporate transport covers chauffeur requests for executives, hotel guests, and event movements in Macau. A single trip can use the booking form. Recurring programmes, dual-plate Greater Bay Area work, multiple vehicles, or hotel/agency contracts should go through the corporate inquiry path so the team can follow up.",
     whoFor: [
       "Companies arranging executive travel in Macau",
       "Hotels coordinating guest airport and hotel movements",

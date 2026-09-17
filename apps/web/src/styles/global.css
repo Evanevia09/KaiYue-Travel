@@ -1551,8 +1551,51 @@ a {
 }
 
 .card h3,
+.card h2,
 .booking-card h2 {
   margin-top: 0;
+}
+
+.biz-stack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.biz-stack > :first-child {
+  margin-top: 0;
+}
+
+.content-table-wrap {
+  overflow-x: auto;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+}
+
+.content-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.content-table th,
+.content-table td {
+  vertical-align: top;
+  padding: 0.9rem 1.1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.content-table thead th {
+  background: #111;
+  color: white;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.card .form {
+  margin-top: 1.25rem;
 }
 
 .service-icon {

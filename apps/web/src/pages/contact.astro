@@ -34,7 +34,20 @@ import { site } from "../lib/site.ts";
             ))
           }
         </p>
-        <p class="draft-note">These contact details are source-listed and pending reconfirmation.</p>
+        <p>
+          For corporate, hotel, and agency programmes, use the Business pages. Programme phones:{" "}
+          {site.businessPhones.map((phone, index) => (
+            <>
+              {index > 0 ? " · " : null}
+              <a href={`tel:${phone.replaceAll(" ", "")}`}>{phone}</a>
+            </>
+          ))}
+          {". Hours for those programmes: 7×24."}
+        </p>
+        <p class="draft-note">
+          The Macau listing number and office address come from the previous public site. Business
+          programme phones follow the Kai Yue Group portfolio.
+        </p>
       </div>
       <div class="card" id="inquiry">
         <h2>General inquiry</h2>

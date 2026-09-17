@@ -67,6 +67,6 @@ Authenticate through Cloudflare Access → review new item → inspect details �
 - Whether price estimates are displayed or all requests are quote-based.
 - Supported languages and the source-language approval workflow.
 - Notification recipients and reply-to address.
-- Legal entity name, privacy notice, terms, and data-retention period.
+- Legal entity names recorded (Kai Yue Group Limited / Kai Yue Travel Group Limited). Privacy notice, terms, and data-retention period still require legal review.
 
 

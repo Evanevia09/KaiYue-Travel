@@ -14,7 +14,7 @@ This folder is the build guide for the Kai Yue Travel website. It records the ag
 - Cloudflare Access is preferred for admin protection.
 - GitHub is the source of truth and drives Cloudflare deployments.
 
-Homepage visual direction follows the Transfeero-inspired booking-first layout in `design-refs/transfeero-desktop.jpg` and `design-refs/transfeero-mobile.png`. Public copy stays Macau-only and quote-after-review; do not copy worldwide, Trustpilot, or fixed-price claims.
+Homepage visual direction follows the Transfeero-inspired booking-first layout in `design-refs/transfeero-desktop.jpg` and `design-refs/transfeero-mobile.png`. B2C copy stays Macau-only and quote-after-review; do not copy worldwide, Trustpilot, or fixed-price claims. B2B pages follow the owner-approved Kai Yue Group portfolio.
 
 ## Documentation map
 

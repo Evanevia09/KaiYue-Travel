@@ -1,35 +1,212 @@
 ---
+import BusinessInquiry from "../components/content/BusinessInquiry.astro";
+import JsonLd from "../components/content/JsonLd.astro";
 import PageHero from "../components/content/PageHero.astro";
-import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import {
+  allianceMembers,
+  business,
+  chauffeurStandards,
+  compliancePoints,
+  corporateScenarios,
+  organizationJsonLd,
+  programmeCommitments,
+  supportPoints,
+  travelAdvantages,
+} from "../lib/business.ts";
+import { site } from "../lib/site.ts";
+
+const path = "/corporate";
+const origin = Astro.site ?? site.url;
+const pageUrl = new URL(path, origin).toString();
 ---
 
 <BaseLayout
   title="Corporate solution"
-  description="Send a corporate chauffeur inquiry for guest and executive movements in Macau."
+  description="Kai Yue Group Limited provides one-stop, customized, compliant corporate mobility across Macau and the Greater Bay Area, with dual-plate Toyota Alphard 40 Series vehicles and 7×24 dispatch."
 >
+  <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
   <PageHero
     eyebrow="Business"
-    title="Corporate solution"
-    lede="For companies arranging executive and guest chauffeur movements in Macau. This is an inquiry path, not a contracted service level or guaranteed response time."
+    title={business.headline}
+    lede={`${site.groupLegalName} (${site.groupLegalNameZh}) is built with Mingmen Tourism and Mingmen Technology: compliant capacity, professional dispatch, and an intelligent platform for Macau–Mainland luxury-car programmes.`}
   >
-    <a slot="actions" class="btn btn--primary" href="#inquiry">Send an inquiry</a>
+    <a slot="actions" class="btn btn--primary" href="#inquiry">Request a programme</a>
   </PageHero>
+
+  <section class="section">
+    <div class="wrap biz-stack">
+      <p class="eyebrow">Alliance</p>
+      <h2>Compliant capacity, dispatch, and platform</h2>
+      <p>
+        {site.legalName} ({site.legalNameZh}) provides the licensed fleet. Mingmen Tourism runs
+        7×24 operations. Mingmen Technology supplies the One-Click Travel platform. Together they
+        close the loop for corporate official travel and team vehicle use.
+      </p>
+      <div class="grid-3">
+        {
+          allianceMembers.map((member) => (
+            <article class="card">
+              <p class="eyebrow">{member.role}</p>
+              <h3>{member.name}</h3>
+              <p class="muted">{member.nameZh}</p>
+              <p>{member.summary}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--muted">
+    <div class="wrap biz-stack">
+      <p class="eyebrow">{site.legalNameZh}</p>
+      <h2>Kai Yue Travel Group Limited</h2>
+      <p>
+        Founded in {business.founded} as {business.formerName} ({business.formerNameZh}), a group
+        travel agency for tourist solicitation and reception. Renamed {site.legalName} in{" "}
+        {business.renamed}. Headquartered in {business.headquarters}, with a branch in{" "}
+        {business.branch}.
+      </p>
+      <p>
+        The company focuses on premium, personalized travel — especially business travel. It is{" "}
+        {business.venetian}. Mission: {business.mission}
+      </p>
+      <div class="grid-2">
+        {
+          travelAdvantages.map((item) => (
+            <article class="card">
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid-3">
+        <div class="stat-chip">
+          <strong>{business.fleetScale}</strong>
+          <span>{business.vehicle} vehicles, including dual-plate cars</span>
+        </div>
+        <div class="stat-chip">
+          <strong>7×24</strong>
+          <span>Dispatch, including holidays and peak periods</span>
+        </div>
+        <div class="stat-chip">
+          <strong>GBA</strong>
+          <span>{business.cities.join(" · ")}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--muted">
+    <div class="wrap biz-stack">
+      <p class="eyebrow">Programmes</p>
+      <h2>Four corporate scenarios</h2>
+      <div class="grid-2">
+        {
+          corporateScenarios.map((item) => (
+            <article class="card">
+              <h3>{item.title}</h3>
+              <p class="muted">{item.audience}</p>
+              <ul>
+                {item.points.map((point) => (
+                  <li>{point}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
   <section class="section">
     <div class="wrap grid-2">
-      <div>
-        <h2>How we can help</h2>
+      <div class="biz-stack">
+        <p class="eyebrow">Compliance</p>
+        <h2>Licensed dual-plate operations</h2>
+        <p>
+          Service philosophy: {business.philosophy.join(", ")}. Vehicles and chauffeurs are
+          presented as holding lawful operating qualifications in both jurisdictions, with
+          insurance and end-to-end GPS monitoring on the operational platforms.
+        </p>
         <ul>
-          <li>Guest airport and hotel movements</li>
-          <li>Executive travel programmes</li>
-          <li>Event-day transport coordination requests</li>
+          {compliancePoints.map((item) => <li>{item}</li>)}
         </ul>
-        <p>Include expected dates, passenger volume, and whether the need is one-off or recurring.</p>
       </div>
-      <div class="card" id="inquiry">
-        <h2>Send an inquiry</h2>
-        <ContactForm client:load sourcePage="/corporate" defaultType="corporate" />
+      <div class="biz-stack">
+        <p class="eyebrow">Chauffeurs</p>
+        <h2>Hiring and training</h2>
+        <ul>
+          {chauffeurStandards.map((item) => <li>{item}</li>)}
+        </ul>
+        <ul>
+          {supportPoints.map((item) => <li>{item}</li>)}
+        </ul>
       </div>
+    </div>
+  </section>
+
+  <section class="section section--muted">
+    <div class="wrap biz-stack">
+      <p class="eyebrow">Commitments</p>
+      <h2>Standards for contracted programmes</h2>
+      <div class="table-wrap content-table-wrap">
+        <table class="content-table">
+          <caption class="sr-only">Corporate programme service commitments</caption>
+          <thead>
+            <tr>
+              <th scope="col">Commitment</th>
+              <th scope="col">Standard</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              programmeCommitments.map((item) => (
+                <tr>
+                  <th scope="row">{item.title}</th>
+                  <td>{item.body}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">
+        These are operating standards for agreed corporate programmes. Submitting this website
+        form does not by itself create those service levels.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap grid-2">
+      <div class="biz-stack">
+        <p class="eyebrow">Next step</p>
+        <h2>A dedicated corporate programme</h2>
+        <p>
+          Tell us frequency, scenes, and scale. Long-term partners can request dedicated service,
+          dedicated vehicles, and priority dispatch. Include dates, passenger volume, and a named
+          coordinator.
+        </p>
+        <ul>
+          <li>Custom cooperation plans and volume arrangements</li>
+          <li>Key-account service and priority dispatch</li>
+          <li>Enterprise reporting through the operations platforms</li>
+        </ul>
+        <p>
+          Related: <a href="/business/hotels-resorts">Hotels &amp; resorts</a>
+          {" · "}
+          <a href="/business/travel-agency">Travel agencies</a>
+        </p>
+      </div>
+      <BusinessInquiry sourcePage={path} />
     </div>
   </section>
 </BaseLayout>
