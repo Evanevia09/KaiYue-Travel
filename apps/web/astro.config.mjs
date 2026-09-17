@@ -9,6 +9,9 @@ export default defineConfig({
   site,
   output: "static",
   session: false,
+  redirects: {
+    "/services": "/services/airport-transfer",
+  },
   adapter: cloudflare({
     imageService: "passthrough",
     prerenderEnvironment: "node",
@@ -16,10 +19,34 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !page.includes("/admin") && !page.includes("/booking/confirmation"),
+      filter: (page) =>
+        !page.includes("/admin") && !page.includes("/booking/confirmation") && !page.includes("/login"),
     }),
   ],
   security: {
     checkOrigin: true,
+  },
+  vite: {
+    resolve: {
+      dedupe: ["react", "react-dom"],
+    },
+    optimizeDeps: {
+      // Cloudflare workerd reloads when Vite discovers this passthrough image
+      // service mid-request, then crashes on a stale deps_ssr chunk.
+      include: [
+        "astro/assets/services/noop",
+        "react",
+        "react-dom",
+        "react-dom/client",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+        "@kaiyue/contracts",
+      ],
+    },
+    server: {
+      warmup: {
+        clientFiles: ["./src/components/booking/**/*.tsx"],
+      },
+    },
   },
 });

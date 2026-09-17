@@ -1,0 +1,38 @@
+---
+import { ContactForm } from "../../components/content/ContactForm.tsx";
+import PageHero from "../../components/content/PageHero.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Travel agency chauffeur requests"
+  description="Travel agencies can send a Macau chauffeur inquiry for guest movements. A person reviews the request before any trip is treated as booked."
+>
+  <PageHero
+    eyebrow="Business"
+    title="Travel agency partner inquiries"
+    lede="For agencies arranging private chauffeur movements in Macau for arriving guests. This is an inquiry path, not a contracted allocation or guaranteed response time."
+  >
+    <a slot="actions" class="btn btn--primary" href="#inquiry">Send an inquiry</a>
+  </PageHero>
+  <section class="section">
+    <div class="wrap grid-2">
+      <div>
+        <h2>How we can help</h2>
+        <ul>
+          <li>Guest airport and hotel pickup requests</li>
+          <li>Named-passenger chauffeur movements in Macau</li>
+          <li>One-off or multi-guest itineraries sent as an inquiry</li>
+        </ul>
+        <p>
+          Include agency name, guest dates, passenger count, and whether the need is a single
+          journey or a programme. Confirmation follows a human review.
+        </p>
+      </div>
+      <div class="card" id="inquiry">
+        <h2>Send an inquiry</h2>
+        <ContactForm client:load sourcePage="/business/travel-agency" defaultType="corporate" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

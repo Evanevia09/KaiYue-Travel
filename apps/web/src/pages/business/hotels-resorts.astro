@@ -1,0 +1,38 @@
+---
+import { ContactForm } from "../../components/content/ContactForm.tsx";
+import PageHero from "../../components/content/PageHero.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Hotel and resort chauffeur requests"
+  description="Hotels and resorts can send a Macau chauffeur inquiry for guest airport and hotel movements. A person reviews the request before any trip is treated as booked."
+>
+  <PageHero
+    eyebrow="Business"
+    title="Hotel and resort inquiries"
+    lede="For hotels and resorts arranging private chauffeur movements for guests in Macau. This is an inquiry path, not a contracted allocation or guaranteed response time."
+  >
+    <a slot="actions" class="btn btn--primary" href="#inquiry">Send an inquiry</a>
+  </PageHero>
+  <section class="section">
+    <div class="wrap grid-2">
+      <div>
+        <h2>How we can help</h2>
+        <ul>
+          <li>Guest airport pickup and hotel drop-off requests</li>
+          <li>Inter-property movements in Macau</li>
+          <li>Named-contact follow-up for recurring guest programmes</li>
+        </ul>
+        <p>
+          Include property name, expected dates, passenger volume, and a named coordinator.
+          Confirmation follows a human review.
+        </p>
+      </div>
+      <div class="card" id="inquiry">
+        <h2>Send an inquiry</h2>
+        <ContactForm client:load sourcePage="/business/hotels-resorts" defaultType="corporate" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

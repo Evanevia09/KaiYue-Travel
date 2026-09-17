@@ -1,4 +1,5 @@
 ---
+import PageHero from "../components/content/PageHero.astro";
 import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { site } from "../lib/site.ts";
@@ -8,29 +9,37 @@ import { site } from "../lib/site.ts";
   title="Contact"
   description="Send a general inquiry or request a chauffeur through the booking form."
 >
-  <section class="wrap section grid-2">
-    <div>
-      <h1>Contact</h1>
-      <p class="lede">For a trip, use Book now. For a general question, send the inquiry form.</p>
-      <p>
-        Phone: <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a><br />
-        Fax: {site.fax}
-      </p>
-      <p>
-        {
-          site.addressLines.map((line) => (
-            <>
-              {line}
-              <br />
-            </>
-          ))
-        }
-      </p>
-      <p class="draft-note">These contact details are source-listed and pending reconfirmation.</p>
-    </div>
-    <div class="card">
-      <h2>General inquiry</h2>
-      <ContactForm client:load sourcePage="/contact" />
+  <PageHero
+    eyebrow="Contact"
+    title="Talk with the team"
+    lede="For a trip, use Book now. For a general question, send the inquiry form."
+  >
+    <a slot="actions" class="btn btn--secondary" href="#inquiry">Send an inquiry</a>
+  </PageHero>
+  <section class="section">
+    <div class="wrap grid-2">
+      <div>
+        <h2>Reach us</h2>
+        <p>
+          Phone: <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a><br />
+          Fax: {site.fax}
+        </p>
+        <p>
+          {
+            site.addressLines.map((line) => (
+              <>
+                {line}
+                <br />
+              </>
+            ))
+          }
+        </p>
+        <p class="draft-note">These contact details are source-listed and pending reconfirmation.</p>
+      </div>
+      <div class="card" id="inquiry">
+        <h2>General inquiry</h2>
+        <ContactForm client:load sourcePage="/contact" />
+      </div>
     </div>
   </section>
 </BaseLayout>

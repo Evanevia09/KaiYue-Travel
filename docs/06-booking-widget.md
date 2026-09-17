@@ -14,8 +14,8 @@ The variants share fields, validation, request payload, analytics names, error h
 
 Use a single screen if the final field count remains short. Otherwise use these three steps:
 
-1. **Journey:** pickup, destination, service type, pickup date/time, passengers (matches the homepage mock’s first screen).
-2. **Details:** optional return, luggage count, optional vehicle preference, optional notes.
+1. **Journey:** Transfer / By the Hour, From, To, pickup date/time, optional return, passengers. Primary action is **Get a quote** (not live prices). Pickup/return use the shared custom calendar and time popover, not the native `datetime-local` control. Return is collected on this step (add return → combined pickup/return chip); it is not repeated on Details.
+2. **Details:** optional return (if not already set), luggage count, optional vehicle preference, optional notes.
 3. **Contact and review:** name, phone, optional email/company, privacy acknowledgement, summary, submit.
 
 Conditional fields must be driven by the selected service type and approved business rules—not duplicated per page.
@@ -79,6 +79,7 @@ Do not render two independently stateful forms on the same page. Responsive CSS 
 
 - Client and server use equivalent shared schemas, but the server is authoritative.
 - Date/time errors explain the required timezone and notice window.
+- The date picker disables past days; 24-hour notice is still enforced by shared schema validation on submit.
 - Submission button disables only while a request is in flight and exposes a live status message.
 - On success, display the booking reference, what happens next, expected response language only if approved, and support contact.
 - Email failure must not tell the customer that booking creation failed. Show the stored reference and allow staff notification retry.

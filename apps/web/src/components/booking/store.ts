@@ -58,7 +58,7 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
   destination: "",
   pickupAt: "",
   returnAt: "",
-  passengerCount: 1,
+  passengerCount: 2,
   luggageCount: "",
   vehiclePreference: "",
   contactName: "",

@@ -1,29 +1,35 @@
 ---
+import PageHero from "../components/content/PageHero.astro";
 import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="Corporate travel"
-  description="Send a corporate or hotel transport inquiry for guest and executive movements."
+  title="Corporate solution"
+  description="Send a corporate chauffeur inquiry for guest and executive movements in Macau."
 >
-  <section class="wrap section grid-2">
-    <div>
-      <h1>Corporate and partner inquiries</h1>
-      <p class="lede">
-        For companies, hotels, and event coordinators who need more than a single trip. This is an
-        inquiry path, not a contracted service level or guaranteed response time.
-      </p>
-      <ul>
-        <li>Guest airport and hotel movements</li>
-        <li>Executive travel programmes</li>
-        <li>Event-day transport coordination requests</li>
-      </ul>
-      <p>Include expected dates, passenger volume, and whether the need is one-off or recurring.</p>
-    </div>
-    <div class="card">
-      <h2>Send an inquiry</h2>
-      <ContactForm client:load sourcePage="/corporate" defaultType="corporate" />
+  <PageHero
+    eyebrow="Business"
+    title="Corporate solution"
+    lede="For companies arranging executive and guest chauffeur movements in Macau. This is an inquiry path, not a contracted service level or guaranteed response time."
+  >
+    <a slot="actions" class="btn btn--primary" href="#inquiry">Send an inquiry</a>
+  </PageHero>
+  <section class="section">
+    <div class="wrap grid-2">
+      <div>
+        <h2>How we can help</h2>
+        <ul>
+          <li>Guest airport and hotel movements</li>
+          <li>Executive travel programmes</li>
+          <li>Event-day transport coordination requests</li>
+        </ul>
+        <p>Include expected dates, passenger volume, and whether the need is one-off or recurring.</p>
+      </div>
+      <div class="card" id="inquiry">
+        <h2>Send an inquiry</h2>
+        <ContactForm client:load sourcePage="/corporate" defaultType="corporate" />
+      </div>
     </div>
   </section>
 </BaseLayout>

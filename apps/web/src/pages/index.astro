@@ -1,41 +1,27 @@
 ---
 import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
+import HeroBackdrop from "../components/content/HeroBackdrop.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { faqs, services, site } from "../lib/site.ts";
-
-const featured = services.slice(0, 4);
+import { faqs, serviceIconGlyph, services, site } from "../lib/site.ts";
 ---
 
 <BaseLayout
-  title="Private chauffeur requests"
+  title="Private chauffeur in Macau"
   description={site.description}
   showMobileBook={false}
 >
-  <section class="hero">
-    <div class="hero__visual">
-      <img
-        src="/images/hero-vehicle.jpg"
-        width="860"
-        height="400"
-        alt="Private chauffeur vehicle on a plaza in Macau"
-      />
-    </div>
-    <div class="wrap hero__inner">
+  <section class="hero hero--home">
+    <HeroBackdrop />
+    <div class="hero__stage">
       <div class="hero__copy">
-        <p class="kicker">Explore Macao with confidence</p>
-        <h1>Private Car &amp; Chauffeur Service in Macau</h1>
-        <p class="hero-services">
-          Airport transfers · City travel · Sightseeing · Corporate transport
-        </p>
-        <p class="lede">
-          Your travel partner in Macau. Comfortable journeys for every occasion. Submit a request
-          and a person confirms availability before any trip is treated as booked.
-        </p>
+        <h1>Your reliable private chauffeur in Macau</h1>
+        <p class="hero-sub">Airport transfers, city rides, and hourly service — requested in minutes.</p>
       </div>
       <div class="hero-booking">
         <BookingEmbedded client:load sourcePage="/" />
       </div>
+      <p class="hero-trust">Macau · Quote after review · Human confirmation</p>
     </div>
   </section>
 
@@ -43,10 +29,9 @@ const featured = services.slice(0, 4);
     <div class="wrap content-grid">
       <div>
         <p class="eyebrow">About us</p>
-        <h2>About Kai Yue Travel</h2>
-        <hr class="gold-rule" />
+        <h2>Private car service, confirmed by a person</h2>
         <p class="lede">
-          {site.name} helps guests request private chauffeur journeys in Macau. Submit a request; a person
+          {site.name} helps guests request chauffeur journeys in Macau. Submit a request; a person
           confirms availability before any trip is treated as booked.
         </p>
         <div class="grid-3" style="margin: 2rem 0;">
@@ -66,8 +51,7 @@ const featured = services.slice(0, 4);
         <a class="btn btn--secondary" href="/about">Learn more</a>
       </div>
       <div class="grid-2">
-        <div class="photo-tile" role="img" aria-label="Representative private chauffeur vehicle">
-        </div>
+        <div class="photo-tile" role="img" aria-label="Representative private chauffeur vehicle"></div>
         <div class="photo-tile" role="img" aria-label=""></div>
         <div class="photo-tile" role="img" aria-label=""></div>
         <div class="photo-tile" role="img" aria-label=""></div>
@@ -78,41 +62,39 @@ const featured = services.slice(0, 4);
   <section class="section section--muted">
     <div class="wrap">
       <div class="section-heading section-heading--center">
-        <p class="eyebrow">Services</p>
-        <h2>Private chauffeur requests</h2>
-        <hr class="gold-rule" />
+        <p class="eyebrow">Rides</p>
+        <h2>Airport, city, and hourly requests</h2>
       </div>
-      <div class="grid-4">
+      <div class="grid-3">
         {
-          featured.map((service) => (
+          services.map((service) => (
             <article class="card service-card">
               <div class="service-icon" aria-hidden="true">
-                {service.icon === "plane"
-                  ? "✈"
-                  : service.icon === "briefcase"
-                    ? "◆"
-                    : service.icon === "clock"
-                      ? "◷"
-                      : "▣"}
+                {serviceIconGlyph[service.icon]}
               </div>
               <h3>
                 <a href={`/services/${service.slug}`}>{service.title}</a>
               </h3>
               <p>{service.summary}</p>
-              <BookingLauncher
-                client:load
-                sourcePage="/"
-                sourceTrigger={`home-${service.slug}`}
-                serviceType={service.serviceType}
-                label="Book this service"
-                className="btn btn--secondary"
-              />
+              <div class="hero__actions" style="justify-content:center;">
+                <a class="btn btn--secondary" href={`/services/${service.slug}`}>
+                  Learn more
+                </a>
+                <BookingLauncher
+                  client:load
+                  sourcePage="/"
+                  sourceTrigger={`home-${service.slug}`}
+                  serviceType={service.serviceType}
+                  label="Book"
+                  className="btn btn--primary"
+                />
+              </div>
             </article>
           ))
         }
       </div>
       <p style="text-align:center;margin-top:2rem;">
-        <a href="/services">All services</a>
+        <a href="/pricing">See how quotes work</a>
       </p>
     </div>
   </section>
@@ -120,55 +102,42 @@ const featured = services.slice(0, 4);
   <section class="section">
     <div class="wrap content-grid">
       <div>
-        <p class="eyebrow">How booking works</p>
+        <p class="eyebrow">How it works</p>
         <h2>Request. Review. Confirmation.</h2>
-        <hr class="gold-rule" />
         <ol class="steps">
-          <li><strong>Request.</strong> Share journey and contact details.</li>
-          <li><strong>Review.</strong> The team checks timing, vehicle fit, and notes.</li>
+          <li><strong>Request.</strong> Share pickup, destination, and timing.</li>
+          <li><strong>Review.</strong> The team checks the journey and vehicle fit.</li>
           <li>
             <strong>Confirmation.</strong> You receive a separate confirmation if the trip can proceed.
           </li>
         </ol>
       </div>
       <div>
-        <p class="eyebrow">Our fleet</p>
-        <h2>Comfort confirmed after review</h2>
-        <hr class="gold-rule" />
+        <p class="eyebrow">Business</p>
+        <h2>Guest and executive movements</h2>
         <p>
-          We arrange a private vehicle suited to the passengers and luggage you list. Specific
-          models and features are confirmed when the team replies.
+          Hotels, companies, and event coordinators can send a programme inquiry instead of a single
+          trip request.
         </p>
-        <p><a class="btn btn--secondary" href="/fleet">See the fleet page</a></p>
+        <p><a class="btn btn--secondary" href="/corporate">Business inquiry</a></p>
       </div>
     </div>
   </section>
 
   <section class="section section--muted">
-    <div class="wrap content-grid">
-      <div>
-        <p class="eyebrow">Corporate</p>
-        <h2>Programmes and guest movements</h2>
-        <hr class="gold-rule" />
-        <p>
-          Hotels, companies, and event coordinators can send a programme inquiry instead of a single
-          trip request.
-        </p>
-        <a class="btn btn--secondary" href="/corporate">Corporate inquiry</a>
-      </div>
-      <div>
-        <p class="eyebrow">FAQ</p>
+    <div class="wrap">
+      <div class="section-heading section-heading--center">
+        <p class="eyebrow">Help</p>
         <h2>Questions</h2>
-        <hr class="gold-rule" />
-        {
-          faqs.slice(0, 3).map((item) => (
-            <details>
-              <summary>{item.question}</summary>
-              <p>{item.answer}</p>
-            </details>
-          ))
-        }
       </div>
+      {
+        faqs.slice(0, 3).map((item) => (
+          <details>
+            <summary>{item.question}</summary>
+            <p>{item.answer}</p>
+          </details>
+        ))
+      }
     </div>
   </section>
 

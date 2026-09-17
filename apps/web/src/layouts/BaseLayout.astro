@@ -1,7 +1,7 @@
 ---
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
-import { footerNav, nav, site } from "../lib/site.ts";
+import { footerNav, footerServiceNav, nav, site } from "../lib/site.ts";
 import "../styles/global.css";
 
 type Props = {
@@ -9,6 +9,7 @@ type Props = {
   description?: string;
   noindex?: boolean;
   showMobileBook?: boolean;
+  ogImage?: string;
 };
 
 const {
@@ -16,12 +17,23 @@ const {
   description = site.description,
   noindex = false,
   showMobileBook = true,
+  ogImage = site.defaultOgImage,
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
+const origin = Astro.site ?? site.url;
+const canonical = new URL(Astro.url.pathname, origin).toString();
+const ogImageUrl = new URL(ogImage, origin).toString();
 const path = Astro.url.pathname;
+const isHome = path === "/";
 
 function isCurrent(href: string) {
-  return href === "/" ? path === "/" : path.startsWith(href);
+  return href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
+}
+
+function isSectionCurrent(item: (typeof nav)[number]) {
+  if ("children" in item && item.children) {
+    return item.children.some((child) => isCurrent(child.href));
+  }
+  return Boolean("href" in item && item.href && isCurrent(item.href));
 }
 ---
 
@@ -38,6 +50,8 @@ function isCurrent(href: string) {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -46,52 +60,112 @@ function isCurrent(href: string) {
     />
     <slot name="head" />
   </head>
-  <body class:list={{ "page-no-mobile-book": !showMobileBook }}>
+  <body class:list={{ "page-no-mobile-book": !showMobileBook, "page-home": isHome }}>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap site-header__inner">
         <a class="logo" href="/">
-          <img class="logo-mark" src="/images/mark.svg" width="40" height="40" alt="" />
-          <span class="logo-text">
-            <strong>{site.legalNameDraft.toUpperCase()}</strong>
-            <span>{site.chineseGroupName}</span>
-          </span>
+          <span class="logo-mark" aria-hidden="true"></span>
+          <span class="logo-word">Kai Yue</span>
         </a>
-        <nav class="nav" aria-label="Primary">
+        <nav class="nav nav--pill" aria-label="Primary">
           {
-            nav.map((item) => (
-              <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
-                {item.label}
-              </a>
-            ))
+            nav.map((item) =>
+              "children" in item && item.children ? (
+                <details class="nav-dropdown">
+                  <summary class:list={{ "is-current": isSectionCurrent(item) }}>{item.label}</summary>
+                  <ul class="nav-dropdown__menu">
+                    {item.children.map((child) => (
+                      <li>
+                        <a
+                          href={child.href}
+                          aria-current={isCurrent(child.href) ? "page" : undefined}
+                        >
+                          {child.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : (
+                <a
+                  href={"href" in item ? item.href : "/"}
+                  aria-current={
+                    "href" in item && item.href && isCurrent(item.href) ? "page" : undefined
+                  }
+                >
+                  {item.label}
+                </a>
+              ),
+            )
           }
         </nav>
         <div class="header-actions">
-          {path !== "/" && <BookingLauncher client:load sourcePage={path} sourceTrigger="header" />}
-          <a class="help-pill" href={`tel:${site.phone.replaceAll(" ", "")}`}>
-            <span class="help-pill__icon" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <details class="lang-switch">
+            <summary aria-label="Language, English">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"></circle>
                 <path
-                  d="M6.6 4.8c.4-.8 1.3-1.2 2.2-1l2 .5c.8.2 1.3 1 1.2 1.9l-.3 2.1c-.1.6-.4 1.1-1 1.4l-1.3.7c.9 1.8 2.4 3.3 4.3 4.3l.7-1.3c.3-.5.8-.9 1.4-1l2.1-.3c.9-.1 1.7.4 1.9 1.2l.5 2c.2.9-.2 1.8-1 2.2-1.2.6-2.6.9-4 .9C10.4 20.4 4 14 4 6.8c0-1.4.3-2.8.9-4z"
-                  fill="currentColor"></path>
+                  d="M3 12h18M12 3c2.5 2.8 3.8 5.8 3.8 9S14.5 18.2 12 21c-2.5-2.8-3.8-5.8-3.8-9S9.5 5.8 12 3Z"
+                  stroke="currentColor"
+                  stroke-width="1.75"></path>
+              </svg>
+              EN
+            </summary>
+            <ul class="lang-switch__menu">
+              <li>
+                <a href={path} hreflang="en" lang="en" aria-current="true">English</a>
+              </li>
+            </ul>
+          </details>
+          <a class="header-chip" href="/login">
+            <span class="header-chip__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="3.25" stroke="currentColor" stroke-width="1.75"></circle>
+                <path
+                  d="M5.5 19.2c.9-3 3.4-4.7 6.5-4.7s5.6 1.7 6.5 4.7"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"></path>
               </svg>
             </span>
-            <span>
-              <small>Need Help?</small>
-              {site.phone}
-            </span>
+            Sign in
           </a>
           <details class="mobile-nav">
-            <summary class="btn btn--ghost" aria-label="Open menu">Menu</summary>
+            <summary class="menu-toggle" aria-label="Open menu">
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+            </summary>
             <nav class="mobile-nav__panel" aria-label="Mobile">
               {
-                nav.map((item) => (
-                  <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
-                    {item.label}
-                  </a>
-                ))
+                nav.map((item) =>
+                  "children" in item && item.children ? (
+                    <div class="mobile-nav__group">
+                      <p class="mobile-nav__heading">{item.label}</p>
+                      {item.children.map((child) => (
+                        <a
+                          href={child.href}
+                          aria-current={isCurrent(child.href) ? "page" : undefined}
+                        >
+                          {child.label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <a
+                      href={"href" in item ? item.href : "/"}
+                      aria-current={
+                        "href" in item && item.href && isCurrent(item.href) ? "page" : undefined
+                      }
+                    >
+                      {item.label}
+                    </a>
+                  ),
+                )
               }
-              <a href={`tel:${site.phone.replaceAll(" ", "")}`}>Call {site.phone}</a>
+              <a href="/login">Sign in</a>
+              <a href={path} hreflang="en">Language: English</a>
             </nav>
           </details>
         </div>
@@ -112,23 +186,20 @@ function isCurrent(href: string) {
       <div class="wrap site-footer__grid">
         <div>
           <a class="logo" href="/">
-            <img class="logo-mark" src="/images/mark.svg" width="40" height="40" alt="" />
-            <span class="logo-text">
-              <strong>{site.legalNameDraft.toUpperCase()}</strong>
-              <span>{site.chineseGroupName}</span>
-            </span>
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-word">Kai Yue</span>
           </a>
-          <p>{site.chineseName}</p>
+          <p>{site.name}</p>
           <p class="draft-note">
-            Visual system matched to the homepage mocks. License, fleet, and commercial claims
-            remain unverified.
+            Public visual system is inspired by a booking-first chauffeur layout. License, fleet,
+            and commercial claims remain unverified.
           </p>
         </div>
         <div>
-          <h2>Explore</h2>
+          <h2>Services</h2>
           <ul>
             {
-              footerNav.map((item) => (
+              footerServiceNav.map((item) => (
                 <li>
                   <a href={item.href}>{item.label}</a>
                 </li>
@@ -140,7 +211,9 @@ function isCurrent(href: string) {
           <h2>Company</h2>
           <ul>
             <li><a href="/about">About</a></li>
-            <li><a href="/corporate">Corporate</a></li>
+            <li><a href="/business/travel-agency">Travel agency</a></li>
+            <li><a href="/corporate">Corporate solution</a></li>
+            <li><a href="/business/hotels-resorts">Hotels &amp; resorts</a></li>
             <li><a href="/faq">FAQ</a></li>
             <li><a href="/privacy">Privacy</a></li>
             <li><a href="/terms">Terms</a></li>
@@ -148,6 +221,15 @@ function isCurrent(href: string) {
         </div>
         <div>
           <h2>Contact</h2>
+          <ul>
+            {
+              footerNav.map((item) => (
+                <li>
+                  <a href={item.href}>{item.label}</a>
+                </li>
+              ))
+            }
+          </ul>
           <p>
             <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
           </p>

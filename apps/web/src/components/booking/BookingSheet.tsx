@@ -59,29 +59,9 @@ export function BookingSheet() {
         aria-labelledby={titleId}
       >
         <div className="booking-card__header">
-          <span className="booking-card__icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <rect
-                x="3"
-                y="5"
-                width="18"
-                height="16"
-                rx="3"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              />
-              <path d="M3 10h18" stroke="currentColor" strokeWidth="1.8" />
-              <path
-                d="M8 3v4M16 3v4"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
           <div>
-            <h2 id={titleId}>Book Your Journey</h2>
-            <p>Fast. Easy. Reliable.</p>
+            <h2 id={titleId}>Request a chauffeur</h2>
+            <p>Quote after review · Human confirmation</p>
           </div>
           <button
             type="button"
