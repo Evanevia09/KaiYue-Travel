@@ -141,17 +141,19 @@ function isSectionCurrent(item: (typeof nav)[number]) {
               {
                 nav.map((item) =>
                   "children" in item && item.children ? (
-                    <div class="mobile-nav__group">
-                      <p class="mobile-nav__heading">{item.label}</p>
-                      {item.children.map((child) => (
-                        <a
-                          href={child.href}
-                          aria-current={isCurrent(child.href) ? "page" : undefined}
-                        >
-                          {child.label}
-                        </a>
-                      ))}
-                    </div>
+                    <details class="mobile-nav__group">
+                      <summary class="mobile-nav__toggle">{item.label}</summary>
+                      <div class="mobile-nav__submenu">
+                        {item.children.map((child) => (
+                          <a
+                            href={child.href}
+                            aria-current={isCurrent(child.href) ? "page" : undefined}
+                          >
+                            {child.label}
+                          </a>
+                        ))}
+                      </div>
+                    </details>
                   ) : (
                     <a
                       href={"href" in item ? item.href : "/"}
@@ -238,5 +240,8 @@ function isSectionCurrent(item: (typeof nav)[number]) {
       </div>
     </footer>
     <BookingSheet client:load />
+    <script>
+      import "../scripts/header-menus.ts";
+    </script>
   </body>
 </html>

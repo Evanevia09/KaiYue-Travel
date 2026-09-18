@@ -16,6 +16,9 @@ export type ServiceType = (typeof SERVICE_TYPES)[number];
 export const VEHICLE_PREFERENCES = ["no_preference", "executive_van", "sedan"] as const;
 export type VehiclePreference = (typeof VEHICLE_PREFERENCES)[number];
 
+export const HOURLY_DURATION_MIN_HOURS = 2;
+export const HOURLY_DURATION_MAX_HOURS = 12;
+
 export const BOOKING_SOURCE_MODES = ["embedded", "bottom-sheet", "page"] as const;
 export type BookingSourceMode = (typeof BOOKING_SOURCE_MODES)[number];
 
@@ -35,6 +38,12 @@ export const bookingCreateSchema = z
     pickupAt: z.string().datetime({ offset: true }),
     returnAt: z.string().datetime({ offset: true }).optional(),
     passengerCount: z.number().int().min(1).max(14),
+    durationHours: z
+      .number()
+      .int()
+      .min(HOURLY_DURATION_MIN_HOURS)
+      .max(HOURLY_DURATION_MAX_HOURS)
+      .optional(),
     luggageCount: z.number().int().min(0).max(20).optional(),
     vehiclePreference: z.enum(VEHICLE_PREFERENCES).optional(),
     contactName: z.string().trim().min(2).max(80),
@@ -62,6 +71,14 @@ export const bookingCreateSchema = z
         code: "custom",
         path: ["destination"],
         message: "Enter a destination.",
+      });
+    }
+
+    if (value.serviceType === "hourly_charter" && value.durationHours == null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["durationHours"],
+        message: "Choose how many hours you need.",
       });
     }
 

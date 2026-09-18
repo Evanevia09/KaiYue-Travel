@@ -1,10 +1,8 @@
 ---
 import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
-import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import HeroBackdrop from "../components/content/HeroBackdrop.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { faqs, serviceIconGlyph, services, site } from "../lib/site.ts";
-import { business } from "../lib/business.ts";
+import { heroTrustLine, site } from "../lib/site.ts";
 ---
 
 <BaseLayout
@@ -17,137 +15,14 @@ import { business } from "../lib/business.ts";
     <div class="hero__stage">
       <div class="hero__copy">
         <h1>Your reliable private chauffeur in Macau</h1>
-        <p class="hero-sub">Airport transfers, city rides, and hourly service — requested in minutes.</p>
+        <p class="hero-sub">
+          Airport transfers, city rides, and hourly service — requested in minutes.
+        </p>
       </div>
       <div class="hero-booking">
         <BookingEmbedded client:load sourcePage="/" />
       </div>
-      <p class="hero-trust">Macau · Quote after review · Human confirmation</p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap content-grid">
-      <div>
-        <p class="eyebrow">About us</p>
-        <h2>Private car service, confirmed by a person</h2>
-        <p class="lede">
-          {site.name} helps guests request chauffeur journeys in Macau. Submit a request; a person
-          confirms availability before any trip is treated as booked.
-        </p>
-        <div class="grid-3" style="margin: 2rem 0;">
-          <div class="stat-chip">
-            <strong>Macau</strong>
-            <span>Service area in this release</span>
-          </div>
-          <div class="stat-chip">
-            <strong>24h</strong>
-            <span>Notice window on the form</span>
-          </div>
-          <div class="stat-chip">
-            <strong>Quote</strong>
-            <span>No online payment yet</span>
-          </div>
-        </div>
-        <a class="btn btn--secondary" href="/about">Learn more</a>
-      </div>
-      <div class="grid-2">
-        <div class="photo-tile" role="img" aria-label="Representative private chauffeur vehicle"></div>
-        <div class="photo-tile" role="img" aria-label=""></div>
-        <div class="photo-tile" role="img" aria-label=""></div>
-        <div class="photo-tile" role="img" aria-label=""></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--muted">
-    <div class="wrap">
-      <div class="section-heading section-heading--center">
-        <p class="eyebrow">Rides</p>
-        <h2>Airport, city, and hourly requests</h2>
-      </div>
-      <div class="grid-3">
-        {
-          services.map((service) => (
-            <article class="card service-card">
-              <div class="service-icon" aria-hidden="true">
-                {serviceIconGlyph[service.icon]}
-              </div>
-              <h3>
-                <a href={`/services/${service.slug}`}>{service.title}</a>
-              </h3>
-              <p>{service.summary}</p>
-              <div class="hero__actions" style="justify-content:center;">
-                <a class="btn btn--secondary" href={`/services/${service.slug}`}>
-                  Learn more
-                </a>
-                <BookingLauncher
-                  client:load
-                  sourcePage="/"
-                  sourceTrigger={`home-${service.slug}`}
-                  serviceType={service.serviceType}
-                  label="Book"
-                  className="btn btn--primary"
-                />
-              </div>
-            </article>
-          ))
-        }
-      </div>
-      <p style="text-align:center;margin-top:2rem;">
-        <a href="/pricing">See how quotes work</a>
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap content-grid">
-      <div>
-        <p class="eyebrow">How it works</p>
-        <h2>Request. Review. Confirmation.</h2>
-        <ol class="steps">
-          <li><strong>Request.</strong> Share pickup, destination, and timing.</li>
-          <li><strong>Review.</strong> The team checks the journey and vehicle fit.</li>
-          <li>
-            <strong>Confirmation.</strong> You receive a separate confirmation if the trip can proceed.
-          </li>
-        </ol>
-      </div>
-      <div>
-        <p class="eyebrow">Business</p>
-        <h2>Corporate mobility across the Greater Bay Area</h2>
-        <p>
-          {site.groupLegalName} works with Mingmen Tourism and Mingmen Technology on compliant
-          corporate, hotel, and agency programmes — including Macau–Mainland dual-plate{" "}
-          {business.vehicle} service. Send a programme inquiry rather than a single trip request.
-        </p>
-        <p><a class="btn btn--secondary" href="/corporate">Business inquiry</a></p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--muted">
-    <div class="wrap">
-      <div class="section-heading section-heading--center">
-        <p class="eyebrow">Help</p>
-        <h2>Questions</h2>
-      </div>
-      {
-        faqs.slice(0, 3).map((item) => (
-          <details>
-            <summary>{item.question}</summary>
-            <p>{item.answer}</p>
-          </details>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="section section--dark">
-    <div class="wrap" style="text-align:center;">
-      <h2>Ready when you are</h2>
-      <p class="lede">Open the same booking form from any page.</p>
-      <BookingLauncher client:load sourcePage="/" sourceTrigger="final-cta" />
+      <p class="hero-trust">{heroTrustLine}</p>
     </div>
   </section>
 </BaseLayout>

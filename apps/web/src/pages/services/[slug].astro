@@ -1,15 +1,9 @@
 ---
-import { BookingLauncher } from "../../components/booking/BookingLauncher.tsx";
+import { BookingEmbedded } from "../../components/booking/BookingEmbedded.tsx";
 import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import {
-  relatedServices,
-  serviceIconGlyph,
-  services,
-  site,
-  type ServiceRecord,
-} from "../../lib/site.ts";
+import { services, site, type ServiceRecord } from "../../lib/site.ts";
 
 export function getStaticPaths() {
   return services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
@@ -21,10 +15,8 @@ interface Props {
 
 const { service } = Astro.props;
 const path = `/services/${service.slug}`;
-const related = relatedServices(service);
 const origin = Astro.site ?? site.url;
-const canonical = new URL(path, origin).toString();
-const pageUrl = canonical;
+const pageUrl = new URL(path, origin).toString();
 
 const serviceSchema = {
   "@context": "https://schema.org",
@@ -57,105 +49,17 @@ const breadcrumbSchema = {
     { "@type": "ListItem", position: 2, name: service.title, item: pageUrl },
   ],
 };
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: service.faqs.map((item) => ({
-    "@type": "Question",
-    name: item.question,
-    acceptedAnswer: { "@type": "Answer", text: item.answer },
-  })),
-};
 ---
 
-<BaseLayout title={service.seoTitle} description={service.seoDescription}>
-  <JsonLd slot="head" data={[serviceSchema, breadcrumbSchema, faqSchema]} />
-  <PageHero eyebrow="Private chauffeur" title={service.h1} lede={service.summary} />
-  <article class="section">
-    <div class="wrap service-page">
-      <nav class="breadcrumbs" aria-label="Breadcrumb">
-        <ol>
-          <li><a href="/">Home</a></li>
-          <li><span aria-current="page">{service.title}</span></li>
-        </ol>
-      </nav>
-      <p class="lede">{service.intro}</p>
-      <div class="grid-2 service-page__grid">
-        <div class="card">
-          <h2>Who it is for</h2>
-          <ul>
-            {service.whoFor.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-        <div class="card">
-          <h2>How this request works</h2>
-          <ol class="steps">
-            {service.process.map((item) => <li>{item}</li>)}
-          </ol>
-        </div>
-        <div class="card">
-          <h2>Typical uses</h2>
-          <ul>
-            {service.useCases.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-        <div class="card">
-          <h2>Included in the request</h2>
-          <ul>
-            {service.included.map((item) => <li>{item}</li>)}
-          </ul>
-          <h3>Not included</h3>
-          <ul>
-            {service.notIncluded.map((item) => <li>{item}</li>)}
-          </ul>
-        </div>
-      </div>
-      <div class="card service-page__quote">
-        <h2>How this quote is prepared</h2>
-        <p>{service.quoteBasis}. Amounts are not published as a rate card. The team confirms pricing and payment method after review.</p>
-        <div class="hero__actions">
-          <BookingLauncher
-            client:load
-            sourcePage={path}
-            sourceTrigger="service-body"
-            serviceType={service.serviceType}
-            label="Book this service"
-          />
-          <a class="btn btn--secondary" href="/pricing">Pricing table</a>
-        </div>
-      </div>
-      <section class="service-page__faq" aria-labelledby="service-faq-heading">
-        <h2 id="service-faq-heading">Questions about {service.title.toLowerCase()}</h2>
-        {
-          service.faqs.map((item) => (
-            <details>
-              <summary>{item.question}</summary>
-              <p>{item.answer}</p>
-            </details>
-          ))
-        }
-      </section>
-      {
-        related.length > 0 ? (
-          <section aria-labelledby="related-heading">
-            <h2 id="related-heading">Related chauffeur requests</h2>
-            <div class="grid-3">
-              {related.map((item) => (
-                <article class="card service-card">
-                  <div class="service-icon" aria-hidden="true">
-                    {serviceIconGlyph[item.icon]}
-                  </div>
-                  <h3>
-                    <a href={`/services/${item.slug}`}>{item.title}</a>
-                  </h3>
-                  <p>{item.summary}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null
-      }
-    </div>
-  </article>
+<BaseLayout title={service.seoTitle} description={service.seoDescription} showMobileBook={false}>
+  <JsonLd slot="head" data={[serviceSchema, breadcrumbSchema]} />
+  <PageHero eyebrow="Private chauffeur" title={service.h1} lede={service.summary}>
+    {/* Same hero widget as the homepage, preset to this service's ride state. */}
+    <BookingEmbedded
+      slot="booking"
+      client:load
+      sourcePage={path}
+      serviceType={service.serviceType}
+    />
+  </PageHero>
 </BaseLayout>

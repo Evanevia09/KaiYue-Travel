@@ -1,15 +1,8 @@
 ---
-import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
 import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import {
-  allianceMembers,
-  business,
-  compliancePoints,
-  organizationJsonLd,
-  programmeCommitments,
-} from "../../lib/business.ts";
+import { business, organizationJsonLd } from "../../lib/business.ts";
 import { site } from "../../lib/site.ts";
 
 const path = "/business/hotels-resorts";
@@ -27,81 +20,6 @@ const pageUrl = new URL(path, origin).toString();
     title="Hotel and resort programmes"
     lede={`${site.legalName} is ${business.venetian}. Properties can request guest airport, inter-hotel, and Greater Bay Area dual-plate transfers with 7×24 dispatch.`}
   >
-    <a slot="actions" class="btn btn--primary" href="#inquiry">Send a property inquiry</a>
+    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Send a property inquiry</a>
   </PageHero>
-
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="biz-stack">
-        <p class="eyebrow">For properties</p>
-        <h2>Seamless Macau and Mainland guest cars</h2>
-        <p>
-          The group offer is built for premium hotel guests who need a lawful, comfortable car
-          between Macau and the Mainland — not an informal cross-border hire. Fleet: more than 200{" "}
-          {business.vehicle} vehicles, including dual-plate cars. Hours:{" "}
-          {business.hours}.
-        </p>
-        <ul>
-          <li>Arrival and departure airport transfers</li>
-          <li>Hotel pickup, inter-property moves, and timed restaurant drop-offs</li>
-          <li>
-            Macau to {business.cities.filter((city) => city !== "Macau").join(", ")}, with other
-            Mainland destinations on request
-          </li>
-          <li>VIP reception, performer, and event-guest movements</li>
-          <li>Named-coordinator follow-up for recurring guest programmes</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h2>Guest-facing standard</h2>
-        <p>
-          Service philosophy: {business.philosophy.join(", ")}. Chauffeurs in uniform, early
-          arrival, luggage assistance, and confidentiality. GPS monitoring and dual-jurisdiction
-          insurance sit with the operations team.
-        </p>
-        <ul>
-          {programmeCommitments.slice(0, 4).map((item) => (
-            <li>
-              <strong>{item.title}.</strong> {item.body}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--muted">
-    <div class="wrap biz-stack">
-      <p class="eyebrow">Compliance</p>
-      <h2>Licensed cars your guests can verify</h2>
-      <ul>
-        {compliancePoints.map((item) => <li>{item}</li>)}
-      </ul>
-      <p>
-        {allianceMembers[0].name} supplies the licensed fleet. {allianceMembers[1].name} runs
-        dispatch. {allianceMembers[2].name} provides the tracking and booking platforms used in
-        operations.
-      </p>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="biz-stack">
-        <p class="eyebrow">Next step</p>
-        <h2>Set up a property programme</h2>
-        <p>
-          Include property name, a named coordinator, expected dates and volume, and whether
-          guests need Macau-only or cross-border cars. This website form is an inquiry; a person
-          follows up before any allocation is treated as booked.
-        </p>
-        <p>
-          Related: <a href="/corporate">Corporate solution</a>
-          {" · "}
-          <a href="/business/travel-agency">Travel agencies</a>
-        </p>
-      </div>
-      <BusinessInquiry sourcePage={path} heading="Send a property inquiry" />
-    </div>
-  </section>
 </BaseLayout>

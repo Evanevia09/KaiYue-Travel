@@ -1,115 +1,15 @@
 ---
-import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
-import JsonLd from "../components/content/JsonLd.astro";
 import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { services } from "../lib/site.ts";
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "Do you publish a Macau chauffeur rate card?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Not yet. Each request is quoted after a person reviews timing, vehicle fit, and notes. Payment method is confirmed with the quote.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What information do you need for a quote?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Pickup, destination or itinerary notes, date and time, passenger count, and any luggage or waiting notes. Corporate programmes also need company details and expected volume.",
-      },
-    },
-  ],
-};
 ---
 
 <BaseLayout
   title="Chauffeur pricing in Macau — Quote table"
   description="See how Kai Yue Travel prepares private chauffeur quotes in Macau. Fares are confirmed after review; this table explains what each service is quoted on."
 >
-  <JsonLd slot="head" data={faqSchema} />
   <PageHero
     eyebrow="Pricing"
     title="Private chauffeur quotes in Macau"
     lede="There is no public rate card on this site yet. The table below shows how each service is quoted after a person reviews your request."
   />
-  <section class="section">
-    <div class="wrap">
-      <p class="draft-note">
-        Amounts, surcharges, and payment methods are not published here. They are communicated when
-        a request is confirmed. This page is a quote guide, not an offer list.
-      </p>
-      <div class="table-wrap price-table-wrap">
-        <table class="price-table">
-          <caption class="sr-only">
-            How each Macau chauffeur service is quoted after review
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Service</th>
-              <th scope="col">Quoted on</th>
-              <th scope="col">Typical notice</th>
-              <th scope="col">Published fare</th>
-              <th scope="col">Next step</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              services.map((service) => (
-                <tr>
-                  <th scope="row">
-                    <a href={`/services/${service.slug}`}>{service.title}</a>
-                  </th>
-                  <td>{service.quoteBasis}</td>
-                  <td>24 hours on the form</td>
-                  <td>Quoted after review</td>
-                  <td>
-                    <BookingLauncher
-                      client:load
-                      sourcePage="/pricing"
-                      sourceTrigger={`pricing-${service.slug}`}
-                      serviceType={service.serviceType}
-                      label="Book"
-                      className="btn btn--primary"
-                    />
-                  </td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-  <section class="section section--muted">
-    <div class="wrap grid-2">
-      <div class="card">
-        <h2>What changes the quote</h2>
-        <ul>
-          <li>Pickup time, date, and the 24-hour notice window</li>
-          <li>Passenger count and luggage notes</li>
-          <li>Waiting, extra stops, or an hourly block instead of one drop-off</li>
-          <li>Vehicle preference, which is a request rather than a guaranteed model</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h2>What you receive</h2>
-        <ul>
-          <li>A stored request and a reference, not an automatic booking</li>
-          <li>A human review of timing and vehicle fit</li>
-          <li>Pricing and payment method only after that review</li>
-        </ul>
-        <p>
-          Companies planning several movements can also use the
-          <a href="/corporate">corporate inquiry</a>.
-        </p>
-      </div>
-    </div>
-  </section>
 </BaseLayout>

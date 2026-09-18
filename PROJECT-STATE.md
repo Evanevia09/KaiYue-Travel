@@ -1,13 +1,13 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-09-17  
+**Last updated:** 2026-09-18  
 **Phase:** 1–3 scaffold — foundation, public site, booking/API, and lightweight admin  
 **Overall status:** Release 1 application scaffold implemented in-repo; not deployed. Legal names and B2B copy now follow the Kai Yue Group portfolio; B2C booking copy stays Macau-only and quote-after-review.  
 **Current objective:** Continue Release 1 against the Transfeero-inspired public design. Keep B2C claims conservative; keep B2B pages aligned with the group portfolio.
 
 ## Quick handoff
 
-Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark, centered hero copy, and a compact Transfer / Hourly From–To bar. Desktop home embeds that widget on a 100vh full-bleed hero; other public pages use the same dark hero treatment with title and lede only (no hero Book now button). Other pages open the same form as a bottom sheet; `/booking` is the no-JS-enhancement fallback. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
+Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark, centered hero copy, and a compact Point to point / Hourly booking bar. Desktop home embeds that widget on a 100vh full-bleed hero; other public pages use the same dark hero treatment with title and lede only (no hero Book now button). Other pages open the same form as a bottom sheet; `/booking` is the no-JS-enhancement fallback. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
 No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy is conservative (Macau, quote-after-review). B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
@@ -39,6 +39,8 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
 - Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, pill nav, compact booking bar, dark footer). The journey bar uses a custom dual-month date/time picker instead of the native datetime control. B2C copy remains Macau-only and quote-after-review. B2B pages (`/corporate`, `/business/travel-agency`, `/business/hotels-resorts`) follow the group portfolio. Public heroes are 100vh full-width backgrounds using `apps/web/public/images/hero-home.jpg` with a dark cinematic overlay. Header booking is not duplicated; inner-page heroes no longer include Book now. Homepage embeds the form; other pages book from in-content CTAs or the mobile sticky control.
 - Each chauffeur service has an SEO landing page under `/services/[slug]`. Header Business is a dropdown to Travel agency, Corporate solution, and Hotels & resorts. `/services` redirects to airport transfer. Homepage service cards cover all six services. `/pricing` is a quote table without published fares.
 - GitHub Actions `check` job is pinned to the `package.json` `packageManager` version only.
+- Header navigation and motion (2026-09-18): `Help` is removed from the primary menu — `/faq` still exists and stays linked in the footer Company column. Every primary item is now a dropdown (`Point To Point`, `By The Hour`, `Business`, plus the added `City Tours` page). On mobile the same items are collapsed-by-default `<details>` submenus with a rotating chevron, animated reveal, and a panel that drops in under the header. `apps/web/src/scripts/header-menus.ts` owns all header menu behaviour: one menu open at a time (opening a dropdown or the language switch collapses whichever was open, and expanding a mobile group collapses its siblings without closing the panel), an outside click or tap closes the open menu, Escape closes it and returns focus to its summary, following a link closes it, tabbing out of the header abandons a desktop dropdown, and the mobile panel always reopens collapsed. Motion polish is site-wide: dropdown and submenu reveals, hamburger-to-close morph, wizard step entrances (`.booking-bar` / `.booking-fields`), mobile sheet entrance, and hover feedback on buttons, chips, nav items, footer links, cards and form fields. All of it is disabled under `prefers-reduced-motion` and hover effects are gated behind `(hover: hover) and (pointer: fine)`.
+- Motion/behaviour was verified in headless Chrome against the local dev server, not by inspection: submenus closed on load, expand on tap, opening a second dropdown or the language switch collapses the first, an outside click closes, Escape closes and refocuses the summary, following a link closes, tab-out closes, the desktop dropdown animates with the chevron flipping, the wizard's step 2 mounts with its entrance animation, the field focus ring resolves to `border #111` + a 4px ring, and the hover lift measures as `translateY(-1px)` / `translateX(2px)`. `pnpm typecheck`, `pnpm test` (29 tests) and `pnpm build` pass.
 
 ## Not yet verified or implemented
 
@@ -59,6 +61,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Whether customer acknowledgement email is required in addition to staff alerts.
 - Production promotion/approval model and data retention/recovery policy.
 - Error-monitoring and consent-compliant analytics choices.
+- Booking wizard gating: `BookingForm` advances on step 1 → 2 → 3 in `onSubmit` without validating the current step, so an incomplete journey still reaches the Details step; per-step validation (or an explicit "review before continuing") is undecided.
+- Hero wizard steps 2–3 inherit the hero's centered `text-align`, so `.field` labels render centered while the fields stay left-aligned. Cosmetic; decide whether the hero variant should reset text alignment inside the form.
 
 ## Assumptions used by this scaffold
 
@@ -82,7 +86,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-1. Browser-check the custom pickup/return calendar and time popover on desktop and the mobile sheet.
+1. Browser-check the mobile booking sheet (not the homepage hero card) for duration, calendar, and Add return stack.
 2. Confirm service types, booking fields, and customer confirmation language.
 3. Provision non-production Cloudflare Workers, D1, Access, and Resend placeholders—without committing secrets.
 4. Apply `migrations/0001_init.sql` to a local/preview D1 and verify the slice with real bindings.
@@ -100,9 +104,44 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | 2026-09-16 | Restyled public site to in-repo homepage mocks; pinned CI pnpm | GitHub Actions `check` succeeded (run 35063368522). Local `pnpm test` 24/24, typecheck, build. Desktop/mobile browser pass of homepage, booking steps, and services sheet. | Not pixel-perfect to the mock photography (hero is a crop plus CSS sky). Not a deployed preview. |
 | 2026-09-16 | Full-bleed 100vh heroes, header Book now removed, booking spacing | Desktop browser pass of homepage hero/overlay/widget, Services and Corporate heroes, booking sheet steps 1–2 | Mobile 100vh heroes not re-checked in this pass. Image usage rights for `hero-home.jpg` not confirmed. |
 | 2026-09-16 | Service SEO pages, dropdown nav, pricing quote table | Typecheck clean. HTTP 200 on service + pricing pages. `/services` 308 → airport transfer. Dropdown and JSON-LD present in HTML. | No owner-approved fares. Dropdown interaction not click-tested in the browser. |
+| 2026-09-17 | Mobile homepage Add return under pickup date | 390×844: stacked (pickup then Add return). 1280: side by side. Hourly hides Add return. | Mobile sheet not re-checked. |
 | 2026-09-16 | Homepage booking bar restored; inner-page hero Book now removed | See changelog below. | Mobile 390 viewport and full booking submit not re-checked in this pass until browser verification completes. |
+| 2026-09-18 | Nav regrouped (Point To Point / By The Hour / City Tours); public pages cut to hero+footer; hero widget on service pages presets the ride state | Real browser (Chrome via Playwright), dev server `http://localhost:4321`. 25 routes HTTP 200 (404 for an unknown path). Every stripped page renders exactly one `main` block (`section.hero`) plus the footer; `/booking` and `/contact` keep their form section; `/booking/confirmation` keeps its message section. Nav dropdowns = Point To Point, By The Hour, Business; links = Help. Mobile 390: panel now `position: fixed`, x=0 w=390 h=766 in an 844 viewport, `overflow-y: auto`, last row reachable. Service pages: hero widget present on all six P2P/hourly pages; `draft.serviceType` = airport_transfer / point_to_point / hourly_charter / hotel_transfer per page. Two real submits: `/services/local-chauffeur` → `serviceType: hourly_charter` + `durationHours: 2`, no destination; `/services/local-transfers` → destination present, no `durationHours`. `pnpm typecheck` clean (65 files, 0 errors/warnings/hints); `pnpm test` 29/29; `pnpm build` complete incl. new `/services/city-tours`. | `pnpm lint` (`prettier --check .`) still fails on `404.astro`, `booking.astro`, `contact.astro` — verified pristine vs HEAD, so pre-existing, not introduced here. `privacy`/`terms` body text is now removed from the rendered page (recoverable from Git). Cross-border and wedding copy is draft, not owner-verified. Not a deployed preview; admin area untouched. |
 
 ## Change log
+
+### 2026-09-18 — Nav regrouped, pages cut to hero+footer, service heroes carry the booking widget
+
+- Changed: nav is now **Point To Point** (Airport Transfer, Cross Border Rides, Local Transfers), **By The Hour** (Local Chauffeur, Weddings, City Tours), Help, and Business. Removed the Airport ride / City rides / Hourly entries. Four new service records (`cross-border-rides`, `local-transfers`, `local-chauffeur`, `weddings`) plus `city-tours`; Airport Transfer reuses `/services/airport-transfer`.
+- Changed: every public content page renders the hero and the global footer only. `/booking` and `/contact` keep their form section, and `/booking/confirmation` keeps its message, because those pages exist to host a form or an outcome.
+- Changed: `/services/*` heroes now embed the same hero booking widget as the homepage, preset per page — `point_to_point` on Point To Point pages, `hourly_charter` on By The Hour pages, `airport_transfer` on the airport page — and the sticky mobile Book now bar is off there, matching the homepage. `BookingForm` gained `initialServiceType`, applied once on mount and skipped when the visitor has already started typing (`isDirty`).
+- Changed: mobile menu panel is now viewport-fixed with a scroll cap. It was `position: absolute` inside `.header-actions` (`position: relative`), so the open menu measured 150×983 px at 390 px wide — a narrow column pinned to the right edge, hanging off an 844 px viewport with no scroll.
+- Decision/evidence: owner asked for the hero+footer cut, the two new nav groups, a genuine mobile dropdown fix, then the hero widget with the right ride state plus a City Tours page. Owner chose to keep Help and Business, to reuse existing service pages where they fit and create the missing ones, and to keep the forms on `/booking` and `/contact`.
+- Verified: see the 2026-09-18 row in the verification record. Real-browser measurements and two real booking submissions, not markup inspection alone.
+- Not verified or follow-up: `privacy`/`terms` prose is gone from the rendered page pending rewritten content. The footer Services column still lists the older pages (`hotel-transfer`, `point-to-point`, `sightseeing`, `hourly-charter`), which are no longer in the nav. Cross-border, wedding, and city-tour copy is draft and needs owner verification before launch. Mobile bottom sheet not re-checked. The admin area was left as-is.
+- Pre-existing defect found while verifying, not fixed here: `/booking` hydrates unreliably (~4 of 10 fresh loads) with `Hydration failed… <BookingSheet> + <div className="booking-sheet">`. `BookingPage` calls `openBooking()` in a mount effect, so when `BookingPage` wins the hydration race against `BookingSheet`, the sheet's client render no longer matches the server's empty markup. Both files are pristine at HEAD and neither is touched by this change. Likely fix: gate `BookingSheet`'s render on a `mounted` flag.
+- Pre-existing defect found while verifying, not fixed here: `/favicon.ico` returns 404 (`public/` holds only `images/` and `robots.txt`, and `BaseLayout` declares no icon link), so every page logs a console 404.
+
+### 2026-09-17 — Mobile Add return stacks under pickup date
+
+- Changed: below 880px, Point to point places **Add return** on its own full-width row under the pickup date. Desktop (≥880px) still keeps Add return beside pickup. Hourly still hides Add return.
+- Decision/evidence: user selected the homepage Add return control and asked to put it below the pickup date on mobile.
+- Verified: `http://localhost:4322/` at 390×844 — pickup date `y=503` full width, Add return `y=552` same x and width. Desktop 1280 — both `y=547`, Add return to the right of pickup (`x=764` vs `x=537`). Hourly at 390 hides Add return.
+- Not verified or follow-up: mobile bottom-sheet booking form; roundtrip combined chip on a phone.
+
+### 2026-09-17 — Booking island loads a single React copy
+
+- Changed: local HTML now rewrites island renderer URLs from Vite `deps_prerender` to `deps`. Astro was hydrating booking islands with a second React copy (`The booking form could not load` / invalid hook call).
+- Decision/evidence: homepage showed “The booking form could not load” with `Invalid hook call` / `useSyncExternalStore` of null from two Vite React hashes.
+- Verified: homepage at `http://localhost:4322/` shows the booking bar. By the Hour switches to Location + Duration at 2 Hours. Island `renderer-url` is `/node_modules/.vite/deps/` rather than `deps_prerender`.
+- Not verified or follow-up: Vite prerender still logs an invalid-hook warning while generating BookingSheet HTML; production bundles are unaffected.
+
+### 2026-09-17 — Hourly duration stepper
+
+- Changed: By the Hour shows a Duration number picker (minimum and default 2 hours, maximum 12). The create schema requires `durationHours` for hourly charter; the Worker stores it in booking notes as `Duration: N hours.` until a dedicated column exists.
+- Decision/evidence: user asked for a duration number picker on hourly, starting from 2 hours.
+- Verified: `pnpm test` 29/29; typecheck clean; `astro build` complete. Production preview on `http://localhost:4323/`: By the Hour shows Location, pickup date, Duration starting at **2 Hours** with minus disabled; plus steps to 3 Hours; Point to point hides Duration and restores From / To / Add return.
+- Not verified or follow-up: mobile sheet duration layout; dedicated D1 duration column. Dev-server HMR can still empty the hero island until a full reload.
 
 ### 2026-09-17 — B2B pages follow group portfolio; legal names adopted
 
@@ -208,6 +247,20 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Decision/evidence: user selected those four booking-bar controls and asked for a subtle highlight on hover.
 - Verified: desktop homepage From cell shows a light rounded gray fill under forced hover; To, date chip, and Add return share the same hover/focus styles.
 - Not verified or follow-up: pointer hover of every control on a physical mouse; mobile stacked bar.
+
+### 2026-09-17 — Pickup-only calendar is one month
+
+- Changed: the date popover shows one month when pickup is the only date (hourly, or point-to-point before Add return). Dual-month remains after a return is added.
+- Decision/evidence: user selected the dual-month pickup calendar and asked for a single month when pickup is the only active picker.
+- Verified: desktop homepage pickup-only popover shows September 2026 only. After Add return, September and October both appear with pickup and return footer rows.
+- Not verified or follow-up: hourly single-month calendar; mobile popover.
+
+### 2026-09-17 — Hourly booking bar hides To and return
+
+- Changed: ride toggle label is **Point to point**. Selecting **By the Hour** hides To, relabels From as Location, and hides Add return / return dates. Switching to hourly clears destination and return from the draft.
+- Decision/evidence: user asked to rename Transfer and make the widget dynamic for hourly (location only, no return).
+- Verified: desktop homepage. Point to point shows From, To, Add return. By the Hour shows Location and pickup date only (To and Add return gone). Switching back restores From / To / Add return.
+- Not verified or follow-up: mobile sheet hourly layout.
 
 ### 2026-09-16 — Ride toggle inner padding
 

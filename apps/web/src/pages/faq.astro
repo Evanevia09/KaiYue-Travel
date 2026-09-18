@@ -2,7 +2,6 @@
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { faqs } from "../lib/site.ts";
 ---
 
 <BaseLayout title="FAQ" description="How chauffeur requests, confirmation, and quotes work.">
@@ -10,20 +9,7 @@ import { faqs } from "../lib/site.ts";
     eyebrow="FAQ"
     title="Frequently asked questions"
     lede="How chauffeur requests, confirmation, and quotes work."
-  />
-  <section class="section">
-    <div class="wrap">
-      {
-        faqs.map((item) => (
-          <details>
-            <summary>{item.question}</summary>
-            <p>{item.answer}</p>
-          </details>
-        ))
-      }
-      <p style="margin-top: 2rem;">
-        <BookingLauncher client:load sourcePage="/faq" sourceTrigger="faq-cta" />
-      </p>
-    </div>
-  </section>
+  >
+    <BookingLauncher slot="actions" client:load sourcePage="/faq" sourceTrigger="faq-hero" />
+  </PageHero>
 </BaseLayout>

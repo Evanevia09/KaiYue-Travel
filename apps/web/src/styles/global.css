@@ -196,12 +196,18 @@ a {
   content: "▾";
   margin-left: 0.35rem;
   font-size: 0.7em;
+  transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.nav-dropdown[open] > summary::after {
+  transform: rotate(180deg);
 }
 
 .nav-dropdown__menu {
   position: absolute;
   top: calc(100% + 0.55rem);
   left: 0;
+  transform-origin: top left;
   z-index: 50;
   min-width: 16.5rem;
   margin: 0;
@@ -227,20 +233,56 @@ a {
   color: white;
 }
 
+/* Mobile submenus are collapsed by default (they are `<details>` elements with
+   no `open` attribute) and reveal with a short drop-in when expanded. */
 .mobile-nav__group {
-  display: grid;
-  gap: 0.15rem;
-  padding: 0.35rem 0 0.5rem;
+  border-radius: 0.85rem;
 }
 
-.mobile-nav__heading {
-  margin: 0.35rem 0 0.15rem;
-  padding: 0 0.85rem;
-  color: rgb(255 255 255 / 55%);
+.mobile-nav__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.7rem;
+  color: rgb(255 255 255 / 78%);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mobile-nav__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-nav__toggle::after {
+  content: "▾";
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.mobile-nav__group[open] > .mobile-nav__toggle::after {
+  transform: rotate(180deg);
+}
+
+.mobile-nav__submenu {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0 0 0.4rem 0.5rem;
+  padding: 0.1rem 0 0.35rem 0.5rem;
+  border-left: 1px solid rgb(255 255 255 / 12%);
+}
+
+.mobile-nav__group[open] > .mobile-nav__submenu {
+  animation: ui-submenu-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .header-actions {
@@ -286,6 +328,11 @@ a {
   content: "▾";
   font-size: 0.7em;
   opacity: 0.8;
+  transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.lang-switch[open] > summary::after {
+  transform: rotate(180deg);
 }
 
 .lang-switch__menu {
@@ -375,13 +422,27 @@ a {
 }
 
 .mobile-nav__panel {
-  position: absolute;
+  /* Fixed to the viewport, not to .header-actions (which is position: relative
+     and only as wide as the right-hand header cluster). Anchoring it there made
+     the open menu a narrow column pinned to the right edge. */
+  position: fixed;
   left: 0;
   right: 0;
   top: var(--header-height);
-  background: rgb(12 12 14 / 96%);
+  z-index: 55;
+  /* Long menus (submenu groups + actions) must scroll instead of running off
+     the bottom of the screen on short viewports. */
+  max-height: calc(100vh - var(--header-height));
+  max-height: calc(100dvh - var(--header-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* The panel is translucent like the desktop nav pill, so it needs the same
+     backdrop blur — without it the hero's booking bar ghosts through the menu. */
+  background: rgb(12 12 14 / 92%);
+  backdrop-filter: blur(18px);
   border-bottom: 1px solid rgb(255 255 255 / 8%);
-  padding: 0.75rem 1rem 1rem;
+  padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
   display: grid;
   gap: 0.25rem;
 }
@@ -396,6 +457,30 @@ a {
 .mobile-nav__panel a[aria-current="page"],
 .mobile-nav__panel a:hover {
   background: rgb(255 255 255 / 10%);
+}
+
+/* Panel drops in from under the header; the toggle morphs into a close mark. */
+.mobile-nav[open] > .mobile-nav__panel {
+  animation: ui-panel-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.menu-toggle span {
+  transition:
+    transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 140ms ease;
+}
+
+.mobile-nav[open] .menu-toggle span:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+
+.mobile-nav[open] .menu-toggle span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.35);
+}
+
+.mobile-nav[open] .menu-toggle span:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
 }
 
 .btn {
@@ -415,7 +500,8 @@ a {
     background 180ms ease,
     color 180ms ease,
     border-color 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .btn:disabled {
@@ -528,6 +614,19 @@ a {
 .hero--home .hero__copy,
 .hero--page .hero__stage {
   max-width: 46rem;
+}
+
+.hero--page .hero__copy {
+  /* Mirrors the home hero: the copy block is capped and centred, while the
+     embedded booking widget below it gets the wider .hero-booking width. */
+  display: grid;
+  justify-items: center;
+  gap: 1.15rem;
+  max-width: 46rem;
+}
+
+.hero--page .hero__stage:has(.hero-booking) {
+  max-width: min(74rem, calc(100% - 1.5rem));
 }
 
 .hero--home .hero__copy h1 {
@@ -724,6 +823,7 @@ a {
   font-size: 0.72rem;
   font-weight: 700;
   gap: 0.28rem;
+  white-space: nowrap;
 }
 
 .form--hero .ride-toggle button svg {
@@ -929,7 +1029,9 @@ a {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .dtp-trigger:hover {
@@ -1053,6 +1155,10 @@ a {
   padding: 0.9rem 1.05rem 0.75rem;
 }
 
+.dtp-popover--single .dtp-popover__calendar {
+  min-width: min(18rem, 100%);
+}
+
 .dtp-nav {
   position: absolute;
   top: 0.95rem;
@@ -1090,6 +1196,10 @@ a {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.4rem;
+}
+
+.dtp-months--single {
+  grid-template-columns: 1fr;
 }
 
 .dtp-month__title {
@@ -1390,6 +1500,25 @@ a {
 }
 
 @media (max-width: 879px) {
+  .dtp:not(.dtp--roundtrip) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dtp:not(.dtp--roundtrip) .dtp-trigger {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .dtp:not(.dtp--roundtrip) .booking-bar__add-return,
+  .form--hero .dtp:not(.dtp--roundtrip) .booking-bar__add-return {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: flex-start;
+    padding: 0 0.7rem;
+  }
+
   .dtp-popover {
     flex-direction: column;
     width: min(36rem, calc(100vw - 1.5rem)) !important;
@@ -1433,6 +1562,11 @@ a {
   min-width: 1.1rem;
   text-align: center;
   font-weight: 700;
+}
+
+.passenger-stepper--duration span {
+  min-width: 4.6rem;
+  white-space: nowrap;
 }
 
 .booking-bar__cell--action {
@@ -1926,6 +2060,10 @@ td {
     width: min(68rem, 100%);
   }
 
+  .hero-booking:has(.booking-bar--hourly) {
+    width: min(66rem, 100%);
+  }
+
   .form--hero .booking-bar:has(.dtp--roundtrip) {
     grid-template-columns: minmax(7rem, 1.1fr) minmax(7rem, 1.1fr) minmax(16rem, 2.6fr) auto auto;
   }
@@ -1944,6 +2082,10 @@ td {
     align-items: stretch;
     border-radius: 1rem;
     padding: 0.28rem;
+  }
+
+  .form--hero .booking-bar--hourly {
+    grid-template-columns: minmax(10rem, 1.5fr) minmax(12rem, 1.8fr) auto auto auto;
   }
 
   .form--hero .booking-bar__cell--action {
@@ -2064,6 +2206,203 @@ td {
   width: auto;
   min-width: 5.5rem;
   padding: 0.5rem 1rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Interaction polish
+   ---------------------------------------------------------------------------
+   Motion stays small: ≤260ms, ≤16px of travel, never more than a 3px hover
+   lift. Hover-only effects sit behind a real pointer so touch devices do not
+   get sticky hover states, and every transition/animation declared here is
+   switched off again by the prefers-reduced-motion block at the end of file.
+--------------------------------------------------------------------------- */
+
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ui-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes ui-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+}
+
+@keyframes ui-submenu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes ui-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes ui-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* Baseline: interactive elements ease between states instead of snapping.
+   Declared through :where() so component rules keep winning. */
+:where(a, button, summary, label, input, select, textarea, [role="button"]) {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    opacity 160ms ease,
+    transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Header and language dropdowns */
+details[open] > .nav-dropdown__menu,
+details[open] > .lang-switch__menu {
+  animation: ui-menu-in 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Booking form: the wizard swaps one block for another as `step` advances, so
+   each mount eases in. `.booking-bar` is step 1, `.booking-fields` steps 2–3. */
+.form .ride-toggle,
+.form .booking-steps,
+.form .booking-bar,
+.form .booking-fields {
+  animation: ui-rise-in 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.form .booking-bar__cell:has(input),
+.booking-bar__add-return {
+  transition:
+    background-color 160ms ease,
+    box-shadow 200ms ease,
+    transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.booking-bar__cell:has(input):focus-within {
+  background: #f0f0f2;
+  box-shadow: inset 0 0 0 1px #e2e2e6;
+}
+
+/* Text fields: focus lifts the fill and rings the control. */
+.field input:not([type="checkbox"]),
+.field select,
+.field textarea {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    opacity 160ms ease;
+}
+
+.field input:not([type="checkbox"]):focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  background: #fff;
+  border-color: #111;
+  box-shadow: 0 0 0 4px rgb(17 17 17 / 7%);
+}
+
+.field--check input[type="checkbox"] {
+  border-radius: 0.3rem;
+}
+
+.field--check:hover input[type="checkbox"] {
+  box-shadow: 0 0 0 4px rgb(17 17 17 / 6%);
+}
+
+/* Mobile booking sheet */
+.booking-sheet {
+  animation: ui-fade-in 160ms ease;
+}
+
+.booking-sheet__backdrop {
+  animation: ui-fade-in 220ms ease;
+}
+
+.booking-sheet__panel {
+  animation: ui-sheet-in 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Surfaces that lift on hover need the matching transition. */
+.card,
+.admin-card,
+.stat-chip,
+.service-icon,
+.photo-tile {
+  transition:
+    transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 220ms ease,
+    border-color 200ms ease;
+}
+
+/* Links inside running text underline on hover; block navigation shifts
+   instead, so menus never reflow. */
+:where(p, li, td, dd, .lede, .muted, .draft-note) > a:not(.btn):hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled),
+  .header-chip:hover,
+  .nav a:hover,
+  .nav-dropdown summary:hover,
+  .lang-switch summary:hover,
+  .booking-bar__add-return:hover,
+  .passenger-stepper button:hover:not(:disabled),
+  .menu-toggle:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:active:not(:disabled),
+  .header-chip:active,
+  .menu-toggle:active,
+  .ride-toggle button:active,
+  .passenger-stepper button:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .card:not(:has(.dtp)):hover,
+  .admin-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .stat-chip:hover {
+    transform: translateY(-2px);
+    border-color: #d8d8de;
+    box-shadow: 0 12px 26px rgb(0 0 0 / 7%);
+  }
+
+  .ride-toggle button:hover:not([aria-pressed="true"]) {
+    background: #f1f1f3;
+  }
+
+  .ride-toggle button[aria-pressed="true"]:hover {
+    background: #000;
+  }
+
+  .mobile-nav__panel a:hover,
+  .mobile-nav__toggle:hover,
+  .site-footer ul a:hover {
+    transform: translateX(2px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

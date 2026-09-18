@@ -1,11 +1,18 @@
-import { bookingCreateSchema, VEHICLE_PREFERENCES, type ServiceType } from "@kaiyue/contracts";
-import { useSyncExternalStore } from "react";
+import {
+  bookingCreateSchema,
+  HOURLY_DURATION_MAX_HOURS,
+  HOURLY_DURATION_MIN_HOURS,
+  VEHICLE_PREFERENCES,
+  type ServiceType,
+} from "@kaiyue/contracts";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { BookingIcon } from "./BookingIcons.tsx";
 import { DateTimePicker } from "./DateTimePicker.tsx";
 import {
   discardBooking,
   fromLocalDateTimeValue,
   getBookingState,
+  isDirty,
   setBookingResult,
   setStep,
   subscribeBooking,
@@ -32,6 +39,8 @@ async function submitBooking(entry?: {
     pickupAt: fromLocalDateTimeValue(current.draft.pickupAt),
     returnAt: fromLocalDateTimeValue(current.draft.returnAt),
     passengerCount: current.draft.passengerCount,
+    durationHours:
+      current.draft.serviceType === HOURLY_TYPE ? current.draft.durationHours : undefined,
     luggageCount: current.draft.luggageCount ? Number(current.draft.luggageCount) : undefined,
     vehiclePreference: current.draft.vehiclePreference || undefined,
     contactName: current.draft.contactName,
@@ -108,15 +117,39 @@ type Props = {
   compact?: boolean;
   sourcePage?: string;
   sourceTrigger?: string;
+  initialServiceType?: ServiceType;
 };
 
-export function BookingForm({ compact = false, sourcePage, sourceTrigger }: Props) {
+export function BookingForm({
+  compact = false,
+  sourcePage,
+  sourceTrigger,
+  initialServiceType,
+}: Props) {
   const state = useSyncExternalStore(subscribeBooking, getBookingState, getBookingState);
   const { draft, fieldErrors, step } = state;
   const hourly = draft.serviceType === HOURLY_TYPE;
-  const entry = compact
-    ? { sourcePage, sourceTrigger, mode: "embedded" as const }
-    : undefined;
+  const entry = compact ? { sourcePage, sourceTrigger, mode: "embedded" as const } : undefined;
+
+  // A page that embeds the widget (for example /services/local-chauffeur) can
+  // preset the ride state, so "By the hour" pages open on the hourly layout and
+  // "Point to point" pages open on the transfer layout. Applied once, and never
+  // over a journey the visitor has already started typing.
+  const appliedInitialServiceType = useRef(false);
+  useEffect(() => {
+    if (appliedInitialServiceType.current) {
+      return;
+    }
+    appliedInitialServiceType.current = true;
+    if (!initialServiceType) {
+      return;
+    }
+    const current = getBookingState();
+    if (current.draft.serviceType === initialServiceType || isDirty(current.draft)) {
+      return;
+    }
+    updateDraft({ serviceType: initialServiceType });
+  }, [initialServiceType]);
 
   if (state.status === "success" && state.result) {
     return (
@@ -132,7 +165,7 @@ export function BookingForm({ compact = false, sourcePage, sourceTrigger }: Prop
 
   function setRideMode(nextHourly: boolean) {
     if (nextHourly) {
-      updateDraft({ serviceType: HOURLY_TYPE });
+      updateDraft({ serviceType: HOURLY_TYPE, destination: "", returnAt: "" });
       return;
     }
     if (hourly) {
@@ -143,6 +176,15 @@ export function BookingForm({ compact = false, sourcePage, sourceTrigger }: Prop
   function bumpPassengers(delta: number) {
     updateDraft({
       passengerCount: Math.min(14, Math.max(1, draft.passengerCount + delta)),
+    });
+  }
+
+  function bumpDuration(delta: number) {
+    updateDraft({
+      durationHours: Math.min(
+        HOURLY_DURATION_MAX_HOURS,
+        Math.max(HOURLY_DURATION_MIN_HOURS, draft.durationHours + delta),
+      ),
     });
   }
 
@@ -161,18 +203,10 @@ export function BookingForm({ compact = false, sourcePage, sourceTrigger }: Prop
     >
       {step === 1 ? (
         <div className="ride-toggle" role="group" aria-label="Ride type">
-          <button
-            type="button"
-            aria-pressed={!hourly}
-            onClick={() => setRideMode(false)}
-          >
-            <BookingIcon name="car" size={16} /> Transfer
+          <button type="button" aria-pressed={!hourly} onClick={() => setRideMode(false)}>
+            <BookingIcon name="car" size={16} /> Point to point
           </button>
-          <button
-            type="button"
-            aria-pressed={hourly}
-            onClick={() => setRideMode(true)}
-          >
+          <button type="button" aria-pressed={hourly} onClick={() => setRideMode(true)}>
             <BookingIcon name="clock" size={16} /> By the Hour
           </button>
         </div>
@@ -199,13 +233,19 @@ export function BookingForm({ compact = false, sourcePage, sourceTrigger }: Prop
       ) : null}
 
       {step === 1 ? (
-        <div className="booking-bar">
+        <div
+          /* Keyed on ride mode so switching Point to point ↔ By the Hour
+             remounts the bar and replays the entrance animation. Draft values
+             live in the booking store, so nothing entered is lost. */
+          key={hourly ? "hourly" : "point-to-point"}
+          className={hourly ? "booking-bar booking-bar--hourly" : "booking-bar"}
+        >
           <div className="booking-bar__cell">
             <span className="booking-bar__icon">
               <BookingIcon name="pin" />
             </span>
             <div className="booking-bar__fields">
-              <label htmlFor="pickupLocation">From</label>
+              <label htmlFor="pickupLocation">{hourly ? "Location" : "From"}</label>
               <input
                 id="pickupLocation"
                 value={draft.pickupLocation}
@@ -218,41 +258,83 @@ export function BookingForm({ compact = false, sourcePage, sourceTrigger }: Prop
               ) : null}
             </div>
           </div>
-          <div className="booking-bar__cell">
-            <span className="booking-bar__icon">
-              <BookingIcon name="pin" />
-            </span>
-            <div className="booking-bar__fields">
-              <label htmlFor="destination">To</label>
-              <input
-                id="destination"
-                value={draft.destination}
-                onChange={(event) => updateDraft({ destination: event.target.value })}
-                placeholder={
-                  hourly ? "Optional for hourly charter" : "Address, airport, hotel, …"
-                }
-              />
-              {fieldErrors.destination ? (
-                <p className="field-error">{fieldErrors.destination}</p>
-              ) : null}
+          {hourly ? null : (
+            <div className="booking-bar__cell">
+              <span className="booking-bar__icon">
+                <BookingIcon name="pin" />
+              </span>
+              <div className="booking-bar__fields">
+                <label htmlFor="destination">To</label>
+                <input
+                  id="destination"
+                  value={draft.destination}
+                  onChange={(event) => updateDraft({ destination: event.target.value })}
+                  placeholder="Address, airport, hotel, …"
+                />
+                {fieldErrors.destination ? (
+                  <p className="field-error">{fieldErrors.destination}</p>
+                ) : null}
+              </div>
             </div>
-          </div>
+          )}
           <div className="booking-bar__cell booking-bar__cell--datetime">
             <DateTimePicker
               pickupAt={draft.pickupAt}
               returnAt={draft.returnAt}
               pickupError={fieldErrors.pickupAt}
               returnError={fieldErrors.returnAt}
+              allowReturn={!hourly}
               onPickupChange={(value) => updateDraft({ pickupAt: value })}
               onReturnChange={(value) => updateDraft({ returnAt: value })}
             />
           </div>
+          {hourly ? (
+            <div className="booking-bar__cell booking-bar__cell--duration">
+              <div className="booking-bar__fields">
+                <p className="booking-bar__label" id="durationHours-label">
+                  Duration
+                </p>
+                <div
+                  className="passenger-stepper passenger-stepper--duration"
+                  role="group"
+                  aria-labelledby="durationHours-label"
+                >
+                  <button
+                    type="button"
+                    aria-label="Shorter duration"
+                    onClick={() => bumpDuration(-1)}
+                    disabled={draft.durationHours <= HOURLY_DURATION_MIN_HOURS}
+                  >
+                    −
+                  </button>
+                  <span aria-live="polite">
+                    {draft.durationHours} {draft.durationHours === 1 ? "Hour" : "Hours"}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Longer duration"
+                    onClick={() => bumpDuration(1)}
+                    disabled={draft.durationHours >= HOURLY_DURATION_MAX_HOURS}
+                  >
+                    +
+                  </button>
+                </div>
+                {fieldErrors.durationHours ? (
+                  <p className="field-error">{fieldErrors.durationHours}</p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
           <div className="booking-bar__cell booking-bar__cell--passengers">
             <div className="booking-bar__fields">
               <p className="booking-bar__label" id="passengerCount-label">
                 Passengers
               </p>
-              <div className="passenger-stepper" role="group" aria-labelledby="passengerCount-label">
+              <div
+                className="passenger-stepper"
+                role="group"
+                aria-labelledby="passengerCount-label"
+              >
                 <button
                   type="button"
                   aria-label="Fewer passengers"

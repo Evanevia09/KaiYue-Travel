@@ -1,9 +1,8 @@
 ---
-import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import JsonLd from "../components/content/JsonLd.astro";
 import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { allianceMembers, business, organizationJsonLd } from "../lib/business.ts";
+import { organizationJsonLd } from "../lib/business.ts";
 import { site } from "../lib/site.ts";
 
 const origin = Astro.site ?? site.url;
@@ -20,61 +19,4 @@ const pageUrl = new URL("/about", origin).toString();
     title={`About ${site.name}`}
     lede={`${site.legalName} (${site.legalNameZh}) helps guests request private chauffeur journeys in Macau, and provides corporate, hotel, and agency programmes with Mingmen Tourism and Mingmen Technology.`}
   />
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="biz-stack">
-        <h2>Legal identity</h2>
-        <p>
-          Group: <strong>{site.groupLegalName}</strong> ({site.groupLegalNameZh}).<br />
-          Travel company: <strong>{site.legalName}</strong> ({site.legalNameZh}).
-        </p>
-        <p>
-          Founded in {business.founded} as {business.formerName} ({business.formerNameZh}). Renamed
-          in {business.renamed}. Headquartered in {business.headquarters}, with a branch in{" "}
-          {business.branch}.
-        </p>
-        <p>{business.mission}</p>
-      </div>
-      <div class="card">
-        <h2>Two paths on this website</h2>
-        <p>
-          <strong>Private bookings</strong> on this site are Macau chauffeur requests. Submit the
-          form; a person confirms availability before any trip is treated as booked.
-        </p>
-        <p>
-          <strong>Business programmes</strong> — corporate, hotel, and travel-agency work, including
-          Greater Bay Area dual-plate service — are described on the Business pages and follow the
-          Kai Yue Group portfolio.
-        </p>
-        <p>
-          <a href="/corporate">Corporate solution</a>
-          {" · "}
-          <a href="/business/hotels-resorts">Hotels &amp; resorts</a>
-          {" · "}
-          <a href="/business/travel-agency">Travel agencies</a>
-        </p>
-      </div>
-    </div>
-  </section>
-  <section class="section section--muted">
-    <div class="wrap biz-stack">
-      <p class="eyebrow">Alliance</p>
-      <h2>{business.allianceLine}</h2>
-      <div class="grid-3">
-        {
-          allianceMembers.map((member) => (
-            <article class="card">
-              <h3>{member.name}</h3>
-              <p class="muted">{member.role}</p>
-              <p>{member.summary}</p>
-            </article>
-          ))
-        }
-      </div>
-      <p class="hero__actions">
-        <BookingLauncher client:load sourcePage="/about" sourceTrigger="about-cta" />
-        <a class="btn btn--secondary" href="/contact">Contact</a>
-      </p>
-    </div>
-  </section>
 </BaseLayout>

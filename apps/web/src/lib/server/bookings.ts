@@ -87,6 +87,14 @@ export function bookingToAdmin(row: BookingRow) {
   };
 }
 
+function hourlyDurationNote(payload: BookingCreatePayload): string | null {
+  const durationNote =
+    payload.serviceType === "hourly_charter" && payload.durationHours
+      ? `Duration: ${payload.durationHours} hours.`
+      : undefined;
+  return [durationNote, payload.notes].filter(Boolean).join("\n\n") || null;
+}
+
 async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promise<BookingRow> {
   const id = crypto.randomUUID();
   const reference = createBookingReference();
@@ -114,7 +122,7 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     payload.phoneDisplay,
     payload.email ?? null,
     payload.company ?? null,
-    payload.notes ?? null,
+    hourlyDurationNote(payload),
     payload.sourcePage,
     payload.sourceTrigger,
     payload.sourceMode,

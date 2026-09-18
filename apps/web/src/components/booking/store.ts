@@ -19,6 +19,7 @@ export type BookingDraft = {
   pickupAt: string;
   returnAt: string;
   passengerCount: number;
+  durationHours: number;
   luggageCount: string;
   vehiclePreference: BookingCreateInput["vehiclePreference"] | "";
   contactName: string;
@@ -59,6 +60,7 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
   pickupAt: "",
   returnAt: "",
   passengerCount: 2,
+  durationHours: 2,
   luggageCount: "",
   vehiclePreference: "",
   contactName: "",
@@ -117,6 +119,7 @@ function persistJourney(draft: BookingDraft): void {
       pickupAt: draft.pickupAt,
       returnAt: draft.returnAt,
       passengerCount: draft.passengerCount,
+      durationHours: draft.durationHours,
       luggageCount: draft.luggageCount,
       vehiclePreference: draft.vehiclePreference,
       savedAt: Date.now(),

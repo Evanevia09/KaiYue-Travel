@@ -12,22 +12,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     eyebrow="Our fleet"
     title="Comfort confirmed after review"
     lede="Vehicle assignment is confirmed after we review your request. This page does not publish unverified model counts, seat specifications, or availability claims."
-  />
-  <section class="section">
-    <div class="wrap">
-      <div class="card">
-        <h2>What you can request</h2>
-        <ul>
-          <li>A private chauffeur vehicle suited to the passenger and luggage count you provide</li>
-          <li>An optional preference such as executive van or sedan</li>
-          <li>Notes about child seats, accessibility, or luggage that affect vehicle choice</li>
-        </ul>
-        <p class="draft-note">
-          Approved photography and verified vehicle facts will replace this draft copy after business
-          review.
-        </p>
-        <BookingLauncher client:load sourcePage="/fleet" sourceTrigger="fleet-cta" />
-      </div>
-    </div>
-  </section>
+  >
+    <BookingLauncher slot="actions" client:load sourcePage="/fleet" sourceTrigger="fleet-hero" />
+  </PageHero>
 </BaseLayout>

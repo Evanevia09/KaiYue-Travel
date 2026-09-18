@@ -1,14 +1,8 @@
 ---
-import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
 import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import {
-  allianceMembers,
-  business,
-  organizationJsonLd,
-  travelAdvantages,
-} from "../../lib/business.ts";
+import { business, organizationJsonLd } from "../../lib/business.ts";
 import { site } from "../../lib/site.ts";
 
 const path = "/business/travel-agency";
@@ -26,82 +20,6 @@ const pageUrl = new URL(path, origin).toString();
     title="Travel agency programmes"
     lede={`${site.legalName} works with inbound and local agencies on guest chauffeur movements, customized itineraries, and Macau–Mainland dual-plate transfers. ${business.allianceLine}.`}
   >
-    <a slot="actions" class="btn btn--primary" href="#inquiry">Send an agency inquiry</a>
+    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Send an agency inquiry</a>
   </PageHero>
-
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="biz-stack">
-        <p class="eyebrow">For agencies</p>
-        <h2>Capacity behind your guest itinerary</h2>
-        <p>
-          Founded in {business.founded} and renamed in {business.renamed}, {site.legalName} is a
-          Macau-headquartered travel company with a {business.branch} branch. Agencies can draw on
-          licensed dual-plate {business.vehicle} capacity, tour-guide and customer-service support,
-          and 7×24 Mingmen dispatch.
-        </p>
-        <ul>
-          <li>Airport, hotel, and named-passenger movements in Macau</li>
-          <li>
-            Cross-border cars to {business.cities.filter((city) => city !== "Macau").join(", ")},
-            with other Mainland destinations on request
-          </li>
-          <li>Multi-guest programmes and event-day vehicle coordination</li>
-          <li>Itinerary planning from hotels to activities, fitted to the guest list you send</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h2>What to include</h2>
-        <ul>
-          <li>Agency name and a named coordinator</li>
-          <li>Guest dates, passenger counts, and luggage notes</li>
-          <li>Whether the need is a single journey or a multi-day programme</li>
-          <li>Border-crossing or Mainland cities, if required</li>
-        </ul>
-        <p class="muted">
-          Confirmation follows a human review of the inquiry. Dispatch then runs through the
-          operations team.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--muted">
-    <div class="wrap biz-stack">
-      <p class="eyebrow">Why agencies use Kai Yue</p>
-      <h2>Licensed fleet plus partner operations</h2>
-      <div class="grid-2">
-        {
-          travelAdvantages.map((item) => (
-            <article class="card">
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-            </article>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap grid-2">
-      <div class="biz-stack">
-        <p class="eyebrow">Alliance</p>
-        <h2>{business.allianceLine}</h2>
-        {
-          allianceMembers.map((member) => (
-            <p>
-              <strong>{member.name}</strong> — {member.role.toLowerCase()}. {member.summary}
-            </p>
-          ))
-        }
-        <p>
-          Related: <a href="/corporate">Corporate solution</a>
-          {" · "}
-          <a href="/business/hotels-resorts">Hotels &amp; resorts</a>
-        </p>
-      </div>
-      <BusinessInquiry sourcePage={path} heading="Send an agency inquiry" />
-    </div>
-  </section>
 </BaseLayout>

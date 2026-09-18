@@ -40,6 +40,7 @@ type Props = {
   returnAt: string;
   pickupError?: string;
   returnError?: string;
+  allowReturn?: boolean;
   onPickupChange: (value: string) => void;
   onReturnChange: (value: string) => void;
 };
@@ -320,6 +321,7 @@ export function DateTimePicker({
   returnAt,
   pickupError,
   returnError,
+  allowReturn = true,
   onPickupChange,
   onReturnChange,
 }: Props) {
@@ -339,10 +341,14 @@ export function DateTimePicker({
   const [timeDraft, setTimeDraft] = useState<TimeDraft>(() => splitTime(pickupAt));
 
   useEffect(() => {
+    if (!allowReturn) {
+      setReturnEnabled(false);
+      return;
+    }
     if (returnAt) {
       setReturnEnabled(true);
     }
-  }, [returnAt]);
+  }, [allowReturn, returnAt]);
 
   function placePopover() {
     const trigger = triggerRef.current;
@@ -351,8 +357,13 @@ export function DateTimePicker({
     }
     const rect = trigger.getBoundingClientRect();
     const gutter = 12;
-    const estimatedWidth = Math.min(timeTarget ? 820 : 640, window.innerWidth - gutter * 2);
-    const estimatedHeight = timeTarget ? 520 : 470;
+    const twoMonths = allowReturn && returnEnabled;
+    const calendarWidth = twoMonths ? 640 : 340;
+    const estimatedWidth = Math.min(
+      timeTarget ? calendarWidth + 180 : calendarWidth,
+      window.innerWidth - gutter * 2,
+    );
+    const estimatedHeight = timeTarget ? 520 : 430;
     const left = Math.max(
       gutter,
       Math.min(rect.left, window.innerWidth - estimatedWidth - gutter),
@@ -482,6 +493,9 @@ export function DateTimePicker({
   }
 
   function enableReturn() {
+    if (!allowReturn) {
+      return;
+    }
     setReturnEnabled(true);
     openPicker(pickupAt ? "return" : "pickup");
   }
@@ -498,7 +512,8 @@ export function DateTimePicker({
 
   const canPrev = viewMonth > startOfMonth(new Date());
   const error = pickupError || returnError;
-  const roundtrip = Boolean(returnAt);
+  const roundtrip = allowReturn && Boolean(returnAt);
+  const twoMonths = allowReturn && returnEnabled;
 
   return (
     <div className={roundtrip ? "dtp dtp--roundtrip" : "dtp"} ref={triggerRef}>
@@ -567,7 +582,7 @@ export function DateTimePicker({
           </span>
         </button>
       )}
-      {roundtrip ? null : (
+      {roundtrip || !allowReturn ? null : (
         <button type="button" className="booking-bar__add-return" onClick={enableReturn}>
           <span className="booking-bar__icon">
             <BookingIcon name="plus" size={16} />
@@ -581,7 +596,13 @@ export function DateTimePicker({
             <div
               ref={popoverRef}
               id={dialogId}
-              className={timeTarget ? "dtp-popover dtp-popover--time" : "dtp-popover"}
+              className={[
+                "dtp-popover",
+                timeTarget ? "dtp-popover--time" : "",
+                twoMonths ? "" : "dtp-popover--single",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               role="dialog"
               aria-label="Choose date and time"
               style={{
@@ -611,19 +632,21 @@ export function DateTimePicker({
                     <BookingIcon name="chevronRight" size={18} />
                   </button>
                 </div>
-                <div className="dtp-months">
+                <div className={twoMonths ? "dtp-months" : "dtp-months dtp-months--single"}>
                   <MonthGrid
                     month={viewMonth}
                     pickupAt={pickupAt}
                     returnAt={returnAt}
                     onSelect={selectDay}
                   />
-                  <MonthGrid
-                    month={addMonths(viewMonth, 1)}
-                    pickupAt={pickupAt}
-                    returnAt={returnAt}
-                    onSelect={selectDay}
-                  />
+                  {twoMonths ? (
+                    <MonthGrid
+                      month={addMonths(viewMonth, 1)}
+                      pickupAt={pickupAt}
+                      returnAt={returnAt}
+                      onSelect={selectDay}
+                    />
+                  ) : null}
                 </div>
                 <div className="dtp-footer">
                   <FooterLeg
@@ -634,7 +657,7 @@ export function DateTimePicker({
                     onActivate={() => setActiveLeg("pickup")}
                     onTime={() => openTime("pickup")}
                   />
-                  {returnEnabled ? (
+                  {allowReturn && returnEnabled ? (
                     <FooterLeg
                       legend="Return date"
                       value={returnAt}

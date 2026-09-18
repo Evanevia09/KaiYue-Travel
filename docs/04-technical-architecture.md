@@ -96,7 +96,7 @@ A single-app layout is also acceptable at this scale; keep domain folders and sh
 
 These are proposed defaults used by the first application scaffold. They can be changed during review.
 
-- **Packaging:** Astro 7 with `@astrojs/cloudflare` on Cloudflare Workers. Cloudflare Pages is not used; current official adapter support is Workers-only.
+- **Packaging:** Astro 7 with `@astrojs/cloudflare` on Cloudflare Workers. Cloudflare Pages is not used; current official adapter support is Workers-only. In local Vite, island `renderer-url` is rewritten from `deps_prerender` to `deps` so booking islands hydrate with the same React copy as the form.
 - **Package manager / tests:** pnpm workspaces and Vitest.
 - **Timezone / locale:** `Asia/Macau` display timezone; English-only public copy until multilingual support is approved.
 - **Draft persistence:** in-memory plus `sessionStorage` for journey fields only (service, locations, times, counts). Contact details are not written to storage.

@@ -26,6 +26,8 @@ export const site = {
   defaultOgImage: "/images/hero-home.jpg",
 } as const;
 
+export const heroTrustLine = "Macau · Quote after review · Human confirmation";
+
 export const serviceIconGlyph = {
   plane: "✈",
   building: "⌂",
@@ -291,6 +293,216 @@ export const services = [
     ],
     relatedSlugs: ["airport-transfer", "hourly-charter", "hotel-transfer"],
   },
+  {
+    slug: "cross-border-rides",
+    serviceType: "point_to_point" as const,
+    title: "Cross border rides",
+    h1: "Cross-border ride requests",
+    seoTitle: "Cross-Border Ride Request — Macau Pickup or Drop-Off",
+    seoDescription:
+      "Send a cross-border ride request for a Macau pickup or drop-off. Availability, documentation, and vehicle eligibility are reviewed by a person before anything is confirmed.",
+    summary: "A journey request that crosses the Macau boundary, reviewed before confirmation.",
+    description:
+      "Describe both ends of the journey, the crossing point, and the timing. Nothing is confirmed until the team has reviewed it.",
+    intro:
+      "A cross-border ride request covers a journey that begins or ends outside Macau. Border documentation, vehicle eligibility, and vehicle availability are checked by a person before the request is treated as a trip. This page does not publish a claim of a confirmed cross-border licence, permitted routes, or partner arrangements.",
+    whoFor: [
+      "Guests arriving from or departing to the Mainland",
+      "Companies moving staff between Macau and Mainland offices",
+      "Hotels arranging onward journeys for guests",
+    ],
+    process: [
+      "Send both addresses, the intended crossing point, and the date and time.",
+      "Add passenger count, luggage, and any document notes the journey depends on.",
+      "The team reviews eligibility and availability, then confirms separately if it can proceed.",
+    ],
+    useCases: ["Mainland arrival pickup", "Macau departure drop-off", "Business journeys"],
+    included: ["Journey request", "Crossing and document notes you provide"],
+    notIncluded: ["Guaranteed border clearance times", "Automatic confirmation"],
+    quoteBasis: "Cross-border journey: both addresses, crossing point, timing, and passengers",
+    icon: "route" as const,
+    faqs: [
+      {
+        question: "Is a cross-border ride confirmed when I submit the form?",
+        answer:
+          "No. The form stores a request. Eligibility, documentation, and availability are reviewed by a person, and confirmation is separate.",
+      },
+      {
+        question: "Which crossing points do you use?",
+        answer:
+          "State the crossing point you need in the notes. Whether that crossing can be used for your journey is confirmed after review, not assumed on this page.",
+      },
+    ],
+    relatedSlugs: ["airport-transfer", "local-transfers", "point-to-point"],
+  },
+  {
+    slug: "local-transfers",
+    serviceType: "point_to_point" as const,
+    title: "Local transfers",
+    h1: "Local transfers within Macau",
+    seoTitle: "Local Transfers in Macau — Private Chauffeur Request",
+    seoDescription:
+      "Request a private transfer between two addresses in Macau. Share pickup, destination, and timing for a quote reviewed by a person.",
+    summary: "A private transfer between two Macau addresses, quoted after review.",
+    description:
+      "Name the pickup and the destination in Macau, then the date and time. The team reviews the journey before confirming.",
+    intro:
+      "Local transfers are private chauffeur journeys that start and finish inside Macau. Use this request for a hotel to restaurant drop-off, an office to venue move, or any single journey between two Macau addresses that is not an airport or hourly request.",
+    whoFor: [
+      "Guests moving between venues in Macau",
+      "Residents who need a single private journey",
+      "Hosts arranging pickups for visiting guests",
+    ],
+    process: [
+      "Enter pickup, destination, and the time you need.",
+      "Add passenger count and any luggage or accessibility notes.",
+      "A person reviews vehicle fit and timing, then confirms separately.",
+    ],
+    useCases: ["Venue to venue", "Restaurant drop-off", "Single Macau journey"],
+    included: ["Private vehicle request", "Passenger and luggage notes"],
+    notIncluded: ["Waiting time unless requested as an hourly service"],
+    quoteBasis: "Local journey: pickup, destination, timing, and passenger count",
+    icon: "building" as const,
+    faqs: [
+      {
+        question: "How is this different from a point-to-point request?",
+        answer:
+          "It is the same one-way journey model. Choose this when both addresses are inside Macau and you are not arranging an airport pickup or drop-off.",
+      },
+      {
+        question: "Can I add stops along the way?",
+        answer:
+          "List extra stops in the notes. Several stops or an open itinerary are usually better requested as an hourly service with a dedicated chauffeur.",
+      },
+    ],
+    relatedSlugs: ["airport-transfer", "point-to-point", "local-chauffeur"],
+  },
+  {
+    slug: "local-chauffeur",
+    serviceType: "hourly_charter" as const,
+    title: "Local chauffeur",
+    h1: "Local chauffeur by the hour",
+    seoTitle: "Local Chauffeur in Macau by the Hour — Dedicated Private Car",
+    seoDescription:
+      "Request a dedicated chauffeur in Macau for a block of hours. Describe the itinerary so the team can review duration, stops, and vehicle fit.",
+    summary: "A dedicated chauffeur in Macau for a block of hours you request.",
+    description:
+      "Give a start time and describe the hours you need. Destination can stay flexible when the itinerary is not fixed yet.",
+    intro:
+      "A local chauffeur booking gives you one vehicle and one chauffeur for a block of hours in Macau rather than a single drop-off. It suits an afternoon of meetings, several stops in one outing, or any plan that changes as the day goes. The hours you request are reviewed, and extra time is not automatic.",
+    whoFor: [
+      "Guests with several stops in one outing",
+      "Companies moving executives between meetings",
+      "Families who want the same vehicle for a half-day",
+    ],
+    process: [
+      "Request a start time and estimate the hours you actually need.",
+      "Describe the area and likely stops in the notes.",
+      "The team reviews duration and vehicle fit, then confirms separately.",
+    ],
+    useCases: ["Half-day movements", "Multiple stops", "Flexible itineraries"],
+    included: ["Time-block request", "Itinerary notes"],
+    notIncluded: ["Unlimited overtime without confirmation"],
+    quoteBasis: "Time block: requested hours, itinerary notes, and vehicle preference",
+    icon: "clock" as const,
+    faqs: [
+      {
+        question: "How many hours should I request?",
+        answer:
+          "Estimate the time you genuinely need, including waiting between stops. The team confirms the block after review.",
+      },
+      {
+        question: "Is a destination required?",
+        answer:
+          "Not for an hourly booking. Still describe the area and likely stops so the review is realistic.",
+      },
+    ],
+    relatedSlugs: ["weddings", "point-to-point", "local-transfers"],
+  },
+  {
+    slug: "weddings",
+    serviceType: "hourly_charter" as const,
+    title: "Weddings",
+    h1: "Wedding chauffeur requests",
+    seoTitle: "Wedding Chauffeur in Macau — Request Private Car Hire",
+    seoDescription:
+      "Request private chauffeur vehicles for a wedding day in Macau. Share the schedule and guest movements so the team can review vehicle fit and timing.",
+    summary: "Private chauffeur requests for a wedding day, reviewed against your schedule.",
+    description:
+      "Send the date, the schedule you are working to, and the movements you need covered. Vehicles are confirmed after review.",
+    intro:
+      "Wedding requests cover the day's movements rather than a single journey: ceremony arrivals, photo stops, and guest shuttles between venues. Timing and vehicle count are reviewed against the schedule you send. This is a transport request, not a published wedding package, and decoration or in-car styling is not included unless separately agreed.",
+    whoFor: [
+      "Couples arranging ceremony and reception transport in Macau",
+      "Planners coordinating guest movements between venues",
+      "Families who need several vehicles on the same day",
+    ],
+    process: [
+      "Send the date and the schedule you are working to.",
+      "List each movement, the passenger count, and which vehicle is needed where.",
+      "The team reviews timing and vehicle fit, then confirms separately.",
+    ],
+    useCases: ["Ceremony arrivals", "Photo stops", "Guest shuttles"],
+    included: ["Vehicle request per movement", "Schedule notes you provide"],
+    notIncluded: ["In-car decoration or styling", "Automatic confirmation"],
+    quoteBasis: "Wedding day: schedule, movements, vehicle count, and hours needed",
+    icon: "map" as const,
+    faqs: [
+      {
+        question: "Can we request several vehicles for the same day?",
+        answer:
+          "Yes. List each movement and how many passengers it covers so the team can review how many vehicles the schedule actually needs.",
+      },
+      {
+        question: "How early should we send a wedding request?",
+        answer:
+          "The form asks for at least 24 hours' notice, but wedding days involve several movements. Sending the schedule early leaves room for review and confirmation.",
+      },
+    ],
+    relatedSlugs: ["local-chauffeur", "local-transfers", "point-to-point"],
+  },
+  {
+    slug: "city-tours",
+    serviceType: "hourly_charter" as const,
+    title: "City tours",
+    h1: "City tours with a private chauffeur",
+    seoTitle: "Macau City Tours by the Hour — Private Chauffeur Request",
+    seoDescription:
+      "Request a private chauffeur for a Macau city tour by the hour. Suggest the stops and pace; routes and duration are reviewed before anything is confirmed.",
+    summary: "A private city tour by the hour, with stops and pace you suggest.",
+    description:
+      "Suggest the places you want to see and how long you want. This is private transport, not a ticketed guided tour.",
+    intro:
+      "A city tour booking gives you a vehicle and chauffeur for a block of hours so you can move between Macau's sights at your own pace. Suggest the stops and the dwell time; the route and hours are reviewed before confirmation. Attraction admission and licensed guiding are outside this request unless separately agreed.",
+    whoFor: [
+      "Visitors with a short list of Macau stops and a preferred pace",
+      "Families touring with children and luggage in the car",
+      "Hosts showing arriving guests around the city",
+    ],
+    process: [
+      "Request a start time and the hours you expect to need.",
+      "List the stops you have in mind, in the order you want them.",
+      "The team reviews the route and duration, then confirms separately.",
+    ],
+    useCases: ["City highlights", "Custom stop lists", "Half-day touring"],
+    included: ["Time-block request", "Stop list and pace notes"],
+    notIncluded: ["Guided tour tickets or attraction admission"],
+    quoteBasis: "City tour: start time, suggested stops, hours needed, and passenger count",
+    icon: "map" as const,
+    faqs: [
+      {
+        question: "Does the chauffeur act as a tour guide?",
+        answer:
+          "This is a private transport request. Licensed guiding and attraction tickets are not included unless separately confirmed.",
+      },
+      {
+        question: "Can we change the order of stops on the day?",
+        answer:
+          "You can, within the hours you requested. Adding time beyond the confirmed block is reviewed with the team rather than assumed.",
+      },
+    ],
+    relatedSlugs: ["local-chauffeur", "weddings", "sightseeing"],
+  },
 ] as const;
 
 export type ServiceRecord = (typeof services)[number];
@@ -300,18 +512,34 @@ export const serviceLinks = services.map((service) => ({
   label: service.title,
 }));
 
-export const nav = [
-  { href: "/services/airport-transfer", label: "Airport ride" },
+export type NavLink = { readonly href: string; readonly label: string };
+
+export type NavGroup = { readonly label: string; readonly children: readonly NavLink[] };
+
+/**
+ * Primary navigation. Every entry is currently a dropdown, but the link branch
+ * is kept so a plain top-level page can be added back without touching
+ * `BaseLayout` — the union is what makes `"children" in item` narrow.
+ */
+export type NavItem = NavLink | NavGroup;
+
+export const nav: readonly NavItem[] = [
   {
-    label: "City rides",
+    label: "Point To Point",
     children: [
-      { href: "/services/hotel-transfer", label: "Hotel transfer" },
-      { href: "/services/point-to-point", label: "Point to point" },
-      { href: "/services/sightseeing", label: "Macau sightseeing" },
+      { href: "/services/airport-transfer", label: "Airport Transfer" },
+      { href: "/services/cross-border-rides", label: "Cross Border Rides" },
+      { href: "/services/local-transfers", label: "Local Transfers" },
     ],
   },
-  { href: "/services/hourly-charter", label: "Hourly" },
-  { href: "/faq", label: "Help" },
+  {
+    label: "By The Hour",
+    children: [
+      { href: "/services/local-chauffeur", label: "Local Chauffeur" },
+      { href: "/services/weddings", label: "Weddings" },
+      { href: "/services/city-tours", label: "City Tours" },
+    ],
+  },
   {
     label: "Business",
     children: [
@@ -320,12 +548,9 @@ export const nav = [
       { href: "/business/hotels-resorts", label: "Hotels & resorts" },
     ],
   },
-] as const;
+];
 
-export const footerServiceNav = [
-  ...serviceLinks,
-  { href: "/pricing", label: "Pricing" },
-] as const;
+export const footerServiceNav = [...serviceLinks, { href: "/pricing", label: "Pricing" }] as const;
 
 export const footerNav = [
   { href: "/fleet", label: "Fleet" },
