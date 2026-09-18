@@ -1,0 +1,18 @@
+{
+  // The Cloudflare Workers Build for this repository runs from the repository
+  // root unless the dashboard sets a root directory, and `npx wrangler deploy`
+  // there needs both a config at this level and a local wrangler dependency
+  // (see the root package.json). What is deployable from the root is the built
+  // static site, so this is a view-only deployment: no Worker script, therefore
+  // no /api/v1 routes, no D1 binding, no Resend and no Cloudflare Access.
+  //
+  // The full stack deploys from apps/web with its own wrangler.jsonc, which is
+  // also where the API routes, D1 and Access live once those are provisioned.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "kaiyue-travel",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./apps/web/dist/client",
+    "not_found_handling": "404-page",
+  },
+}
