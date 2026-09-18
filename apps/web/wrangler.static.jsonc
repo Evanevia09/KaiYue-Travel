@@ -1,0 +1,18 @@
+{
+  // Frontend-only deployment profile.
+  //
+  // Serves the prerendered site from `dist/client` as a Workers static-assets
+  // deployment: no Worker script, so no /api/v1 routes, no D1 binding, no
+  // Resend, and no Cloudflare Access are published. Use the full
+  // `wrangler.jsonc` when the backend is provisioned.
+  //
+  //   pnpm --filter @kaiyue/web build
+  //   pnpm --filter @kaiyue/web exec wrangler deploy --config wrangler.static.jsonc
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kaiyue-travel-web",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist/client",
+    "not_found_handling": "404-page",
+  },
+}
