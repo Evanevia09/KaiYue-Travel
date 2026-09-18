@@ -4,11 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Page not found" noindex={true}>
-  <PageHero
-    eyebrow="Error"
-    title="Page not found"
-    lede="That address is not part of the site."
-  >
+  <PageHero eyebrow="Error" title="Page not found" lede="That address is not part of the site.">
     <a slot="actions" class="btn btn--primary" href="/">Home</a>
     <a slot="actions" class="btn btn--secondary" href="/booking">Booking form</a>
   </PageHero>

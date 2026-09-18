@@ -73,7 +73,9 @@ function isSectionCurrent(item: (typeof nav)[number]) {
             nav.map((item) =>
               "children" in item && item.children ? (
                 <details class="nav-dropdown">
-                  <summary class:list={{ "is-current": isSectionCurrent(item) }}>{item.label}</summary>
+                  <summary class:list={{ "is-current": isSectionCurrent(item) }}>
+                    {item.label}
+                  </summary>
                   <ul class="nav-dropdown__menu">
                     {item.children.map((child) => (
                       <li>

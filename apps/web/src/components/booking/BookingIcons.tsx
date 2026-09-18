@@ -18,13 +18,7 @@ type Props = {
   size?: number;
 };
 
-function IconSvg({
-  size,
-  children,
-}: {
-  size: number;
-  children: ReactNode;
-}) {
+function IconSvg({ size, children }: { size: number; children: ReactNode }) {
   return (
     <svg
       width={size}

@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BookingIcon } from "./BookingIcons.tsx";
 import {
@@ -295,7 +288,9 @@ function FooterLeg({
         <span className="dtp-leg__dot" aria-hidden="true" />
         <span>
           <span className="dtp-leg__label">{legend}</span>
-          <span className="dtp-leg__value">{value ? formatFooterDate(value) : "Select a date"}</span>
+          <span className="dtp-leg__value">
+            {value ? formatFooterDate(value) : "Select a date"}
+          </span>
         </span>
       </button>
       <div className="dtp-leg__time">
@@ -364,10 +359,7 @@ export function DateTimePicker({
       window.innerWidth - gutter * 2,
     );
     const estimatedHeight = timeTarget ? 520 : 430;
-    const left = Math.max(
-      gutter,
-      Math.min(rect.left, window.innerWidth - estimatedWidth - gutter),
-    );
+    const left = Math.max(gutter, Math.min(rect.left, window.innerWidth - estimatedWidth - gutter));
     let top = rect.bottom + 8;
     if (top + estimatedHeight > window.innerHeight - gutter) {
       top = Math.max(gutter, window.innerHeight - estimatedHeight - gutter);
@@ -444,11 +436,7 @@ export function DateTimePicker({
       onPickupChange(nextPickup);
       const currentReturn = parseLocalDateTime(returnAt);
       const nextPickupDate = parseLocalDateTime(nextPickup);
-      if (
-        currentReturn &&
-        nextPickupDate &&
-        currentReturn.getTime() <= nextPickupDate.getTime()
-      ) {
+      if (currentReturn && nextPickupDate && currentReturn.getTime() <= nextPickupDate.getTime()) {
         onReturnChange("");
       }
       if (returnEnabled) {
@@ -519,7 +507,11 @@ export function DateTimePicker({
     <div className={roundtrip ? "dtp dtp--roundtrip" : "dtp"} ref={triggerRef}>
       {roundtrip ? (
         <div
-          className={open ? "dtp-trigger dtp-trigger--roundtrip is-open" : "dtp-trigger dtp-trigger--roundtrip"}
+          className={
+            open
+              ? "dtp-trigger dtp-trigger--roundtrip is-open"
+              : "dtp-trigger dtp-trigger--roundtrip"
+          }
         >
           <button
             type="button"
@@ -534,7 +526,9 @@ export function DateTimePicker({
             </span>
             <span>
               <span className="booking-bar__label">Pickup date</span>
-              <span className={pickupAt ? "dtp-trigger__value" : "dtp-trigger__value is-placeholder"}>
+              <span
+                className={pickupAt ? "dtp-trigger__value" : "dtp-trigger__value is-placeholder"}
+              >
                 {pickupAt ? formatCompactDateTime(pickupAt) : "Select date"}
               </span>
             </span>
@@ -552,12 +546,19 @@ export function DateTimePicker({
           >
             <span>
               <span className="booking-bar__label">Return date</span>
-              <span className={returnAt ? "dtp-trigger__value" : "dtp-trigger__value is-placeholder"}>
+              <span
+                className={returnAt ? "dtp-trigger__value" : "dtp-trigger__value is-placeholder"}
+              >
                 {returnAt ? formatCompactDateTime(returnAt) : "Select date"}
               </span>
             </span>
           </button>
-          <button type="button" className="dtp-clear" aria-label="Remove return" onClick={clearReturn}>
+          <button
+            type="button"
+            className="dtp-clear"
+            aria-label="Remove return"
+            onClick={clearReturn}
+          >
             <BookingIcon name="close" size={14} />
           </button>
         </div>

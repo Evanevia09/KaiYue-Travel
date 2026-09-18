@@ -16,10 +16,8 @@ export const business = {
   fleetScale: "200+",
   hours: "7×24, including holidays and peak periods",
   cities: ["Macau", "Zhuhai", "Guangzhou", "Shenzhen", "Zhongshan", "Jiangmen"] as const,
-  venetian:
-    "one of The Venetian Macao’s official business-car / chauffeur service providers",
-  mission:
-    "Raise tourism standards and service levels in Macau and across the Greater Bay Area.",
+  venetian: "one of The Venetian Macao’s official business-car / chauffeur service providers",
+  mission: "Raise tourism standards and service levels in Macau and across the Greater Bay Area.",
   inquiryNote:
     "This website form is a programme inquiry. A person follows up. Vehicle assignment, live tracking, and dispatch run through the operations team and partner platforms — not automatically from this site.",
 } as const;
@@ -116,8 +114,14 @@ export const compliancePoints = [
 ] as const;
 
 export const programmeCommitments = [
-  { title: "Chauffeur appearance", body: "Uniform, staff badge, polite language, luggage assistance." },
-  { title: "Journey visibility", body: "GPS track can be shared with the client’s management platform." },
+  {
+    title: "Chauffeur appearance",
+    body: "Uniform, staff badge, polite language, luggage assistance.",
+  },
+  {
+    title: "Journey visibility",
+    body: "GPS track can be shared with the client’s management platform.",
+  },
   {
     title: "Emergency cover",
     body: "80%+ of emergency orders aimed to have a vehicle dispatched within 30 minutes; backup vehicle targeted within 5 minutes of a fault report.",
@@ -126,8 +130,14 @@ export const programmeCommitments = [
     title: "Punctuality",
     body: "Arrive 15 minutes early. If late beyond the agreed time for reasons on our side, that trip is not charged.",
   },
-  { title: "Cleanliness", body: "Interior cleaned after every trip; deep clean and disinfection weekly." },
-  { title: "After-sales", body: "Dedicated enterprise channel: response within 10 minutes, resolution within 2 hours." },
+  {
+    title: "Cleanliness",
+    body: "Interior cleaned after every trip; deep clean and disinfection weekly.",
+  },
+  {
+    title: "After-sales",
+    body: "Dedicated enterprise channel: response within 10 minutes, resolution within 2 hours.",
+  },
 ] as const;
 
 export const chauffeurStandards = [

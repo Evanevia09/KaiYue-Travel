@@ -35,13 +35,17 @@ import { site } from "../lib/site.ts";
           }
         </p>
         <p>
-          For corporate, hotel, and agency programmes, use the Business pages. Programme phones:{" "}
-          {site.businessPhones.map((phone, index) => (
-            <>
-              {index > 0 ? " · " : null}
-              <a href={`tel:${phone.replaceAll(" ", "")}`}>{phone}</a>
-            </>
-          ))}
+          For corporate, hotel, and agency programmes, use the Business pages. Programme phones:{
+            " "
+          }
+          {
+            site.businessPhones.map((phone, index) => (
+              <>
+                {index > 0 ? " · " : null}
+                <a href={`tel:${phone.replaceAll(" ", "")}`}>{phone}</a>
+              </>
+            ))
+          }
           {". Hours for those programmes: 7×24."}
         </p>
         <p class="draft-note">

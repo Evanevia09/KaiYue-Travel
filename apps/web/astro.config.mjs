@@ -20,7 +20,9 @@ export default defineConfig({
     react(),
     sitemap({
       filter: (page) =>
-        !page.includes("/admin") && !page.includes("/booking/confirmation") && !page.includes("/login"),
+        !page.includes("/admin") &&
+        !page.includes("/booking/confirmation") &&
+        !page.includes("/login"),
     }),
   ],
   security: {
