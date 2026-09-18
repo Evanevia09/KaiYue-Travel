@@ -1,0 +1,42 @@
+---
+import HeroBackdrop from "./HeroBackdrop.astro";
+import { heroTrustLine } from "../../lib/site.ts";
+
+type Props = {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+};
+
+const { eyebrow, title, lede, imageSrc, imageAlt } = Astro.props;
+const hasBooking = Astro.slots.has("booking");
+---
+
+<section class="hero hero--page">
+  <HeroBackdrop src={imageSrc} alt={imageAlt} />
+  <div class="hero__stage">
+    <div class="hero__copy">
+      {eyebrow ? <p class="kicker">{eyebrow}</p> : null}
+      <h1>{title}</h1>
+      {lede ? <p class="hero-sub">{lede}</p> : null}
+    </div>
+    {
+      hasBooking ? (
+        <div class="hero-booking">
+          <slot name="booking" />
+        </div>
+      ) : null
+    }
+    {hasBooking ? <p class="hero-trust">{heroTrustLine}</p> : null}
+    {
+      Astro.slots.has("actions") ? (
+        <div class="hero__actions">
+          <slot name="actions" />
+        </div>
+      ) : null
+    }
+    <slot />
+  </div>
+</section>

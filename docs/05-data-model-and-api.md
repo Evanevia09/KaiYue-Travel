@@ -23,7 +23,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `phone` | Required normalized value plus original display value if needed |
 | `email` | Optional unless business rules require it |
 | `company` | Optional |
-| `notes` | Optional, length-limited plain text |
+| `notes` | Optional, length-limited plain text. Hourly charter duration is stored here as `Duration: N hours.` until a dedicated column exists. |
 | `source_page`, `source_trigger` | Attribution without sensitive content |
 | `locale` | Submitted locale |
 | `notification_state` | e.g. `pending`, `sent`, `partial`, `failed` |
@@ -81,7 +81,7 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ### `POST /api/v1/bookings`
 
-Creates a booking request. Returns `201` with `reference`, `status: "new"`, `receivedAt`, and safe next-step text. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure.
+Creates a booking request. Returns `201` with `reference`, `status: "new"`, `receivedAt`, and safe next-step text. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure. Hourly charter requires `durationHours` (2–12); the Worker prepends `Duration: N hours.` to stored notes.
 
 ### `POST /api/v1/contacts`
 

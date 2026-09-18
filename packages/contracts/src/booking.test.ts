@@ -30,9 +30,17 @@ describe("bookingCreateSchema", () => {
 
   it("allows hourly charter without destination", () => {
     const parsed = bookingCreateSchema.parse(
-      validBooking({ serviceType: "hourly_charter", destination: "" }),
+      validBooking({ serviceType: "hourly_charter", destination: "", durationHours: 2 }),
     );
     expect(parsed.destination).toBeUndefined();
+    expect(parsed.durationHours).toBe(2);
+  });
+
+  it("requires duration for hourly charter", () => {
+    const result = bookingCreateSchema.safeParse(
+      validBooking({ serviceType: "hourly_charter", destination: "" }),
+    );
+    expect(result.success).toBe(false);
   });
 
   it("requires destination for other services", () => {

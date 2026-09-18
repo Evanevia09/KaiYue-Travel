@@ -1,0 +1,25 @@
+---
+import JsonLd from "../../components/content/JsonLd.astro";
+import PageHero from "../../components/content/PageHero.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { business, organizationJsonLd } from "../../lib/business.ts";
+import { site } from "../../lib/site.ts";
+
+const path = "/business/travel-agency";
+const origin = Astro.site ?? site.url;
+const pageUrl = new URL(path, origin).toString();
+---
+
+<BaseLayout
+  title="Travel agency partner programmes"
+  description="Travel agencies can arrange Macau and Greater Bay Area guest mobility with Kai Yue Travel Group Limited: dual-plate Alphard capacity, 7×24 dispatch, and customized itineraries."
+>
+  <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
+  <PageHero
+    eyebrow="Business"
+    title="Travel agency programmes"
+    lede={`${site.legalName} works with inbound and local agencies on guest chauffeur movements, customized itineraries, and Macau–Mainland dual-plate transfers. ${business.allianceLine}.`}
+  >
+    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Send an agency inquiry</a>
+  </PageHero>
+</BaseLayout>

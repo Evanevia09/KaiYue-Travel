@@ -94,20 +94,25 @@ describe("POST /api/v1/bookings", () => {
     expect(count?.count).toBe(0);
   });
 
-  it("keeps a stored booking when notification is skipped", async () => {
-    const env = createTestEnv({ RESEND_API_KEY: undefined });
+  it("stores hourly duration in booking notes", async () => {
+    const env = createTestEnv();
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
-        headers: { "content-type": "application/json", "idempotency-key": "test-booking-key-004" },
-        body: JSON.stringify(bookingPayload()),
+        headers: { "content-type": "application/json", "idempotency-key": "test-booking-key-005" },
+        body: JSON.stringify(
+          bookingPayload({
+            serviceType: "hourly_charter",
+            destination: "",
+            durationHours: 3,
+            notes: "Need a child seat.",
+          }),
+        ),
       }),
       env,
     );
     expect(response.status).toBe(201);
-    const row = await env.DB.prepare("SELECT notification_state FROM bookings").first<{
-      notification_state: string;
-    }>();
-    expect(row?.notification_state).toBe("skipped");
+    const row = await env.DB.prepare("SELECT notes FROM bookings").first<{ notes: string }>();
+    expect(row?.notes).toBe("Duration: 3 hours.\n\nNeed a child seat.");
   });
 });

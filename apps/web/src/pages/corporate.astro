@@ -1,29 +1,25 @@
 ---
-import { ContactForm } from "../components/content/ContactForm.tsx";
+import JsonLd from "../components/content/JsonLd.astro";
+import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { business, organizationJsonLd } from "../lib/business.ts";
+import { site } from "../lib/site.ts";
+
+const path = "/corporate";
+const origin = Astro.site ?? site.url;
+const pageUrl = new URL(path, origin).toString();
 ---
 
 <BaseLayout
-  title="Corporate travel"
-  description="Send a corporate or hotel transport inquiry for guest and executive movements."
+  title="Corporate solution"
+  description="Kai Yue Group Limited provides one-stop, customized, compliant corporate mobility across Macau and the Greater Bay Area, with dual-plate Toyota Alphard 40 Series vehicles and 7×24 dispatch."
 >
-  <section class="wrap section grid-2">
-    <div>
-      <h1>Corporate and partner inquiries</h1>
-      <p class="lede">
-        For companies, hotels, and event coordinators who need more than a single trip. This is an
-        inquiry path, not a contracted service level or guaranteed response time.
-      </p>
-      <ul>
-        <li>Guest airport and hotel movements</li>
-        <li>Executive travel programmes</li>
-        <li>Event-day transport coordination requests</li>
-      </ul>
-      <p>Include expected dates, passenger volume, and whether the need is one-off or recurring.</p>
-    </div>
-    <div class="card">
-      <h2>Send an inquiry</h2>
-      <ContactForm client:load sourcePage="/corporate" defaultType="corporate" />
-    </div>
-  </section>
+  <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
+  <PageHero
+    eyebrow="Business"
+    title={business.headline}
+    lede={`${site.groupLegalName} (${site.groupLegalNameZh}) is built with Mingmen Tourism and Mingmen Technology: compliant capacity, professional dispatch, and an intelligent platform for Macau–Mainland luxury-car programmes.`}
+  >
+    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Request a programme</a>
+  </PageHero>
 </BaseLayout>

@@ -1,0 +1,25 @@
+---
+import JsonLd from "../../components/content/JsonLd.astro";
+import PageHero from "../../components/content/PageHero.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { business, organizationJsonLd } from "../../lib/business.ts";
+import { site } from "../../lib/site.ts";
+
+const path = "/business/hotels-resorts";
+const origin = Astro.site ?? site.url;
+const pageUrl = new URL(path, origin).toString();
+---
+
+<BaseLayout
+  title="Hotel and resort chauffeur programmes"
+  description="Hotels and resorts can arrange guest airport, hotel, and Macau–Mainland dual-plate Alphard transfers with Kai Yue Travel Group Limited. 7×24 dispatch and licensed capacity."
+>
+  <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
+  <PageHero
+    eyebrow="Business"
+    title="Hotel and resort programmes"
+    lede={`${site.legalName} is ${business.venetian}. Properties can request guest airport, inter-hotel, and Greater Bay Area dual-plate transfers with 7×24 dispatch.`}
+  >
+    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Send a property inquiry</a>
+  </PageHero>
+</BaseLayout>

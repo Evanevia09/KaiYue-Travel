@@ -18,5 +18,23 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set("x-robots-tag", "noindex, nofollow");
     response.headers.set("cache-control", "no-store");
   }
-  return response;
+  if (!import.meta.env.DEV) {
+    return response;
+  }
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) {
+    return response;
+  }
+  const html = await response.text();
+  const rewritten = html.replaceAll(
+    "/node_modules/.vite/deps_prerender/",
+    "/node_modules/.vite/deps/",
+  );
+  const headers = new Headers(response.headers);
+  headers.delete("content-length");
+  return new Response(rewritten, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 });

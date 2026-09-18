@@ -5,24 +5,28 @@
 | Route | Purpose | Primary action |
 |---|---|---|
 | `/` | Explain offer, establish trust, start booking | Book now |
-| `/services` | Compare service types | Select service / book |
-| `/services/[slug]` | Explain a specific service and requirements | Book this service |
+| `/services/[slug]` | SEO landing page for each chauffeur service | Book this service |
+| `/pricing` | Explain how quotes are prepared; no published fare card | Request a quote |
 | `/fleet` | Show approved vehicles/capacity | Book a vehicle/service |
-| `/corporate` | Present B2B offer and qualification | Corporate inquiry |
+| `/corporate` | Corporate solution inquiry | Corporate inquiry |
+| `/business/travel-agency` | Travel agency partner inquiry | Agency inquiry |
+| `/business/hotels-resorts` | Hotel and resort guest-transport inquiry | Property inquiry |
 | `/about` | Business story, standards, service area | Book or contact |
 | `/faq` | Resolve conversion objections | Book now |
-| `/contact` | General inquiry and contact methods | Send inquiry |
+| `/login` | Sign-in entry; customer accounts not enabled in this release | Request a chauffeur |
 | `/booking/confirmation` | Confirm receipt and reference | Contact support / return home |
 | `/privacy`, `/terms` | Approved legal information | — |
 | `/admin/*` | Protected staff area | Operational actions |
 
-Dedicated service routes should exist only for confirmed, sufficiently distinct services. Otherwise, keep a single services page.
+`/services` redirects to `/services/airport-transfer`. There is no services index page.
+
+Dedicated service routes exist for each published chauffeur request type.
 
 ## Navigation
 
-- Primary header (from the homepage mocks): Home, Services, Corporate, About, Contact.
-- Fleet and FAQ remain published routes and appear in the footer.
-- Persistent action: gold “Need Help?” phone pill in the desktop header; Book now on inner pages and as a mobile sticky control except on the homepage, where the form is inline.
+- Primary header: Airport ride, City rides dropdown, Hourly, Help, Business dropdown (Travel agency, Corporate solution, Hotels & resorts). Logo wordmark is Kai Yue.
+- Footer lists every service plus Pricing, then company and contact links.
+- Persistent action: globe + English language control and a Sign in chip in the header. Booking is not repeated as a hero button. The homepage embeds the form; other pages use in-content CTAs and a mobile sticky control except on the homepage.
 - Corporate is visible but does not compete visually with the consumer booking action.
 - On mobile, use a compact menu and a separate persistent booking trigger except on the homepage.
 
@@ -64,7 +68,7 @@ Vehicle capacity and series/model claims must be verified before publication.
 
 ### Home
 
-1. Hero: outcome-led headline, brief support, primary booking widget, concise reassurance.
+1. Hero: outcome-led headline, brief support, compact booking bar, Macau-honest reassurance.
 2. Key services.
 3. Fleet/comfort proof.
 4. How booking works: request → review → confirmation.
@@ -75,7 +79,9 @@ Vehicle capacity and series/model claims must be verified before publication.
 
 ### Corporate
 
-State supported use cases, service approach, coverage, contact expectations, and the information needed for follow-up. Avoid implying contracted response times or capabilities until approved.
+B2B pages follow the owner-approved Kai Yue Group portfolio: alliance (Kai Yue Travel Group Limited + Mingmen Tourism + Mingmen Technology), dual-plate Greater Bay Area coverage, 200+ Alphard 40 Series, 7×24 dispatch, Venetian wording, programme commitments, and group-portfolio phones. The website form remains an inquiry; a person follows up. Do not imply that this site itself provides live GPS, instant assignment, or online payment.
+
+Travel agency and hotels & resorts pages reuse the same source, tailored to partner and property coordinators.
 
 ### Contact
 

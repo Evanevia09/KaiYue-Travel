@@ -1,0 +1,15 @@
+---
+type Props = {
+  src?: string;
+  alt?: string;
+};
+
+const {
+  src = "/images/hero-home.jpg",
+  alt = "Chauffeur welcoming a family beside a private vehicle at a waterfront hotel in Macau",
+} = Astro.props;
+---
+
+<div class="hero__bg">
+  <img src={src} width="1920" height="1080" alt={alt} />
+</div>

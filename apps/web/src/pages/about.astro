@@ -1,36 +1,22 @@
 ---
-import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
+import JsonLd from "../components/content/JsonLd.astro";
+import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { organizationJsonLd } from "../lib/business.ts";
 import { site } from "../lib/site.ts";
+
+const origin = Astro.site ?? site.url;
+const pageUrl = new URL("/about", origin).toString();
 ---
 
 <BaseLayout
   title="About"
-  description="Kai Yue Travel is a Macau-based chauffeur request service. Public claims remain under review."
+  description={`${site.legalName} is a Macau-headquartered travel company founded in 2009. Consumer chauffeur requests on this site are Macau journeys quoted after review.`}
 >
-  <section class="wrap page-hero section">
-    <p class="eyebrow">About us</p>
-    <h1>About Kai Yue Travel</h1>
-    <hr class="gold-rule" />
-    <p class="lede">
-      {site.name} helps guests request private chauffeur journeys in Macau. The website’s job is to make
-      that request clear, then let the operations team confirm it.
-    </p>
-    <div class="card">
-      <h2>What we will not claim yet</h2>
-      <p>
-        License status, commercial partnerships, fleet size, cross-border coverage, testimonials,
-        and vehicle specifications are recorded as source material for review. They are not
-        presented here as verified facts.
-      </p>
-      <p>
-        Contact details shown on this site come from the existing public listing and still require
-        business-owner reconfirmation before launch.
-      </p>
-    </div>
-    <p style="margin-top: 2rem;">
-      <BookingLauncher client:load sourcePage="/about" sourceTrigger="about-cta" />
-      <a class="btn btn--secondary" href="/contact">Contact</a>
-    </p>
-  </section>
+  <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
+  <PageHero
+    eyebrow="About us"
+    title={`About ${site.name}`}
+    lede={`${site.legalName} (${site.legalNameZh}) helps guests request private chauffeur journeys in Macau, and provides corporate, hotel, and agency programmes with Mingmen Tourism and Mingmen Technology.`}
+  />
 </BaseLayout>
