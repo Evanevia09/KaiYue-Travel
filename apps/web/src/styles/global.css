@@ -1823,6 +1823,22 @@ a {
   gap: 0.45rem;
 }
 
+/* Services column: the same groups as the header menus, so a group heading sits
+   above its own list rather than one flat run of links. */
+.site-footer__groups {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.site-footer__group h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 45%);
+}
+
 .draft-note {
   font-size: 0.8rem;
   color: #9ca3af;
@@ -2124,7 +2140,7 @@ td {
   }
 
   .site-footer__grid {
-    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+    grid-template-columns: 1.4fr 1.15fr 1fr 1.2fr;
   }
 
   .mobile-book {

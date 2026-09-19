@@ -523,7 +523,11 @@ export type NavGroup = { readonly label: string; readonly children: readonly Nav
  */
 export type NavItem = NavLink | NavGroup;
 
-export const nav: readonly NavItem[] = [
+/**
+ * Service groups are the single source for the service part of the header menus
+ * and for the footer services column, so the two cannot drift apart.
+ */
+export const serviceGroups: readonly NavGroup[] = [
   {
     label: "Point To Point",
     children: [
@@ -540,6 +544,10 @@ export const nav: readonly NavItem[] = [
       { href: "/services/city-tours", label: "City Tours" },
     ],
   },
+];
+
+export const nav: readonly NavItem[] = [
+  ...serviceGroups,
   {
     label: "Business",
     children: [
@@ -550,7 +558,7 @@ export const nav: readonly NavItem[] = [
   },
 ];
 
-export const footerServiceNav = [...serviceLinks, { href: "/pricing", label: "Pricing" }] as const;
+export const footerServiceGroups = serviceGroups;
 
 export const footerNav = [
   { href: "/fleet", label: "Fleet" },

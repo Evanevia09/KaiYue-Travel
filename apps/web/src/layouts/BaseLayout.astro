@@ -1,7 +1,7 @@
 ---
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
-import { footerNav, footerServiceNav, nav, site } from "../lib/site.ts";
+import { footerNav, footerServiceGroups, nav, site } from "../lib/site.ts";
 import "../styles/global.css";
 
 type Props = {
@@ -42,6 +42,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/images/mark.svg" type="image/svg+xml" />
     <title>{title} · {site.name}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -201,15 +202,22 @@ function isSectionCurrent(item: (typeof nav)[number]) {
         </div>
         <div>
           <h2>Services</h2>
-          <ul>
+          <div class="site-footer__groups">
             {
-              footerServiceNav.map((item) => (
-                <li>
-                  <a href={item.href}>{item.label}</a>
-                </li>
+              footerServiceGroups.map((group) => (
+                <div class="site-footer__group">
+                  <h3>{group.label}</h3>
+                  <ul>
+                    {group.children.map((item) => (
+                      <li>
+                        <a href={item.href}>{item.label}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))
             }
-          </ul>
+          </div>
         </div>
         <div>
           <h2>Company</h2>
@@ -219,6 +227,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
             <li><a href="/corporate">Corporate solution</a></li>
             <li><a href="/business/hotels-resorts">Hotels &amp; resorts</a></li>
             <li><a href="/faq">FAQ</a></li>
+            <li><a href="/pricing">Pricing</a></li>
             <li><a href="/privacy">Privacy</a></li>
             <li><a href="/terms">Terms</a></li>
           </ul>
