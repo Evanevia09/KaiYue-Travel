@@ -9,8 +9,11 @@ function bookingPayload(overrides: Record<string, unknown> = {}) {
     destination: "Grand Lisboa",
     pickupAt: futurePickup(),
     passengerCount: 2,
+    communicationChannel: "email",
     contactName: "Alex Chan",
     phone: "+853 6234 5678",
+    email: "alex@example.com",
+    message: "Please confirm availability.",
     privacyAccepted: true,
     sourcePage: "/",
     sourceTrigger: "hero-embed",
@@ -37,7 +40,7 @@ describe("POST /api/v1/bookings", () => {
     const first = await handleApi(request(), env);
     expect(first.status).toBe(201);
     const firstBody = (await first.json()) as { reference: string; status: string };
-    expect(firstBody.status).toBe("new");
+    expect(firstBody.status).toBe("enquiry");
     expect(firstBody.reference).toMatch(/^KY-/);
 
     const replay = await handleApi(request(), env);
@@ -114,5 +117,83 @@ describe("POST /api/v1/bookings", () => {
     expect(response.status).toBe(201);
     const row = await env.DB.prepare("SELECT notes FROM bookings").first<{ notes: string }>();
     expect(row?.notes).toBe("Duration: 3 hours.\n\nNeed a child seat.");
+  });
+
+  it("persists a WhatsApp enquiry and returns a formatted deep link", async () => {
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json", "idempotency-key": "whatsapp-001" },
+        body: JSON.stringify(
+          bookingPayload({
+            communicationChannel: "whatsapp",
+            contactName: "",
+            phone: "+853 6234 5678",
+            email: "",
+            message: "Two suitcases and a child seat.",
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as { whatsappUrl: string };
+    expect(body.whatsappUrl).toContain("https://wa.me/85328338882?text=");
+    expect(decodeURIComponent(body.whatsappUrl)).toContain("Two suitcases and a child seat.");
+    expect(decodeURIComponent(body.whatsappUrl)).toContain("WhatsApp number: +853 6234 5678");
+    const row = await env.DB.prepare(
+      "SELECT communication_channel, phone_display, message FROM bookings",
+    ).first<{
+      communication_channel: string;
+      phone_display: string;
+      message: string;
+    }>();
+    expect(row).toMatchObject({
+      communication_channel: "whatsapp",
+      phone_display: "+853 6234 5678",
+      message: "Two suitcases and a child seat.",
+    });
+  });
+
+  it("accepts an optional message and omits empty Message text from WhatsApp", async () => {
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json", "idempotency-key": "whatsapp-no-message" },
+        body: JSON.stringify(
+          bookingPayload({
+            communicationChannel: "whatsapp",
+            contactName: "",
+            phone: "",
+            email: "",
+            message: "",
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as { whatsappUrl: string };
+    expect(decodeURIComponent(body.whatsappUrl)).not.toContain("Message:");
+    expect(decodeURIComponent(body.whatsappUrl)).not.toContain("WhatsApp number:");
+    const row = await env.DB.prepare("SELECT message FROM bookings").first<{ message: string }>();
+    expect(row?.message).toBe("");
+  });
+
+  it("accepts an email enquiry with an empty message", async () => {
+    const env = createTestEnv();
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json", "idempotency-key": "email-no-message" },
+        body: JSON.stringify(bookingPayload({ message: "" })),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const row = await env.DB.prepare("SELECT message FROM bookings").first<{ message: string }>();
+    expect(row?.message).toBe("");
   });
 });

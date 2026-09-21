@@ -26,8 +26,6 @@ export const site = {
   defaultOgImage: "/images/hero-home.jpg",
 } as const;
 
-export const heroTrustLine = "Macau · Quote after review · Human confirmation";
-
 export const serviceIconGlyph = {
   plane: "✈",
   building: "⌂",
@@ -560,12 +558,6 @@ export const nav: readonly NavItem[] = [
 
 export const footerServiceGroups = serviceGroups;
 
-export const footerNav = [
-  { href: "/fleet", label: "Fleet" },
-  { href: "/booking", label: "Book now" },
-  { href: "/contact", label: "Contact" },
-] as const;
-
 export const faqs = [
   {
     question: "Is submitting the form a confirmed booking?",
@@ -580,7 +572,7 @@ export const faqs = [
   {
     question: "Do you show prices on the website?",
     answer:
-      "Published fares are not listed yet. The pricing page explains how each quote is prepared. Amounts and payment method are confirmed when the team accepts a request.",
+      "Published fares are not listed yet. Our team prepares a quote after reviewing your journey details. Amounts and payment method are confirmed when the team accepts a request.",
   },
   {
     question: "Can I request a specific vehicle?",

@@ -3,21 +3,19 @@ import { canTransitionBooking, canTransitionContact } from "./status.ts";
 
 describe("booking transitions", () => {
   it("allows the documented happy path", () => {
-    expect(canTransitionBooking("new", "confirmed")).toBe(true);
-    expect(canTransitionBooking("confirmed", "in_progress")).toBe(true);
-    expect(canTransitionBooking("in_progress", "completed")).toBe(true);
+    expect(canTransitionBooking("enquiry", "assigned")).toBe(true);
+    expect(canTransitionBooking("assigned", "completed")).toBe(true);
   });
 
   it("allows cancellation from active states", () => {
-    expect(canTransitionBooking("new", "cancelled")).toBe(true);
-    expect(canTransitionBooking("confirmed", "cancelled")).toBe(true);
-    expect(canTransitionBooking("in_progress", "cancelled")).toBe(true);
+    expect(canTransitionBooking("enquiry", "cancelled")).toBe(true);
+    expect(canTransitionBooking("assigned", "cancelled")).toBe(true);
   });
 
   it("rejects reopen and skips", () => {
-    expect(canTransitionBooking("cancelled", "new")).toBe(false);
-    expect(canTransitionBooking("completed", "confirmed")).toBe(false);
-    expect(canTransitionBooking("new", "completed")).toBe(false);
+    expect(canTransitionBooking("cancelled", "enquiry")).toBe(false);
+    expect(canTransitionBooking("completed", "assigned")).toBe(false);
+    expect(canTransitionBooking("enquiry", "completed")).toBe(false);
   });
 });
 

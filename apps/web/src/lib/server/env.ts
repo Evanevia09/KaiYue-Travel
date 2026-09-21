@@ -33,6 +33,7 @@ export type AppEnv = {
   RESEND_FROM?: string;
   RESEND_STAFF_TO?: string;
   RESEND_REPLY_TO?: string;
+  WHATSAPP_NUMBER?: string;
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;
   DEV_ADMIN_BYPASS?: string;

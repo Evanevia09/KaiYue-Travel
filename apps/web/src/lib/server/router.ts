@@ -80,6 +80,10 @@ export async function handleApi(
         return json(await handleAdminBookingsList(request, env), 200, requestId);
       }
 
+      if (request.method === "POST" && pathname === "/api/v1/admin/bookings") {
+        return await createBooking(request, env, requestId);
+      }
+
       const bookingDetailParams = match(pathname, "/api/v1/admin/bookings/:reference");
       if (request.method === "GET" && bookingDetailParams) {
         return json(

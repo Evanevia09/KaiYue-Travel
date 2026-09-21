@@ -1,6 +1,8 @@
 ---
 import JsonLd from "../components/content/JsonLd.astro";
 import PageHero from "../components/content/PageHero.astro";
+import FeatureIcon from "../components/content/FeatureIcon.astro";
+import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { organizationJsonLd } from "../lib/business.ts";
 import { site } from "../lib/site.ts";
@@ -18,5 +20,75 @@ const pageUrl = new URL("/about", origin).toString();
     eyebrow="About us"
     title={`About ${site.name}`}
     lede={`${site.legalName} (${site.legalNameZh}) helps guests request private chauffeur journeys in Macau, and provides corporate, hotel, and agency programmes with Mingmen Tourism and Mingmen Technology.`}
-  />
+  >
+    <div slot="inquiry" class="card" id="inquiry">
+      <h2>Ask our team</h2>
+      <ContactForm client:load sourcePage="/about" />
+    </div>
+  </PageHero>
+  <section class="section" aria-labelledby="about-story">
+    <div class="wrap editorial-split">
+      <div class="editorial-photo">
+        <img
+          src="/images/hero-vehicle.jpg"
+          width="860"
+          height="400"
+          loading="lazy"
+          alt="Kai Yue private vehicle in Macau"
+        /><span class="editorial-photo__label">Macau roots</span>
+      </div>
+      <div class="editorial-copy">
+        <p class="kicker">Our story</p><h2 id="about-story">Macau roots since 2009</h2>
+        <p class="lede">
+          {site.legalName} began as Zhaoxin International Travel Limited in 2009 and adopted its current
+          name in 2024. The group is headquartered in Macau.
+        </p>
+        <div class="feature-lines">
+          <div>
+            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
+              <strong>Private journeys</strong><br />Visitors can request individual chauffeur
+              travel in Macau.
+            </p>
+          </div><div>
+            <span class="icon-frame"><FeatureIcon name="building" /></span><p>
+              <strong>Business programmes</strong><br />Corporate, hotel, and agency teams can
+              discuss tailored mobility needs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--muted" aria-labelledby="about-approach">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">Our approach</p><h2 id="about-approach">People review every request</h2>
+        </div><p>These forms start a conversation. The team confirms the details separately.</p>
+      </div>
+      <div class="process-grid process-grid--light">
+        <article>
+          <span class="icon-frame"><FeatureIcon name="message" /></span><span
+            class="process-grid__number">01</span
+          ><h3>Tell us what you need</h3><p>
+            Share your journey or programme requirements through the relevant form.
+          </p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="calendar" /></span><span
+            class="process-grid__number">02</span
+          ><h3>Human review</h3><p>
+            The team checks timing, scope, and availability before confirming.
+          </p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="check" /></span><span
+            class="process-grid__number">03</span
+          ><h3>Clear next steps</h3><p>
+            Arrangements are discussed with a person, never assigned automatically by this site.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
 </BaseLayout>

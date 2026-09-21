@@ -1,5 +1,7 @@
 ---
 import JsonLd from "../../components/content/JsonLd.astro";
+import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
+import FeatureIcon from "../../components/content/FeatureIcon.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { business, organizationJsonLd } from "../../lib/business.ts";
@@ -20,6 +22,70 @@ const pageUrl = new URL(path, origin).toString();
     title="Travel agency programmes"
     lede={`${site.legalName} works with inbound and local agencies on guest chauffeur movements, customized itineraries, and Macau–Mainland dual-plate transfers. ${business.allianceLine}.`}
   >
-    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Send an agency inquiry</a>
+    <BusinessInquiry slot="inquiry" sourcePage={path} heading="Send an agency inquiry" />
   </PageHero>
+  <section class="section" aria-labelledby="agency-journeys">
+    <div class="wrap editorial-split">
+      <div class="editorial-photo">
+        <img
+          src="/images/hero-home.jpg"
+          width="1024"
+          height="576"
+          loading="lazy"
+          alt="Guests arriving beside a private vehicle in Macau"
+        /><span class="editorial-photo__label">Travel agency partners</span>
+      </div>
+      <div class="editorial-copy">
+        <p class="kicker">For travel partners</p><h2 id="agency-journeys">
+          Guest movements to plan together
+        </h2>
+        <div class="feature-lines">
+          <div>
+            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
+              <strong>Arrival and departure</strong><br />Coordinate guest pickup and drop-off
+              details in Macau.
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="calendar" /></span><p>
+              <strong>Custom itineraries</strong><br />Share dates, stops, and passenger volumes for
+              review.
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="route" /></span><p>
+              <strong>Regional connections</strong><br />Discuss Macau–Mainland routing, subject to
+              vehicle and crossing review.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--muted" aria-labelledby="agency-process">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">Next steps</p><h2 id="agency-process">Start with the itinerary</h2>
+        </div><p>The team reviews scope and availability before any programme is agreed.</p>
+      </div>
+      <div class="process-grid process-grid--light">
+        <article>
+          <span class="icon-frame"><FeatureIcon name="calendar" /></span><span
+            class="process-grid__number">01</span
+          ><h3>Dates and pickup</h3><p>Share travel dates, timing, and pickup points.</p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="car" /></span><span
+            class="process-grid__number">02</span
+          ><h3>Guest needs</h3><p>Include passenger volume and luggage requirements.</p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="route" /></span><span
+            class="process-grid__number">03</span
+          ><h3>Route review</h3><p>Describe Macau-only or Macau–Mainland movements.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 </BaseLayout>

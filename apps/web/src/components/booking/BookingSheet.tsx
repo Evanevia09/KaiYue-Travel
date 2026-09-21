@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { BookingForm } from "./BookingForm.tsx";
+import { BookingForm, BookingProgress } from "./BookingForm.tsx";
+import { BookingIcon } from "./BookingIcons.tsx";
 import {
   closeBooking,
   discardBooking,
@@ -58,18 +59,24 @@ export function BookingSheet() {
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="booking-card__header">
-          <div>
-            <h2 id={titleId}>Request a chauffeur</h2>
-            <p>Quote after review · Human confirmation</p>
-          </div>
+        <div
+          className={
+            state.step === 2
+              ? "booking-card__header booking-card__header--minimal"
+              : "booking-card__header"
+          }
+        >
+          <h2 id={titleId} className={state.step === 2 ? "sr-only" : undefined}>
+            {state.step === 2 ? "Booking request" : "Request a chauffeur"}
+          </h2>
+          {state.step === 2 && !confirmClose ? <BookingProgress step={state.step} /> : null}
           <button
             type="button"
             className="booking-card__close"
             onClick={attemptClose}
             aria-label="Close booking form"
           >
-            Close
+            <BookingIcon name="close" size={20} />
           </button>
         </div>
         <div className="booking-card__body">
@@ -95,7 +102,7 @@ export function BookingSheet() {
               </button>
             </div>
           ) : (
-            <BookingForm />
+            <BookingForm progressInHeader />
           )}
         </div>
       </div>

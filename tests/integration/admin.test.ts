@@ -16,8 +16,11 @@ async function createBooking(env: ReturnType<typeof createTestEnv>) {
         destination: "Macau Tower",
         pickupAt: futurePickup(),
         passengerCount: 3,
+        communicationChannel: "email",
         contactName: "Morgan Lee",
         phone: "+853 6666 1111",
+        email: "morgan@example.com",
+        message: "Please confirm this transfer.",
         privacyAccepted: true,
         sourcePage: "/services",
         sourceTrigger: "service-card",
@@ -55,7 +58,7 @@ describe("admin authorization and mutations", () => {
       new Request(`http://localhost/api/v1/admin/bookings/${created.reference}/status`, {
         method: "PATCH",
         headers: { "content-type": "application/json", origin: "http://localhost:4321" },
-        body: JSON.stringify({ status: "confirmed" }),
+        body: JSON.stringify({ status: "assigned" }),
       }),
       env,
     );
@@ -65,7 +68,7 @@ describe("admin authorization and mutations", () => {
       new Request(`http://localhost/api/v1/admin/bookings/${created.reference}/status`, {
         method: "PATCH",
         headers: { "content-type": "application/json", origin: "http://localhost:4321" },
-        body: JSON.stringify({ status: "completed" }),
+        body: JSON.stringify({ status: "enquiry" }),
       }),
       env,
     );

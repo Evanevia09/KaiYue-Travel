@@ -1,5 +1,7 @@
 ---
 import JsonLd from "../../components/content/JsonLd.astro";
+import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
+import FeatureIcon from "../../components/content/FeatureIcon.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { business, organizationJsonLd } from "../../lib/business.ts";
@@ -20,6 +22,72 @@ const pageUrl = new URL(path, origin).toString();
     title="Hotel and resort programmes"
     lede={`${site.legalName} is ${business.venetian}. Properties can request guest airport, inter-hotel, and Greater Bay Area dual-plate transfers with 7×24 dispatch.`}
   >
-    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Send a property inquiry</a>
+    <BusinessInquiry slot="inquiry" sourcePage={path} heading="Send a property inquiry" />
   </PageHero>
+  <section class="section" aria-labelledby="hotel-journeys">
+    <div class="wrap editorial-split">
+      <div class="editorial-photo">
+        <img
+          src="/images/hero-home.jpg"
+          width="1024"
+          height="576"
+          loading="lazy"
+          alt="Guests welcomed beside a private vehicle at a Macau hotel"
+        /><span class="editorial-photo__label">Hospitality partners</span>
+      </div>
+      <div class="editorial-copy">
+        <p class="kicker">For hospitality teams</p><h2 id="hotel-journeys">
+          Guest journeys to coordinate
+        </h2>
+        <div class="feature-lines">
+          <div>
+            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
+              <strong>Airport arrivals</strong><br />Share timing, meeting points, guest count, and
+              luggage needs.
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="building" /></span><p>
+              <strong>Hotel movements</strong><br />Plan inter-hotel transfers and timed Macau
+              journeys.
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="route" /></span><p>
+              <strong>Regional transfers</strong><br />Ask about Macau–Mainland travel, subject to
+              route and vehicle review.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--muted" aria-labelledby="hotel-process">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">Working together</p><h2 id="hotel-process">
+            A programme shaped around the property
+          </h2>
+        </div><p>A coordinator reviews scope and confirms any service arrangement separately.</p>
+      </div>
+      <div class="process-grid process-grid--light">
+        <article>
+          <span class="icon-frame"><FeatureIcon name="building" /></span><span
+            class="process-grid__number">01</span
+          ><h3>Property details</h3><p>Tell us who is coordinating and where guests will be met.</p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="calendar" /></span><span
+            class="process-grid__number">02</span
+          ><h3>Expected demand</h3><p>Share dates, frequency, and approximate guest volumes.</p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="route" /></span><span
+            class="process-grid__number">03</span
+          ><h3>Journey types</h3><p>Outline arrival, local, or cross-border movements.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 </BaseLayout>

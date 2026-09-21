@@ -1,15 +1,24 @@
 ---
-import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
-import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { faqs } from "../lib/site.ts";
 ---
 
 <BaseLayout title="FAQ" description="How chauffeur requests, confirmation, and quotes work.">
-  <PageHero
-    eyebrow="FAQ"
-    title="Frequently asked questions"
-    lede="How chauffeur requests, confirmation, and quotes work."
-  >
-    <BookingLauncher slot="actions" client:load sourcePage="/faq" sourceTrigger="faq-hero" />
-  </PageHero>
+  <section class="section page-content" aria-labelledby="faq-title">
+    <div class="wrap page-content__narrow">
+      <p class="kicker">Help</p>
+      <h1 id="faq-title">Frequently asked questions</h1>
+      <p class="lede">How requests, quotes, and confirmation work.</p>
+      <div class="faq-list">
+        {
+          faqs.map((item) => (
+            <details class="card">
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
 </BaseLayout>

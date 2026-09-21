@@ -2,7 +2,6 @@ import {
   bookingCreateSchema,
   HOURLY_DURATION_MAX_HOURS,
   HOURLY_DURATION_MIN_HOURS,
-  VEHICLE_PREFERENCES,
   type ServiceType,
 } from "@kaiyue/contracts";
 import { useEffect, useRef, useSyncExternalStore } from "react";
@@ -13,6 +12,7 @@ import {
   fromLocalDateTimeValue,
   getBookingState,
   isDirty,
+  openBooking,
   setBookingResult,
   setStep,
   subscribeBooking,
@@ -20,7 +20,24 @@ import {
   type BookingMode,
 } from "./store.ts";
 
-const steps = ["Journey", "Details", "Contact"] as const;
+const steps = ["Journey", "Communication"] as const;
+
+export function BookingProgress({ step }: { step: number }) {
+  return (
+    <ol className="booking-steps" aria-label="Booking progress">
+      {steps.map((label, index) => (
+        <li
+          key={label}
+          className={step > index + 1 ? "is-done" : undefined}
+          aria-current={step === index + 1 ? "step" : undefined}
+        >
+          <span className="booking-steps__num">{index + 1}</span>
+          {label}
+        </li>
+      ))}
+    </ol>
+  );
+}
 const TRANSFER_TYPE: ServiceType = "airport_transfer";
 const HOURLY_TYPE: ServiceType = "hourly_charter";
 
@@ -41,13 +58,11 @@ async function submitBooking(entry?: {
     passengerCount: current.draft.passengerCount,
     durationHours:
       current.draft.serviceType === HOURLY_TYPE ? current.draft.durationHours : undefined,
-    luggageCount: current.draft.luggageCount ? Number(current.draft.luggageCount) : undefined,
-    vehiclePreference: current.draft.vehiclePreference || undefined,
-    contactName: current.draft.contactName,
-    phone: current.draft.phone,
-    email: current.draft.email,
-    company: current.draft.company,
-    notes: current.draft.notes,
+    communicationChannel: current.draft.communicationChannel,
+    contactName: current.draft.contactName || undefined,
+    phone: current.draft.phone || undefined,
+    email: current.draft.email || undefined,
+    message: current.draft.message,
     locale: current.draft.locale,
     sourcePage: entry?.sourcePage ?? current.context.sourcePage,
     sourceTrigger: entry?.sourceTrigger ?? current.context.sourceTrigger,
@@ -83,9 +98,13 @@ async function submitBooking(entry?: {
       reference?: string;
       receivedAt?: string;
       nextStep?: string;
+      whatsappUrl?: string;
       error?: { message?: string; fields?: Record<string, string>; requestId?: string };
     };
     if (response.ok && body.reference && body.receivedAt && body.nextStep) {
+      if (current.draft.communicationChannel === "whatsapp" && body.whatsappUrl) {
+        window.location.assign(body.whatsappUrl);
+      }
       discardBooking();
       setBookingResult({
         status: "success",
@@ -94,6 +113,7 @@ async function submitBooking(entry?: {
           reference: body.reference,
           receivedAt: body.receivedAt,
           nextStep: body.nextStep,
+          whatsappUrl: body.whatsappUrl,
         },
       });
       return;
@@ -115,6 +135,7 @@ async function submitBooking(entry?: {
 
 type Props = {
   compact?: boolean;
+  progressInHeader?: boolean;
   sourcePage?: string;
   sourceTrigger?: string;
   initialServiceType?: ServiceType;
@@ -122,6 +143,7 @@ type Props = {
 
 export function BookingForm({
   compact = false,
+  progressInHeader = false,
   sourcePage,
   sourceTrigger,
   initialServiceType,
@@ -130,6 +152,29 @@ export function BookingForm({
   const { draft, fieldErrors, step } = state;
   const hourly = draft.serviceType === HOURLY_TYPE;
   const entry = compact ? { sourcePage, sourceTrigger, mode: "embedded" as const } : undefined;
+
+  function advanceFromJourney() {
+    const errors: Record<string, string> = {};
+    if (draft.pickupLocation.trim().length < 2) errors.pickupLocation = "Enter a pickup location.";
+    if (!hourly && draft.destination.trim().length < 2) errors.destination = "Enter a destination.";
+    if (!fromLocalDateTimeValue(draft.pickupAt)) errors.pickupAt = "Choose a pickup date and time.";
+    if (Object.keys(errors).length > 0) {
+      setBookingResult({
+        status: "error.recoverable",
+        fieldErrors: errors,
+        formError: "Complete the journey details first.",
+      });
+      return;
+    }
+    setStep(2);
+    if (compact) {
+      openBooking({
+        mode: "bottom-sheet",
+        sourcePage: sourcePage ?? window.location.pathname,
+        sourceTrigger: sourceTrigger ?? "hero-embed",
+      });
+    }
+  }
 
   // A page that embeds the widget (for example /services/local-chauffeur) can
   // preset the ride state, so "By the hour" pages open on the hourly layout and
@@ -194,8 +239,8 @@ export function BookingForm({
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        if (step < 3) {
-          setStep((step + 1) as 1 | 2 | 3);
+        if (step === 1) {
+          advanceFromJourney();
           return;
         }
         void submitBooking(entry);
@@ -210,19 +255,8 @@ export function BookingForm({
             <BookingIcon name="clock" size={16} /> By the Hour
           </button>
         </div>
-      ) : (
-        <ol className="booking-steps">
-          {steps.map((label, index) => (
-            <li
-              key={label}
-              className={step > index + 1 ? "is-done" : undefined}
-              aria-current={step === index + 1 ? "step" : undefined}
-            >
-              <span className="booking-steps__num">{index + 1}</span>
-              {label}
-            </li>
-          ))}
-        </ol>
+      ) : progressInHeader ? null : (
+        <BookingProgress step={step} />
       )}
 
       {state.formError ? (
@@ -368,105 +402,101 @@ export function BookingForm({
       ) : null}
 
       {step === 2 ? (
-        <div className="booking-fields">
-          <div className="field">
-            <label htmlFor="luggageCount">Luggage (optional)</label>
-            <input
-              id="luggageCount"
-              type="number"
-              min={0}
-              max={20}
-              value={draft.luggageCount}
-              onChange={(event) => updateDraft({ luggageCount: event.target.value })}
-            />
+        <div className="communication-step">
+          <div>
+            <h3>Where would you like to send your request?</h3>
           </div>
-          <div className="field field--full">
-            <label htmlFor="vehiclePreference">Vehicle preference</label>
-            <select
-              id="vehiclePreference"
-              value={draft.vehiclePreference}
-              onChange={(event) =>
-                updateDraft({
-                  vehiclePreference: event.target.value as
-                    (typeof VEHICLE_PREFERENCES)[number] | "",
-                })
-              }
+          <div className="communication-tabs" role="tablist" aria-label="Communication channel">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={draft.communicationChannel === "whatsapp"}
+              onClick={() => updateDraft({ communicationChannel: "whatsapp" })}
             >
-              <option value="">No preference</option>
-              {VEHICLE_PREFERENCES.filter((value) => value !== "no_preference").map((value) => (
-                <option key={value} value={value}>
-                  {value.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
+              WhatsApp
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={draft.communicationChannel === "email"}
+              onClick={() => updateDraft({ communicationChannel: "email" })}
+            >
+              Email
+            </button>
           </div>
-          <div className="field field--full">
-            <label htmlFor="notes">Notes</label>
-            <textarea
-              id="notes"
-              value={draft.notes}
-              onChange={(event) => updateDraft({ notes: event.target.value })}
-            />
+          <div className="communication-panel" role="tabpanel">
+            <p className="muted">
+              {draft.communicationChannel === "whatsapp"
+                ? "Quick reply recommended if you have WhatsApp."
+                : "Replies are usually sent within 24 hours."}
+            </p>
+            {draft.communicationChannel === "whatsapp" ? (
+              <div className="field field--full">
+                <label htmlFor="phone">Your WhatsApp Number (optional)</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={draft.phone}
+                  onChange={(event) => updateDraft({ phone: event.target.value })}
+                  autoComplete="tel"
+                  placeholder="Include country code, e.g. +853 6234 5678"
+                />
+                {fieldErrors.phone ? <p className="field-error">{fieldErrors.phone}</p> : null}
+              </div>
+            ) : (
+              <div className="booking-fields">
+                <div className="field">
+                  <label htmlFor="contactName">Your Name *</label>
+                  <input
+                    id="contactName"
+                    value={draft.contactName}
+                    onChange={(event) => updateDraft({ contactName: event.target.value })}
+                    autoComplete="name"
+                  />
+                  {fieldErrors.contactName ? (
+                    <p className="field-error">{fieldErrors.contactName}</p>
+                  ) : null}
+                </div>
+                <div className="field">
+                  <label htmlFor="email">Your Email *</label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={draft.email}
+                    onChange={(event) => updateDraft({ email: event.target.value })}
+                    autoComplete="email"
+                  />
+                  {fieldErrors.email ? <p className="field-error">{fieldErrors.email}</p> : null}
+                </div>
+                <div className="field field--full">
+                  <label htmlFor="phone">Phone (optional)</label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={draft.phone}
+                    onChange={(event) => updateDraft({ phone: event.target.value })}
+                    autoComplete="tel"
+                  />
+                  {fieldErrors.phone ? <p className="field-error">{fieldErrors.phone}</p> : null}
+                </div>
+              </div>
+            )}
+            <div className="field field--full">
+              <label htmlFor="message">Your Message (optional)</label>
+              <textarea
+                id="message"
+                rows={4}
+                value={draft.message}
+                onChange={(event) => updateDraft({ message: event.target.value })}
+                placeholder="Add flight details, stops, luggage, or anything else we should know."
+              />
+              {fieldErrors.message ? <p className="field-error">{fieldErrors.message}</p> : null}
+            </div>
+            <p className="form-consent">
+              By sending, you agree that Kai Yue Travel may use these details to respond to this
+              request. This is not a confirmed booking.
+            </p>
           </div>
-        </div>
-      ) : null}
-
-      {step === 3 ? (
-        <div className="booking-fields">
-          <div className="field">
-            <label htmlFor="contactName">Name</label>
-            <input
-              id="contactName"
-              value={draft.contactName}
-              onChange={(event) => updateDraft({ contactName: event.target.value })}
-              autoComplete="name"
-            />
-            {fieldErrors.contactName ? (
-              <p className="field-error">{fieldErrors.contactName}</p>
-            ) : null}
-          </div>
-          <div className="field">
-            <label htmlFor="phone">Phone</label>
-            <input
-              id="phone"
-              value={draft.phone}
-              onChange={(event) => updateDraft({ phone: event.target.value })}
-              autoComplete="tel"
-            />
-            {fieldErrors.phone ? <p className="field-error">{fieldErrors.phone}</p> : null}
-          </div>
-          <div className="field">
-            <label htmlFor="email">Email (optional)</label>
-            <input
-              id="email"
-              type="email"
-              value={draft.email}
-              onChange={(event) => updateDraft({ email: event.target.value })}
-              autoComplete="email"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="company">Company (optional)</label>
-            <input
-              id="company"
-              value={draft.company}
-              onChange={(event) => updateDraft({ company: event.target.value })}
-            />
-          </div>
-          <label className="field field--full field--check">
-            <input
-              type="checkbox"
-              checked={draft.privacyAccepted}
-              onChange={(event) => updateDraft({ privacyAccepted: event.target.checked })}
-            />
-            <span>
-              I understand this is a request, not a confirmed booking, and agree to be contacted
-              about it.
-            </span>
-            {fieldErrors.privacyAccepted ? (
-              <p className="field-error">{fieldErrors.privacyAccepted}</p>
-            ) : null}
-          </label>
           <div className="hp" aria-hidden="true">
             <label htmlFor="website">Website</label>
             <input id="website" name="website" tabIndex={-1} autoComplete="off" />
@@ -476,11 +506,7 @@ export function BookingForm({
 
       {step > 1 ? (
         <div className="booking-actions">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => setStep((step - 1) as 1 | 2 | 3)}
-          >
+          <button type="button" className="btn btn--secondary" onClick={() => setStep(1)}>
             Back
           </button>
           <button
@@ -490,9 +516,9 @@ export function BookingForm({
           >
             {state.status === "open.submitting"
               ? "Sending request…"
-              : step < 3
-                ? "Continue →"
-                : "Send request →"}
+              : draft.communicationChannel === "whatsapp"
+                ? "Continue in WhatsApp →"
+                : "Send email request →"}
           </button>
         </div>
       ) : null}

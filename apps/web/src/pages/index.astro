@@ -1,13 +1,15 @@
 ---
 import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
+import FeatureIcon from "../components/content/FeatureIcon.astro";
 import HeroBackdrop from "../components/content/HeroBackdrop.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { heroTrustLine, site } from "../lib/site.ts";
+import { faqs, serviceGroups, site } from "../lib/site.ts";
 ---
 
 <BaseLayout
   title="Private chauffeur in Macau"
   description={site.description}
+  bookingEnabled={true}
   showMobileBook={false}
 >
   <section class="hero hero--home">
@@ -22,7 +24,144 @@ import { heroTrustLine, site } from "../lib/site.ts";
       <div class="hero-booking">
         <BookingEmbedded client:load sourcePage="/" />
       </div>
-      <p class="hero-trust">{heroTrustLine}</p>
+    </div>
+  </section>
+  <section class="section editorial-section" aria-labelledby="home-intro">
+    <div class="wrap editorial-split">
+      <div class="editorial-photo">
+        <img
+          src="/images/hero-vehicle.jpg"
+          width="860"
+          height="400"
+          loading="lazy"
+          alt="Kai Yue private vehicle parked in Macau"
+        />
+        <span class="editorial-photo__label">Private journeys · Macau</span>
+      </div>
+      <div class="editorial-copy">
+        <p class="kicker">Travel on your terms</p>
+        <h2 id="home-intro">A chauffeur journey shaped around your plans</h2>
+        <p class="lede">
+          A direct ride or time to move at your own pace. Share the details and our team will review
+          your request before confirming arrangements.
+        </p>
+        <div class="feature-lines">
+          <div>
+            <span class="icon-frame"><FeatureIcon name="route" /></span><p>
+              <strong>Point to point</strong><br />One pickup and one destination, with an optional
+              return.
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="clock" /></span><p>
+              <strong>By the hour</strong><br />A time block for several stops or a flexible
+              itinerary.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--muted" aria-labelledby="home-services">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">Explore our services</p><h2 id="home-services">
+            The right format for every journey
+          </h2>
+        </div><p>
+          Start with the kind of journey you need. Each request is reviewed and quoted individually.
+        </p>
+      </div>
+      <div class="journey-grid">
+        {
+          serviceGroups.map((group, index) => (
+            <article class="journey-card">
+              <span class="icon-frame">
+                <FeatureIcon name={index === 0 ? "route" : "clock"} />
+              </span>
+              <span class="journey-card__number">0{index + 1}</span>
+              <h3>{group.label}</h3>
+              <p>
+                {index === 0
+                  ? "A planned ride between places, from arrivals to local transfers."
+                  : "More time and flexibility for outings, occasions, and changing plans."}
+              </p>
+              <ul>
+                {group.children.map((item) => (
+                  <li>
+                    <a href={item.href}>
+                      {item.label}
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+  <section class="section section--dark" aria-labelledby="home-process">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">Simple, human-led</p><h2 id="home-process">
+            From request to confirmed journey
+          </h2>
+        </div><p>
+          There is no instant vehicle assignment on this website. The team confirms the details with
+          you.
+        </p>
+      </div>
+      <div class="process-grid">
+        <article>
+          <span class="icon-frame"><FeatureIcon name="calendar" /></span><span
+            class="process-grid__number">01</span
+          ><h3>Plan your journey</h3><p>
+            Choose pickup, destination or duration, date, and passengers.
+          </p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="message" /></span><span
+            class="process-grid__number">02</span
+          ><h3>Send the request</h3><p>
+            Continue by WhatsApp or Email with any details the team should know.
+          </p>
+        </article>
+        <article>
+          <span class="icon-frame"><FeatureIcon name="check" /></span><span
+            class="process-grid__number">03</span
+          ><h3>Hear from our team</h3><p>
+            Availability and the quote are reviewed before a booking is confirmed.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+  <section class="section" aria-labelledby="home-faq">
+    <div class="wrap faq-split">
+      <div class="editorial-copy">
+        <p class="kicker">Good to know</p><h2 id="home-faq">A few answers before you travel</h2><p
+          class="lede"
+        >
+          Understand how requests, quotes, and confirmation work.
+        </p><a class="text-link" href="/faq">View all questions <span aria-hidden="true">↗</span></a
+        >
+      </div>
+      <div class="faq-list">
+        {
+          faqs.slice(0, 4).map((item) => (
+            <details class="faq-item">
+              <>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </>
+            </details>
+          ))
+        }
+      </div>
     </div>
   </section>
 </BaseLayout>

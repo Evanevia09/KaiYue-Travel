@@ -1,4 +1,9 @@
-import { createIdempotencyKey, type BookingCreateInput, type ServiceType } from "@kaiyue/contracts";
+import {
+  createIdempotencyKey,
+  type BookingCreateInput,
+  type CommunicationChannel,
+  type ServiceType,
+} from "@kaiyue/contracts";
 
 export type BookingMode = "embedded" | "bottom-sheet" | "page";
 
@@ -22,11 +27,13 @@ export type BookingDraft = {
   durationHours: number;
   luggageCount: string;
   vehiclePreference: BookingCreateInput["vehiclePreference"] | "";
+  communicationChannel: CommunicationChannel;
   contactName: string;
   phone: string;
   email: string;
   company: string;
   notes: string;
+  message: string;
   privacyAccepted: boolean;
   locale: string;
 };
@@ -41,14 +48,14 @@ export type BookingEntryContext = {
 export type BookingState = {
   status: BookingUiStatus;
   open: boolean;
-  step: 1 | 2 | 3;
+  step: 1 | 2;
   draft: BookingDraft;
   context: BookingEntryContext;
   idempotencyKey: string;
   fieldErrors: Record<string, string>;
   formError?: string;
   requestId?: string;
-  result?: { reference: string; receivedAt: string; nextStep: string };
+  result?: { reference: string; receivedAt: string; nextStep: string; whatsappUrl?: string };
 };
 
 const STORAGE_KEY = "kaiyue.booking.journey";
@@ -63,11 +70,13 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
   durationHours: 2,
   luggageCount: "",
   vehiclePreference: "",
+  communicationChannel: "whatsapp",
   contactName: "",
   phone: "",
   email: "",
   company: "",
   notes: "",
+  message: "",
   privacyAccepted: false,
   locale: "en",
 });
@@ -154,7 +163,8 @@ export function isDirty(draft: BookingDraft): boolean {
     draft.destination !== empty.destination ||
     draft.pickupAt !== empty.pickupAt ||
     draft.contactName !== empty.contactName ||
-    draft.phone !== empty.phone
+    draft.phone !== empty.phone ||
+    draft.message !== empty.message
   );
 }
 

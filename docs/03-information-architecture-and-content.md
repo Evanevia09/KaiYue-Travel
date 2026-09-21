@@ -5,15 +5,13 @@
 | Route | Purpose | Primary action |
 |---|---|---|
 | `/` | Explain offer, establish trust, start booking | Book now |
-| `/services/[slug]` | SEO landing page for each chauffeur service | Book this service |
-| `/pricing` | Explain how quotes are prepared; no published fare card | Request a quote |
-| `/fleet` | Show approved vehicles/capacity | Book a vehicle/service |
+| `/services/[slug]` | Chauffeur service content with the shared home booking flow; Corporate Service uses B2B inquiry | Request this service |
 | `/corporate` | Corporate solution inquiry | Corporate inquiry |
 | `/business/travel-agency` | Travel agency partner inquiry | Agency inquiry |
 | `/business/hotels-resorts` | Hotel and resort guest-transport inquiry | Property inquiry |
-| `/about` | Business story, standards, service area | Book or contact |
-| `/faq` | Resolve conversion objections | Book now |
-| `/login` | Sign-in entry; customer accounts not enabled in this release | Request a chauffeur |
+| `/about` | Business story and general inquiry | Contact us |
+| `/faq` | Answer common questions without a hero or form | Contact link where relevant |
+| `/login` | Account availability notice; customer accounts not enabled | Return home or contact |
 | `/booking/confirmation` | Confirm receipt and reference | Contact support / return home |
 | `/privacy`, `/terms` | Approved legal information | — |
 | `/admin/*` | Protected staff area | Operational actions |
@@ -24,11 +22,13 @@ Dedicated service routes exist for each published chauffeur request type.
 
 ## Navigation
 
-- Primary header: Airport ride, City rides dropdown, Hourly, Help, Business dropdown (Travel agency, Corporate solution, Hotels & resorts). Logo wordmark is Kai Yue.
-- Footer lists every service plus Pricing, then company and contact links.
-- Persistent action: globe + English language control and a Sign in chip in the header. Booking is not repeated as a hero button. The homepage embeds the form; other pages use in-content CTAs and a mobile sticky control except on the homepage.
+- Primary header: Point To Point, By The Hour, and Business dropdowns (Travel agency, Corporate solution, Hotels & resorts). Logo wordmark is Kai Yue.
+- Footer groups the service links, Company (About Us, Contact, FAQ, Privacy, Terms), and B2B Solution (Hotels & Resorts, Travel Agency, Corporate Solutions), with the business phone and address beside the brand.
+- Desktop header keeps the translucent globe language control and WhatsApp General Enquiry action. On mobile, the language control replaces that action; Contact Us appears in the mobile menu. English is currently the only published language. Português and 繁體中文 are listed as coming soon, without links to untranslated English routes. The homepage and consumer service pages embed Journey and open Communication in one shared modal. Only booking-enabled pages offer a mobile sticky booking control.
 - Corporate is visible but does not compete visually with the consumer booking action.
-- On mobile, use a compact menu and a separate persistent booking trigger except on the homepage.
+- On mobile, use a compact menu; never show booking triggers or mount the booking modal on inquiry, FAQ, legal, or account pages.
+
+The former `/booking`, `/fleet`, and `/pricing` pages are retired. Do not link to them; unknown routes use the site's 404 page.
 
 ## Content model
 
@@ -68,20 +68,23 @@ Vehicle capacity and series/model claims must be verified before publication.
 
 ### Home
 
-1. Hero: outcome-led headline, brief support, compact booking bar, Macau-honest reassurance.
-2. Key services.
-3. Fleet/comfort proof.
-4. How booking works: request → review → confirmation.
-5. Verified reasons to choose Kai Yue Travel.
-6. Corporate teaser.
-7. FAQ subset.
-8. Final booking CTA.
+1. Hero: outcome-led headline, brief support, and compact Journey bar, without a redundant line below the widget.
+2. Image-led introduction to the two journey formats.
+3. Separate Point To Point and By The Hour service groups.
+4. How requests work: request → review → confirmation.
+5. FAQ preview with a link to all questions.
+
+Consumer service pages use the same Journey → Communication flow and modal as home, with service-specific copy and at most two supporting sections. Point-to-point and hourly pages have different section headings, content, and visual order. The service type may be preselected, but the booking interaction is shared. Corporate Service is a B2B inquiry page instead.
 
 ### Corporate
 
 B2B pages follow the owner-approved Kai Yue Group portfolio: alliance (Kai Yue Travel Group Limited + Mingmen Tourism + Mingmen Technology), dual-plate Greater Bay Area coverage, 200+ Alphard 40 Series, 7×24 dispatch, Venetian wording, programme commitments, and group-portfolio phones. The website form remains an inquiry; a person follows up. Do not imply that this site itself provides live GPS, instant assignment, or online payment.
 
 Travel agency and hotels & resorts pages reuse the same source, tailored to partner and property coordinators.
+
+Corporate, Travel Agency, Hotels & Resorts, Contact, and About use a two-column desktop hero with copy and one inquiry form (stacked on mobile), followed by no more than two detail sections. These pages do not mount the booking widget. FAQ, Privacy, and Terms have plain content without a photographic hero or any form; legal copy remains draft pending review.
+
+The inquiry card contains only the heading, paired short fields (name/company and phone/email when space permits), inquiry type, message, acknowledgement, and submit action. Business contact numbers and operating explanations belong in page content if useful, not in the form card.
 
 ### Contact
 

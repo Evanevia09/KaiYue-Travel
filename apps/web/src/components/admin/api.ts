@@ -24,10 +24,12 @@ export type AdminBooking = {
   passengerCount: number;
   luggageCount: number | null;
   vehiclePreference: string | null;
-  contactName: string;
-  phone: string;
+  communicationChannel: string;
+  contactName: string | null;
+  phone: string | null;
   email: string | null;
   company: string | null;
+  message: string;
   notes: string | null;
   notificationState: string;
   createdAt: string;

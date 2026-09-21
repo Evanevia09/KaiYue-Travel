@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
@@ -70,7 +70,11 @@ class MemoryD1 {
 
 export function createTestEnv(overrides: Partial<AppEnv> = {}): AppEnv {
   const sqlite = new DatabaseSync(":memory:");
-  sqlite.exec(readFileSync(resolve(root, "migrations/0001_init.sql"), "utf8"));
+  for (const migration of readdirSync(resolve(root, "migrations"))
+    .filter((name) => name.endsWith(".sql"))
+    .sort()) {
+    sqlite.exec(readFileSync(resolve(root, "migrations", migration), "utf8"));
+  }
   return {
     DB: new MemoryD1(sqlite) as unknown as D1Database,
     ENVIRONMENT: "development",

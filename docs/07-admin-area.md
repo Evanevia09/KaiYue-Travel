@@ -16,7 +16,8 @@ The admin area is a small operational workspace, not a CRM. Cloudflare Access is
 Show only actionable summary data:
 
 - new bookings today;
-- upcoming confirmed bookings;
+- upcoming assigned bookings;
+- completed and cancelled bookings this month;
 - new inquiries;
 - recent submissions/status changes;
 - notification failures requiring attention.
@@ -29,6 +30,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Filters: date range, status, service type; text lookup by exact/limited reference or approved customer fields.
 - Default sort: nearest relevant pickup first, with overdue/new items visibly flagged.
 - Pagination is server-side. Empty, loading, partial-error, and no-result states are distinct.
+- Staff may add a booking enquiry manually from the bookings view. It uses the same server validation and idempotent persistence path as public enquiries.
 
 ## Calendar
 
@@ -47,7 +49,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Internal notes and minimal audit history.
 - Notification state and safe retry if implemented.
 
-Do not imply that status changes contact the customer unless a corresponding email workflow is explicitly implemented and shown before confirmation.
+Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` available from active stages. Do not imply that status changes contact the customer unless a corresponding email workflow is explicitly implemented and shown before confirmation.
 
 ## Contacts
 

@@ -26,7 +26,11 @@ const links = [
   <body>
     <div class="admin-shell">
       <aside class="admin-nav">
-        <p><strong>Kai Yue Admin</strong></p>
+        <a class="admin-brand" href="/admin"
+          ><span class="logo-mark" aria-hidden="true"></span><span
+            ><strong>Kai Yue</strong><small>Operations</small></span
+          ></a
+        >
         <nav aria-label="Admin">
           {
             links.map((link) => (
@@ -36,10 +40,15 @@ const links = [
             ))
           }
         </nav>
-        <p class="draft-note">Protected by Cloudflare Access in deployed environments.</p>
+        <p class="draft-note admin-nav__secure">Protected operations area</p>
       </aside>
       <div class="admin-main">
-        <h1>{title}</h1>
+        <header class="admin-topbar">
+          <div><p class="admin-eyebrow">Operations workspace</p><h1>{title}</h1></div><a
+            class="btn btn--secondary"
+            href="/">View website</a
+          >
+        </header>
         <slot />
       </div>
     </div>

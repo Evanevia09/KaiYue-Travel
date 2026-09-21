@@ -1,8 +1,15 @@
 ---
 import JsonLd from "../components/content/JsonLd.astro";
+import BusinessInquiry from "../components/content/BusinessInquiry.astro";
+import FeatureIcon from "../components/content/FeatureIcon.astro";
 import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { business, organizationJsonLd } from "../lib/business.ts";
+import {
+  allianceMembers,
+  business,
+  corporateScenarios,
+  organizationJsonLd,
+} from "../lib/business.ts";
 import { site } from "../lib/site.ts";
 
 const path = "/corporate";
@@ -20,6 +27,68 @@ const pageUrl = new URL(path, origin).toString();
     title={business.headline}
     lede={`${site.groupLegalName} (${site.groupLegalNameZh}) is built with Mingmen Tourism and Mingmen Technology: compliant capacity, professional dispatch, and an intelligent platform for Macau–Mainland luxury-car programmes.`}
   >
-    <a slot="actions" class="btn btn--primary" href="/contact#inquiry">Request a programme</a>
+    <BusinessInquiry slot="inquiry" sourcePage={path} />
   </PageHero>
+  <section class="section" aria-labelledby="corporate-programmes">
+    <div class="wrap editorial-split">
+      <div class="editorial-photo">
+        <img
+          src="/images/hero-vehicle.jpg"
+          width="860"
+          height="400"
+          loading="lazy"
+          alt="Kai Yue group private vehicle"
+        /><span class="editorial-photo__label">Corporate mobility</span>
+      </div>
+      <div class="editorial-copy">
+        <p class="kicker">Corporate mobility</p><h2 id="corporate-programmes">
+          Programmes for business travel
+        </h2>
+        <div class="feature-lines">
+          {
+            corporateScenarios.slice(0, 3).map((scenario, index) => (
+              <div>
+                <>
+                  <span class="icon-frame">
+                    <FeatureIcon name={index === 0 ? "car" : index === 1 ? "route" : "calendar"} />
+                  </span>
+                  <p>
+                    <br />
+                    {scenario.audience}
+                  </p>
+                </>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--muted" aria-labelledby="corporate-alliance">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">The group approach</p><h2 id="corporate-alliance">
+            Travel, operations, and technology
+          </h2>
+        </div><p>Programme scope is discussed with the team before any arrangement is agreed.</p>
+      </div>
+      <div class="process-grid process-grid--light">
+        {
+          allianceMembers.map((member, index) => (
+            <article>
+              <>
+                <span class="icon-frame">
+                  <FeatureIcon name={index === 0 ? "building" : index === 1 ? "car" : "spark"} />
+                </span>
+                <span class="process-grid__number">0{index + 1}</span>
+              </>
+              <h3>{member.name}</h3>
+              <p>{member.role}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
 </BaseLayout>

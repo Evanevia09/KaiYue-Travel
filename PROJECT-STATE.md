@@ -1,13 +1,33 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-09-18  
-**Phase:** 1–3 scaffold — foundation, public site, booking/API, and lightweight admin  
-**Overall status:** Release 1 application scaffold implemented in-repo; not deployed. Legal names and B2B copy now follow the Kai Yue Group portfolio; B2C booking copy stays Macau-only and quote-after-review.  
-**Current objective:** Continue Release 1 against the Transfeero-inspired public design. Keep B2C claims conservative; keep B2B pages aligned with the group portfolio.
+**Last updated:** 2026-09-21
+**Phase:** 2–3 — booking/API completion and lightweight admin workflow
+**Overall status:** Two-channel booking enquiry workflow and operator UI implemented in-repo; not deployed or connected to real Cloudflare/Resend services.
+**Current objective:** Finish local responsive/interaction validation of the refreshed public pages and booking/admin flows, then provision non-production D1, Resend, and Access for an end-to-end environment.
+
+Language/menu refinement (2026-09-21): the header language control and its menu now use subtler rounded corners and translucent backgrounds. English remains the only functioning locale. Português and 繁體中文 appear as clearly unavailable, coming-soon options rather than linking to English content. The redundant “Macau · Quote after review · Human confirmation” line was removed beneath Home and consumer-service hero booking forms. Translating and publishing the two additional locales remains open.
+
+Public content refinement (2026-09-21): inquiry cards on Contact, About, and B2B pages pair short fields and omit the long business-phone/hours/operations preamble. Home now has an image-led introduction, distinct Point To Point and By The Hour service cards, a request process, and a FAQ preview. Consumer service detail sections vary by point-to-point versus hourly; B2B, About, and Contact supporting sections use the existing local photographs, small icons, and more structured layouts. Image usage rights still require verification.
+
+Navigation and WhatsApp refinement (2026-09-21): the WhatsApp communication tab now offers an optional validated number, persisted through the existing phone field and included in the prepared message when entered. Mobile header shows the globe language dropdown instead of General Enquiry; the mobile menu includes Contact Us. `/booking`, `/fleet`, and `/pricing` are retired, and the footer is grouped as Services, Company, and B2B Solution with phone/address beside the brand.
+
+Homepage booking refinement (2026-09-21): Journey stays embedded in the hero, but Communication now opens the shared booking modal on desktop as well as mobile. The hero form unmounts while a modal is open, preventing duplicate booking forms. Closing a step-2 modal leaves a Continue request action in the hero to resume the draft. Communication-tab helper descriptions are smaller (0.78rem).
+
+Mobile booking refinement (2026-09-21): input/select/textarea text is 16px at narrow widths; booking and date/time sheets have icon-only labelled close controls. Pickup and return use separate single-month mobile calendar views with a separate 24-hour time view. The user supplied three Transfeero mobile screenshots, and interactive browser inspection later confirmed its separate Pickup Date → Pickup Time sheets, one-month calendar, Back/Close controls, and date-sheet Save action. Kai Yue keeps the previously requested 24-hour-only time and explicit Confirm action.
+
+Step-two UI refinement (2026-09-21): the sheet header subtitle, duplicate Communication kicker, and WhatsApp helper sentence are removed. The selected channel is black/white like the primary booking action; action buttons and booking choices use consistent rounded rectangles rather than pills. The Email response-time note and request consent copy remain.
+
+The step-2 sheet now omits the black “Request a chauffeur” title bar, while retaining a screen-reader-only “Booking request” dialog title and the close button on white. Step 1 retains its standard title bar.
+
+Step-2 progress is placed inside the white sheet header on the same row as the close icon, and its duplicate in the form is suppressed only for the sheet. The WhatsApp helper description is restored alongside the existing Email description.
+
+Communication labels now read “Your Name,” “Your Email,” and “Your Message (optional).” Message is optional for both channels; Email still requires name and email. Blank messages persist as empty strings and are omitted from formatted notifications/deep links.
+
+Public page-layout refinement (2026-09-21): home and consumer chauffeur service pages now share the embedded Journey → one Communication modal flow; their page content and service preset differ. Corporate Service, Corporate, Travel Agency, Hotels & Resorts, Contact, and About have one inquiry form in a two-column desktop hero, with at most two detail sections below. FAQ, Privacy, Terms, and the account notice have no photographic hero or form. The booking sheet and mobile booking trigger mount only on booking-enabled pages. Legal text is still draft pending review.
 
 ## Quick handoff
 
-Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark, centered hero copy, and a compact Point to point / Hourly booking bar. Desktop home embeds that widget on a 100vh full-bleed hero; other public pages use the same dark hero treatment with title and lede only (no hero Book now button). Other pages open the same form as a bottom sheet; `/booking` is the no-JS-enhancement fallback. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
+Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark and a compact Point to point / Hourly booking bar. Home and consumer service pages embed Journey and open Communication in one modal; B2B and general inquiry pages use a two-column hero with an inquiry form; FAQ and legal pages have no hero or form. The standalone `/booking` route has been removed. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
 No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy is conservative (Macau, quote-after-review). B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
@@ -16,7 +36,7 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
 - B2C booking conversion is the primary website goal.
 - Corporate/B2B content and inquiries are secondary but included.
 - Desktop home hero includes the booking widget.
-- Mobile reuses the same booking form in an accessible bottom sheet/modal callable from anywhere.
+- Mobile reuses the same booking form in an accessible bottom sheet/modal on booking-enabled consumer pages.
 - Astro + React islands is the frontend approach.
 - Cloudflare Workers + D1 is the backend/data approach. Pages is not used.
 - Resend is intended for transactional notifications; missing keys stub delivery and still persist the request.
@@ -36,8 +56,8 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
   - `migrations/0001_init.sql` — bookings, contacts, notes, audit, idempotency, rate limits
   - Vitest unit/integration tests and GitHub Actions CI
 - Local/integration tests cover booking create + idempotency, contact validation, admin allow/deny, and audited status transitions.
-- Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, pill nav, compact booking bar, dark footer). The journey bar uses a custom dual-month date/time picker instead of the native datetime control. B2C copy remains Macau-only and quote-after-review. B2B pages (`/corporate`, `/business/travel-agency`, `/business/hotels-resorts`) follow the group portfolio. Public heroes are 100vh full-width backgrounds using `apps/web/public/images/hero-home.jpg` with a dark cinematic overlay. Header booking is not duplicated; inner-page heroes no longer include Book now. Homepage embeds the form; other pages book from in-content CTAs or the mobile sticky control.
-- Each chauffeur service has an SEO landing page under `/services/[slug]`. Header Business is a dropdown to Travel agency, Corporate solution, and Hotels & resorts. `/services` redirects to airport transfer. Homepage service cards cover all six services. `/pricing` is a quote table without published fares.
+- Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, compact booking bar, dark footer). The journey bar uses a custom calendar/time picker instead of the native datetime control. B2C copy remains Macau-only and quote-after-review. B2B pages (`/corporate`, `/business/travel-agency`, `/business/hotels-resorts`) follow the group portfolio. Home and consumer service pages embed one shared booking flow; inquiry pages show one hero form; FAQ/legal/account pages show neither booking nor inquiry forms.
+- Each chauffeur service has an SEO landing page under `/services/[slug]`. Header Business is a dropdown to Travel agency, Corporate solution, and Hotels & resorts. `/services` redirects to airport transfer. Homepage service cards cover all six services. Standalone `/pricing`, `/fleet`, and `/booking` pages are retired.
 - GitHub Actions `check` job is pinned to the `package.json` `packageManager` version only.
 - Header navigation and motion (2026-09-18): `Help` is removed from the primary menu — `/faq` still exists and stays linked in the footer Company column. Every primary item is now a dropdown (`Point To Point`, `By The Hour`, `Business`, plus the added `City Tours` page). On mobile the same items are collapsed-by-default `<details>` submenus with a rotating chevron, animated reveal, and a panel that drops in under the header. `apps/web/src/scripts/header-menus.ts` owns all header menu behaviour: one menu open at a time (opening a dropdown or the language switch collapses whichever was open, and expanding a mobile group collapses its siblings without closing the panel), an outside click or tap closes the open menu, Escape closes it and returns focus to its summary, following a link closes it, tabbing out of the header abandons a desktop dropdown, and the mobile panel always reopens collapsed. Motion polish is site-wide: dropdown and submenu reveals, hamburger-to-close morph, wizard step entrances (`.booking-bar` / `.booking-fields`), mobile sheet entrance, and hover feedback on buttons, chips, nav items, footer links, cards and form fields. All of it is disabled under `prefers-reduced-motion` and hover effects are gated behind `(hover: hover) and (pointer: fine)`.
 - Motion/behaviour was verified in headless Chrome against the local dev server, not by inspection: submenus closed on load, expand on tap, opening a second dropdown or the language switch collapses the first, an outside click closes, Escape closes and refocuses the summary, following a link closes, tab-out closes, the desktop dropdown animates with the chevron flipping, the wizard's step 2 mounts with its entrance animation, the field focus ring resolves to `border #111` + a 4px ring, and the hover lift measures as `translateY(-1px)` / `translateX(2px)`. `pnpm typecheck`, `pnpm test` (29 tests) and `pnpm build` pass.
@@ -63,8 +83,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Whether customer acknowledgement email is required in addition to staff alerts.
 - Production promotion/approval model and data retention/recovery policy.
 - Error-monitoring and consent-compliant analytics choices.
-- Booking wizard gating: `BookingForm` advances on step 1 → 2 → 3 in `onSubmit` without validating the current step, so an incomplete journey still reaches the Details step; per-step validation (or an explicit "review before continuing") is undecided.
-- Hero wizard steps 2–3 inherit the hero's centered `text-align`, so `.field` labels render centered while the fields stay left-aligned. Cosmetic; decide whether the hero variant should reset text alignment inside the form.
+- Booking journey validation checks pickup, destination where applicable, and pickup date/time before advancing; the shared schema still validates the full request before submission.
 
 ## Assumptions used by this scaffold
 
@@ -112,6 +131,26 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-09-21 — Language menu styling and hero booking cleanup
+
+- Changed: language control/menu corners and opacity; added visible coming-soon Portuguese and Traditional Chinese entries. They are intentionally not selectable because the website has no translated routes or content yet. Removed the shared hero booking status line from Home and service pages.
+- Open: full translation, locale-aware routing and metadata, and language-switch behavior require a separate content/localization pass.
+- Verified locally: mobile browser showed the translucent, softly rounded control and dropdown; the two upcoming languages were visible but had no misleading links. Escape closed the menu. Home accessibility/DOM no longer contained the hero status line. `pnpm typecheck` clean (65 files), `pnpm test` 35/35, `pnpm build` successful, and `git diff --check` passed. No locale switching or translated pages exist yet.
+
+### 2026-09-21 — Compact inquiry forms and editorial public sections
+
+- Changed: the shared Contact/About/B2B inquiry card now places name with company and phone with email in paired rows when space permits. Removed the B2B phone list, hours, and long operations explanation from the form card, keeping server-validated fields and the acknowledgement. The Contact page carries useful contact context below the hero rather than inside the form.
+- Changed: Home gained an image-led introduction, distinct journey cards, a three-step human-reviewed request sequence, and an FAQ preview. Consumer service sections now distinguish point-to-point from hourly content and layout. Corporate, agency, hotel, About, and Contact sections use the existing local photography, inline decorative icons, and more deliberate editorial structure.
+- Verified locally: typecheck clean (65 Astro/TS files), 35/35 tests pass, production build succeeds, and `git diff --check` passes. Browser checks showed paired contact fields at desktop and 390px, one Corporate inquiry form with no duplicate booking form or phone list in the card, and no horizontal overflow at 390px. Empty contact submission displayed friendly inline validation without sending a request. Point-to-point and hourly routes rendered distinct section headings with all local images loaded and one booking form each. No real contact submission, notification, or deployed visual test was performed.
+- Open: final image usage rights, content approval, real D1/Resend/Access configuration, and deployed responsive/accessibility validation.
+
+### 2026-09-21 — Shared consumer booking flow and inquiry-page layouts
+
+- Changed: home and consumer point-to-point/hourly service routes embed the same Journey form and use one Communication modal; booking infrastructure is mounted only on those routes. Corporate Service, the three B2B routes, Contact, and About have a single inquiry form in a two-column desktop hero. FAQ, Privacy, Terms, and the account notice have plain content without a hero or form. Supporting page details are limited to two sections below the hero.
+- Source: existing business and service content in `BUSINESS_INFORMATION.md` and the site's owner-directed B2B portfolio copy. No live availability, pricing, or new operational promises were introduced.
+- Verified locally: one booking form on a consumer service page; opening Communication unmounts its hero form, leaving one sheet form. Hourly service preset works. Corporate renders one inquiry form, no booking form, and stacks without horizontal overflow at 390px. FAQ renders no form or hero. Route responses, typecheck, tests, and build passed. No real email, WhatsApp, D1, or production submission was exercised.
+- Still open: privacy/terms need legal approval; final content and deployment verification remain outstanding.
 
 ### 2026-09-19 — Footer services column grouped like the header; favicon fixed
 
@@ -296,6 +335,69 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Not verified or follow-up: mobile header; roundtrip 68rem width with Add return.
 
 ## Update template
+
+### 2026-09-21 — WhatsApp number, mobile navigation, and footer segmentation
+
+- Changed: added the optional WhatsApp number field using the existing validated/stored phone path, and include it in the prepared WhatsApp message only when supplied. Mobile header now shows the globe language dropdown instead of General Enquiry; its menu links to Contact Us. Removed the standalone `/booking`, `/fleet`, and `/pricing` pages and their public links. Footer groups Company and B2B Solution as requested, with business phone/address beside the brand.
+- Decision/evidence: direct user request. The number remains optional because no new required-field rule was specified; Email's existing optional phone remains unchanged. The API/data schema already supports the phone field, so no migration is needed.
+- Verified: targeted formatting, strict typecheck (63 files, no diagnostics), 35/35 tests, production build, and `git diff --check` passed. Local `/booking`, `/fleet`, and `/pricing` all returned 404, with no remaining exact public links. Browser at mobile width showed the globe/EN dropdown, Contact Us in the mobile menu, the requested footer groups, and a 16px WhatsApp number input in the sole step-2 modal. Desktop General Enquiry remains visible. The integration test verified number persistence and inclusion/omission in the WhatsApp link.
+- Not verified or follow-up: deployed behavior, physical-device accessibility, real WhatsApp ownership, and real Resend delivery. The removed `/booking` fallback leaves a progressive-enhancement gap to address before launch.
+
+### 2026-09-21 — Single communication modal at all widths
+
+- Changed: the home hero now renders Journey only; Get a quote opens the shared step-2 modal on desktop and mobile. The hero form unmounts while that modal is open, and a Continue request button reopens it if closed with the draft still on step 2. Both communication helper descriptions use smaller 0.78rem text.
+- Decision/evidence: direct user requests to remove the duplicate hero step-2 widget and use the same modal on desktop.
+- Verified: mobile 390px and desktop 1280px browser checks found one step-2 form in the modal and none behind it; the desktop modal was centered at 640px. Both channel descriptions computed to 12.48px. Targeted formatting, typecheck, 35 tests, production build, and `git diff --check` passed after the desktop routing change.
+- Not verified or follow-up: physical-device and screen-reader behavior, deployed preview.
+
+### 2026-09-21 — Optional booking message and personal field labels
+
+- Changed: added “Your” to name, email, and message labels; made message optional for both communication channels in shared client/server validation; omitted empty message lines from WhatsApp links and staff email details. Email name/address requirements remain.
+- Decision/evidence: direct user request. The existing booking table already stores an empty message string, so no migration is required.
+- Verified: mobile browser showed “Your Name *”, “Your Email *”, and “Your Message (optional)” in Email, plus the optional message label in WhatsApp. Shared-schema tests accept whitespace/omitted messages while retaining Email contact requirements; integration tests persist blank messages and omit the empty WhatsApp line. `pnpm test` 35/35, `pnpm typecheck` clean, targeted Prettier check, `git diff --check`, and production build passed.
+- Not verified or follow-up: real Resend delivery, deployed preview, physical-device form entry.
+
+### 2026-09-21 — Align progress with step-two close control
+
+- Changed: moved the Journey → Communication progress list to the white step-2 sheet header beside X; the embedded/page form still shows its own progress list. Restored the WhatsApp helper description beneath its selected tab, matching the Email description placement.
+- Decision/evidence: direct user request.
+- Verified: 390px browser inspection showed Journey → Communication aligned with X, no duplicate progress row in the sheet body, and both WhatsApp and Email descriptions beneath their tabs. A 320px browser check found no horizontal overflow. `pnpm test` 32/32, `pnpm typecheck` clean, targeted Prettier check, `git diff --check`, and production build passed.
+- Not verified or follow-up: physical-device and screen-reader testing, deployed preview.
+
+### 2026-09-21 — Remove step-two title bar
+
+- Changed: step 2 uses a white minimal close-control row instead of the black “Request a chauffeur” header; its accessible dialog title is “Booking request.” Step 1 header is unchanged.
+- Decision/evidence: direct user request to remove that header from step 2.
+- Verified: mobile 390px browser screenshot showed a white sheet top, visible X close control, and communication question in place of the black title bar; the accessibility tree identified the dialog as “Booking request.” `pnpm test` 32/32, `pnpm typecheck` clean, targeted Prettier check, `git diff --check`, and production build passed.
+- Not verified or follow-up: physical-device and screen-reader testing, deployed preview.
+
+### 2026-09-21 — Simplified communication step
+
+- Changed: removed the sheet header's secondary tagline, Communication kicker, and WhatsApp helper sentence; tightened communication-field spacing; selected channel is black with white text; standard buttons and booking choices use rounded-rectangle corners.
+- Decision/evidence: direct owner UI request. Interpreted “primary color” as the existing black action color, while retaining gold for restrained brand accents.
+- Verified: mobile browser at 390px showed the simplified WhatsApp and Email layouts, visible selected black channel, and matching 11.2px button radii; a final screenshot after spacing changes confirmed the WhatsApp layout. `pnpm test` 32/32, `pnpm typecheck` clean, targeted Prettier check, `git diff --check`, and production build passed.
+- Not verified or follow-up: physical-device touch/zoom and deployed preview. Consent copy and Email response-time note intentionally remain.
+
+### 2026-09-21 — Mobile booking-sheet and date/time refinement
+
+- Changed: mobile text-entry controls use 16px; booking sheet has a labelled X close button and safe-area padding; mobile pickup and return use distinct one-month calendar sheets, with a standalone 24-hour time view and labelled Back/X controls. Confirm can complete the active mobile leg independently; return dates before pickup are disabled and a same-day return must be later than pickup.
+- Decision/evidence: direct user request and three supplied screenshots; later interactive browser inspection of Transfeero confirmed the one-month separate-leg date sheets and separate time view. Kai Yue deliberately retains its 24-hour-only picker and required explicit time selection.
+- Verified: mobile 390×844 browser pass showed one pickup month, disabled Confirm until an hour was actively selected and saved, Confirm closing the pickup sheet, separate Return Date sheet on Add return, and 16px computed font for visible inputs. The booking sheet rendered its X close control and displayed the keep/discard draft safeguard. `pnpm test` 32/32, `pnpm typecheck` clean, targeted Prettier check, and production build passed after the final layout refinement.
+- Not verified or follow-up: physical iOS zoom behavior, screen-reader and touch-device interaction, and deployed preview.
+
+### 2026-09-21 — Explicit calendar time selection and confirmation
+
+- Changed: newly selected pickup/return dates stay pending without a committed time; the time Save control requires an explicit interaction; time uses a fixed 24-hour hour/minute picker with no 12h or AM/PM mode; a calendar Confirm button closes the picker only after enabled journey legs have complete date/time values; the pickup-day highlight is now translucent charcoal.
+- Decision/evidence: direct user request on 2026-09-21.
+- Verified: `pnpm test` 32/32; `pnpm typecheck` clean. Live desktop browser pass confirmed Select time, disabled Save/Confirm before interaction, enabled Save/Confirm after explicit time selection, Confirm closes the picker, and the softer pickup highlight is visually distinct from return.
+- Not verified or follow-up: physical-device mobile interaction and screen-reader announcement wording.
+
+### 2026-09-21 — Two-channel booking workflow and operator dashboard
+
+- Changed: replaced the header Sign in chip with a WhatsApp General Enquiry action; changed booking to a two-step Journey → Communication flow; added WhatsApp message handoff and Email/Resend fields; persisted both channels before side effects; added migration `0002` for `enquiry`/`assigned`/terminal stages and communication fields; redesigned the admin dashboard with KPIs, recent enquiries, manual booking entry, status changes, and remarks.
+- Decision/evidence: direct user request on 2026-09-21. The configured WhatsApp number currently uses the source-listed B2C number `+853 2833 8882` and still requires owner confirmation that it is WhatsApp-enabled.
+- Verified: `pnpm typecheck` clean; `pnpm test` 32/32; `pnpm build` successful. Migration tests apply both migrations to a fresh in-memory database. Applied migration `0002` to the local Wrangler D1 store. Live browser pass: desktop header action, mobile 390px date picker from the bottom edge, mobile Journey → Communication sheet, WhatsApp/Email tabs and required Email fields, dashboard KPI/recent-enquiry layout, migrated `enquiry` labels, filters, and manual booking/remarks form. No browser console errors. Resend remains safely skipped without a key.
+- Not verified or follow-up: real WhatsApp destination ownership; real Resend domain/sender/recipient and actual email delivery; remote Cloudflare D1/Access; deployment. Repository-wide `pnpm lint` still reports pre-existing formatting drift outside the files changed for this feature.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 

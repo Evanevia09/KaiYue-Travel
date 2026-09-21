@@ -10,7 +10,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 |---|---|
 | `id` | Internal UUID/text primary key |
 | `reference` | Unique public reference; non-sequential |
-| `status` | `new`, `confirmed`, `in_progress`, `completed`, `cancelled` |
+| `status` | `enquiry`, `assigned`, `completed`, `cancelled` |
 | `service_type` | Validated service identifier |
 | `pickup_location` | Required normalized text |
 | `destination` | Required unless service type explicitly permits omission |
@@ -19,11 +19,13 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `passenger_count` | Positive bounded integer |
 | `luggage_count` | Optional bounded integer |
 | `vehicle_preference` | Optional, not a guarantee |
-| `contact_name` | Required |
-| `phone` | Required normalized value plus original display value if needed |
-| `email` | Optional unless business rules require it |
+| `communication_channel` | `whatsapp`, `email`, or `admin` for an authenticated manual entry |
+| `contact_name` | Required for Email; optional for WhatsApp |
+| `phone` | Optional normalized value plus original display value if provided |
+| `email` | Required for Email; omitted for WhatsApp |
 | `company` | Optional |
-| `notes` | Optional, length-limited plain text. Hourly charter duration is stored here as `Duration: N hours.` until a dedicated column exists. |
+| `message` | Optional customer message, length-limited plain text; store an empty string when omitted |
+| `notes` | Optional booking metadata. Hourly charter duration is stored here as `Duration: N hours.` until a dedicated column exists. |
 | `source_page`, `source_trigger` | Attribution without sensitive content |
 | `locale` | Submitted locale |
 | `notification_state` | e.g. `pending`, `sent`, `partial`, `failed` |
@@ -51,10 +53,9 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ## State rules
 
-- New public booking → `new`.
-- `new` → `confirmed` or `cancelled`.
-- `confirmed` → `in_progress` or `cancelled`.
-- `in_progress` → `completed` or, with explicit reason, `cancelled`.
+- New public booking → `enquiry`.
+- `enquiry` → `assigned` or `cancelled`.
+- `assigned` → `completed` or `cancelled`.
 - Reopening a terminal state is excluded from Release 1 or requires a deliberate privileged action and audit event.
 - Every admin status change is atomic and audited.
 
@@ -81,7 +82,9 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ### `POST /api/v1/bookings`
 
-Creates a booking request. Returns `201` with `reference`, `status: "new"`, `receivedAt`, and safe next-step text. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure. Hourly charter requires `durationHours` (2–12); the Worker prepends `Duration: N hours.` to stored notes.
+Creates a booking request. Returns `201` with `reference`, `status: "enquiry"`, `receivedAt`, and safe next-step text. WhatsApp submissions also receive a prefilled `whatsappUrl`; Email submissions trigger the configured Resend staff notification after persistence. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure. Hourly charter requires `durationHours` (2–12); the Worker prepends `Duration: N hours.` to stored notes.
+
+WhatsApp's optional “Your WhatsApp Number” and Email's optional phone share the `phone` payload and stored `phone`/`phone_display` columns. A supplied WhatsApp number appears in the prepared deep-link message; an empty one is omitted.
 
 ### `POST /api/v1/contacts`
 
@@ -97,6 +100,7 @@ Returns non-sensitive form configuration such as approved service types and book
 |---|---|
 | `GET /api/v1/admin/summary` | Counts and upcoming/recent items |
 | `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service |
+| `POST /api/v1/admin/bookings` | Add a manually entered booking enquiry |
 | `GET /api/v1/admin/bookings/:reference` | Booking detail, notes, safe event history |
 | `PATCH /api/v1/admin/bookings/:reference/status` | Validated status transition |
 | `POST /api/v1/admin/bookings/:reference/notes` | Add internal note |
@@ -113,5 +117,3 @@ List endpoints use bounded `limit`, cursor pagination, stable sort, and whitelis
 - Enforce server-side enumerations and booking notice rules.
 - Honeypot, rate limiting/Turnstile if needed, and behavioral controls should avoid blocking legitimate customers.
 - Retention and deletion/anonymization rules must be approved before launch. Backups and logs follow the same privacy boundary.
-
-

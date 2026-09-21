@@ -1,6 +1,4 @@
 ---
-import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
-import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
@@ -10,11 +8,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   noindex
   showMobileBook={false}
 >
-  <PageHero
-    eyebrow="Account"
-    title="Sign in"
-    lede="Customer accounts are not available in this release. You can request a private chauffeur without creating an account."
-  >
-    <BookingLauncher slot="actions" client:load sourcePage="/login" sourceTrigger="login-hero" />
-  </PageHero>
+  <section class="section page-content" aria-labelledby="account-title">
+    <div class="wrap page-content__narrow">
+      <p class="kicker">Account</p>
+      <h1 id="account-title">Sign in is unavailable</h1>
+      <p>
+        Customer accounts are not available in this release. You can request a journey through a
+        chauffeur service page without creating an account.
+      </p>
+      <p><a href="/">Return home</a> · <a href="/contact">Contact us</a></p>
+    </div>
+  </section>
 </BaseLayout>
