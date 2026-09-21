@@ -1,0 +1,99 @@
+---
+import FeatureIcon from "./FeatureIcon.astro";
+import type { ServiceRecord } from "../../lib/site.ts";
+
+type Props = { service: ServiceRecord };
+const { service } = Astro.props;
+const isHourly = service.serviceType === "hourly_charter";
+const isBusiness = service.slug === "corporate";
+---
+
+<section class="section editorial-section" aria-labelledby="service-overview">
+  <div class:list={["wrap", "editorial-split", { "editorial-split--reverse": isHourly }]}>
+    <div class="editorial-photo">
+      <img
+        src="/images/hero-vehicle.jpg"
+        width="860"
+        height="400"
+        loading="lazy"
+        alt="Kai Yue private vehicle in Macau"
+      />
+      <span class="editorial-photo__label"
+        >{isBusiness ? "Business travel" : isHourly ? "Time to move" : "Your journey"}</span
+      >
+    </div>
+    <div class="editorial-copy">
+      <p class="kicker">
+        {isBusiness ? "Corporate service" : isHourly ? "By the hour" : "Point to point"}
+      </p>
+      <h2 id="service-overview">
+        {
+          isBusiness
+            ? "Transport for your programme"
+            : isHourly
+              ? "Space for a changing itinerary"
+              : "A clear route, comfortably arranged"
+        }
+      </h2>
+      <p class="lede">{service.intro}</p>
+      <div class="feature-lines">
+        {
+          service.whoFor.slice(0, 2).map((item, index) => (
+            <div>
+              <>
+                <span class="icon-frame">
+                  <FeatureIcon name={index === 0 ? (isHourly ? "clock" : "route") : "check"} />
+                </span>
+                <p>{item}</p>
+              </>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--muted" aria-labelledby="service-process">
+  <div class="wrap">
+    <div class="section-intro">
+      <div>
+        <p class="kicker">{isHourly ? "Flexible time" : "What happens next"}</p><h2
+          id="service-process"
+        >
+          {
+            isBusiness
+              ? "Begin with your requirements"
+              : isHourly
+                ? "Plan the hours, then the stops"
+                : "From pickup to confirmation"
+          }
+        </h2>
+      </div><p>{service.description}</p>
+    </div>
+    <div class="process-grid process-grid--light">
+      {
+        service.process.map((item, index) => (
+          <article>
+            <>
+              <span class="icon-frame">
+                <FeatureIcon
+                  name={
+                    index === 0 ? (isHourly ? "clock" : "route") : index === 1 ? "message" : "check"
+                  }
+                />
+              </span>
+              <span class="process-grid__number">0{index + 1}</span>
+              <h3>
+                {isHourly
+                  ? ["Choose a time block", "Share your route", "Review together"][index]
+                  : ["Tell us the route", "Add useful details", "Review together"][index]}
+              </h3>
+              <p>{item}</p>
+            </>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

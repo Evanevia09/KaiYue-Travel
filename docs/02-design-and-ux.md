@@ -39,16 +39,19 @@ Final brand values still require owner approval. Current public-site tokens are 
 - Use a consistent 4 px spacing base and restrained corner radius/shadow scale.
 - Meet WCAG 2.2 AA contrast. Color never carries status alone.
 - Gold is reserved for the logo mark and small highlights. Primary actions are black or white, not gold.
+- Standard action buttons and booking-flow choices use consistent softly rounded rectangular corners; the selected communication channel uses the black primary-action color with white text. Calendar day markers remain circular.
 
 ## Page layout
 
-- **Header:** overlay on the hero with no bar background, sitting in front of the photograph and spanning the viewport (logo left, pill nav center, language + Sign in right). Wordmark is **Kai Yue** plus a gold geometric mark. Desktop uses a dark glass pill nav (Airport ride, City rides dropdown, Hourly, Help, Business dropdown). Business links to Travel agency, Corporate solution, and Hotels & resorts. Right actions are a globe language control (English in this release) and a white Sign in chip. Booking is not repeated in the header. Customer account authentication is not implemented; `/login` explains that a booking request does not need an account.
-- **Heroes:** every public page uses a 100vh, full-width background photograph with a dark cinematic overlay. The homepage centers the headline, support line, compact booking bar, and a Macau-honest trust line. Inner pages center the title and lede only; they do not repeat a Book now button in the hero.
-- **Desktop home hero:** full-bleed background; centered copy; Point to point / By the Hour toggle left-aligned above the booking bar. Point to point shows From / To / date / add return / passengers / Get a quote. By the Hour shows Location / pickup date / duration (2–12 hours, default 2) / passengers / Get a quote (no destination, no return). The bar is about 64rem (68rem with return), not full-bleed. The ride-type toggle keeps at least 4px inner padding around the selected chip. Nav and booking-bar type are smaller than body copy.
+- **Header:** overlay on the hero with no bar background, sitting in front of the photograph and spanning the viewport (logo left, pill nav center, language + General Enquiry right). Wordmark is **Kai Yue** plus a gold geometric mark. Desktop has dark glass service/Business navigation, a subtly rounded translucent globe language control, and a WhatsApp General Enquiry action. Mobile replaces that action with the language control and includes Contact Us in the menu. English is the only live locale; Portuguese and Traditional Chinese are visible but unavailable until translated routes exist. Booking is not repeated in the header.
+- **Heroes:** home and consumer service pages use the photographic booking hero and the same embedded Journey component; the service page changes copy and may preset the service type. Corporate Service, B2B, Contact, and About have a two-column desktop hero with copy beside one inquiry form, stacked on mobile. FAQ, Privacy, Terms, and the account notice use plain content without a photographic hero or form.
+- **Desktop home hero:** full-bleed background; centered copy; Point to point / By the Hour toggle left-aligned above the booking bar. Point to point shows From / To / date / add return / passengers / Get a quote. By the Hour shows Location / pickup date / duration (2–12 hours, default 2) / passengers / Get a quote (no destination, no return). The bar is about 64rem (68rem with return), not full-bleed. The ride-type toggle keeps at least 4px inner padding around the selected chip. Nav and booking-bar type are smaller than body copy. Do not show a redundant trust/status line beneath the widget.
 - **Mobile homepage:** stacked copy then the same booking card over the full-bleed hero. Point to point puts **Add return** on its own row under the pickup date. No persistent bottom booking bar on the homepage.
-- **Other mobile pages:** compact header plus persistent bottom booking CTA where it does not obscure content. The CTA opens the reusable bottom sheet.
-- **Content sections:** short introduction, services, process, business teaser, FAQ, and final CTA.
-- **Footer:** dark background, service links, company links, contact details, legal name, and a note that B2C bookings are Macau quote-after-review while B2B pages follow the group portfolio.
+- **Other mobile pages:** a compact header; only booking-enabled consumer service pages may show a persistent bottom booking CTA. Inquiry and informational pages do not mount the booking sheet.
+- **Content sections:** consumer service and inquiry pages use at most two page-specific sections below the hero. Home is the exception: an image-led introduction, separate Point To Point and By The Hour service cards, a request process, and a FAQ preview. FAQ and legal pages use plain content.
+- **Inquiry form:** one compact hero card on Contact, About, and B2B pages. Pair name/company and phone/email where the card has enough width; inquiry type, message, acknowledgement, and submit remain full width. Keep group phones, hours, and operational caveats out of the form card. At very narrow widths the paired fields stack.
+- **Supporting visuals:** use the existing local Macau/vehicle photographs and small inline icons for service and programme explanations; retain a text equivalent for every icon. Image rights remain a launch gate.
+- **Footer:** dark background with service links, Company (About Us, Contact, FAQ, Privacy, Terms), B2B Solution (Hotels & Resorts, Travel Agency, Corporate Solutions), phone/address by the brand, legal name, and a note that B2C bookings are Macau quote-after-review while B2B pages follow the group portfolio.
 
 
 ## Core components
@@ -78,7 +81,7 @@ Final brand values still require owner approval. Current public-site tokens are 
 
 ## Bottom-sheet UX
 
-- Opens from any in-content `Book now` trigger and retains the origin for analytics. Inner-page heroes do not include a duplicate Book now button.
+- Opens from booking-enabled pages only. Home and consumer service pages embed Journey, then open the one shared Communication modal. Do not render a second hero booking form while the modal is open.
 - On open: lock background scroll, set accessible dialog semantics, move focus to the sheet heading/first invalid field, and provide an obvious close button.
 - On close: restore focus to the trigger. If the form is dirty, ask before discarding unless the draft is retained.
 - Use near-full height on small screens with an internal scroll region and sticky action area.

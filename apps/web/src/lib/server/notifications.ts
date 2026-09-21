@@ -10,6 +10,8 @@ export type NotificationInput = {
   reference: string;
   requestId: string;
   summary: string;
+  details?: Array<{ label: string; value: string }>;
+  replyTo?: string;
 };
 
 function escapeHtml(value: string): string {
@@ -51,13 +53,21 @@ export async function sendNotifications(
     input.kind === "booking"
       ? `New booking request ${input.reference}`
       : `New inquiry ${input.reference}`;
-  const html = `<p>${escapeHtml(input.summary)}</p><p>Reference: <strong>${escapeHtml(input.reference)}</strong></p>`;
+  const details = (input.details ?? [])
+    .map(
+      ({ label, value }) =>
+        `<tr><th align="left" style="padding:6px 12px 6px 0">${escapeHtml(label)}</th><td style="padding:6px 0">${escapeHtml(value)}</td></tr>`,
+    )
+    .join("");
+  const html = `<html lang="en"><head><title>${escapeHtml(subject)}</title></head><body><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p>${escapeHtml(input.summary)}</p><table role="presentation">${details}</table><p>Reference: <strong>${escapeHtml(input.reference)}</strong></p></body></html>`;
 
   const { error } = await resend.emails.send(
     {
       from,
       to: [staffTo],
-      ...(env.RESEND_REPLY_TO ? { replyTo: env.RESEND_REPLY_TO } : {}),
+      ...(input.replyTo || env.RESEND_REPLY_TO
+        ? { replyTo: input.replyTo || env.RESEND_REPLY_TO }
+        : {}),
       subject,
       html,
     },

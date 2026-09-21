@@ -35,11 +35,13 @@ export type BookingRow = {
   passenger_count: number;
   luggage_count: number | null;
   vehicle_preference: string | null;
-  contact_name: string;
-  phone: string;
-  phone_display: string;
+  communication_channel: "whatsapp" | "email" | "admin";
+  contact_name: string | null;
+  phone: string | null;
+  phone_display: string | null;
   email: string | null;
   company: string | null;
+  message: string;
   notes: string | null;
   source_page: string;
   source_trigger: string;
@@ -51,12 +53,22 @@ export type BookingRow = {
 };
 
 export function bookingToPublic(row: BookingRow) {
-  return {
+  const response: {
+    reference: string;
+    status: BookingStatus;
+    receivedAt: string;
+    nextStep: string;
+    whatsappUrl?: string;
+  } = {
     reference: row.reference,
     status: row.status,
     receivedAt: row.created_at,
     nextStep: getPublicConfig().confirmationCopy,
   };
+  if (row.communication_channel === "whatsapp") {
+    response.nextStep = "Continue in WhatsApp to send the prepared request to our team.";
+  }
+  return response;
 }
 
 export function bookingToAdmin(row: BookingRow) {
@@ -72,10 +84,12 @@ export function bookingToAdmin(row: BookingRow) {
     passengerCount: row.passenger_count,
     luggageCount: row.luggage_count,
     vehiclePreference: row.vehicle_preference,
+    communicationChannel: row.communication_channel,
     contactName: row.contact_name,
     phone: row.phone_display,
     email: row.email,
     company: row.company,
+    message: row.message,
     notes: row.notes,
     sourcePage: row.source_page,
     sourceTrigger: row.source_trigger,
@@ -103,10 +117,10 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     env.DB,
     `INSERT INTO bookings (
       id, reference, status, service_type, pickup_location, destination, pickup_at, return_at,
-      passenger_count, luggage_count, vehicle_preference, contact_name, phone, phone_display,
-      email, company, notes, source_page, source_trigger, source_mode, locale, notification_state,
+      passenger_count, luggage_count, vehicle_preference, communication_channel, contact_name, phone, phone_display,
+      email, company, message, notes, source_page, source_trigger, source_mode, locale, notification_state,
       created_at, updated_at
-    ) VALUES (?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
     id,
     reference,
     payload.serviceType,
@@ -117,11 +131,13 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     payload.passengerCount,
     payload.luggageCount ?? null,
     payload.vehiclePreference ?? null,
-    payload.contactName,
-    payload.phone,
-    payload.phoneDisplay,
+    payload.communicationChannel,
+    payload.contactName ?? null,
+    payload.phone ?? null,
+    payload.phoneDisplay ?? null,
     payload.email ?? null,
     payload.company ?? null,
+    payload.message,
     hourlyDurationNote(payload),
     payload.sourcePage,
     payload.sourceTrigger,
@@ -156,7 +172,7 @@ export async function createBooking(
     return new Response(
       JSON.stringify({
         reference: "KY-HIDDEN",
-        status: "new",
+        status: "enquiry",
         receivedAt: nowIso(),
         nextStep: getPublicConfig().confirmationCopy,
       }),
@@ -201,12 +217,26 @@ export async function createBooking(
     throw new AppError("UNAVAILABLE", "Could not store the booking request.", { cause: error });
   }
 
-  const notificationState = await sendNotifications(env, {
-    kind: "booking",
-    reference: row.reference,
-    requestId,
-    summary: "A new chauffeur booking request is waiting for review.",
-  });
+  const notificationState =
+    parsed.data.communicationChannel === "email"
+      ? await sendNotifications(env, {
+          kind: "booking",
+          reference: row.reference,
+          requestId,
+          summary: "A new chauffeur booking request is waiting for review.",
+          replyTo: parsed.data.email,
+          details: [
+            { label: "Name", value: parsed.data.contactName ?? "" },
+            { label: "Email", value: parsed.data.email ?? "" },
+            { label: "Phone", value: parsed.data.phoneDisplay ?? "Not provided" },
+            { label: "Pickup", value: parsed.data.pickupLocation },
+            { label: "Destination", value: parsed.data.destination ?? "Hourly service" },
+            { label: "Pickup time", value: parsed.data.pickupAt },
+            { label: "Passengers", value: String(parsed.data.passengerCount) },
+            ...(parsed.data.message ? [{ label: "Message", value: parsed.data.message }] : []),
+          ],
+        })
+      : "skipped";
   await run(
     env.DB,
     "UPDATE bookings SET notification_state = ?, updated_at = ? WHERE id = ?",
@@ -217,6 +247,22 @@ export async function createBooking(
   row.notification_state = notificationState;
 
   const body = bookingToPublic(row);
+  if (parsed.data.communicationChannel === "whatsapp") {
+    const number = (env.WHATSAPP_NUMBER || "+85328338882").replace(/\D/g, "");
+    const lines = [
+      `Booking enquiry ${row.reference}`,
+      `Service: ${parsed.data.serviceType.replaceAll("_", " ")}`,
+      `From: ${parsed.data.pickupLocation}`,
+      ...(parsed.data.destination ? [`To: ${parsed.data.destination}`] : []),
+      `Pickup: ${parsed.data.pickupAt}`,
+      ...(parsed.data.returnAt ? [`Return: ${parsed.data.returnAt}`] : []),
+      ...(parsed.data.durationHours ? [`Duration: ${parsed.data.durationHours} hours`] : []),
+      `Passengers: ${parsed.data.passengerCount}`,
+      ...(parsed.data.phoneDisplay ? [`WhatsApp number: ${parsed.data.phoneDisplay}`] : []),
+      ...(parsed.data.message ? [`Message: ${parsed.data.message}`] : []),
+    ];
+    body.whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
   await writeIdempotency(env.DB, keyHash, requestHash, { status: 201, body });
   logSafe("info", "booking_created", {
     requestId,

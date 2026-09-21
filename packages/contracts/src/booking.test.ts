@@ -10,8 +10,11 @@ function validBooking(overrides: Record<string, unknown> = {}) {
     destination: "The Londoner Macao",
     pickupAt: future,
     passengerCount: 2,
+    communicationChannel: "email",
     contactName: "Alex Chan",
     phone: "+853 6234 5678",
+    email: "alex@example.com",
+    message: "Please confirm availability.",
     privacyAccepted: true,
     sourcePage: "/",
     sourceTrigger: "hero-embed",
@@ -46,6 +49,43 @@ describe("bookingCreateSchema", () => {
   it("requires destination for other services", () => {
     const result = bookingCreateSchema.safeParse(validBooking({ destination: "" }));
     expect(result.success).toBe(false);
+  });
+
+  it("allows WhatsApp with only a message", () => {
+    const parsed = bookingCreateSchema.parse(
+      validBooking({
+        communicationChannel: "whatsapp",
+        contactName: "",
+        phone: "",
+        email: "",
+      }),
+    );
+    expect(parsed.communicationChannel).toBe("whatsapp");
+    expect(parsed.contactName).toBeUndefined();
+  });
+
+  it("requires name and email for the email channel", () => {
+    const result = bookingCreateSchema.safeParse(
+      validBooking({ contactName: "", email: "", phone: "" }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it("allows either channel without a message while keeping email contact required", () => {
+    const email = bookingCreateSchema.parse(validBooking({ message: "   " }));
+    expect(email.message).toBe("");
+    const whatsapp = bookingCreateSchema.parse(
+      validBooking({
+        communicationChannel: "whatsapp",
+        contactName: "",
+        email: "",
+        message: undefined,
+      }),
+    );
+    expect(whatsapp.message).toBe("");
+    expect(
+      bookingCreateSchema.safeParse(validBooking({ contactName: "", message: "" })).success,
+    ).toBe(false);
   });
 
   it("rejects return before pickup", () => {

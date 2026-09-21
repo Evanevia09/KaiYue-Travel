@@ -1,7 +1,7 @@
 ---
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
-import { footerNav, footerServiceGroups, nav, site } from "../lib/site.ts";
+import { footerServiceGroups, nav, site } from "../lib/site.ts";
 import "../styles/global.css";
 
 type Props = {
@@ -9,6 +9,7 @@ type Props = {
   description?: string;
   noindex?: boolean;
   showMobileBook?: boolean;
+  bookingEnabled?: boolean;
   ogImage?: string;
 };
 
@@ -17,6 +18,7 @@ const {
   description = site.description,
   noindex = false,
   showMobileBook = true,
+  bookingEnabled = false,
   ogImage = site.defaultOgImage,
 } = Astro.props;
 const origin = Astro.site ?? site.url;
@@ -119,20 +121,40 @@ function isSectionCurrent(item: (typeof nav)[number]) {
               <li>
                 <a href={path} hreflang="en" lang="en" aria-current="true">English</a>
               </li>
+              <li>
+                <span class="lang-switch__unavailable" lang="pt" aria-disabled="true"
+                  >Português <small>Coming soon</small></span
+                >
+              </li>
+              <li>
+                <span class="lang-switch__unavailable" lang="zh-Hant" aria-disabled="true"
+                  >繁體中文 <small>即將推出</small></span
+                >
+              </li>
             </ul>
           </details>
-          <a class="header-chip" href="/login">
+          <a
+            class="header-chip"
+            href={`https://wa.me/${site.phone.replaceAll(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="General enquiry on WhatsApp"
+          >
             <span class="header-chip__icon" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="3.25" stroke="currentColor" stroke-width="1.75"></circle>
                 <path
-                  d="M5.5 19.2c.9-3 3.4-4.7 6.5-4.7s5.6 1.7 6.5 4.7"
+                  d="M20 11.6a8 8 0 0 1-11.8 7L4 20l1.4-4.1A8 8 0 1 1 20 11.6Z"
                   stroke="currentColor"
                   stroke-width="1.75"
+                  stroke-linejoin="round"></path>
+                <path
+                  d="M8.7 8.2c.5 2.7 2.4 4.6 5.1 5.1l1.2-1.2c.2-.2.5-.3.8-.1l1.7.8c.3.1.4.4.4.7-.1 1.1-1 2-2.1 2.1-4.5.3-7.9-3.1-7.6-7.6.1-1.1 1-2 2.1-2.1.3 0 .6.1.7.4l.8 1.7c.1.3.1.6-.1.8L10.5 10"
+                  stroke="currentColor"
+                  stroke-width="1.35"
                   stroke-linecap="round"></path>
               </svg>
             </span>
-            Sign in
+            General Enquiry
           </a>
           <details class="mobile-nav">
             <summary class="menu-toggle" aria-label="Open menu">
@@ -169,8 +191,9 @@ function isSectionCurrent(item: (typeof nav)[number]) {
                   ),
                 )
               }
-              <a href="/login">Sign in</a>
-              <a href={path} hreflang="en">Language: English</a>
+              <a href="/contact" aria-current={isCurrent("/contact") ? "page" : undefined}
+                >Contact Us</a
+              >
             </nav>
           </details>
         </div>
@@ -179,14 +202,18 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <main id="main">
       <slot />
     </main>
-    <div class="mobile-book">
-      <BookingLauncher
-        client:load
-        sourcePage={path}
-        sourceTrigger="mobile-persistent"
-        label="Book now"
-      />
-    </div>
+    {
+      bookingEnabled && showMobileBook ? (
+        <div class="mobile-book">
+          <BookingLauncher
+            client:load
+            sourcePage={path}
+            sourceTrigger="mobile-persistent"
+            label="Book now"
+          />
+        </div>
+      ) : null
+    }
     <footer class="site-footer">
       <div class="wrap site-footer__grid">
         <div>
@@ -199,6 +226,10 @@ function isSectionCurrent(item: (typeof nav)[number]) {
             Private bookings on this site are Macau chauffeur requests, quoted after review.
             Corporate, hotel, and agency programmes follow the Kai Yue Group portfolio.
           </p>
+          <p>
+            <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
+          </p>
+          <p>{site.addressLines.join(", ")}</p>
         </div>
         <div>
           <h2>Services</h2>
@@ -222,35 +253,24 @@ function isSectionCurrent(item: (typeof nav)[number]) {
         <div>
           <h2>Company</h2>
           <ul>
-            <li><a href="/about">About</a></li>
-            <li><a href="/business/travel-agency">Travel agency</a></li>
-            <li><a href="/corporate">Corporate solution</a></li>
-            <li><a href="/business/hotels-resorts">Hotels &amp; resorts</a></li>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/contact">Contact</a></li>
             <li><a href="/faq">FAQ</a></li>
-            <li><a href="/pricing">Pricing</a></li>
             <li><a href="/privacy">Privacy</a></li>
             <li><a href="/terms">Terms</a></li>
           </ul>
         </div>
         <div>
-          <h2>Contact</h2>
+          <h2>B2B Solution</h2>
           <ul>
-            {
-              footerNav.map((item) => (
-                <li>
-                  <a href={item.href}>{item.label}</a>
-                </li>
-              ))
-            }
+            <li><a href="/business/hotels-resorts">Hotels &amp; Resorts</a></li>
+            <li><a href="/business/travel-agency">Travel Agency</a></li>
+            <li><a href="/corporate">Corporate Solutions</a></li>
           </ul>
-          <p>
-            <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
-          </p>
-          <p>{site.addressLines.join(", ")}</p>
         </div>
       </div>
     </footer>
-    <BookingSheet client:load />
+    {bookingEnabled ? <BookingSheet client:load /> : null}
     <script>
       import "../scripts/header-menus.ts";
     </script>

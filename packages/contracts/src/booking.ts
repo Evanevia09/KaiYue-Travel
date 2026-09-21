@@ -22,6 +22,9 @@ export const HOURLY_DURATION_MAX_HOURS = 12;
 export const BOOKING_SOURCE_MODES = ["embedded", "bottom-sheet", "page"] as const;
 export type BookingSourceMode = (typeof BOOKING_SOURCE_MODES)[number];
 
+export const COMMUNICATION_CHANNELS = ["whatsapp", "email"] as const;
+export type CommunicationChannel = (typeof COMMUNICATION_CHANNELS)[number];
+
 const optionalText = (max: number) =>
   z
     .string()
@@ -46,8 +49,9 @@ export const bookingCreateSchema = z
       .optional(),
     luggageCount: z.number().int().min(0).max(20).optional(),
     vehiclePreference: z.enum(VEHICLE_PREFERENCES).optional(),
-    contactName: z.string().trim().min(2).max(80),
-    phone: z.string().trim().min(8).max(32),
+    communicationChannel: z.enum(COMMUNICATION_CHANNELS),
+    contactName: optionalText(80),
+    phone: optionalText(32),
     email: z
       .string()
       .trim()
@@ -57,12 +61,13 @@ export const bookingCreateSchema = z
       .or(z.literal(""))
       .transform((value) => (value ? value : undefined)),
     company: optionalText(120),
+    message: z.string().trim().max(800).default(""),
     notes: optionalText(800),
     locale: z.string().trim().min(2).max(16).default("en"),
     sourcePage: z.string().trim().min(1).max(200),
     sourceTrigger: z.string().trim().min(1).max(80),
     sourceMode: z.enum(BOOKING_SOURCE_MODES),
-    privacyAccepted: z.literal(true),
+    privacyAccepted: z.boolean().optional(),
     website: z.string().max(0).optional(),
   })
   .superRefine((value, ctx) => {
@@ -103,19 +108,37 @@ export const bookingCreateSchema = z
       }
     }
 
-    const phone = normalizePhone(value.phone);
-    if (!isPlausiblePhone(phone)) {
+    if (value.communicationChannel === "email" && !value.contactName) {
       ctx.addIssue({
         code: "custom",
-        path: ["phone"],
-        message: "Enter a valid phone number with country code.",
+        path: ["contactName"],
+        message: "Enter your name.",
       });
+    }
+
+    if (value.communicationChannel === "email" && !value.email) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["email"],
+        message: "Enter your email address.",
+      });
+    }
+
+    if (value.phone) {
+      const phone = normalizePhone(value.phone);
+      if (!isPlausiblePhone(phone)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["phone"],
+          message: "Enter a valid phone number with country code.",
+        });
+      }
     }
   })
   .transform((value) => ({
     ...value,
-    phone: normalizePhone(value.phone),
-    phoneDisplay: value.phone.trim(),
+    phone: value.phone ? normalizePhone(value.phone) : undefined,
+    phoneDisplay: value.phone?.trim(),
     email: value.email?.toLowerCase(),
   }));
 

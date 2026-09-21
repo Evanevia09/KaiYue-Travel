@@ -1,11 +1,24 @@
 ---
-import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="Terms"
   description="Draft terms. Cancellation and service terms require owner approval."
+  noindex={true}
 >
-  <PageHero eyebrow="Legal" title="Terms" lede="Draft only. Not approved legal text." />
+  <section class="section page-content" aria-labelledby="terms-title">
+    <div class="wrap page-content__narrow">
+      <p class="kicker">Legal</p>
+      <h1 id="terms-title">Terms</h1>
+      <p class="lede">
+        Service, cancellation, and payment terms are awaiting owner and legal review. No terms are
+        published as approved on this draft page.
+      </p>
+      <p>
+        A form submission is a request, not a confirmed booking. The team confirms any proposed
+        service separately.
+      </p>
+    </div>
+  </section>
 </BaseLayout>

@@ -1,6 +1,5 @@
 ---
 import HeroBackdrop from "./HeroBackdrop.astro";
-import { heroTrustLine } from "../../lib/site.ts";
 
 type Props = {
   eyebrow?: string;
@@ -12,9 +11,10 @@ type Props = {
 
 const { eyebrow, title, lede, imageSrc, imageAlt } = Astro.props;
 const hasBooking = Astro.slots.has("booking");
+const hasInquiry = Astro.slots.has("inquiry");
 ---
 
-<section class="hero hero--page">
+<section class:list={["hero", "hero--page", { "hero--inquiry": hasInquiry }]}>
   <HeroBackdrop src={imageSrc} alt={imageAlt} />
   <div class="hero__stage">
     <div class="hero__copy">
@@ -23,13 +23,19 @@ const hasBooking = Astro.slots.has("booking");
       {lede ? <p class="hero-sub">{lede}</p> : null}
     </div>
     {
+      hasInquiry ? (
+        <div class="hero__inquiry">
+          <slot name="inquiry" />
+        </div>
+      ) : null
+    }
+    {
       hasBooking ? (
         <div class="hero-booking">
           <slot name="booking" />
         </div>
       ) : null
     }
-    {hasBooking ? <p class="hero-trust">{heroTrustLine}</p> : null}
     {
       Astro.slots.has("actions") ? (
         <div class="hero__actions">

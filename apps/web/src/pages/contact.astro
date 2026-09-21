@@ -1,61 +1,55 @@
 ---
 import PageHero from "../components/content/PageHero.astro";
+import FeatureIcon from "../components/content/FeatureIcon.astro";
 import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { site } from "../lib/site.ts";
 ---
 
-<BaseLayout
-  title="Contact"
-  description="Send a general inquiry or request a chauffeur through the booking form."
->
+<BaseLayout title="Contact" description="Send a general inquiry to Kai Yue Travel Group Limited.">
   <PageHero
     eyebrow="Contact"
     title="Talk with the team"
-    lede="For a trip, use Book now. For a general question, send the inquiry form."
+    lede="Ask a general question or tell us about a business programme. For a single chauffeur journey, choose the relevant service from the menu."
   >
-    <a slot="actions" class="btn btn--secondary" href="#inquiry">Send an inquiry</a>
+    <div slot="inquiry" class="card" id="inquiry">
+      <h2>Send an inquiry</h2>
+      <ContactForm client:load sourcePage="/contact" />
+    </div>
   </PageHero>
-  <section class="section">
-    <div class="wrap grid-2">
-      <div>
-        <h2>Reach us</h2>
-        <p>
-          Phone: <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a><br />
-          Fax: {site.fax}
-        </p>
-        <p>
-          {
-            site.addressLines.map((line) => (
-              <>
-                {line}
-                <br />
-              </>
-            ))
-          }
-        </p>
-        <p>
-          For corporate, hotel, and agency programmes, use the Business pages. Programme phones:{
-            " "
-          }
-          {
-            site.businessPhones.map((phone, index) => (
-              <>
-                {index > 0 ? " · " : null}
-                <a href={`tel:${phone.replaceAll(" ", "")}`}>{phone}</a>
-              </>
-            ))
-          }
-          {". Hours for those programmes: 7×24."}
-        </p>
-        <p class="draft-note">
-          The Macau listing number and office address come from the previous public site. Business
-          programme phones follow the Kai Yue Group portfolio.
-        </p>
+  <section class="section" aria-labelledby="contact-details">
+    <div class="wrap editorial-split">
+      <div class="editorial-photo">
+        <img
+          src="/images/hero-home.jpg"
+          width="1024"
+          height="576"
+          loading="lazy"
+          alt="Chauffeur greeting guests beside a vehicle in Macau"
+        /><span class="editorial-photo__label">Here to help</span>
       </div>
-      <div class="card" id="inquiry">
-        <h2>General inquiry</h2>
-        <ContactForm client:load sourcePage="/contact" />
+      <div class="editorial-copy">
+        <p class="kicker">Reach us</p><h2 id="contact-details">A conversation starts here</h2>
+        <div class="feature-lines">
+          <div>
+            <span class="icon-frame"><FeatureIcon name="message" /></span><p>
+              <strong>General enquiries</strong><br /><a
+                href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a
+              >
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="building" /></span><p>
+              <strong>Macau office</strong><br />{site.addressLines.join(", ")}
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
+              <strong>Business programmes</strong><br />For corporate, hotel, and agency needs, use
+              the <a href="/corporate">Business pages</a>.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </section>

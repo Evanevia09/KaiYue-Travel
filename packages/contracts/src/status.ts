@@ -1,10 +1,4 @@
-export const BOOKING_STATUSES = [
-  "new",
-  "confirmed",
-  "in_progress",
-  "completed",
-  "cancelled",
-] as const;
+export const BOOKING_STATUSES = ["enquiry", "assigned", "completed", "cancelled"] as const;
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
@@ -15,9 +9,8 @@ export const NOTIFICATION_STATES = ["pending", "sent", "partial", "failed", "ski
 export type NotificationState = (typeof NOTIFICATION_STATES)[number];
 
 export const BOOKING_TRANSITIONS: Record<BookingStatus, readonly BookingStatus[]> = {
-  new: ["confirmed", "cancelled"],
-  confirmed: ["in_progress", "cancelled"],
-  in_progress: ["completed", "cancelled"],
+  enquiry: ["assigned", "cancelled"],
+  assigned: ["completed", "cancelled"],
   completed: [],
   cancelled: [],
 };

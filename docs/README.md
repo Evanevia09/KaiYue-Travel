@@ -6,7 +6,7 @@ This folder is the build guide for the Kai Yue Travel website. It records the ag
 
 - B2C-first website optimized for booking conversion.
 - Desktop hero contains an embedded booking widget.
-- On mobile, the same booking form is reusable as a modal/bottom sheet and can be opened from anywhere on the site.
+- On mobile, the shared booking flow uses a modal/bottom sheet on Home and consumer service pages; inquiry and informational pages do not mount the booking widget.
 - B2B/corporate travel is a secondary journey.
 - Astro renders the site; React islands handle interactive UI.
 - Cloudflare Workers provides the API, D1 stores data, and Resend sends notifications.
@@ -38,7 +38,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 ## Release 1 success measures
 
 - A visitor can understand the offer and start a booking quickly on desktop or mobile.
-- The booking form can be opened from any key page without losing context.
+- The booking form keeps one draft across the hero Journey and modal Communication steps on booking-enabled pages.
 - Valid requests are stored once and acknowledged reliably.
 - Staff can review and update bookings and inquiries without a large CRM.
 - The site is accessible, fast, secure, observable, and deployable through a repeatable workflow.

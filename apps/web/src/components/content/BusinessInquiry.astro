@@ -1,7 +1,5 @@
 ---
 import { ContactForm } from "./ContactForm.tsx";
-import { business, telHref } from "../../lib/business.ts";
-import { site } from "../../lib/site.ts";
 
 type Props = {
   sourcePage: string;
@@ -13,17 +11,5 @@ const { sourcePage, heading = "Request a programme" } = Astro.props;
 
 <div class="card" id="inquiry">
   <h2>{heading}</h2>
-  <p>
-    {
-      site.businessPhones.map((phone, index) => (
-        <>
-          {index > 0 ? <br /> : null}
-          <a href={telHref(phone)}>{phone}</a>
-        </>
-      ))
-    }
-  </p>
-  <p>Hours: {business.hours}</p>
-  <p class="muted">{business.inquiryNote}</p>
   <ContactForm client:load sourcePage={sourcePage} defaultType="corporate" />
 </div>

@@ -26,33 +26,49 @@ function startOfToday(timezone: string): string {
 export async function adminSummary(env: AppEnv) {
   const timezone = businessTimezone(env);
   const today = startOfToday(timezone);
-  const [newBookingsToday, upcomingConfirmed, newInquiries, notificationFailures, recent] =
-    await Promise.all([
-      first<{ count: number }>(
-        env.DB,
-        "SELECT COUNT(*) as count FROM bookings WHERE status = 'new' AND created_at >= ?",
-        today,
-      ),
-      first<{ count: number }>(
-        env.DB,
-        "SELECT COUNT(*) as count FROM bookings WHERE status IN ('confirmed', 'in_progress') AND pickup_at >= ?",
-        new Date().toISOString(),
-      ),
-      first<{ count: number }>(
-        env.DB,
-        "SELECT COUNT(*) as count FROM contacts WHERE status = 'new'",
-      ),
-      first<{ count: number }>(
-        env.DB,
-        "SELECT COUNT(*) as count FROM bookings WHERE notification_state IN ('failed', 'pending')",
-      ),
-      all<BookingRow>(env.DB, "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 8"),
-    ]);
+  const [
+    newBookingsToday,
+    assignedUpcoming,
+    completedThisMonth,
+    cancelledThisMonth,
+    newInquiries,
+    notificationFailures,
+    recent,
+  ] = await Promise.all([
+    first<{ count: number }>(
+      env.DB,
+      "SELECT COUNT(*) as count FROM bookings WHERE status = 'enquiry' AND created_at >= ?",
+      today,
+    ),
+    first<{ count: number }>(
+      env.DB,
+      "SELECT COUNT(*) as count FROM bookings WHERE status = 'assigned' AND pickup_at >= ?",
+      new Date().toISOString(),
+    ),
+    first<{ count: number }>(
+      env.DB,
+      "SELECT COUNT(*) as count FROM bookings WHERE status = 'completed' AND updated_at >= ?",
+      today.slice(0, 8) + "01T00:00:00.000Z",
+    ),
+    first<{ count: number }>(
+      env.DB,
+      "SELECT COUNT(*) as count FROM bookings WHERE status = 'cancelled' AND updated_at >= ?",
+      today.slice(0, 8) + "01T00:00:00.000Z",
+    ),
+    first<{ count: number }>(env.DB, "SELECT COUNT(*) as count FROM contacts WHERE status = 'new'"),
+    first<{ count: number }>(
+      env.DB,
+      "SELECT COUNT(*) as count FROM bookings WHERE notification_state IN ('failed', 'pending')",
+    ),
+    all<BookingRow>(env.DB, "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 8"),
+  ]);
 
   return {
     timezone,
     newBookingsToday: newBookingsToday?.count ?? 0,
-    upcomingConfirmed: upcomingConfirmed?.count ?? 0,
+    assignedUpcoming: assignedUpcoming?.count ?? 0,
+    completedThisMonth: completedThisMonth?.count ?? 0,
+    cancelledThisMonth: cancelledThisMonth?.count ?? 0,
     newInquiries: newInquiries?.count ?? 0,
     notificationFailures: notificationFailures?.count ?? 0,
     recent: recent.map(bookingToAdmin),

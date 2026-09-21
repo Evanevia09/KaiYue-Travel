@@ -2,7 +2,6 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "re
 import { createPortal } from "react-dom";
 import { BookingIcon } from "./BookingIcons.tsx";
 import {
-  HOURS_12,
   HOURS_24,
   MINUTE_OPTIONS,
   WEEKDAYS,
@@ -21,9 +20,7 @@ import {
   parseLocalDateTime,
   splitTime,
   startOfMonth,
-  toHours24,
   type DayPeriod,
-  type HourCycle,
 } from "./datetime.ts";
 
 type Leg = "pickup" | "return";
@@ -100,83 +97,58 @@ function TimeWheel<T extends number>({
 
 function TimePanel({
   title,
-  hourCycle,
   draft,
-  onHourCycle,
   onDraft,
   onSave,
+  onBack,
+  onClose,
+  canSave,
 }: {
   title: string;
-  hourCycle: HourCycle;
   draft: TimeDraft;
-  onHourCycle: (cycle: HourCycle) => void;
   onDraft: (draft: TimeDraft) => void;
   onSave: () => void;
+  onBack: () => void;
+  onClose: () => void;
+  canSave: boolean;
 }) {
   return (
     <div className="dtp-time" role="group" aria-label={title}>
-      <p className="dtp-time__title">{title}</p>
-      <div className="dtp-time__cycle" role="group" aria-label="Hour format">
+      <div className="dtp-time__header">
         <button
           type="button"
-          aria-pressed={hourCycle === "24"}
-          onClick={() => {
-            onHourCycle("24");
-            onDraft({
-              ...draft,
-              hours24: toHours24(draft.hours12, draft.period),
-            });
-          }}
+          className="dtp-time__back"
+          onClick={onBack}
+          aria-label="Back to calendar"
         >
-          24h
+          <BookingIcon name="chevronLeft" size={18} />
         </button>
+        <span className="dtp-time__mobile-title">{title}</span>
         <button
           type="button"
-          aria-pressed={hourCycle === "12"}
-          onClick={() => {
-            onHourCycle("12");
-            const hours24 = draft.hours24;
-            onDraft({
-              ...draft,
-              hours12: hours24 % 12 || 12,
-              period: hours24 >= 12 ? "PM" : "AM",
-            });
-          }}
+          className="dtp-time__close"
+          onClick={onClose}
+          aria-label="Close time picker"
         >
-          12h
+          <BookingIcon name="close" size={20} />
         </button>
       </div>
+      <p className="dtp-time__title">{title}</p>
       <div className="dtp-time__wheels">
-        {hourCycle === "24" ? (
-          <TimeWheel
-            label="Hour"
-            values={HOURS_24}
-            value={draft.hours24 as (typeof HOURS_24)[number]}
-            format={(item) => String(item).padStart(2, "0")}
-            onChange={(hours24) =>
-              onDraft({
-                ...draft,
-                hours24,
-                hours12: hours24 % 12 || 12,
-                period: hours24 >= 12 ? "PM" : "AM",
-              })
-            }
-          />
-        ) : (
-          <TimeWheel
-            label="Hour"
-            values={HOURS_12}
-            value={draft.hours12 as (typeof HOURS_12)[number]}
-            format={(item) => String(item).padStart(2, "0")}
-            onChange={(hours12) =>
-              onDraft({
-                ...draft,
-                hours12,
-                hours24: toHours24(hours12, draft.period),
-              })
-            }
-          />
-        )}
+        <TimeWheel
+          label="Hour"
+          values={HOURS_24}
+          value={draft.hours24 as (typeof HOURS_24)[number]}
+          format={(item) => String(item).padStart(2, "0")}
+          onChange={(hours24) =>
+            onDraft({
+              ...draft,
+              hours24,
+              hours12: hours24 % 12 || 12,
+              period: hours24 >= 12 ? "PM" : "AM",
+            })
+          }
+        />
         <TimeWheel
           label="Minute"
           values={MINUTE_OPTIONS}
@@ -184,28 +156,13 @@ function TimePanel({
           format={(item) => String(item).padStart(2, "0")}
           onChange={(minutes) => onDraft({ ...draft, minutes })}
         />
-        {hourCycle === "12" ? (
-          <div className="dtp-period" role="group" aria-label="AM or PM">
-            {(["AM", "PM"] as const).map((period) => (
-              <button
-                key={period}
-                type="button"
-                aria-pressed={draft.period === period}
-                onClick={() =>
-                  onDraft({
-                    ...draft,
-                    period,
-                    hours24: toHours24(draft.hours12, period),
-                  })
-                }
-              >
-                {period}
-              </button>
-            ))}
-          </div>
-        ) : null}
       </div>
-      <button type="button" className="btn btn--primary btn--block dtp-time__save" onClick={onSave}>
+      <button
+        type="button"
+        className="btn btn--primary btn--block dtp-time__save"
+        onClick={onSave}
+        disabled={!canSave}
+      >
         Save
       </button>
     </div>
@@ -216,11 +173,13 @@ function MonthGrid({
   month,
   pickupAt,
   returnAt,
+  activeLeg,
   onSelect,
 }: {
   month: Date;
   pickupAt: string;
   returnAt: string;
+  activeLeg: Leg;
   onSelect: (day: Date) => void;
 }) {
   const pickup = parseLocalDateTime(pickupAt);
@@ -239,14 +198,24 @@ function MonthGrid({
           if (!day) {
             return <span key={`empty-${index}`} className="dtp-day dtp-day--empty" />;
           }
-          const selected =
-            (pickup && isSameDay(day, pickup)) || (returning && isSameDay(day, returning));
-          const disabled = isPastDay(day);
+          const isPickup = Boolean(pickup && isSameDay(day, pickup));
+          const isReturn = Boolean(returning && isSameDay(day, returning));
+          const selected = isPickup || isReturn;
+          const disabled =
+            isPastDay(day) ||
+            (activeLeg === "return" && pickup !== null && isBeforeDay(day, pickup));
           return (
             <button
               key={day.toISOString()}
               type="button"
-              className={selected ? "dtp-day is-selected" : "dtp-day"}
+              className={[
+                "dtp-day",
+                selected ? "is-selected" : "",
+                isPickup && !(isReturn && activeLeg === "return") ? "is-pickup" : "",
+                isReturn ? "is-return" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               disabled={disabled}
               aria-pressed={selected ? true : undefined}
               aria-label={day.toLocaleDateString("en-US", {
@@ -271,6 +240,7 @@ function FooterLeg({
   value,
   active,
   timeOpen,
+  timeSelected,
   onActivate,
   onTime,
 }: {
@@ -278,12 +248,15 @@ function FooterLeg({
   value: string;
   active: boolean;
   timeOpen: boolean;
+  timeSelected: boolean;
   onActivate: () => void;
   onTime: () => void;
 }) {
   const date = parseLocalDateTime(value);
   return (
-    <div className={active ? "dtp-leg is-active" : "dtp-leg"}>
+    <div
+      className={`dtp-leg dtp-leg--${legend.startsWith("Pickup") ? "pickup" : "return"}${active ? " is-active" : ""}`}
+    >
       <button type="button" className="dtp-leg__date" onClick={onActivate}>
         <span className="dtp-leg__dot" aria-hidden="true" />
         <span>
@@ -303,7 +276,7 @@ function FooterLeg({
           aria-haspopup="dialog"
           onClick={onTime}
         >
-          {date ? formatTime24(date) : "—"}
+          {date && timeSelected ? formatTime24(date) : "Select time"}
           <BookingIcon name="chevronDown" size={14} />
         </button>
       </div>
@@ -327,13 +300,26 @@ export function DateTimePicker({
   const [returnEnabled, setReturnEnabled] = useState(Boolean(returnAt));
   const [activeLeg, setActiveLeg] = useState<Leg>("pickup");
   const [timeTarget, setTimeTarget] = useState<Leg | null>(null);
-  const [hourCycle, setHourCycle] = useState<HourCycle>("24");
+  const [timeTouched, setTimeTouched] = useState(false);
   const [viewMonth, setViewMonth] = useState(() =>
     startOfMonth(parseLocalDateTime(pickupAt) ?? new Date()),
   );
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0, maxHeight: 0 });
   const [placed, setPlaced] = useState(false);
   const [timeDraft, setTimeDraft] = useState<TimeDraft>(() => splitTime(pickupAt));
+  const [pendingPickupAt, setPendingPickupAt] = useState(pickupAt);
+  const [pendingReturnAt, setPendingReturnAt] = useState(returnAt);
+  const [pickupTimeSelected, setPickupTimeSelected] = useState(Boolean(pickupAt));
+  const [returnTimeSelected, setReturnTimeSelected] = useState(Boolean(returnAt));
+  const [mobile, setMobile] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 879px)");
+    const update = () => setMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     if (!allowReturn) {
@@ -418,6 +404,10 @@ export function DateTimePicker({
     setViewMonth(startOfMonth(source ?? new Date()));
     setActiveLeg(leg === "return" && !pickupAt ? "pickup" : leg);
     setTimeTarget(null);
+    setPendingPickupAt(pickupAt);
+    setPendingReturnAt(returnAt);
+    setPickupTimeSelected(Boolean(pickupAt));
+    setReturnTimeSelected(Boolean(returnAt));
     setOpen(true);
   }
 
@@ -430,33 +420,44 @@ export function DateTimePicker({
   }
 
   function selectDay(day: Date) {
-    const pickup = parseLocalDateTime(pickupAt);
+    const pickup = parseLocalDateTime(pendingPickupAt || pickupAt);
     if (!returnEnabled || activeLeg === "pickup" || !pickup) {
-      const nextPickup = combineDateAndTime(day, pickupAt);
-      onPickupChange(nextPickup);
+      const nextPickup = combineDateAndTime(day);
+      setPendingPickupAt(nextPickup);
+      setPickupTimeSelected(false);
+      onPickupChange("");
       const currentReturn = parseLocalDateTime(returnAt);
       const nextPickupDate = parseLocalDateTime(nextPickup);
       if (currentReturn && nextPickupDate && currentReturn.getTime() <= nextPickupDate.getTime()) {
         onReturnChange("");
+        setPendingReturnAt("");
+        setReturnTimeSelected(false);
       }
-      if (returnEnabled) {
-        setActiveLeg("return");
-      }
+      setActiveLeg("pickup");
+      setTimeDraft(splitTime(undefined));
+      setTimeTouched(false);
+      setTimeTarget("pickup");
       return;
     }
-    if (isSameDay(day, pickup) || isBeforeDay(day, pickup)) {
-      onPickupChange(combineDateAndTime(day, pickupAt));
+    if (isBeforeDay(day, pickup)) {
       return;
     }
-    onReturnChange(combineDateAndTime(day, returnAt || pickupAt));
+    setPendingReturnAt(combineDateAndTime(day));
+    setReturnTimeSelected(false);
+    onReturnChange("");
+    setActiveLeg("return");
+    setTimeDraft(splitTime(undefined));
+    setTimeTouched(false);
+    setTimeTarget("return");
   }
 
   function openTime(leg: Leg) {
-    const source = leg === "return" ? returnAt : pickupAt;
+    const source = leg === "return" ? pendingReturnAt || returnAt : pendingPickupAt || pickupAt;
     if (!source) {
       return;
     }
     setTimeDraft(splitTime(source));
+    setTimeTouched(leg === "return" ? returnTimeSelected : pickupTimeSelected);
     setTimeTarget((current) => (current === leg ? null : leg));
     setActiveLeg(leg);
   }
@@ -465,19 +466,27 @@ export function DateTimePicker({
     if (!timeTarget) {
       return;
     }
-    const source = timeTarget === "return" ? returnAt : pickupAt;
-    if (!source) {
+    const source = timeTarget === "return" ? pendingReturnAt : pendingPickupAt;
+    if (!source || !timeTouched) {
       return;
     }
-    const hours24 =
-      hourCycle === "24" ? timeDraft.hours24 : toHours24(timeDraft.hours12, timeDraft.period);
-    const next = applyTime(source, hours24, timeDraft.minutes);
+    const next = applyTime(source, timeDraft.hours24, timeDraft.minutes);
     if (timeTarget === "return") {
       onReturnChange(next);
+      setPendingReturnAt(next);
+      setReturnTimeSelected(true);
     } else {
       onPickupChange(next);
+      setPendingPickupAt(next);
+      setPickupTimeSelected(true);
     }
     setTimeTarget(null);
+    if (timeTarget === "pickup" && returnEnabled && !mobile) {
+      setActiveLeg("return");
+      setViewMonth(
+        startOfMonth(parseLocalDateTime(pendingReturnAt) ?? parseLocalDateTime(next) ?? new Date()),
+      );
+    }
   }
 
   function enableReturn() {
@@ -492,6 +501,8 @@ export function DateTimePicker({
     event.stopPropagation();
     setReturnEnabled(false);
     onReturnChange("");
+    setPendingReturnAt("");
+    setReturnTimeSelected(false);
     setActiveLeg("pickup");
     if (timeTarget === "return") {
       setTimeTarget(null);
@@ -502,6 +513,17 @@ export function DateTimePicker({
   const error = pickupError || returnError;
   const roundtrip = allowReturn && Boolean(returnAt);
   const twoMonths = allowReturn && returnEnabled;
+  const returnAfterPickup =
+    !returnAt ||
+    !pickupAt ||
+    (parseLocalDateTime(returnAt)?.getTime() ?? 0) > (parseLocalDateTime(pickupAt)?.getTime() ?? 0);
+  const canConfirm =
+    Boolean(pickupAt) &&
+    pickupTimeSelected &&
+    returnAfterPickup &&
+    (mobile
+      ? activeLeg === "pickup" || (Boolean(returnAt) && returnTimeSelected)
+      : !returnEnabled || (Boolean(returnAt) && returnTimeSelected));
 
   return (
     <div className={roundtrip ? "dtp dtp--roundtrip" : "dtp"} ref={triggerRef}>
@@ -594,93 +616,147 @@ export function DateTimePicker({
       {error ? <p className="field-error dtp-error">{error}</p> : null}
       {open && placed && typeof document !== "undefined"
         ? createPortal(
-            <div
-              ref={popoverRef}
-              id={dialogId}
-              className={[
-                "dtp-popover",
-                timeTarget ? "dtp-popover--time" : "",
-                twoMonths ? "" : "dtp-popover--single",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              role="dialog"
-              aria-label="Choose date and time"
-              style={{
-                top: pos.top,
-                left: pos.left,
-                width: pos.width,
-                maxHeight: pos.maxHeight,
-              }}
-            >
-              <div className="dtp-popover__calendar">
-                <div className="dtp-nav">
-                  <button
-                    type="button"
-                    className="dtp-nav__btn"
-                    aria-label="Previous month"
-                    disabled={!canPrev}
-                    onClick={() => setViewMonth(addMonths(viewMonth, -1))}
-                  >
-                    <BookingIcon name="chevronLeft" size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    className="dtp-nav__btn"
-                    aria-label="Next month"
-                    onClick={() => setViewMonth(addMonths(viewMonth, 1))}
-                  >
-                    <BookingIcon name="chevronRight" size={18} />
-                  </button>
-                </div>
-                <div className={twoMonths ? "dtp-months" : "dtp-months dtp-months--single"}>
-                  <MonthGrid
-                    month={viewMonth}
-                    pickupAt={pickupAt}
-                    returnAt={returnAt}
-                    onSelect={selectDay}
-                  />
-                  {twoMonths ? (
+            <>
+              <div
+                className="dtp-backdrop"
+                aria-hidden="true"
+                onClick={() => {
+                  setOpen(false);
+                  setTimeTarget(null);
+                }}
+              />
+              <div
+                ref={popoverRef}
+                id={dialogId}
+                className={[
+                  "dtp-popover",
+                  timeTarget ? "dtp-popover--time" : "",
+                  twoMonths ? "" : "dtp-popover--single",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                role="dialog"
+                aria-label="Choose date and time"
+                style={{
+                  top: pos.top,
+                  left: pos.left,
+                  width: pos.width,
+                  maxHeight: pos.maxHeight,
+                }}
+              >
+                <div className="dtp-popover__calendar">
+                  <div className="dtp-mobile-heading">
+                    <div>
+                      <p className="dtp-mobile-heading__eyebrow">Your journey</p>
+                      <h3>{activeLeg === "return" ? "Return Date" : "Pickup Date"}</h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="dtp-mobile-heading__close"
+                      aria-label="Close calendar"
+                      onClick={() => {
+                        setOpen(false);
+                        setTimeTarget(null);
+                      }}
+                    >
+                      <BookingIcon name="close" size={20} />
+                    </button>
+                  </div>
+                  <div className="dtp-nav">
+                    <button
+                      type="button"
+                      className="dtp-nav__btn"
+                      aria-label="Previous month"
+                      disabled={!canPrev}
+                      onClick={() => setViewMonth(addMonths(viewMonth, -1))}
+                    >
+                      <BookingIcon name="chevronLeft" size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      className="dtp-nav__btn"
+                      aria-label="Next month"
+                      onClick={() => setViewMonth(addMonths(viewMonth, 1))}
+                    >
+                      <BookingIcon name="chevronRight" size={18} />
+                    </button>
+                  </div>
+                  <div className={twoMonths ? "dtp-months" : "dtp-months dtp-months--single"}>
                     <MonthGrid
-                      month={addMonths(viewMonth, 1)}
-                      pickupAt={pickupAt}
-                      returnAt={returnAt}
+                      month={viewMonth}
+                      pickupAt={pendingPickupAt}
+                      returnAt={pendingReturnAt}
+                      activeLeg={activeLeg}
                       onSelect={selectDay}
                     />
-                  ) : null}
-                </div>
-                <div className="dtp-footer">
-                  <FooterLeg
-                    legend="Pickup date"
-                    value={pickupAt}
-                    active={activeLeg === "pickup"}
-                    timeOpen={timeTarget === "pickup"}
-                    onActivate={() => setActiveLeg("pickup")}
-                    onTime={() => openTime("pickup")}
-                  />
-                  {allowReturn && returnEnabled ? (
+                    {twoMonths ? (
+                      <MonthGrid
+                        month={addMonths(viewMonth, 1)}
+                        pickupAt={pendingPickupAt}
+                        returnAt={pendingReturnAt}
+                        activeLeg={activeLeg}
+                        onSelect={selectDay}
+                      />
+                    ) : null}
+                  </div>
+                  <div className="dtp-footer">
                     <FooterLeg
-                      legend="Return date"
-                      value={returnAt}
-                      active={activeLeg === "return"}
-                      timeOpen={timeTarget === "return"}
-                      onActivate={() => setActiveLeg("return")}
-                      onTime={() => openTime("return")}
+                      legend="Pickup date"
+                      value={pendingPickupAt}
+                      active={activeLeg === "pickup"}
+                      timeOpen={timeTarget === "pickup"}
+                      timeSelected={pickupTimeSelected}
+                      onActivate={() => setActiveLeg("pickup")}
+                      onTime={() => openTime("pickup")}
                     />
-                  ) : null}
+                    {allowReturn && returnEnabled ? (
+                      <FooterLeg
+                        legend="Return date"
+                        value={pendingReturnAt}
+                        active={activeLeg === "return"}
+                        timeOpen={timeTarget === "return"}
+                        timeSelected={returnTimeSelected}
+                        onActivate={() => setActiveLeg("return")}
+                        onTime={() => openTime("return")}
+                      />
+                    ) : null}
+                    <button
+                      type="button"
+                      className="btn btn--primary btn--block dtp-confirm"
+                      disabled={!canConfirm}
+                      onClick={() => {
+                        setOpen(false);
+                        setTimeTarget(null);
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    {!returnAfterPickup ? (
+                      <p className="field-error" role="status">
+                        Return must be later than pickup.
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
+                {timeTarget ? (
+                  <TimePanel
+                    title={timeTarget === "return" ? "Return Time" : "Pickup Time"}
+                    draft={timeDraft}
+                    onDraft={(draft) => {
+                      setTimeDraft(draft);
+                      setTimeTouched(true);
+                    }}
+                    onSave={saveTime}
+                    onBack={() => setTimeTarget(null)}
+                    onClose={() => {
+                      setTimeTarget(null);
+                      setOpen(false);
+                    }}
+                    canSave={timeTouched}
+                  />
+                ) : null}
               </div>
-              {timeTarget ? (
-                <TimePanel
-                  title={timeTarget === "return" ? "Return Time" : "Pickup Time"}
-                  hourCycle={hourCycle}
-                  draft={timeDraft}
-                  onHourCycle={setHourCycle}
-                  onDraft={setTimeDraft}
-                  onSave={saveTime}
-                />
-              ) : null}
-            </div>,
+            </>,
             document.body,
           )
         : null}

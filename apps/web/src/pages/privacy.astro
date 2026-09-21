@@ -1,11 +1,25 @@
 ---
-import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="Privacy"
   description="Draft privacy notice. Legal text requires owner approval before launch."
+  noindex={true}
 >
-  <PageHero eyebrow="Legal" title="Privacy" lede="Draft only. Not approved legal text." />
+  <section class="section page-content" aria-labelledby="privacy-title">
+    <div class="wrap page-content__narrow">
+      <p class="kicker">Legal</p>
+      <h1 id="privacy-title">Privacy</h1>
+      <p class="lede">
+        This privacy notice is awaiting owner and legal review. Do not treat this draft page as an
+        approved policy.
+      </p>
+      <p>
+        Questions about information submitted through this website can be sent through the <a
+          href="/contact">contact page</a
+        >.
+      </p>
+    </div>
+  </section>
 </BaseLayout>

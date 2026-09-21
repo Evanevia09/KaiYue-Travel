@@ -1,6 +1,7 @@
 import type { ServiceType } from "@kaiyue/contracts";
-import { Component, type ReactNode } from "react";
+import { Component, useSyncExternalStore, type ReactNode } from "react";
 import { BookingForm } from "./BookingForm.tsx";
+import { getBookingState, openBooking, subscribeBooking } from "./store.ts";
 
 type Props = {
   sourcePage: string;
@@ -19,7 +20,7 @@ class BookingErrorBoundary extends Component<{ children: ReactNode }, { message:
     if (this.state.message) {
       return (
         <p className="form-error" role="alert">
-          The booking form could not load. Use the <a href="/booking">booking page</a> instead.
+          The booking form could not load. Please <a href="/contact">contact us</a> instead.
         </p>
       );
     }
@@ -28,20 +29,44 @@ class BookingErrorBoundary extends Component<{ children: ReactNode }, { message:
 }
 
 export function BookingEmbedded({ sourcePage, serviceType }: Props) {
+  const state = useSyncExternalStore(subscribeBooking, getBookingState, getBookingState);
+
+  // The sheet and embedded form share one draft/step. Never mount a second form
+  // behind an open sheet, and keep step 2 exclusively in that sheet.
+  if (state.open && state.context.mode !== "embedded") {
+    return null;
+  }
+
   return (
     <section className="booking-card booking-card--hero" aria-labelledby="embedded-booking-title">
       <h2 id="embedded-booking-title" className="sr-only">
         Request a private chauffeur
       </h2>
       <div className="booking-card__body">
-        <BookingErrorBoundary>
-          <BookingForm
-            compact
-            sourcePage={sourcePage}
-            sourceTrigger="hero-embed"
-            initialServiceType={serviceType}
-          />
-        </BookingErrorBoundary>
+        {state.step === 2 ? (
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() =>
+              openBooking({
+                mode: "bottom-sheet",
+                sourcePage,
+                sourceTrigger: "hero-embed",
+              })
+            }
+          >
+            Continue request →
+          </button>
+        ) : (
+          <BookingErrorBoundary>
+            <BookingForm
+              compact
+              sourcePage={sourcePage}
+              sourceTrigger="hero-embed"
+              initialServiceType={serviceType}
+            />
+          </BookingErrorBoundary>
+        )}
       </div>
     </section>
   );

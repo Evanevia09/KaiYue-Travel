@@ -25,6 +25,7 @@
     "RESEND_FROM": "Kai Yue Travel <notifications@example.invalid>",
     "RESEND_STAFF_TO": "ops@example.invalid",
     "RESEND_REPLY_TO": "",
+    "WHATSAPP_NUMBER": "+85328338882",
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
     "DEV_ADMIN_BYPASS": "true",

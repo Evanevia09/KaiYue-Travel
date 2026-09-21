@@ -6,6 +6,16 @@ type Props = {
   defaultType?: InquiryType;
 };
 
+function friendlyError(field: string, message: string) {
+  if (message.startsWith("Too small")) {
+    if (field === "name") return "Please enter your name.";
+    if (field === "phone") return "Please enter a phone number with country code.";
+    if (field === "message") return "Please add a little more detail (at least 10 characters).";
+  }
+  if (field === "privacyAccepted") return "Please acknowledge this is an inquiry.";
+  return message;
+}
+
 export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
   const [inquiryType, setInquiryType] = useState<InquiryType>(defaultType);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -24,7 +34,7 @@ export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
 
   return (
     <form
-      className="form"
+      className="form inquiry-form"
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
@@ -45,7 +55,8 @@ export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
         if (!parsed.success) {
           const next: Record<string, string> = {};
           for (const issue of parsed.error.issues) {
-            next[issue.path.join(".") || "form"] ??= issue.message;
+            const field = issue.path.join(".") || "form";
+            next[field] ??= friendlyError(field, issue.message);
           }
           setErrors(next);
           setStatus("error");
@@ -76,6 +87,35 @@ export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
           .catch(() => setStatus("error"));
       }}
     >
+      <div className="inquiry-form__row">
+        <div className="field">
+          <label htmlFor="name">Your name</label>
+          <input id="name" name="name" autoComplete="name" required />
+          {errors.name ? <p className="field-error">{errors.name}</p> : null}
+        </div>
+        <div className="field">
+          <label htmlFor="company">Company {inquiryType === "corporate" ? "" : "(optional)"}</label>
+          <input
+            id="company"
+            name="company"
+            autoComplete="organization"
+            required={inquiryType === "corporate"}
+          />
+          {errors.company ? <p className="field-error">{errors.company}</p> : null}
+        </div>
+      </div>
+      <div className="inquiry-form__row">
+        <div className="field">
+          <label htmlFor="phone">Phone</label>
+          <input id="phone" name="phone" autoComplete="tel" required />
+          {errors.phone ? <p className="field-error">{errors.phone}</p> : null}
+        </div>
+        <div className="field">
+          <label htmlFor="email">Email (optional)</label>
+          <input id="email" name="email" type="email" autoComplete="email" />
+          {errors.email ? <p className="field-error">{errors.email}</p> : null}
+        </div>
+      </div>
       <div className="field">
         <label htmlFor="inquiryType">Inquiry type</label>
         <select
@@ -91,27 +131,8 @@ export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
         </select>
       </div>
       <div className="field">
-        <label htmlFor="name">Name</label>
-        <input id="name" name="name" autoComplete="name" />
-        {errors.name ? <p className="field-error">{errors.name}</p> : null}
-      </div>
-      <div className="field">
-        <label htmlFor="phone">Phone</label>
-        <input id="phone" name="phone" autoComplete="tel" />
-        {errors.phone ? <p className="field-error">{errors.phone}</p> : null}
-      </div>
-      <div className="field">
-        <label htmlFor="email">Email (optional)</label>
-        <input id="email" name="email" type="email" autoComplete="email" />
-      </div>
-      <div className="field">
-        <label htmlFor="company">Company {inquiryType === "corporate" ? "" : "(optional)"}</label>
-        <input id="company" name="company" autoComplete="organization" />
-        {errors.company ? <p className="field-error">{errors.company}</p> : null}
-      </div>
-      <div className="field">
         <label htmlFor="message">How can we help?</label>
-        <textarea id="message" name="message" />
+        <textarea id="message" name="message" rows={3} required />
         {errors.message ? <p className="field-error">{errors.message}</p> : null}
       </div>
       <label className="field">
@@ -120,6 +141,7 @@ export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
           confirmed booking.
         </span>
       </label>
+      {errors.privacyAccepted ? <p className="field-error">{errors.privacyAccepted}</p> : null}
       <div className="hp" aria-hidden="true">
         <label htmlFor="website">Website</label>
         <input id="website" name="website" tabIndex={-1} autoComplete="off" />

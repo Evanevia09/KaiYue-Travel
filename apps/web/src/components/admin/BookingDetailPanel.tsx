@@ -53,13 +53,23 @@ export function BookingDetailPanel({ reference }: Props) {
         </p>
         <p>Pickup: {formatWhen(detail.booking.pickupAt)}</p>
         <p>
-          {detail.booking.contactName} · {detail.booking.phone}
+          {detail.booking.contactName || "No name provided"} ·{" "}
+          {detail.booking.phone || detail.booking.communicationChannel}
           {detail.booking.email ? ` · ${detail.booking.email}` : ""}
         </p>
+        <p>{detail.booking.passengerCount} passengers</p>
         <p>
-          {detail.booking.passengerCount} passengers
-          {detail.booking.notes ? ` · ${detail.booking.notes}` : ""}
+          <strong>Customer message</strong>
+          <br />
+          {detail.booking.message}
         </p>
+        {detail.booking.notes ? (
+          <p>
+            <strong>Booking notes</strong>
+            <br />
+            {detail.booking.notes}
+          </p>
+        ) : null}
         {next.length > 0 ? (
           <div>
             <h2>Update status</h2>
