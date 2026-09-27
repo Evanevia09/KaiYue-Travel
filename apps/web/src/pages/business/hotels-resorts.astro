@@ -4,7 +4,7 @@ import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
 import FeatureIcon from "../../components/content/FeatureIcon.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { business, organizationJsonLd } from "../../lib/business.ts";
+import { business, organizationJsonLd, telHref } from "../../lib/business.ts";
 import { site } from "../../lib/site.ts";
 
 const path = "/business/hotels-resorts";
@@ -20,6 +20,8 @@ const pageUrl = new URL(path, origin).toString();
   <PageHero
     eyebrow="Business"
     title="Hotel and resort programmes"
+    imageSrc="/images/illustrative/hotels-resorts-hero.jpg"
+    imageAlt="Illustrative hotel guests welcomed by a chauffeur beside a private vehicle"
     lede={`${site.legalName} is ${business.venetian}. Properties can request guest airport, inter-hotel, and Greater Bay Area dual-plate transfers with 7×24 dispatch.`}
   >
     <BusinessInquiry slot="inquiry" sourcePage={path} heading="Send a property inquiry" />
@@ -28,34 +30,39 @@ const pageUrl = new URL(path, origin).toString();
     <div class="wrap editorial-split">
       <div class="editorial-photo">
         <img
-          src="/images/hero-home.jpg"
+          src="/images/illustrative/hotels-resorts-feature.jpg"
           width="1024"
           height="576"
           loading="lazy"
-          alt="Guests welcomed beside a private vehicle at a Macau hotel"
+          alt="Illustrative hotel coordinator discussing guest arrivals with a chauffeur beside a private vehicle"
         /><span class="editorial-photo__label">Hospitality partners</span>
       </div>
       <div class="editorial-copy">
         <p class="kicker">For hospitality teams</p><h2 id="hotel-journeys">
           Guest journeys to coordinate
         </h2>
+        <p class="lede">
+          Property teams can discuss a recurring guest transport programme or a defined event. Kai
+          Yue Travel Group brings the group portfolio's premium vehicle capacity together with
+          Mingmen Tourism's 7×24 dispatch operation.
+        </p>
         <div class="feature-lines">
           <div>
             <span class="icon-frame"><FeatureIcon name="car" /></span><p>
-              <strong>Airport arrivals</strong><br />Share timing, meeting points, guest count, and
-              luggage needs.
+              <strong>Airport and checkpoint arrivals</strong><br />Share flight or crossing times,
+              meeting points, guest count, and luggage needs.
             </p>
           </div>
           <div>
             <span class="icon-frame"><FeatureIcon name="building" /></span><p>
-              <strong>Hotel movements</strong><br />Plan inter-hotel transfers and timed Macau
-              journeys.
+              <strong>Hotel and event movements</strong><br />Plan inter-hotel transfers, executive
+              reception, and timed journeys to meetings or venues.
             </p>
           </div>
           <div>
             <span class="icon-frame"><FeatureIcon name="route" /></span><p>
-              <strong>Regional transfers</strong><br />Ask about Macau–Mainland travel, subject to
-              route and vehicle review.
+              <strong>Regional transfers</strong><br />Discuss dual-plate Macau–Mainland journeys
+              for guests, subject to route and vehicle review.
             </p>
           </div>
         </div>
@@ -69,7 +76,11 @@ const pageUrl = new URL(path, origin).toString();
           <p class="kicker">Working together</p><h2 id="hotel-process">
             A programme shaped around the property
           </h2>
-        </div><p>A coordinator reviews scope and confirms any service arrangement separately.</p>
+        </div><p>
+          The group portfolio describes 200+ Alphard 40 Series vehicles, including cross-border
+          capacity. A coordinator confirms the available vehicle, route, and service terms for each
+          property programme.
+        </p>
       </div>
       <div class="process-grid process-grid--light">
         <article>
@@ -88,6 +99,11 @@ const pageUrl = new URL(path, origin).toString();
           ><h3>Journey types</h3><p>Outline arrival, local, or cross-border movements.</p>
         </article>
       </div>
+      <p class="business-contact">
+        Discuss a property programme at <a href={telHref(site.businessPhones[0])}
+          >{site.businessPhones[0]}</a
+        > or send an inquiry above. The form does not confirm a guest transfer or reserve a vehicle.
+      </p>
     </div>
   </section>
 </BaseLayout>

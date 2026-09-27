@@ -156,6 +156,38 @@ describe("POST /api/v1/bookings", () => {
     });
   });
 
+  it.each([
+    ["pt", "Pedido de reserva", "Serviço: Transfer do aeroporto", "Continue no WhatsApp"],
+    ["zh-Hant", "預約申請", "服務: 機場接送", "請透過 WhatsApp"],
+  ])(
+    "localizes the %s WhatsApp request and confirmation",
+    async (locale, heading, service, confirmation) => {
+      const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+      const response = await handleApi(
+        new Request("http://localhost/api/v1/bookings", {
+          method: "POST",
+          headers: { "content-type": "application/json", "idempotency-key": `whatsapp-${locale}` },
+          body: JSON.stringify(
+            bookingPayload({
+              locale,
+              sourcePage: `/${locale}/services/airport-transfer`,
+              communicationChannel: "whatsapp",
+              contactName: "",
+              phone: "",
+              email: "",
+            }),
+          ),
+        }),
+        env,
+      );
+      expect(response.status).toBe(201);
+      const body = (await response.json()) as { whatsappUrl: string; nextStep: string };
+      expect(decodeURIComponent(body.whatsappUrl)).toContain(heading);
+      expect(decodeURIComponent(body.whatsappUrl)).toContain(service);
+      expect(body.nextStep).toContain(confirmation);
+    },
+  );
+
   it("accepts an optional message and omits empty Message text from WhatsApp", async () => {
     const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
     const response = await handleApi(

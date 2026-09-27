@@ -2,7 +2,9 @@
 
 ## Goal and access
 
-The admin area is a small operational workspace, not a CRM. Cloudflare Access is the preferred identity gate for `/admin/*`. Admin API handlers must also verify Access identity/claims and restrict allowed users/groups according to an approved policy.
+The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*`. The current local development alternative uses Better Auth email/password sessions in D1, with an explicit `ADMIN_EMAILS` allowlist. Admin UI pages and API handlers both require a valid identity. Production access policy and operator provisioning still require owner review.
+
+Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. `TEMP_ADMIN_EXPIRES_AT` can close temporary local dashboard access at a fixed timestamp without deleting records or changing the secret. This does not provision a production operator or replace Cloudflare Access.
 
 ## Navigation
 
@@ -10,6 +12,7 @@ The admin area is a small operational workspace, not a CRM. Cloudflare Access is
 - **Bookings** — filterable list and detail.
 - **Calendar** — booking schedule.
 - **Contacts** — general/corporate inquiries.
+- **Drivers & vehicles** — staff-managed dispatch inventory and contact details.
 
 ## Dashboard
 
@@ -30,6 +33,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Filters: date range, status, service type; text lookup by exact/limited reference or approved customer fields.
 - Default sort: nearest relevant pickup first, with overdue/new items visibly flagged.
 - Pagination is server-side. Empty, loading, partial-error, and no-result states are distinct.
+- The implemented list uses a stable `(pickup_at, id)` cursor so equal pickup times are not skipped; the UI has Previous/Next controls and a total count.
 - Staff may add a booking enquiry manually from the bookings view. It uses the same server validation and idempotent persistence path as public enquiries.
 
 ## Calendar
@@ -39,6 +43,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Selecting an event opens booking detail.
 - Color is supplemented by label/icon. Cancelled bookings remain visible by default but visually de-emphasized.
 - The calendar reads booking data; drag-to-reschedule is out of scope for Release 1.
+- The implemented month view uses the React Calendar component with a day agenda. Pickup dates are grouped in Macau time.
 
 ## Booking detail
 
@@ -48,6 +53,8 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Status update constrained to valid transitions.
 - Internal notes and minimal audit history.
 - Notification state and safe retry if implemented.
+- Operators may edit journey and contact details, with validation and a revision check; edits record only changed field names in the audit trail, not personal data.
+- Operators may assign an active driver and vehicle together, or clear both. Vehicle capacity must cover the current passenger count. Availability and scheduling conflicts still require manual review.
 
 Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` available from active stages. Do not imply that status changes contact the customer unless a corresponding email workflow is explicitly implemented and shown before confirmation.
 
@@ -57,6 +64,13 @@ Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` ava
 - Detail: approved contact fields, original plain-text message, notes, and event history.
 - Status updates: `new` → `replied` → `closed`; reopening should be explicit and audited if supported.
 - Email client links may be provided, but full outbound messaging is outside Release 1.
+
+## Dispatch inventory
+
+- Driver records: name, phone, optional email and internal remarks, active/inactive flag.
+- Vehicle records: plate, make/model, passenger capacity, optional partner contact and internal remarks, active/inactive flag.
+- Contact details are visible only behind admin API authorization. No public driver or vehicle endpoints exist.
+- Changes are audited without copying contact values into the audit trail. Deactivation preserves existing bookings and does not delete records.
 
 ## Authorization and audit
 
@@ -75,6 +89,6 @@ Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` ava
 
 ## Not included
 
-Customer/driver accounts, dispatch board, driver assignment, live location, payments, invoices, bulk messaging, complex reporting, record deletion, and arbitrary booking-field edits.
+Customer/driver accounts, automated dispatch or conflict detection, live location, payments, invoices, bulk messaging, complex reporting, and record deletion.
 
 

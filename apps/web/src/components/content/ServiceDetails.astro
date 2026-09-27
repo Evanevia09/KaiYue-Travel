@@ -5,36 +5,25 @@ import type { ServiceRecord } from "../../lib/site.ts";
 type Props = { service: ServiceRecord };
 const { service } = Astro.props;
 const isHourly = service.serviceType === "hourly_charter";
-const isBusiness = service.slug === "corporate";
 ---
 
 <section class="section editorial-section" aria-labelledby="service-overview">
   <div class:list={["wrap", "editorial-split", { "editorial-split--reverse": isHourly }]}>
     <div class="editorial-photo">
       <img
-        src="/images/hero-vehicle.jpg"
+        src={service.featuredImage}
         width="860"
         height="400"
         loading="lazy"
-        alt="Kai Yue private vehicle in Macau"
+        alt={service.featuredImageAlt}
       />
-      <span class="editorial-photo__label"
-        >{isBusiness ? "Business travel" : isHourly ? "Time to move" : "Your journey"}</span
-      >
+      <span class="editorial-photo__label">{isHourly ? "Time to move" : "Your journey"}</span>
     </div>
     <div class="editorial-copy">
       <p class="kicker">
-        {isBusiness ? "Corporate service" : isHourly ? "By the hour" : "Point to point"}
+        {isHourly ? "By the hour" : "Point to point"}
       </p>
-      <h2 id="service-overview">
-        {
-          isBusiness
-            ? "Transport for your programme"
-            : isHourly
-              ? "Space for a changing itinerary"
-              : "A clear route, comfortably arranged"
-        }
-      </h2>
+      <h2 id="service-overview">{service.overviewHeading}</h2>
       <p class="lede">{service.intro}</p>
       <div class="feature-lines">
         {
@@ -58,16 +47,8 @@ const isBusiness = service.slug === "corporate";
   <div class="wrap">
     <div class="section-intro">
       <div>
-        <p class="kicker">{isHourly ? "Flexible time" : "What happens next"}</p><h2
-          id="service-process"
-        >
-          {
-            isBusiness
-              ? "Begin with your requirements"
-              : isHourly
-                ? "Plan the hours, then the stops"
-                : "From pickup to confirmation"
-          }
+        <p class="kicker">Journey ideas</p><h2 id="service-process">
+          {service.detailsHeading}
         </h2>
       </div><p>{service.description}</p>
     </div>
@@ -84,11 +65,7 @@ const isBusiness = service.slug === "corporate";
                 />
               </span>
               <span class="process-grid__number">0{index + 1}</span>
-              <h3>
-                {isHourly
-                  ? ["Choose a time block", "Share your route", "Review together"][index]
-                  : ["Tell us the route", "Add useful details", "Review together"][index]}
-              </h3>
+              <h3>{service.useCases[index]}</h3>
               <p>{item}</p>
             </>
           </article>

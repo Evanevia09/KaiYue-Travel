@@ -159,6 +159,7 @@ export async function handleAdminBookingsList(request: Request, env: AppEnv) {
   return {
     items: result.items.map(bookingToAdmin),
     nextCursor: result.nextCursor,
+    total: result.total,
   };
 }
 

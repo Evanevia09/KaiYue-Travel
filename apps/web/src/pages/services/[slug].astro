@@ -1,10 +1,10 @@
 ---
 import { BookingEmbedded } from "../../components/booking/BookingEmbedded.tsx";
-import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
 import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import ServiceDetails from "../../components/content/ServiceDetails.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { localeFromPath } from "../../lib/i18n.ts";
 import { services, site, type ServiceRecord } from "../../lib/site.ts";
 
 export function getStaticPaths() {
@@ -16,7 +16,7 @@ interface Props {
 }
 
 const { service } = Astro.props;
-const isBusinessService = service.slug === "corporate";
+const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 const path = `/services/${service.slug}`;
 const origin = Astro.site ?? site.url;
 const pageUrl = new URL(path, origin).toString();
@@ -57,14 +57,25 @@ const breadcrumbSchema = {
 <BaseLayout
   title={service.seoTitle}
   description={service.seoDescription}
-  bookingEnabled={!isBusinessService}
+  bookingEnabled={true}
   showMobileBook={false}
 >
   <JsonLd slot="head" data={[serviceSchema, breadcrumbSchema]} />
-  <PageHero eyebrow="Private chauffeur" title={service.h1} lede={service.summary}>
+  <PageHero
+    eyebrow="Private chauffeur"
+    title={service.h1}
+    lede={service.summary}
+    imageSrc={service.heroImage}
+    imageAlt={service.heroImageAlt}
+  >
     {
-      isBusinessService ? (
-        <BusinessInquiry slot="inquiry" sourcePage={path} heading="Ask about corporate transport" />
+      isLocalized ? (
+        <BookingEmbedded
+          slot="booking"
+          client:only="react"
+          sourcePage={Astro.url.pathname}
+          serviceType={service.serviceType}
+        />
       ) : (
         <BookingEmbedded
           slot="booking"

@@ -33,6 +33,7 @@ const SERVER_OPTIMIZE_DEPS = [
   "@astrojs/react/client.js",
   "@kaiyue/contracts",
   "resend",
+  "better-auth",
   "astro/logger/console",
   "astro/assets/services/noop",
 ];
@@ -97,6 +98,7 @@ export default defineConfig({
         "react/jsx-dev-runtime",
         "@astrojs/react/client.js",
         "@kaiyue/contracts",
+        "better-auth/react",
       ],
     },
   },

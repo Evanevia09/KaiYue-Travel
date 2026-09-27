@@ -3,7 +3,10 @@ import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
 import FeatureIcon from "../components/content/FeatureIcon.astro";
 import HeroBackdrop from "../components/content/HeroBackdrop.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { localeFromPath } from "../lib/i18n.ts";
 import { faqs, serviceGroups, site } from "../lib/site.ts";
+
+const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 ---
 
 <BaseLayout
@@ -13,7 +16,10 @@ import { faqs, serviceGroups, site } from "../lib/site.ts";
   showMobileBook={false}
 >
   <section class="hero hero--home">
-    <HeroBackdrop />
+    <HeroBackdrop
+      src="/images/illustrative/home-hero-family-v2.jpg"
+      alt="Illustrative family enjoying a Macau outing with a private vehicle behind them"
+    />
     <div class="hero__stage">
       <div class="hero__copy">
         <h1>Your reliable private chauffeur in Macau</h1>
@@ -22,7 +28,13 @@ import { faqs, serviceGroups, site } from "../lib/site.ts";
         </p>
       </div>
       <div class="hero-booking">
-        <BookingEmbedded client:load sourcePage="/" />
+        {
+          isLocalized ? (
+            <BookingEmbedded client:only="react" sourcePage={Astro.url.pathname} />
+          ) : (
+            <BookingEmbedded client:load sourcePage="/" />
+          )
+        }
       </div>
     </div>
   </section>
@@ -30,11 +42,11 @@ import { faqs, serviceGroups, site } from "../lib/site.ts";
     <div class="wrap editorial-split">
       <div class="editorial-photo">
         <img
-          src="/images/hero-vehicle.jpg"
+          src="/images/hero-home.jpg"
           width="860"
           height="400"
           loading="lazy"
-          alt="Kai Yue private vehicle parked in Macau"
+          alt="Family arriving beside a private vehicle"
         />
         <span class="editorial-photo__label">Private journeys · Macau</span>
       </div>

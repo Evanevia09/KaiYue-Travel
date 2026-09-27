@@ -9,23 +9,64 @@ type Props = {
 export function BookingsPanel({ initialStatus = "" }: Props) {
   const [status, setStatus] = useState(initialStatus);
   const [items, setItems] = useState<AdminBooking[] | null>(null);
+  const [page, setPage] = useState(0);
+  const [cursors, setCursors] = useState<Array<string | null>>([null]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const query = status ? `?status=${encodeURIComponent(status)}` : "";
-    void adminFetch<{ items: AdminBooking[] }>(`/api/v1/admin/bookings${query}`)
-      .then((data) => setItems(data.items))
+    let live = true;
+    const query = new URLSearchParams({ limit: "15" });
+    if (status) query.set("status", status);
+    if (cursors[page]) query.set("cursor", cursors[page]!);
+    setItems(null);
+    void adminFetch<{ items: AdminBooking[]; nextCursor: string | null; total: number }>(
+      `/api/v1/admin/bookings?${query}`,
+    )
+      .then((data) => {
+        if (live) {
+          setItems(data.items);
+          setNextCursor(data.nextCursor);
+          setTotal(data.total);
+          setError("");
+        }
+      })
       .catch((err: Error) => setError(err.message));
-  }, [status]);
+    return () => {
+      live = false;
+    };
+  }, [status, page, cursors]);
 
   return (
     <div>
-      <div className="filters">
+      <div className="admin-list-toolbar">
+        <div>
+          <p className="admin-eyebrow">Booking enquiries</p>
+          <h2>All requests</h2>
+          <p className="muted">Review journeys, assign resources and track progress.</p>
+        </div>
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={() => setShowCreate((value) => !value)}
+        >
+          {showCreate ? "Close form" : "+ Add booking"}
+        </button>
+      </div>
+      <div className="filters admin-filters">
         <label>
           Status{" "}
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
+          <select
+            value={status}
+            onChange={(event) => {
+              setStatus(event.target.value);
+              setPage(0);
+              setCursors([null]);
+            }}
+          >
             <option value="">All</option>
             <option value="enquiry">Enquiry</option>
             <option value="assigned">Assigned</option>
@@ -33,13 +74,9 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
             <option value="cancelled">Cancelled</option>
           </select>
         </label>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => setShowCreate((value) => !value)}
-        >
-          {showCreate ? "Close" : "+ Add booking"}
-        </button>
+        <span className="admin-results-count">
+          {total} {total === 1 ? "booking" : "bookings"}
+        </span>
       </div>
       {showCreate ? (
         <form
@@ -134,43 +171,100 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
       {items === null ? <p>Loading bookings…</p> : null}
       {items?.length === 0 ? <p>No bookings match these filters.</p> : null}
       {items && items.length > 0 ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Pickup</th>
-                <th>Journey</th>
-                <th>Guest</th>
-                <th>Service</th>
-                <th>Pax</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.reference}>
-                  <td>
-                    <a href={`/admin/bookings/${item.reference}`}>{item.reference}</a>
-                  </td>
-                  <td>{formatWhen(item.pickupAt)}</td>
-                  <td>
-                    {item.pickupLocation}
-                    {item.destination ? ` → ${item.destination}` : ""}
-                  </td>
-                  <td>{item.contactName || item.communicationChannel}</td>
-                  <td>
-                    {SERVICE_LABELS[item.serviceType as keyof typeof SERVICE_LABELS] ??
-                      item.serviceType}
-                  </td>
-                  <td>{item.passengerCount}</td>
-                  <td>
-                    <span className={`badge badge--${item.status}`}>{item.status}</span>
-                  </td>
+        <div className="admin-card admin-table-card">
+          <div className="table-wrap">
+            <table className="admin-bookings-table">
+              <thead>
+                <tr>
+                  <th>Booking</th>
+                  <th>Pickup</th>
+                  <th>Journey / service</th>
+                  <th>Customer</th>
+                  <th>Dispatch</th>
+                  <th>Status</th>
+                  <th>
+                    <span className="sr-only">Open</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.reference}>
+                    <td>
+                      <a className="admin-reference" href={`/admin/bookings/${item.reference}`}>
+                        {item.reference}
+                      </a>
+                    </td>
+                    <td>
+                      <strong>{formatWhen(item.pickupAt)}</strong>
+                      <small>
+                        {item.passengerCount}{" "}
+                        {item.passengerCount === 1 ? "passenger" : "passengers"}
+                      </small>
+                    </td>
+                    <td>
+                      <strong>{item.pickupLocation}</strong>
+                      <small>→ {item.destination || "Hourly service"}</small>
+                      <small>
+                        {SERVICE_LABELS[item.serviceType as keyof typeof SERVICE_LABELS] ??
+                          item.serviceType}
+                      </small>
+                    </td>
+                    <td>
+                      <strong>{item.contactName || "Unnamed customer"}</strong>
+                      <small>{item.phone || item.email || item.communicationChannel}</small>
+                    </td>
+                    <td>
+                      {item.driverId && item.vehicleId ? (
+                        <span className="admin-dispatch-ready">Driver + car assigned</span>
+                      ) : (
+                        <span className="admin-dispatch-pending">Not assigned</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`badge badge--${item.status}`}>{item.status}</span>
+                    </td>
+                    <td>
+                      <a
+                        className="admin-row-link"
+                        href={`/admin/bookings/${item.reference}`}
+                        aria-label={`Open ${item.reference}`}
+                      >
+                        View →
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="admin-pagination">
+            <span>
+              Showing {page * 15 + 1}–{page * 15 + items.length} of {total}
+            </span>
+            <div>
+              <button
+                className="btn btn--secondary"
+                disabled={page === 0}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </button>
+              <span>Page {page + 1}</span>
+              <button
+                className="btn btn--secondary"
+                disabled={!nextCursor}
+                onClick={() => {
+                  if (nextCursor) {
+                    setCursors([...cursors.slice(0, page + 1), nextCursor]);
+                    setPage(page + 1);
+                  }
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

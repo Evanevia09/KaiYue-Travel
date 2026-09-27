@@ -1,9 +1,31 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-09-21
+**Last updated:** 2026-09-27
 **Phase:** 2–3 — booking/API completion and lightweight admin workflow
-**Overall status:** Two-channel booking enquiry workflow and operator UI implemented in-repo; not deployed or connected to real Cloudflare/Resend services.
-**Current objective:** Finish local responsive/interaction validation of the refreshed public pages and booking/admin flows, then provision non-production D1, Resend, and Access for an end-to-end environment.
+**Overall status:** Two-channel booking enquiry workflow and expanded operator UI implemented in-repo; a temporary local dashboard login is verified. Nothing is deployed or connected to real Cloudflare/Resend services.
+**Current objective:** Finish visual/interaction validation of the expanded admin pages, then agree a production access policy and provision non-production D1, Resend, and Access for an end-to-end environment.
+
+Public localization (2026-09-27): English public routes now have Portuguese (`/pt`, `pt-PT`) and Traditional Chinese (`/zh-Hant`) counterparts across Home, About, Contact, FAQ, legal drafts, booking confirmation, six service pages, and three B2B pages. The language switch keeps the page context; public metadata, navigation, booking/inquiry forms, feedback, date display, API booking confirmation, and prepared WhatsApp requests are localized. Form submissions carry the selected locale and source path. Protected admin pages remain outside scope. Mobile browser checks passed for representative pages and forms, including mocked contact submission in both added locales. The isolated admin-session test now sets its own temporary expiry, so local `.dev.vars` cannot make that test fail after the real local access expires. The full `pnpm run ci` gate passed: formatting, type checking, 43 tests, and production build. Draft translation wording, especially B2B facts and legal text, needs native-language and business-owner review before any production publication. No deployment was made.
+
+About voice refinement (2026-09-27): public `/about` copy now uses a more natural company voice after the initial first-person pass repeated `we` and `our` too often. Company and partner names, sentence fragments, and selective first-person phrasing provide variety. Source and verification notes remain in project documentation. This is a local copy change, not a new approval of the underlying business claims.
+
+About portfolio expansion (2026-09-27): `/about` now presents the Macau company story and milestones, four service/partner areas, the three alliance roles, group-level business mobility and operating area, service philosophy, and a closing inquiry form. The page uses the owner-directed group portfolio while distinguishing Macau consumer travel from B2B Macau–Mainland programmes. Current fleet scale, routes, dispatch hours, and alliance roles still require business-owner reconfirmation before production publication. No deployment was made.
+
+Public-route cleanup (2026-09-27): the six footer-linked service routes are the only generated `/services/[slug]` pages. Five older service records that were absent from the footer and header have been removed. Home, About, Contact, FAQ, Privacy, Terms, the three B2B pages, and functional routes remain. The image set follows the current footer-linked service and B2B page list.
+
+Illustrative Home/service/B2B images (2026-09-27): the six footer-linked service pages and three B2B Solution pages each have a generated hero and featured image; Home uses a generated family-focused hero and reuses the existing About story image in its main section. The Local Chauffeur hero was replaced by a rear-passenger view of the driver. The user-supplied Alphard 40 Series photos guided body shape; generated exterior scenes use ordinary factory-style wheels. The AI-generated scenes are illustrative drafts, not evidence of actual Kai Yue vehicles, people, partners, or trips. Other public pages retain their existing photography. The image set and its scene briefs are documented in `docs/10-illustrative-image-set.md`; business-owner image-use approval remains a publication gate.
+
+Home featured-image revision (2026-09-27): after reviewing a generated front-cabin draft, the user chose to reuse the existing About story image for the Home main section. The generated draft remains unused locally. No production deployment was made.
+
+Service copy refinement (2026-09-27): metadata, hero summaries, overviews, and detail cards across the service routes now describe each journey and its use cases rather than repeating review/confirmation language. Booking-status explanations remain in the booking flow and relevant FAQs. Service claims remain limited to the current Macau-first scope and known service boundaries.
+
+Mobile navigation refinement (2026-09-27): the mobile dropdown is a contained dark glass panel with clearer expandable service/Business groups, active states, and an About Us link in place of Contact Us. The desktop navigation and footer links remain in their existing locations.
+
+B2B content enrichment (2026-09-27): the corporate, travel-agency, and hotels/resorts pages now give fuller programme context from the owner-directed group portfolio while retaining one inquiry form and two detail sections per page. Current fleet scale, routes, hours, B2B contact ownership, alliance roles, and the Venetian relationship still require business-owner reconfirmation before production publication.
+
+Temporary dashboard access (2026-09-21): a local-only Better Auth operator account was created in the development D1 database and allowlisted through ignored `.dev.vars`. The one-time setup token was removed. `TEMP_ADMIN_EXPIRES_AT` closes this local access after 24 hours (2026-09-22 10:58 UTC / 18:58 Macau); the record remains until explicitly removed. The in-app browser showed the authenticated `/admin` dashboard with loaded KPI cards and booking links. No production account, credential, or policy was changed.
+
+Admin dispatch update (2026-09-21): bookings now have a redesigned paginated table, editable journey/contact fields, explicit status controls, and driver/vehicle assignment. The calendar uses React Calendar with a daily agenda. A protected Drivers & vehicles inventory page stores contact details, active state, and capacity. Migration `0003_dispatch_inventory.sql` was applied to the local development D1 only; it has not been applied remotely. Assignment validates active records and passenger capacity, but does not detect schedule conflicts or send driver/customer notifications. Browser automation could not load its request-header policy, so visual interaction QA of these changes remains open; local route/API smoke checks, typecheck, tests, and build are the current verification boundary.
 
 Language/menu refinement (2026-09-21): the header language control and its menu now use subtler rounded corners and translucent backgrounds. English remains the only functioning locale. Português and 繁體中文 appear as clearly unavailable, coming-soon options rather than linking to English content. The redundant “Macau · Quote after review · Human confirmation” line was removed beneath Home and consumer-service hero booking forms. Translating and publishing the two additional locales remains open.
 
@@ -40,7 +62,7 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
 - Astro + React islands is the frontend approach.
 - Cloudflare Workers + D1 is the backend/data approach. Pages is not used.
 - Resend is intended for transactional notifications; missing keys stub delivery and still persist the request.
-- Admin scope is dashboard snapshot, bookings, calendar, and contacts.
+- Admin scope is dashboard snapshot, bookings, calendar, contacts, and staff-managed dispatch inventory/assignments.
 - Cloudflare Access is preferred for admin protection; the Worker also checks identity.
 - GitHub is the versioning and deployment source of truth.
 - Booking submission creates a request awaiting human confirmation.
@@ -131,6 +153,82 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-09-27 — Reuse About story image on Home
+
+- Changed: reused `/images/hero-home.jpg`, the existing About story image, for the Home main section and aligned its alt text and image manifest. The generated front-cabin draft was rejected by the user and is not referenced by any page.
+- Decision/evidence: the user's direct correction to use the image currently featured on About. Current About source confirms that its main editorial section uses `/images/hero-home.jpg`.
+- Verified: `pnpm build` and focused Prettier checks passed. Both built Home and About HTML contain `/images/hero-home.jpg`, the image is present in the build, and the rejected generated draft is absent from built Home HTML. `git diff --check` passed for the changed tracked files.
+- Open: image-use review before publication. No deployment was performed.
+
+### 2026-09-27 — Home family images and Local Chauffeur interior hero
+
+- Changed: added a back-seat view toward the driver for the Local Chauffeur hero; added a family-focused Home hero and Home featured image with the Alphard behind the family. Wired the new assets into their pages and the Home social preview, adjusted desktop Home image positioning so the family remains clear of the centered heading, and updated the image manifest. Earlier assets remain in place for review.
+- Decision/evidence: direct user request for these three images, with the supplied Alphard 40 Series body references and ordinary factory-style wheels on exterior scenes. The Home hero was revised once after a desktop screenshot showed the first composition obscuring a family member.
+- Verified: generated images visually inspected; desktop Chrome screenshots at 1440×900 showed the revised Home family, headline, vehicle, and booking form visible, and showed the Local Chauffeur back-seat driver view behind legible page content. The three new JPEGs were confirmed in the final local build and their paths in built page HTML. `pnpm typecheck` passed with 0 errors and 0 warnings (one unrelated deprecation hint); `pnpm build`, focused Prettier checks for page/code/docs, and `git diff --check` passed. The full CSS file still has unrelated pre-existing admin styles that Prettier would reformat; that formatting was left untouched.
+- Open: visual review by the business owner, especially vehicle/landmark fidelity and permission to publish illustrative images. Mobile visual layout was not checked in this pass. No production deployment was performed.
+
+### 2026-09-27 — Generate and wire 18 service/B2B images
+
+- Changed: generated one page-specific hero and one main-section image for each of the six footer-linked service pages and three B2B Solution pages. Added optimized JPEGs under `apps/web/public/images/illustrative/`, wired their paths and descriptive illustrative alt text into the page templates, and recorded the shared constraints and scene briefs in `docs/10-illustrative-image-set.md`.
+- Decision/evidence: direct user request for 18 images after reviewing the current footer-linked page set, plus user-supplied Alphard 40 Series body references and instruction to use normal wheels rather than the references' modified wheels.
+- Verified: all 18 outputs were visually inspected; `pnpm typecheck` had 0 errors and 0 warnings (one unrelated deprecation hint), `pnpm build` passed, and built HTML for each of the nine target pages contains exactly its two expected image URLs. All 18 image files are present in the build (5,629,238 bytes total). Local HTTP checks returned 200 for all nine pages and two sample image files. Focused Prettier and `git diff --check` passed. Desktop headless Chrome screenshots at 1440×900 showed the Airport Transfer and Corporate Solutions hero text and forms legible over their new backgrounds.
+- Not verified or follow-up: mobile screenshots from headless Chrome were clipped by its minimum viewport behavior and are not a valid mobile layout check. Real vehicle fidelity, landmark accuracy, image-use approval, and the three B2B commercial relationships require owner review before publication. No production deployment was performed.
+
+### 2026-09-27 — Balance About page voice
+
+- Changed: revised repetitive `we`/`our` phrasing across the hero, history, service cards, alliance, business mobility, and values. Kept selected first-person language and used names or service-led wording where it reads more naturally. Updated the content voice guidance.
+- Decision/evidence: direct user feedback on the initial first-person pass. Business scope, group capacity qualifications, and contact form were not changed.
+- Verified: local `/about` renders the revised hero and philosophy text, omits the earlier repetitive values sentence, and retains one contact form. Focused Prettier check passed; `pnpm check` reported 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint), and `pnpm build` generated `/about`. No deployment in scope.
+
+### 2026-09-27 — First-person About copy
+
+- Changed: rewrote third-person narration on `/about` to the company's first-person voice, including the hero, history, four portfolio cards, alliance roles, business footprint, philosophy, metadata, and contact heading. Added the voice rule to the content guide.
+- Decision/evidence: direct user request for `we` and `our` language; current About page and owner-directed business reference. The Macau consumer versus group B2B distinction and journey-specific vehicle/route qualification remain.
+- Verified: local rendered `/about` contains the first-person hero and philosophy copy, omits `The group portfolio describes`, and has one contact form. `pnpm check` reported 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `pnpm build` generated `/about`.
+- Follow-up: owner reconfirmation of group capacity, covered routes, dispatch hours, and alliance descriptions is still needed before production publication. No deployment in scope.
+
+### 2026-09-27 — About company portfolio
+
+- Changed: expanded `/about` from a short story/process page into a company portfolio with history, service areas, alliance roles, B2B coverage and scenarios, service philosophy, and a closing contact form. Updated its search description and the UX/content guides.
+- Decision/evidence: user asked for a full company portfolio with as many sections as needed; content follows the owner-directed group profile and current six service routes. Avoided historical case studies, Hong Kong coverage, licence numbers, and numerical service-level promises.
+- Verified: `pnpm check` reported 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `pnpm build` generated `/about`; local HTTP returned 200. Chrome at 1440 and emulated 390 px showed 7 sections, one inquiry form, four portfolio cards, three alliance cards, legible hero actions, and no mobile horizontal overflow. `git diff --check` passed.
+- Follow-up: business owner should reconfirm group capacity, covered routes, dispatch hours, and alliance descriptions before production publication. Existing photograph usage rights still need verification. No deployment in scope.
+
+### 2026-09-27 — Retire service pages absent from the footer
+
+- Changed: removed `/services/hotel-transfer`, `/services/point-to-point`, `/services/hourly-charter`, `/services/sightseeing`, and `/services/corporate` from the generated service routes, plus their stale related-service references and the retired corporate-service inquiry branch. Updated the information architecture and design guide.
+- Decision/evidence: user supplied the current footer as the public page list. Its Services column links only Airport Transfer, Cross Border Rides, Local Transfers, Local Chauffeur, Weddings, and City Tours.
+- Verified: `pnpm typecheck` completed with 0 errors and 0 warnings; `pnpm build` generated exactly the six footer-linked service paths; local HTTP checks returned 200 for those six paths and 404 for each retired path. Focused Prettier and `git diff --check` passed. `pnpm test` passed 38/39; the unrelated admin-session test failed because local temporary admin access expired on 2026-09-22.
+- Next action: plan two page-specific images for each of the 12 currently wired photographic public pages (Home, six service pages, three B2B pages, About, Contact), then generate after review.
+
+### 2026-09-27 — Service-specific copy and search descriptions
+
+- Changed: rewrote service metadata descriptions, hero summaries, overview copy, section headings, and three detail cards for each published service route. Replaced the repeated review/confirmation process cards with concrete journey scenarios. Updated the content guide.
+- Decision/evidence: direct user feedback that repetitive review language did not explain the service or help search relevance; current service definitions and business-content boundaries.
+- Verified: all 11 local service routes returned HTTP 200 with distinct service headings and metadata descriptions; none of those descriptions contained `review`, `confirm`, or `human`, and none rendered a `Review together` card. Local-transfer and hotel-transfer metadata were rechecked after the final copy edit. `astro check` reported 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `astro build`, focused Prettier check, and `git diff --check` passed.
+- Not verified or follow-up: search ranking outcomes, physical-device reading, and business-owner validation of any future service expansions; no deployment in scope.
+
+### 2026-09-27 — Mobile navigation dropdown refinement
+
+- Changed: restyled the mobile menu trigger and dropdown to match the dark glass header navigation, improved group and selected-page states, and replaced the mobile Contact Us link with About Us. Updated the UX and navigation guides.
+- Decision/evidence: direct user request; existing site tokens and desktop navigation styling.
+- Verified: Chrome mobile viewport screenshots at 390 px (home with Point To Point submenu expanded) and 320 px (`/about`) showed the dark dropdown within the viewport with no horizontal page overflow. The 320 px page marked About Us current; rendered home, About, and Corporate routes had three groups, one About Us link, and no mobile Contact Us link. `astro check` reported 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `astro build`, focused Prettier check, and `git diff --check` passed.
+- Not verified or follow-up: physical-device touch and screen-reader interaction; no deployment in scope.
+
+### 2026-09-27 — Richer B2B programme information
+
+- Changed: expanded corporate service scenarios and alliance roles; added agency and hospitality journey examples, portfolio capacity context, B2B contact links, and explicit human review language across the three business pages. Updated the content guide.
+- Decision/evidence: owner-directed 2026-09-17 group-portfolio direction in `BUSINESS_INFORMATION.md`, the translated group portfolio, and the user's request for richer B2B information. The three pages still have one inquiry form and two supporting sections each.
+- Verified: all three local B2B routes returned HTTP 200 and contained the expected new content, one inquiry form, and two supporting sections. `astro check` reported 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `astro build`, focused Prettier check, and `git diff --check` passed.
+- Not verified or follow-up: responsive visual and physical-device review, plus business-owner reconfirmation of current operational and commercial claims before production publication; no deployment in scope.
+
+### 2026-09-27 — Public logo updated from owner-supplied image
+
+- Changed: copied the supplied transparent PNG into the public image assets and used it for the public header and footer logo links. The site logo reference now points to that asset; responsive CSS sets its display size.
+- Decision/evidence: direct user request and supplied `New Project (4).png` image. The copied file matches the source hash.
+- Verified: local home page and PNG both returned HTTP 200; the page contains two references to the new asset. `astro check` reported 0 errors and 0 warnings, with one unrelated deprecated `FormEvent` hint.
+- Not verified or follow-up: visual viewport inspection could not be completed in this run. The favicon and operator workspace branding still use their existing assets; no deployment was performed.
 
 ### 2026-09-21 — Language menu styling and hero booking cleanup
 
@@ -398,6 +496,13 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Decision/evidence: direct user request on 2026-09-21. The configured WhatsApp number currently uses the source-listed B2C number `+853 2833 8882` and still requires owner confirmation that it is WhatsApp-enabled.
 - Verified: `pnpm typecheck` clean; `pnpm test` 32/32; `pnpm build` successful. Migration tests apply both migrations to a fresh in-memory database. Applied migration `0002` to the local Wrangler D1 store. Live browser pass: desktop header action, mobile 390px date picker from the bottom edge, mobile Journey → Communication sheet, WhatsApp/Email tabs and required Email fields, dashboard KPI/recent-enquiry layout, migrated `enquiry` labels, filters, and manual booking/remarks form. No browser console errors. Resend remains safely skipped without a key.
 - Not verified or follow-up: real WhatsApp destination ownership; real Resend domain/sender/recipient and actual email delivery; remote Cloudflare D1/Access; deployment. Repository-wide `pnpm lint` still reports pre-existing formatting drift outside the files changed for this feature.
+
+### 2026-09-21 — Temporary local dashboard login
+
+- Changed: provisioned one local-only Better Auth operator account in D1, configured its secret and allowlist in ignored `.dev.vars`, removed the one-time setup token, and set a 24-hour access cutoff. The admin middleware now imports the Worker environment only for admin requests so static prerendering still builds in Node.
+- Decision/evidence: direct user request to show the dashboard with a temporary login. Cloudflare Access remains the preferred production gate; this does not authorize production provisioning.
+- Verified: local auth migration already applied; fresh sign-in returned 200, `/admin` and protected summary API returned 200, and the in-app browser displayed loaded dashboard KPIs and recent bookings. Full tests passed (39/39), strict typecheck and production build passed, and targeted formatting and `git diff --check` passed.
+- Not verified or follow-up: production Access policy and offboarding, remote D1 and Resend, physical-device admin UX. The local account record persists after its access cutoff until explicitly removed.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 

@@ -1,5 +1,6 @@
 ---
 import { ContactForm } from "./ContactForm.tsx";
+import { localeFromPath } from "../../lib/i18n.ts";
 
 type Props = {
   sourcePage: string;
@@ -7,9 +8,16 @@ type Props = {
 };
 
 const { sourcePage, heading = "Request a programme" } = Astro.props;
+const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 ---
 
 <div class="card" id="inquiry">
   <h2>{heading}</h2>
-  <ContactForm client:load sourcePage={sourcePage} defaultType="corporate" />
+  {
+    isLocalized ? (
+      <ContactForm client:only="react" sourcePage={Astro.url.pathname} defaultType="corporate" />
+    ) : (
+      <ContactForm client:load sourcePage={sourcePage} defaultType="corporate" />
+    )
+  }
 </div>

@@ -28,6 +28,6 @@
     "WHATSAPP_NUMBER": "+85328338882",
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
-    "DEV_ADMIN_BYPASS": "true",
+    "DEV_ADMIN_BYPASS": "false",
   },
 }

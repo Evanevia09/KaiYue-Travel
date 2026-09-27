@@ -6,12 +6,12 @@ The public site’s visual source of truth is the Transfeero-inspired booking-fi
 
 ## Design tokens
 
-Final brand values still require owner approval. Current public-site tokens are derived from the Transfeero-inspired direction and are not a substitute for that approval.
+The owner specified `#f3a600` for the website accent and section kickers on 2026-09-27. Other final brand values still require owner approval.
 
 ```css
 :root {
   --color-brand: #111111;
-  --color-accent: #d4af37;
+  --color-accent: #f3a600;
   --color-surface: #ffffff;
   --color-surface-muted: #f6f6f7;
   --color-surface-dark: #0b0b0d;
@@ -38,18 +38,18 @@ Final brand values still require owner approval. Current public-site tokens are 
 - Use Inter / Noto Sans TC with system fallbacks; limit the weight set. Hero headlines are bold white sans-serif, not teal.
 - Use a consistent 4 px spacing base and restrained corner radius/shadow scale.
 - Meet WCAG 2.2 AA contrast. Color never carries status alone.
-- Gold is reserved for the logo mark and small highlights. Primary actions are black or white, not gold.
+- The specified orange accent is used for section kickers and small highlights; the logo retains its own artwork. Primary actions remain black or white.
 - Standard action buttons and booking-flow choices use consistent softly rounded rectangular corners; the selected communication channel uses the black primary-action color with white text. Calendar day markers remain circular.
 
 ## Page layout
 
-- **Header:** overlay on the hero with no bar background, sitting in front of the photograph and spanning the viewport (logo left, pill nav center, language + General Enquiry right). Wordmark is **Kai Yue** plus a gold geometric mark. Desktop has dark glass service/Business navigation, a subtly rounded translucent globe language control, and a WhatsApp General Enquiry action. Mobile replaces that action with the language control and includes Contact Us in the menu. English is the only live locale; Portuguese and Traditional Chinese are visible but unavailable until translated routes exist. Booking is not repeated in the header.
-- **Heroes:** home and consumer service pages use the photographic booking hero and the same embedded Journey component; the service page changes copy and may preset the service type. Corporate Service, B2B, Contact, and About have a two-column desktop hero with copy beside one inquiry form, stacked on mobile. FAQ, Privacy, Terms, and the account notice use plain content without a photographic hero or form.
+- **Header:** overlay on the hero with no bar background, sitting in front of the photograph and spanning the viewport (logo left, pill nav center, language + General Enquiry right). The public header and footer use the owner-supplied Kai Yue Travel Group logo image. Desktop has dark glass service/Business navigation, a subtly rounded translucent globe language control, and a WhatsApp General Enquiry action. Mobile replaces that action with the language control and uses a contained dark glass menu with expandable service and Business groups plus an About Us link. English, Macau Portuguese (`pt-PT`), and Traditional Chinese (`zh-Hant`) are selectable on public pages. Booking is not repeated in the header.
+- **Heroes:** home and the six footer-linked consumer service pages use the photographic booking hero and the same embedded Journey component; the service page changes copy and may preset the service type. Corporate Solutions, the other B2B pages, and Contact have a two-column desktop hero with copy beside one inquiry form, stacked on mobile. About uses a photographic, story-led hero with section links and places its single inquiry form at the end of the portfolio. FAQ, Privacy, Terms, and the account notice use plain content without a photographic hero or form.
 - **Desktop home hero:** full-bleed background; centered copy; Point to point / By the Hour toggle left-aligned above the booking bar. Point to point shows From / To / date / add return / passengers / Get a quote. By the Hour shows Location / pickup date / duration (2–12 hours, default 2) / passengers / Get a quote (no destination, no return). The bar is about 64rem (68rem with return), not full-bleed. The ride-type toggle keeps at least 4px inner padding around the selected chip. Nav and booking-bar type are smaller than body copy. Do not show a redundant trust/status line beneath the widget.
 - **Mobile homepage:** stacked copy then the same booking card over the full-bleed hero. Point to point puts **Add return** on its own row under the pickup date. No persistent bottom booking bar on the homepage.
 - **Other mobile pages:** a compact header; only booking-enabled consumer service pages may show a persistent bottom booking CTA. Inquiry and informational pages do not mount the booking sheet.
 - **Content sections:** consumer service and inquiry pages use at most two page-specific sections below the hero. Home is the exception: an image-led introduction, separate Point To Point and By The Hour service cards, a request process, and a FAQ preview. FAQ and legal pages use plain content.
-- **Inquiry form:** one compact hero card on Contact, About, and B2B pages. Pair name/company and phone/email where the card has enough width; inquiry type, message, acknowledgement, and submit remain full width. Keep group phones, hours, and operational caveats out of the form card. At very narrow widths the paired fields stack.
+- **Inquiry form:** one compact hero card on Contact and B2B pages; About places its single card in the closing contact section. Pair name/company and phone/email where the card has enough width; inquiry type, message, acknowledgement, and submit remain full width. Keep group phones, hours, and operational caveats out of the form card. At very narrow widths the paired fields stack.
 - **Supporting visuals:** use the existing local Macau/vehicle photographs and small inline icons for service and programme explanations; retain a text equivalent for every icon. Image rights remain a launch gate.
 - **Footer:** dark background with service links, Company (About Us, Contact, FAQ, Privacy, Terms), B2B Solution (Hotels & Resorts, Travel Agency, Corporate Solutions), phone/address by the brand, legal name, and a note that B2C bookings are Macau quote-after-review while B2B pages follow the group portfolio.
 

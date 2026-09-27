@@ -2,10 +2,10 @@
   --color-brand: #111111;
   --color-brand-strong: #000000;
   --color-brand-soft: #f4f4f5;
-  --color-accent: #d4af37;
-  --color-accent-strong: #c9a227;
-  --color-accent-soft: #fff6e0;
-  --color-accent-text: #8a6d12;
+  --color-accent: #f3a600;
+  --color-accent-strong: #a46500;
+  --color-accent-soft: #fff2d8;
+  --color-accent-text: #805300;
   --color-surface: #ffffff;
   --color-surface-muted: #f6f6f7;
   --color-surface-dark: #0b0b0d;
@@ -117,9 +117,14 @@ a {
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
   text-decoration: none;
   flex: 0 0 auto;
+}
+
+.logo-image {
+  display: block;
+  width: clamp(8rem, 19vw, 13rem);
+  height: auto;
 }
 
 .logo-mark {
@@ -233,10 +238,14 @@ a {
   color: white;
 }
 
-/* Mobile submenus are collapsed by default (they are `<details>` elements with
-   no `open` attribute) and reveal with a short drop-in when expanded. */
 .mobile-nav__group {
+  border: 1px solid transparent;
   border-radius: 0.85rem;
+}
+
+.mobile-nav__group[open] {
+  border-color: rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 5%);
 }
 
 .mobile-nav__toggle {
@@ -244,14 +253,12 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  min-height: 48px;
-  padding: 0.6rem 0.85rem;
-  border-radius: 0.7rem;
-  color: rgb(255 255 255 / 78%);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  min-height: 52px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 650;
   cursor: pointer;
   list-style: none;
 }
@@ -261,24 +268,32 @@ a {
 }
 
 .mobile-nav__toggle::after {
-  content: "▾";
+  content: "";
   flex: 0 0 auto;
-  font-size: 0.85rem;
-  line-height: 1;
-  opacity: 0.7;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.75;
   transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .mobile-nav__group[open] > .mobile-nav__toggle::after {
-  transform: rotate(180deg);
+  transform: rotate(225deg);
+}
+
+.mobile-nav__toggle.is-current {
+  color: var(--color-accent);
 }
 
 .mobile-nav__submenu {
   display: grid;
-  gap: 0.15rem;
-  margin: 0 0 0.4rem 0.5rem;
-  padding: 0.1rem 0 0.35rem 0.5rem;
-  border-left: 1px solid rgb(255 255 255 / 12%);
+  gap: 0.1rem;
+  margin: 0 0.45rem 0.45rem;
+  padding: 0.3rem;
+  border-radius: 0.65rem;
+  background: rgb(0 0 0 / 18%);
 }
 
 .mobile-nav__group[open] > .mobile-nav__submenu {
@@ -414,9 +429,10 @@ a {
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 0;
+  border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 0.9rem;
-  background: rgb(255 255 255 / 92%);
+  background: rgb(18 18 20 / 76%);
+  backdrop-filter: blur(16px);
   cursor: pointer;
   list-style: none;
 }
@@ -429,7 +445,7 @@ a {
   display: block;
   width: 1.05rem;
   height: 2px;
-  background: #111;
+  background: white;
   border-radius: 99px;
 }
 
@@ -442,41 +458,49 @@ a {
 }
 
 .mobile-nav__panel {
-  /* Fixed to the viewport, not to .header-actions (which is position: relative
-     and only as wide as the right-hand header cluster). Anchoring it there made
-     the open menu a narrow column pinned to the right edge. */
   position: fixed;
-  left: 0;
-  right: 0;
-  top: var(--header-height);
+  right: 0.75rem;
+  top: calc(var(--header-height) - 0.2rem);
   z-index: 55;
-  /* Long menus (submenu groups + actions) must scroll instead of running off
-     the bottom of the screen on short viewports. */
-  max-height: calc(100vh - var(--header-height));
-  max-height: calc(100dvh - var(--header-height));
+  width: min(24rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - var(--header-height) - 0.55rem);
+  max-height: calc(100dvh - var(--header-height) - 0.55rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  /* The panel is translucent like the desktop nav pill, so it needs the same
-     backdrop blur — without it the hero's booking bar ghosts through the menu. */
-  background: rgb(12 12 14 / 92%);
-  backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgb(255 255 255 / 8%);
-  padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: rgb(18 18 20 / 96%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgb(255 255 255 / 13%);
+  border-radius: 1rem;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 32%);
+  padding: 0.45rem 0.45rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
   display: grid;
-  gap: 0.25rem;
+  gap: 0.1rem;
 }
 
 .mobile-nav__panel a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   text-decoration: none;
-  padding: 0.7rem 0.85rem;
-  border-radius: 0.7rem;
-  color: white;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.6rem;
+  color: rgb(255 255 255 / 82%);
+  font-size: 0.9rem;
 }
 
 .mobile-nav__panel a[aria-current="page"],
 .mobile-nav__panel a:hover {
-  background: rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 11%);
+  color: white;
+}
+
+.mobile-nav__panel .mobile-nav__about {
+  margin-top: 0.35rem;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 0 0 0.6rem 0.6rem;
+  color: white;
+  font-weight: 650;
 }
 
 /* Panel drops in from under the header; the toggle morphs into a close mark. */
@@ -605,6 +629,12 @@ a {
   height: 100%;
   object-fit: cover;
   object-position: 58% 42%;
+}
+
+@media (min-width: 1024px) {
+  .hero--home .hero__bg img {
+    object-position: 0% 42%;
+  }
 }
 
 .hero__bg::after {
@@ -1805,6 +1835,11 @@ a {
   padding: 4.5rem 0;
 }
 
+html[lang="pt-PT"] astro-island[ssr],
+html[lang="zh-Hant"] astro-island[ssr] {
+  visibility: hidden;
+}
+
 .section--muted {
   background: var(--color-surface-muted);
 }
@@ -1888,6 +1923,11 @@ a {
 .feature-lines p {
   margin: 0;
   line-height: 1.55;
+}
+
+.feature-lines__copy h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
 }
 
 .icon-frame {
@@ -1978,7 +2018,7 @@ a {
 .journey-card li a:focus-visible,
 .text-link:hover,
 .text-link:focus-visible {
-  color: #977328;
+  color: var(--color-accent-strong);
 }
 
 .process-grid article {
@@ -2007,6 +2047,227 @@ a {
 
 .process-grid--light p {
   color: var(--color-text-muted);
+}
+
+.business-contact {
+  margin: 2rem 0 0;
+  line-height: 1.65;
+}
+
+.business-background {
+  max-width: 65rem;
+  margin: -0.5rem 0 2rem;
+  line-height: 1.7;
+}
+
+.business-contact a {
+  color: inherit;
+  font-weight: 700;
+}
+
+/* About company portfolio */
+.about-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.about-hero-actions .btn--secondary {
+  color: white;
+  border-color: rgb(255 255 255 / 75%);
+  background: rgb(0 0 0 / 42%);
+}
+
+.about-timeline {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.about-timeline > div {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.75rem;
+  line-height: 1.45;
+}
+
+.about-timeline strong {
+  color: var(--color-accent-strong);
+}
+
+.about-portfolio-grid,
+.about-alliance-grid,
+.about-values__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.about-portfolio-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 16rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--color-border);
+  border-radius: 1.15rem;
+  background: white;
+}
+
+.about-portfolio-card__number,
+.about-alliance-grid__index {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.about-portfolio-card__number {
+  color: var(--color-accent-strong);
+}
+
+.about-portfolio-card h3 {
+  margin: 1.3rem 0 0.5rem;
+  font-size: 1.4rem;
+}
+
+.about-portfolio-card p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.about-portfolio-card .text-link {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.about-alliance-grid article {
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 1.15rem;
+  background: rgb(255 255 255 / 5%);
+}
+
+.about-alliance-grid__index {
+  color: var(--color-accent);
+}
+
+.about-alliance-grid h3 {
+  margin: 1.4rem 0 0.25rem;
+  font-size: 1.3rem;
+}
+
+.about-alliance-grid p {
+  color: #cfcfd4;
+  line-height: 1.6;
+}
+
+.about-alliance-grid__name {
+  margin-top: 0;
+}
+
+.about-alliance-grid .about-alliance-grid__role {
+  margin-top: 1.5rem;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.about-business,
+.about-values,
+.about-contact {
+  display: grid;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.about-business h2,
+.about-values h2,
+.about-contact h2 {
+  max-width: 14em;
+  margin: 0.65rem 0 1.25rem;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  letter-spacing: -0.045em;
+}
+
+.about-business .lede,
+.about-contact .lede {
+  line-height: 1.7;
+}
+
+.about-business__panel {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: 1.2rem;
+  background: var(--color-surface-muted);
+}
+
+.about-business__panel h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.about-business__panel p,
+.about-values p {
+  line-height: 1.7;
+}
+
+.about-business__panel ul {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-business__panel li {
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.about-values__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.about-values__grid > div {
+  display: grid;
+  gap: 1.5rem;
+  min-height: 8rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: white;
+}
+
+.about-values__grid span {
+  color: var(--color-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.about-values__grid strong {
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+}
+
+.about-contact__form {
+  width: 100%;
+}
+
+.about-contact__form h3 {
+  margin-top: 0;
+}
+
+@media (min-width: 800px) {
+  .about-portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .about-alliance-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .about-business,
+  .about-values,
+  .about-contact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .faq-split {
@@ -2242,8 +2503,8 @@ a {
   padding: 3.5rem 0 1.5rem;
 }
 
-.site-footer .logo-word {
-  color: white;
+.site-footer .logo-image {
+  width: min(15rem, 100%);
 }
 
 .site-footer__grid {
@@ -2629,6 +2890,535 @@ td {
   border-radius: 0.5rem;
   padding: 0.4rem;
   font-size: 0.8rem;
+}
+
+/* Operations workspace */
+.admin-shell {
+  grid-template-columns: 15rem minmax(0, 1fr);
+  background: #f5f6f8;
+}
+.admin-nav {
+  background: #17242c;
+  padding: 2rem 1.1rem;
+}
+.admin-nav nav {
+  display: grid;
+  gap: 0.25rem;
+}
+.admin-nav nav a {
+  padding: 0.8rem 1rem;
+  border-radius: 0.55rem;
+  color: #c8d2d7;
+  font-size: 0.91rem;
+}
+.admin-nav nav a:hover,
+.admin-nav nav a[aria-current="page"] {
+  background: #32434b;
+  color: white;
+}
+.admin-main {
+  min-width: 0;
+  max-width: 100%;
+  padding: clamp(1rem, 2.6vw, 2.5rem);
+  background: #f5f6f8;
+}
+.admin-topbar {
+  border-bottom: 1px solid #e5e9eb;
+  padding-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.admin-list-toolbar,
+.admin-detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+}
+.admin-list-toolbar h2,
+.admin-detail-heading h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+.admin-list-toolbar p:last-child,
+.admin-detail-heading p:last-child {
+  margin: 0.25rem 0 0;
+}
+.admin-filters {
+  align-items: end;
+  justify-content: space-between;
+}
+.admin-filters label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.admin-filters select {
+  min-width: 11rem;
+  border: 1px solid #d4dade;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: white;
+}
+.admin-results-count {
+  color: #667681;
+  font-size: 0.86rem;
+}
+.admin-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+.admin-bookings-table {
+  min-width: 880px;
+}
+.admin-bookings-table thead {
+  background: #f8fafb;
+}
+.admin-bookings-table th {
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #65737b;
+  white-space: nowrap;
+}
+.admin-bookings-table td {
+  vertical-align: middle;
+  font-size: 0.87rem;
+}
+.admin-bookings-table tbody tr:hover {
+  background: #fbfaf7;
+}
+.admin-bookings-table td strong,
+.admin-bookings-table td small {
+  display: block;
+}
+.admin-bookings-table td strong {
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+.admin-bookings-table td small {
+  margin-top: 0.2rem;
+  color: #6b7680;
+  font-size: 0.75rem;
+}
+.admin-reference,
+.admin-row-link,
+.admin-inline-link {
+  color: #91641a;
+  font-weight: 750;
+  text-decoration: none;
+}
+.admin-row-link {
+  white-space: nowrap;
+}
+.admin-dispatch-ready {
+  color: #267051;
+  font-weight: 700;
+}
+.admin-dispatch-pending {
+  color: #89949a;
+}
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  color: #667681;
+  font-size: 0.85rem;
+}
+.admin-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.admin-pagination .btn {
+  padding: 0.45rem 0.7rem;
+}
+.admin-pagination .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.8fr);
+  align-items: start;
+  gap: 1rem;
+}
+.admin-detail-main,
+.admin-detail-side {
+  display: grid;
+  gap: 1rem;
+}
+.admin-back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #586b76;
+  text-decoration: none;
+  font-size: 0.86rem;
+}
+.admin-detail-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.3rem 1rem;
+  margin: 1.5rem 0;
+}
+.admin-detail-facts div,
+.admin-message {
+  display: grid;
+  gap: 0.25rem;
+}
+.admin-detail-facts span,
+.admin-message span {
+  color: #7b858c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.admin-detail-facts strong {
+  font-size: 0.93rem;
+}
+.admin-detail-facts small {
+  color: #667681;
+}
+.admin-message {
+  border-top: 1px solid #e8ecee;
+  padding-top: 1rem;
+}
+.admin-message p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.admin-edit-form {
+  margin-top: 1.2rem;
+}
+.admin-assignment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  align-items: end;
+  margin: 1rem 0;
+}
+.admin-assignment-form .btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.admin-current-assignment {
+  padding: 0.8rem;
+  background: #f8fafb;
+  border: 1px solid #e8ecee;
+  border-radius: 0.5rem;
+}
+.admin-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.admin-note-form {
+  display: grid;
+  gap: 0.5rem;
+}
+.admin-note-form textarea {
+  width: 100%;
+}
+.admin-note-form .btn {
+  justify-self: start;
+}
+.admin-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+.admin-timeline li {
+  border-top: 1px solid #eef0f2;
+  padding: 0.7rem 0;
+  display: grid;
+  gap: 0.15rem;
+}
+.admin-timeline li p {
+  margin: 0;
+}
+.admin-timeline li small {
+  color: #7a8790;
+}
+.admin-feedback {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: #e9f5ef;
+  color: #206b47;
+}
+.admin-feedback--error {
+  background: #fff0ef;
+  color: #a43d33;
+}
+.admin-tabs {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid #dce2e5;
+  margin-bottom: 1rem;
+}
+.admin-tabs button {
+  border: 0;
+  background: none;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  color: #667681;
+  font-weight: 700;
+}
+.admin-tabs button[aria-selected="true"] {
+  color: #91641a;
+  border-bottom: 2px solid #bb8b38;
+}
+.admin-tabs span {
+  margin-left: 0.35rem;
+  font-size: 0.7rem;
+}
+.admin-inventory-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  gap: 1rem;
+  align-items: start;
+}
+.admin-inventory-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.admin-editor-dialog {
+  width: min(38rem, calc(100vw - 2rem));
+  max-height: min(88vh, 54rem);
+  padding: 0;
+  border: 1px solid #d9dfe1;
+  border-radius: 0.7rem;
+  box-shadow: 0 28px 70px rgb(14 28 35 / 24%);
+  color: #17242c;
+}
+.admin-editor-dialog::backdrop {
+  background: rgb(8 19 25 / 62%);
+}
+.admin-editor-dialog__content {
+  padding: clamp(1rem, 2.5vw, 1.6rem);
+  overflow: auto;
+  max-height: min(88vh, 54rem);
+}
+.admin-editor-dialog__close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #f1f3f4;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.admin-editor-dialog__close:hover {
+  background: #e3e8eb;
+}
+.admin-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.admin-login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: linear-gradient(145deg, #17242c, #283d47);
+}
+.admin-login-card {
+  width: min(26rem, 100%);
+  padding: clamp(1.4rem, 3vw, 2rem);
+  background: white;
+  border-radius: 0.8rem;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+}
+.admin-login-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 2rem;
+  color: #182a33;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.admin-login-brand span {
+  color: #946c28;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.admin-login-card h1 {
+  margin: 0;
+}
+.admin-login-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.admin-login-form .btn {
+  justify-self: stretch;
+}
+.admin-login-help {
+  font-size: 0.8rem;
+  color: #667681;
+  margin: 1.2rem 0 0;
+}
+.admin-resource-list {
+  display: grid;
+  margin-top: 1rem;
+}
+.admin-resource {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+  background: white;
+  border: 0;
+  border-top: 1px solid #e9ecee;
+  padding: 1rem 0.3rem;
+  cursor: pointer;
+}
+.admin-resource:hover,
+.admin-resource--selected {
+  background: #fbf8f1;
+}
+.admin-resource strong,
+.admin-resource small {
+  display: block;
+}
+.admin-resource small {
+  color: #667681;
+  margin-top: 0.2rem;
+}
+.admin-active,
+.admin-inactive {
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+.admin-active {
+  color: #2b7b54;
+}
+.admin-inactive {
+  color: #8a949a;
+}
+.admin-resource-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+.admin-resource-form .field--full,
+.admin-resource-form .admin-checkbox {
+  grid-column: 1 / -1;
+}
+.admin-resource-form .btn {
+  justify-self: start;
+}
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+.admin-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 0.8fr);
+  gap: 1rem;
+  align-items: start;
+}
+.admin-calendar-card .react-calendar {
+  width: 100%;
+  border: 0;
+  font: inherit;
+}
+.admin-calendar-card .react-calendar__navigation button {
+  font-weight: 750;
+  font-size: 1rem;
+}
+.admin-calendar-card .react-calendar__month-view__weekdays {
+  color: #7b858c;
+  font-size: 0.75rem;
+}
+.admin-calendar-card .react-calendar__tile {
+  position: relative;
+  min-height: 5rem;
+  text-align: left;
+  border: 1px solid #eef0f2;
+  border-radius: 0.35rem;
+  margin: 1px;
+  max-width: calc(100% / 7 - 2px) !important;
+}
+.admin-calendar-card .react-calendar__tile--active {
+  background: #fff5de;
+  color: #342b1a;
+  border-color: #c99645;
+}
+.admin-calendar-card .react-calendar__tile:hover {
+  background: #f9f4e9;
+}
+.admin-calendar-count {
+  display: block;
+  width: fit-content;
+  min-width: 1.15rem;
+  margin-top: 0.35rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  background: #e7d5ad;
+  color: #4f3d1f;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.admin-calendar-count:empty {
+  display: none;
+}
+.admin-agenda-list {
+  display: grid;
+  gap: 0.55rem;
+}
+.admin-agenda-list a {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem;
+  border: 1px solid #e5e9eb;
+  border-radius: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+}
+.admin-agenda-list a:hover {
+  border-color: #c99645;
+}
+.admin-agenda-list span,
+.admin-agenda-list small {
+  color: #667681;
+  font-size: 0.75rem;
+}
+@media (max-width: 980px) {
+  .admin-detail-grid,
+  .admin-inventory-grid,
+  .admin-calendar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .admin-detail-facts,
+  .admin-assignment-form,
+  .admin-resource-form {
+    grid-template-columns: 1fr;
+  }
+  .admin-list-toolbar,
+  .admin-detail-heading {
+    align-items: flex-start;
+  }
+  .admin-calendar-card .react-calendar__tile {
+    min-height: 3.5rem;
+  }
+  .admin-pagination {
+    flex-wrap: wrap;
+  }
 }
 
 .sr-only {

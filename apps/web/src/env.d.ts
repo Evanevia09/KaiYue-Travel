@@ -13,6 +13,10 @@ type AppBindings = {
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;
   DEV_ADMIN_BYPASS?: string;
+  BETTER_AUTH_SECRET?: string;
+  ADMIN_EMAILS?: string;
+  ADMIN_SETUP_TOKEN?: string;
+  TEMP_ADMIN_EXPIRES_AT?: string;
 };
 
 declare namespace App {

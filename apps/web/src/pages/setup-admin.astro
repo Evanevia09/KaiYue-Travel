@@ -1,0 +1,30 @@
+---
+export const prerender = false;
+import { env } from "cloudflare:workers";
+import { SetupForm } from "../components/admin/SetupForm.tsx";
+import "../styles/global.css";
+if (env.ENVIRONMENT !== "development") return Astro.redirect("/login", 302);
+---
+
+<!doctype html>
+<html lang="en">
+  <head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    /><meta name="robots" content="noindex, nofollow" /><title>
+      Set up operator · Kai Yue
+    </title></head
+  ><body class="admin-login-page"
+    ><main class="admin-login-card">
+      <a class="admin-login-brand" href="/">Kai Yue <span>Operations</span></a><p
+        class="admin-eyebrow"
+      >
+        Local development only
+      </p><h1>Set up operator</h1><p class="muted">
+        Create the first approved account using the setup token configured on the server. Setup
+        closes after the first account.
+      </p><SetupForm client:load /><p><a href="/login">Back to sign in</a></p>
+    </main></body
+  >
+</html>

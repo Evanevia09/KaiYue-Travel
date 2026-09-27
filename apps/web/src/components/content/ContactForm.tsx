@@ -1,5 +1,6 @@
 import { contactCreateSchema, INQUIRY_LABELS, type InquiryType } from "@kaiyue/contracts";
 import { useState } from "react";
+import { localeFromPath, publicSourcePage } from "../../lib/i18n.ts";
 
 type Props = {
   sourcePage: string;
@@ -12,6 +13,7 @@ function friendlyError(field: string, message: string) {
     if (field === "phone") return "Please enter a phone number with country code.";
     if (field === "message") return "Please add a little more detail (at least 10 characters).";
   }
+  if (message.startsWith("Too big")) return "Please shorten this field.";
   if (field === "privacyAccepted") return "Please acknowledge this is an inquiry.";
   return message;
 }
@@ -47,8 +49,8 @@ export function ContactForm({ sourcePage, defaultType = "general" }: Props) {
           company: String(form.get("company") ?? ""),
           message: String(form.get("message") ?? ""),
           privacyAccepted: form.get("privacyAccepted") === "on",
-          sourcePage,
-          locale: "en",
+          sourcePage: publicSourcePage(window.location.pathname, sourcePage),
+          locale: localeFromPath(window.location.pathname),
           website: String(form.get("website") ?? ""),
         };
         const parsed = contactCreateSchema.safeParse(payload);

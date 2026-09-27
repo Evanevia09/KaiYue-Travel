@@ -9,6 +9,7 @@ import {
   business,
   corporateScenarios,
   organizationJsonLd,
+  telHref,
 } from "../lib/business.ts";
 import { site } from "../lib/site.ts";
 
@@ -25,6 +26,8 @@ const pageUrl = new URL(path, origin).toString();
   <PageHero
     eyebrow="Business"
     title={business.headline}
+    imageSrc="/images/illustrative/corporate-solutions-hero.jpg"
+    imageAlt="Illustrative business travelers welcomed by a chauffeur beside a private vehicle"
     lede={`${site.groupLegalName} (${site.groupLegalNameZh}) is built with Mingmen Tourism and Mingmen Technology: compliant capacity, professional dispatch, and an intelligent platform for Macau–Mainland luxury-car programmes.`}
   >
     <BusinessInquiry slot="inquiry" sourcePage={path} />
@@ -33,30 +36,36 @@ const pageUrl = new URL(path, origin).toString();
     <div class="wrap editorial-split">
       <div class="editorial-photo">
         <img
-          src="/images/hero-vehicle.jpg"
+          src="/images/illustrative/corporate-solutions-feature.jpg"
           width="860"
           height="400"
           loading="lazy"
-          alt="Kai Yue group private vehicle"
+          alt="Illustrative corporate coordinator reviewing a transport schedule beside a private vehicle"
         /><span class="editorial-photo__label">Corporate mobility</span>
       </div>
       <div class="editorial-copy">
         <p class="kicker">Corporate mobility</p><h2 id="corporate-programmes">
           Programmes for business travel
         </h2>
+        <p class="lede">
+          From a named executive car to a multi-vehicle event, the programme is shaped around the
+          itinerary, passenger group, and operating area. The group portfolio describes more than
+          200 Toyota Alphard 40 Series vehicles, including dual-plate capacity for Macau–Mainland
+          journeys; specific vehicles and routes are confirmed during review.
+        </p>
         <div class="feature-lines">
           {
-            corporateScenarios.slice(0, 3).map((scenario, index) => (
+            corporateScenarios.map((scenario, index) => (
               <div>
-                <>
-                  <span class="icon-frame">
-                    <FeatureIcon name={index === 0 ? "car" : index === 1 ? "route" : "calendar"} />
-                  </span>
+                <span class="icon-frame">
+                  <FeatureIcon name={index === 0 ? "car" : index === 1 ? "route" : "calendar"} />
+                </span>
+                <div class="feature-lines__copy">
+                  <h3>{scenario.title}</h3>
                   <p>
-                    <br />
-                    {scenario.audience}
+                    {scenario.audience}. {scenario.points[0]}.
                   </p>
-                </>
+                </div>
               </div>
             ))
           }
@@ -71,8 +80,16 @@ const pageUrl = new URL(path, origin).toString();
           <p class="kicker">The group approach</p><h2 id="corporate-alliance">
             Travel, operations, and technology
           </h2>
-        </div><p>Programme scope is discussed with the team before any arrangement is agreed.</p>
+        </div><p>
+          Kai Yue Travel Group provides the transport capacity, Mingmen Tourism coordinates 7×24
+          dispatch, and Mingmen Technology supports the One-Click Travel operations platform.
+        </p>
       </div>
+      <p class="business-background">
+        Kai Yue Travel Group Limited began in Macau in 2009 as Zhaoxin International Travel Limited
+        and adopted its current name in 2024. The group portfolio describes a Macau headquarters and
+        a Hengqin branch supporting its Macau–Mainland business.
+      </p>
       <div class="process-grid process-grid--light">
         {
           allianceMembers.map((member, index) => (
@@ -84,11 +101,19 @@ const pageUrl = new URL(path, origin).toString();
                 <span class="process-grid__number">0{index + 1}</span>
               </>
               <h3>{member.name}</h3>
-              <p>{member.role}</p>
+              <p>
+                <strong>{member.role}.</strong> {member.summary}
+              </p>
             </article>
           ))
         }
       </div>
+      <p class="business-contact">
+        Discuss a corporate programme with the business team at <a
+          href={telHref(site.businessPhones[0])}>{site.businessPhones[0]}</a
+        >. This form starts an inquiry; a person reviews scope and availability before confirming an
+        arrangement.
+      </p>
     </div>
   </section>
 </BaseLayout>

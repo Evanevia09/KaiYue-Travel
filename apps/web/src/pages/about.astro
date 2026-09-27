@@ -4,90 +4,255 @@ import PageHero from "../components/content/PageHero.astro";
 import FeatureIcon from "../components/content/FeatureIcon.astro";
 import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { organizationJsonLd } from "../lib/business.ts";
+import { allianceMembers, business, organizationJsonLd } from "../lib/business.ts";
+import { localeFromPath } from "../lib/i18n.ts";
 import { site } from "../lib/site.ts";
 
 const origin = Astro.site ?? site.url;
 const pageUrl = new URL("/about", origin).toString();
+const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
+
+const portfolio = [
+  {
+    number: "01",
+    title: "Private travel in Macau",
+    description:
+      "Airport transfers, local rides, chauffeur hire, weddings, and city journeys planned around your Macau itinerary.",
+    href: "/services/airport-transfer",
+    link: "Explore private services",
+  },
+  {
+    number: "02",
+    title: "Corporate mobility",
+    description:
+      "Executive reception, recurring business cars, events, and meeting travel across Macau and selected Greater Bay Area routes.",
+    href: "/corporate",
+    link: "Explore corporate solutions",
+  },
+  {
+    number: "03",
+    title: "Hotel partnerships",
+    description:
+      "Guest transfers, VIP arrivals, and group movements planned with hotel and resort teams around property operations.",
+    href: "/business/hotels-resorts",
+    link: "Explore hotel solutions",
+  },
+  {
+    number: "04",
+    title: "Travel agency partnerships",
+    description:
+      "Private car and group transport programmes for agencies coordinating multi-stop itineraries and repeat client travel.",
+    href: "/business/travel-agency",
+    link: "Explore agency solutions",
+  },
+];
+
+const scenarios = [
+  "Executive and VIP reception",
+  "Long-term corporate cars",
+  "Company events and team travel",
+  "Meetings and conference transfers",
+];
 ---
 
 <BaseLayout
-  title="About"
-  description={`${site.legalName} is a Macau-headquartered travel company founded in 2009. Consumer chauffeur requests on this site are Macau journeys quoted after review.`}
+  title="About Kai Yue Travel Group"
+  description="Kai Yue Travel Group's Macau history, private travel services, corporate mobility programmes, alliance partners, and Greater Bay Area business footprint."
 >
   <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
   <PageHero
     eyebrow="About us"
-    title={`About ${site.name}`}
-    lede={`${site.legalName} (${site.legalNameZh}) helps guests request private chauffeur journeys in Macau, and provides corporate, hotel, and agency programmes with Mingmen Tourism and Mingmen Technology.`}
+    title="Kai Yue Travel Group, rooted in Macau"
+    lede="Private travel in Macau sits alongside business mobility programmes we develop with Mingmen Tourism and Mingmen Technology."
+    imageSrc="/images/hero-vehicle.jpg"
+    imageAlt="Kai Yue private vehicle in Macau"
   >
-    <div slot="inquiry" class="card" id="inquiry">
-      <h2>Ask our team</h2>
-      <ContactForm client:load sourcePage="/about" />
+    <div slot="actions" class="about-hero-actions">
+      <a class="btn btn--primary" href="#our-story">Explore Kai Yue</a>
+      <a class="btn btn--secondary" href="#inquiry">Contact us</a>
     </div>
   </PageHero>
-  <section class="section" aria-labelledby="about-story">
+
+  <section class="section" id="our-story" aria-labelledby="about-story">
     <div class="wrap editorial-split">
       <div class="editorial-photo">
         <img
-          src="/images/hero-vehicle.jpg"
+          src="/images/hero-home.jpg"
           width="860"
           height="400"
           loading="lazy"
-          alt="Kai Yue private vehicle in Macau"
-        /><span class="editorial-photo__label">Macau roots</span>
+          alt="Family arriving beside a private vehicle"
+        />
+        <span class="editorial-photo__label">Macau roots · regional outlook</span>
       </div>
       <div class="editorial-copy">
-        <p class="kicker">Our story</p><h2 id="about-story">Macau roots since 2009</h2>
+        <p class="kicker">Company history</p>
+        <h2 id="about-story">Macau roots. A wider outlook.</h2>
         <p class="lede">
-          {site.legalName} began as Zhaoxin International Travel Limited in 2009 and adopted its current
-          name in 2024. The group is headquartered in Macau.
+          Our story began in Macau in 2009, when the travel company was founded as Zhaoxin
+          International Travel Limited. The {site.legalName} ({site.legalNameZh}) name followed in
+          2024. Today, the Macau headquarters and Hengqin branch support regional business.
         </p>
-        <div class="feature-lines">
-          <div>
-            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
-              <strong>Private journeys</strong><br />Visitors can request individual chauffeur
-              travel in Macau.
-            </p>
-          </div><div>
-            <span class="icon-frame"><FeatureIcon name="building" /></span><p>
-              <strong>Business programmes</strong><br />Corporate, hotel, and agency teams can
-              discuss tailored mobility needs.
-            </p>
-          </div>
+        <p>
+          {site.groupLegalName} ({site.groupLegalNameZh}) is the wider group. Alongside individual
+          journeys, Kai Yue works with business partners on transport programmes that can span Macau
+          and Mainland destinations.
+        </p>
+        <div class="about-timeline" aria-label="Company milestones">
+          <div><strong>2009</strong><span>Travel company established in Macau</span></div>
+          <div><strong>2024</strong><span>Kai Yue Travel Group name adopted</span></div>
+          <div><strong>Today</strong><span>Macau headquarters and Hengqin branch</span></div>
         </div>
       </div>
     </div>
   </section>
-  <section class="section section--muted" aria-labelledby="about-approach">
+
+  <section class="section section--muted" aria-labelledby="about-portfolio">
     <div class="wrap">
       <div class="section-intro">
         <div>
-          <p class="kicker">Our approach</p><h2 id="about-approach">People review every request</h2>
-        </div><p>These forms start a conversation. The team confirms the details separately.</p>
+          <p class="kicker">What we do</p><h2 id="about-portfolio">
+            A portfolio for visitors and partners
+          </h2>
+        </div>
+        <p>
+          From a single Macau journey to a recurring company programme, each service has a clear
+          route to the right team.
+        </p>
       </div>
-      <div class="process-grid process-grid--light">
-        <article>
-          <span class="icon-frame"><FeatureIcon name="message" /></span><span
-            class="process-grid__number">01</span
-          ><h3>Tell us what you need</h3><p>
-            Share your journey or programme requirements through the relevant form.
-          </p>
-        </article>
-        <article>
-          <span class="icon-frame"><FeatureIcon name="calendar" /></span><span
-            class="process-grid__number">02</span
-          ><h3>Human review</h3><p>
-            The team checks timing, scope, and availability before confirming.
-          </p>
-        </article>
-        <article>
-          <span class="icon-frame"><FeatureIcon name="check" /></span><span
-            class="process-grid__number">03</span
-          ><h3>Clear next steps</h3><p>
-            Arrangements are discussed with a person, never assigned automatically by this site.
-          </p>
-        </article>
+      <div class="about-portfolio-grid">
+        {
+          portfolio.map((item) => (
+            <article class="about-portfolio-card">
+              <span class="about-portfolio-card__number">{item.number}</span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+              <a class="text-link" href={item.href}>
+                {item.link} <span aria-hidden="true">↗</span>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--dark" aria-labelledby="about-alliance">
+    <div class="wrap">
+      <div class="section-intro">
+        <div>
+          <p class="kicker">The alliance</p><h2 id="about-alliance">
+            Travel, operations, and technology
+          </h2>
+        </div>
+        <p>
+          The alliance connects three complementary roles across travel, operations, and technology
+          for business mobility.
+        </p>
+      </div>
+      <div class="about-alliance-grid">
+        {
+          allianceMembers.map((member, index) => (
+            <article>
+              <span class="about-alliance-grid__index">0{index + 1}</span>
+              <h3>{member.name}</h3>
+              <p class="about-alliance-grid__name">{member.nameZh}</p>
+              <p class="about-alliance-grid__role">{member.role}</p>
+              <p>
+                {index === 0
+                  ? "Kai Yue Travel Group brings Macau travel services and transport capacity to business programmes."
+                  : index === 1
+                    ? "Mingmen Tourism coordinates dispatch, chauffeurs, and day-to-day journey operations."
+                    : "Mingmen Technology brings its One-Click Travel platform to booking and operational coordination."}
+              </p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="about-business">
+    <div class="wrap about-business">
+      <div>
+        <p class="kicker">Business mobility</p>
+        <h2 id="about-business">Built for the moving parts of business travel</h2>
+        <p class="lede">
+          For business programmes, our group draws on more than 200 Toyota Alphard 40 Series
+          vehicles, including dual-plate capacity for Macau–Mainland journeys, with 7×24 dispatch
+          support. Vehicle and route details are confirmed for each journey.
+        </p>
+        <a class="text-link" href="/corporate"
+          >Explore corporate solutions <span aria-hidden="true">↗</span></a
+        >
+      </div>
+      <div class="about-business__panel">
+        <h3>Where programmes can take shape</h3>
+        <p>
+          Business programmes cover Macau, Zhuhai, Guangzhou, Shenzhen, Zhongshan, and Jiangmen,
+          with route details discussed for each programme.
+        </p>
+        <ul>{scenarios.map((scenario) => <li>{scenario}</li>)}</ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--muted" aria-labelledby="about-values">
+    <div class="wrap about-values">
+      <div>
+        <p class="kicker">Service philosophy</p>
+        <h2 id="about-values">What guides the service</h2>
+        <p>
+          Safe, efficient, distinguished, and intelligent: these four principles guide the service,
+          from people and vehicles to the tools that support each journey.
+        </p>
+      </div>
+      <div class="about-values__grid">
+        {
+          business.philosophy.map((value, index) => (
+            <div>
+              <>
+                <span>0{index + 1}</span>
+                <strong>{value}</strong>
+              </>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="inquiry" aria-labelledby="about-contact">
+    <div class="wrap about-contact">
+      <div>
+        <p class="kicker">Start a conversation</p>
+        <h2 id="about-contact">Tell us where you want to go next</h2>
+        <p class="lede">
+          Whether you are planning private travel in Macau or exploring an ongoing business
+          programme, share your needs with our team.
+        </p>
+        <div class="feature-lines">
+          <div>
+            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
+              <strong>Private journeys</strong><br />Airport, local, and hourly travel in Macau.
+            </p>
+          </div>
+          <div>
+            <span class="icon-frame"><FeatureIcon name="building" /></span><p>
+              <strong>Partnerships</strong><br />Corporate, hotel, and travel agency programmes.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="card about-contact__form">
+        <h3>Contact Kai Yue</h3>
+        {
+          isLocalized ? (
+            <ContactForm client:only="react" sourcePage={Astro.url.pathname} />
+          ) : (
+            <ContactForm client:load sourcePage="/about" />
+          )
+        }
       </div>
     </div>
   </section>

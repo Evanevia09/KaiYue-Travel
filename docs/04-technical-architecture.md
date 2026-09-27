@@ -98,7 +98,7 @@ These are proposed defaults used by the first application scaffold. They can be 
 
 - **Packaging:** Astro 7 with `@astrojs/cloudflare` on Cloudflare Workers. Cloudflare Pages is not used; current official adapter support is Workers-only. In local Vite, island `renderer-url` is rewritten from `deps_prerender` to `deps` so booking islands hydrate with the same React copy as the form.
 - **Package manager / tests:** pnpm workspaces and Vitest.
-- **Timezone / locale:** `Asia/Macau` display timezone; English-only public copy until multilingual support is approved.
+- **Timezone / locale:** `Asia/Macau` display timezone; public English, Macau Portuguese (`pt-PT`), and Traditional Chinese (`zh-Hant`) routes and forms are implemented locally. Native-language and business-owner review remains a production publication gate.
 - **Draft persistence:** in-memory plus `sessionStorage` for journey fields only (service, locations, times, counts). Contact details are not written to storage.
 - **Status emails:** staff/customer status-change email is not sent in Release 1. Create-time staff notification is attempted only when `RESEND_API_KEY` is present.
 - **Admin auth:** Cloudflare Access JWT verification when `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are set. `DEV_ADMIN_BYPASS=true` is honored only when `ENVIRONMENT=development`.

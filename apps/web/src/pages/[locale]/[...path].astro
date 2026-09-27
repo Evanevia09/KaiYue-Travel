@@ -1,0 +1,53 @@
+---
+import Home from "../index.astro";
+import About from "../about.astro";
+import Contact from "../contact.astro";
+import Corporate from "../corporate.astro";
+import Agency from "../business/travel-agency.astro";
+import Hotels from "../business/hotels-resorts.astro";
+import Faq from "../faq.astro";
+import Privacy from "../privacy.astro";
+import Terms from "../terms.astro";
+import Confirmation from "../booking/confirmation.astro";
+import NotFound from "../404.astro";
+
+const pages = {
+  "": Home,
+  about: About,
+  contact: Contact,
+  corporate: Corporate,
+  "business/travel-agency": Agency,
+  "business/hotels-resorts": Hotels,
+  faq: Faq,
+  privacy: Privacy,
+  terms: Terms,
+  "booking/confirmation": Confirmation,
+  "404": NotFound,
+};
+
+export function getStaticPaths() {
+  const paths = [
+    "",
+    "about",
+    "contact",
+    "corporate",
+    "business/travel-agency",
+    "business/hotels-resorts",
+    "faq",
+    "privacy",
+    "terms",
+    "booking/confirmation",
+    "404",
+  ];
+  return (["pt", "zh-Hant"] as const).flatMap((locale) =>
+    paths.map((path) => ({
+      params: { locale, path: path || undefined },
+    })),
+  );
+}
+
+const path = Astro.params.path ?? "";
+const Page = pages[path as keyof typeof pages];
+---
+
+<Page />
