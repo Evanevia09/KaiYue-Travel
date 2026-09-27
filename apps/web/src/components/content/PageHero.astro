@@ -7,14 +7,15 @@ type Props = {
   lede?: string;
   imageSrc?: string;
   imageAlt?: string;
+  className?: string;
 };
 
-const { eyebrow, title, lede, imageSrc, imageAlt } = Astro.props;
+const { eyebrow, title, lede, imageSrc, imageAlt, className } = Astro.props;
 const hasBooking = Astro.slots.has("booking");
 const hasInquiry = Astro.slots.has("inquiry");
 ---
 
-<section class:list={["hero", "hero--page", { "hero--inquiry": hasInquiry }]}>
+<section class:list={["hero", "hero--page", className, { "hero--inquiry": hasInquiry }]}>
   <HeroBackdrop src={imageSrc} alt={imageAlt} />
   <div class="hero__stage">
     <div class="hero__copy">

@@ -61,29 +61,24 @@ const scenarios = [
 >
   <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
   <PageHero
+    className="hero--about"
     eyebrow="About us"
     title="Kai Yue Travel Group, rooted in Macau"
     lede="Private travel in Macau sits alongside business mobility programmes we develop with Mingmen Tourism and Mingmen Technology."
-    imageSrc="/images/hero-vehicle.jpg"
-    imageAlt="Kai Yue private vehicle in Macau"
-  >
-    <div slot="actions" class="about-hero-actions">
-      <a class="btn btn--primary" href="#our-story">Explore Kai Yue</a>
-      <a class="btn btn--secondary" href="#inquiry">Contact us</a>
-    </div>
-  </PageHero>
+    imageSrc="/images/illustrative/about-fleet-hero.jpg"
+    imageAlt="Illustrative company team and drivers standing before a parked Alphard fleet and office building"
+  />
 
   <section class="section" id="our-story" aria-labelledby="about-story">
     <div class="wrap editorial-split">
       <div class="editorial-photo">
         <img
-          src="/images/hero-home.jpg"
-          width="860"
-          height="400"
+          src="/images/illustrative/about-operations-feature.jpg"
+          width="1448"
+          height="1086"
           loading="lazy"
-          alt="Family arriving beside a private vehicle"
+          alt="Illustrative operations team coordinating travel at desks and route displays"
         />
-        <span class="editorial-photo__label">Macau roots · regional outlook</span>
       </div>
       <div class="editorial-copy">
         <p class="kicker">Company history</p>
@@ -233,13 +228,15 @@ const scenarios = [
         </p>
         <div class="feature-lines">
           <div>
-            <span class="icon-frame"><FeatureIcon name="car" /></span><p>
-              <strong>Private journeys</strong><br />Airport, local, and hourly travel in Macau.
+            <span class="icon-frame"><FeatureIcon name="message" /></span><p>
+              <strong>Contact number</strong><br /><a href={`tel:${site.phone.replaceAll(" ", "")}`}
+                >{site.phone}</a
+              >
             </p>
           </div>
           <div>
             <span class="icon-frame"><FeatureIcon name="building" /></span><p>
-              <strong>Partnerships</strong><br />Corporate, hotel, and travel agency programmes.
+              <strong>Macau office</strong><br />{site.addressLines.join(", ")}
             </p>
           </div>
         </div>

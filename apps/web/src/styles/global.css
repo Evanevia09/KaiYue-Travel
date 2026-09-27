@@ -6,6 +6,7 @@
   --color-accent-strong: #a46500;
   --color-accent-soft: #fff2d8;
   --color-accent-text: #805300;
+  --color-canvas: #008c5e;
   --booking-green-gradient: linear-gradient(135deg, #008c5e 0%, #2db883 100%);
   --booking-green-gradient-hover: linear-gradient(135deg, #079767 0%, #42c392 100%);
   --color-surface: #ffffff;
@@ -41,15 +42,20 @@
 }
 
 html {
+  background: var(--color-canvas);
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-canvas);
   font-family: var(--font-ui);
   line-height: 1.6;
+}
+
+body > main {
+  background: var(--color-surface);
 }
 
 h1,
@@ -620,6 +626,7 @@ a {
 
 .hero {
   position: relative;
+  background: var(--color-surface-dark);
   isolation: isolate;
   display: flex;
   align-items: center;
@@ -690,6 +697,14 @@ a {
 
 .hero--page .hero__stage:has(.hero-booking) {
   max-width: min(74rem, calc(100% - 1.5rem));
+}
+
+.hero--about {
+  align-items: flex-start;
+}
+
+.hero--about .hero__stage {
+  padding-top: clamp(8rem, 13vh, 10rem);
 }
 
 .hero--home .hero__copy h1 {
@@ -1851,6 +1866,7 @@ a {
 
 .section {
   padding: 4.5rem 0;
+  background: var(--color-surface);
 }
 
 html[lang="pt-PT"] astro-island[ssr],
@@ -1883,7 +1899,6 @@ html[lang="zh-Hant"] astro-island[ssr] {
 }
 
 .editorial-photo {
-  position: relative;
   min-height: 20rem;
   overflow: hidden;
   border-radius: 1.25rem;
@@ -1897,20 +1912,6 @@ html[lang="zh-Hant"] astro-island[ssr] {
   height: 100%;
   min-height: 20rem;
   object-fit: cover;
-}
-
-.editorial-photo__label {
-  position: absolute;
-  left: 1.25rem;
-  bottom: 1.25rem;
-  padding: 0.65rem 0.85rem;
-  background: rgb(17 17 17 / 88%);
-  color: white;
-  border-radius: 0.65rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  backdrop-filter: blur(10px);
 }
 
 .editorial-copy h2,
@@ -2084,19 +2085,6 @@ html[lang="zh-Hant"] astro-island[ssr] {
 }
 
 /* About company portfolio */
-.about-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.about-hero-actions .btn--secondary {
-  color: white;
-  border-color: rgb(255 255 255 / 75%);
-  background: rgb(0 0 0 / 42%);
-}
-
 .about-timeline {
   display: grid;
   gap: 0.75rem;
