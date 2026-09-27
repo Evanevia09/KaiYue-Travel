@@ -176,6 +176,13 @@ a {
   border-radius: 999px;
 }
 
+.nav > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
 .nav a[aria-current="page"],
 .nav-dropdown summary.is-current {
   background: rgb(255 255 255 / 14%);
@@ -3444,7 +3451,7 @@ td {
   }
 }
 
-@media (min-width: 880px) {
+@media (min-width: 1024px) {
   .nav {
     display: flex;
   }
@@ -3464,7 +3471,9 @@ td {
   .mobile-nav {
     display: none;
   }
+}
 
+@media (min-width: 880px) {
   .hero-booking {
     width: min(64rem, 100%);
   }
