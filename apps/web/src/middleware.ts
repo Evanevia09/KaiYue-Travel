@@ -44,7 +44,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const html = await response.text();
   const localized = localizeHtml(html, locale);
   const rewritten = import.meta.env.DEV
-    ? localized.replaceAll("/node_modules/.vite/deps_prerender/", "/node_modules/.vite/deps/")
+    ? localized
+        // Astro emits the prerender optimizer's version for this URL. Point
+        // islands at Vite's uncached client entry so a stale ?v= cannot pin
+        // the React renderer to a different optimization pass.
+        .replace(
+          /renderer-url="\/node_modules\/\.vite\/deps_prerender\/@astrojs_react_client__js\.js\?v=[^"]+"/g,
+          'renderer-url="/@id/@astrojs/react/client.js"',
+        )
+        .replaceAll("/node_modules/.vite/deps_prerender/", "/node_modules/.vite/deps/")
     : localized;
   const headers = new Headers(response.headers);
   headers.delete("content-length");

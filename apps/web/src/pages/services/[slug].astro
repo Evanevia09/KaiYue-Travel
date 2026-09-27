@@ -4,7 +4,6 @@ import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import ServiceDetails from "../../components/content/ServiceDetails.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { localeFromPath } from "../../lib/i18n.ts";
 import { services, site, type ServiceRecord } from "../../lib/site.ts";
 
 export function getStaticPaths() {
@@ -16,7 +15,6 @@ interface Props {
 }
 
 const { service } = Astro.props;
-const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 const path = `/services/${service.slug}`;
 const origin = Astro.site ?? site.url;
 const pageUrl = new URL(path, origin).toString();
@@ -68,23 +66,12 @@ const breadcrumbSchema = {
     imageSrc={service.heroImage}
     imageAlt={service.heroImageAlt}
   >
-    {
-      isLocalized ? (
-        <BookingEmbedded
-          slot="booking"
-          client:only="react"
-          sourcePage={Astro.url.pathname}
-          serviceType={service.serviceType}
-        />
-      ) : (
-        <BookingEmbedded
-          slot="booking"
-          client:load
-          sourcePage={path}
-          serviceType={service.serviceType}
-        />
-      )
-    }
+    <BookingEmbedded
+      slot="booking"
+      client:only="react"
+      sourcePage={Astro.url.pathname}
+      serviceType={service.serviceType}
+    />
   </PageHero>
   <ServiceDetails service={service} />
 </BaseLayout>

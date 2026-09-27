@@ -3,9 +3,11 @@
 **Last updated:** 2026-09-27
 **Phase:** 2–3 — booking/API completion and lightweight admin workflow
 **Overall status:** Two-channel booking enquiry workflow and expanded operator UI implemented in-repo; a temporary local dashboard login is verified. Nothing is deployed or connected to real Cloudflare/Resend services.
-**Current objective:** Finish visual/interaction validation of the expanded admin pages, then agree a production access policy and provision non-production D1, Resend, and Access for an end-to-end environment.
+**Current objective:** Stabilize the public booking widget in local development, then finish visual/interaction validation of the expanded admin pages and agree a production access policy before provisioning non-production services.
 
 Public localization (2026-09-27): English public routes now have Portuguese (`/pt`, `pt-PT`) and Traditional Chinese (`/zh-Hant`) counterparts across Home, About, Contact, FAQ, legal drafts, booking confirmation, six service pages, and three B2B pages. The language switch keeps the page context; public metadata, navigation, booking/inquiry forms, feedback, date display, API booking confirmation, and prepared WhatsApp requests are localized. Form submissions carry the selected locale and source path. Protected admin pages remain outside scope. Mobile browser checks passed for representative pages and forms, including mocked contact submission in both added locales. The isolated admin-session test now sets its own temporary expiry, so local `.dev.vars` cannot make that test fail after the real local access expires. The full `pnpm run ci` gate passed: formatting, type checking, 43 tests, and production build. Draft translation wording, especially B2B facts and legal text, needs native-language and business-owner review before any production publication. No deployment was made.
+
+Booking-widget stability (2026-09-27): The local middleware had been changing Astro's renderer path from `deps_prerender` to `deps` while leaving the prerender optimizer's `?v=` version on an immutable browser URL; the two optimizer versions were confirmed different. Booking islands now use client rendering, and the local renderer URL resolves through Vite's uncached `/@id/` entry. This removes the booking islands from the workerd/prerender React render path that had produced invalid-hook errors. Browser verification and quality gates are recorded below.
 
 About voice refinement (2026-09-27): public `/about` copy now uses a more natural company voice after the initial first-person pass repeated `we` and `our` too often. Company and partner names, sentence fragments, and selective first-person phrasing provide variety. Source and verification notes remain in project documentation. This is a local copy change, not a new approval of the underlying business claims.
 
@@ -17,7 +19,9 @@ Illustrative Home/service/B2B images (2026-09-27): the six footer-linked service
 
 Home featured-image revision (2026-09-27): after reviewing a generated front-cabin draft, the user chose to reuse the existing About story image for the Home main section. The generated draft remains unused locally. No production deployment was made.
 
-Public accent refinement (2026-09-27): the website accent and section kickers now use the owner-specified `#f3a600`. Related orange shades were aligned for light-surface text and badges; primary actions remain black or white. No production deployment was made.
+Public accent refinement (2026-09-27): the website accent and section kickers now use the owner-specified `#f3a600`. Related orange shades were aligned for light-surface text and badges. Non-booking primary actions remain black or white. No production deployment was made.
+
+Booking-widget accent refinement (2026-09-27): the pickup, destination, date, and add-return icons use the site's `#f3a600` accent. Booking request buttons use a lighter gradient starting at the owner-specified `#008c5e`, with dark text; calendar controls and non-booking actions keep their prior styling. No production deployment was made.
 
 Service copy refinement (2026-09-27): metadata, hero summaries, overviews, and detail cards across the service routes now describe each journey and its use cases rather than repeating review/confirmation language. Booking-status explanations remain in the booking flow and relevant FAQs. Service claims remain limited to the current Macau-first scope and known service boundaries.
 
@@ -131,13 +135,16 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-1. Browser-check the mobile booking sheet (not the homepage hero card) for duration, calendar, and Add return stack.
-2. Confirm service types, booking fields, and customer confirmation language.
-3. Provision non-production Cloudflare Workers, D1, Access, and Resend placeholders—without committing secrets.
-4. Apply `migrations/0001_init.sql` to a local/preview D1 and verify the slice with real bindings.
-5. Continue business validation of facts before replacing draft copy. Commission original photography to replace the hero crop.
+1. Check the booking widget in the existing in-app browser tab after a reload, then verify the booking flow on a non-production preview before release.
+2. Browser-check the mobile booking sheet (not the homepage hero card) for duration, calendar, and Add return stack.
+3. Confirm service types, booking fields, and customer confirmation language.
+4. Provision non-production Cloudflare Workers, D1, Access, and Resend placeholders—without committing secrets.
+5. Apply `migrations/0001_init.sql` to a local/preview D1 and verify the slice with real bindings.
+6. Continue business validation of facts before replacing draft copy. Commission original photography to replace the hero crop.
 
 ## Verification record
+
+2026-09-27 booking-widget stability: After the change and again after a fresh local dev-server restart, headless Chrome rendered the widget on Home in English, Portuguese, and Traditional Chinese and on `/services/local-transfers` across 12/12 reloads in each pass, with no console errors. The visible Home widget switched to hourly fields on click and loaded one `react.js` resource. `pnpm run ci` passed: formatting, strict type checking (0 errors), 43/43 tests, and production build. The existing in-app browser tab and a deployed preview were not inspected.
 
 | Date       | Verification                                                                                                                                    | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Limits                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -155,6 +162,20 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-09-27 — Booking icon and request-button colors
+
+- Changed: switched booking field icons to the shared orange accent and scoped a green gradient from `#008c5e` to `#2db883` to booking request primary buttons, with a brighter hover gradient and dark text. Updated the design and booking-widget guides.
+- Decision/evidence: direct user request for the existing orange accent on widget icons and a lighter gradient based on `#008c5e` for the button.
+- Verified: focused checks and page review are recorded below.
+- Open: visual review of the gradient and icon color. No deployment was performed.
+
+### 2026-09-27 — Stabilize local booking widget rendering
+
+- Changed: render `BookingEmbedded` and `BookingSheet` on the client across all locales. In local development, rewrite Astro's prerendered React renderer URL to Vite's uncached client entry rather than retaining a prerender `?v=` hash on a client dependency URL. Updated the architecture note.
+- Evidence: the prerender and client optimizer hashes differed while the generated renderer URL combined the client path with the prerender hash, and Vite marked that URL immutable. Earlier browser errors showed `Invalid hook call` and `useSyncExternalStore` failures in the booking islands.
+- Verified: see the 2026-09-27 verification record above. The fresh dev server remains running at `http://localhost:4321/`.
+- Limit: the current in-app tab and a deployed preview have not been directly checked; no deployment was made.
 
 ### 2026-09-27 — Align public accent to `#f3a600`
 

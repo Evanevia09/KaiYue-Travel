@@ -3,10 +3,7 @@ import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
 import FeatureIcon from "../components/content/FeatureIcon.astro";
 import HeroBackdrop from "../components/content/HeroBackdrop.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { localeFromPath } from "../lib/i18n.ts";
 import { faqs, serviceGroups, site } from "../lib/site.ts";
-
-const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 ---
 
 <BaseLayout
@@ -28,13 +25,7 @@ const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
         </p>
       </div>
       <div class="hero-booking">
-        {
-          isLocalized ? (
-            <BookingEmbedded client:only="react" sourcePage={Astro.url.pathname} />
-          ) : (
-            <BookingEmbedded client:load sourcePage="/" />
-          )
-        }
+        <BookingEmbedded client:only="react" sourcePage={Astro.url.pathname} />
       </div>
     </div>
   </section>

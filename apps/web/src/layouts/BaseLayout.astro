@@ -313,7 +313,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
         </div>
       </div>
     </footer>
-    {bookingEnabled ? <BookingSheet client:load /> : null}
+    {bookingEnabled ? <BookingSheet client:only="react" /> : null}
     <script>
       import "../scripts/header-menus.ts";
     </script>
