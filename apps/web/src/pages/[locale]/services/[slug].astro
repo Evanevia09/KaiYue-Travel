@@ -1,0 +1,17 @@
+---
+import ServicePage from "../../services/[slug].astro";
+import { services } from "../../../lib/site.ts";
+
+export function getStaticPaths() {
+  return (["pt", "zh-Hant"] as const).flatMap((locale) =>
+    services.map((service) => ({
+      params: { locale, slug: service.slug },
+      props: { service },
+    })),
+  );
+}
+
+const { service } = Astro.props;
+---
+
+<ServicePage service={service} />

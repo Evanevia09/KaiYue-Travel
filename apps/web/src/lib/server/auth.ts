@@ -1,6 +1,7 @@
 import { AppError } from "@kaiyue/contracts";
 import type { AppEnv } from "./env.ts";
 import { isDevelopment } from "./env.ts";
+import { allowedAdminEmails, createAdminSessionAuth } from "./admin-session.ts";
 
 export type AdminIdentity = {
   id: string;
@@ -31,7 +32,14 @@ async function verifyAccessJwt(token: string, env: AppEnv): Promise<AdminIdentit
 
   const email = typeof payload.email === "string" ? payload.email : undefined;
   const sub = typeof payload.sub === "string" ? payload.sub : email;
-  if (!email || !sub) {
+  const expiresAt = typeof payload.exp === "number" ? payload.exp : 0;
+  const issuer = typeof payload.iss === "string" ? payload.iss : "";
+  if (
+    !email ||
+    !sub ||
+    expiresAt <= Date.now() / 1000 ||
+    !issuer.includes(teamDomain.replace(/^https?:\/\//, ""))
+  ) {
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
 
@@ -76,11 +84,23 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
   }
 
   const token = request.headers.get("cf-access-jwt-assertion");
-  if (!token) {
+  if (token && env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD) {
+    return verifyAccessJwt(token, env);
+  }
+  const allowed = allowedAdminEmails(env);
+  if (allowed.size === 0) throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
+  if (env.TEMP_ADMIN_EXPIRES_AT) {
+    const expiresAt = Date.parse(env.TEMP_ADMIN_EXPIRES_AT);
+    if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
+      throw new AppError("UNAUTHORIZED", "Temporary admin access has expired.");
+    }
+  }
+  const auth = createAdminSessionAuth(env);
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session || !allowed.has(session.user.email.toLowerCase())) {
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
-
-  return verifyAccessJwt(token, env);
+  return { id: session.user.id, email: session.user.email };
 }
 
 export function requireSameOrigin(request: Request, env: AppEnv): void {

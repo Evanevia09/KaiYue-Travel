@@ -3,7 +3,9 @@ import PageHero from "../components/content/PageHero.astro";
 import FeatureIcon from "../components/content/FeatureIcon.astro";
 import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { localeFromPath } from "../lib/i18n.ts";
 import { site } from "../lib/site.ts";
+const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 ---
 
 <BaseLayout title="Contact" description="Send a general inquiry to Kai Yue Travel Group Limited.">
@@ -14,7 +16,13 @@ import { site } from "../lib/site.ts";
   >
     <div slot="inquiry" class="card" id="inquiry">
       <h2>Send an inquiry</h2>
-      <ContactForm client:load sourcePage="/contact" />
+      {
+        isLocalized ? (
+          <ContactForm client:only="react" sourcePage={Astro.url.pathname} />
+        ) : (
+          <ContactForm client:load sourcePage="/contact" />
+        )
+      }
     </div>
   </PageHero>
   <section class="section" aria-labelledby="contact-details">

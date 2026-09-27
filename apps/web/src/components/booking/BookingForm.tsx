@@ -5,6 +5,7 @@ import {
   type ServiceType,
 } from "@kaiyue/contracts";
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { localeFromPath, publicSourcePage } from "../../lib/i18n.ts";
 import { BookingIcon } from "./BookingIcons.tsx";
 import { DateTimePicker } from "./DateTimePicker.tsx";
 import {
@@ -63,8 +64,11 @@ async function submitBooking(entry?: {
     phone: current.draft.phone || undefined,
     email: current.draft.email || undefined,
     message: current.draft.message,
-    locale: current.draft.locale,
-    sourcePage: entry?.sourcePage ?? current.context.sourcePage,
+    locale: localeFromPath(window.location.pathname),
+    sourcePage: publicSourcePage(
+      window.location.pathname,
+      entry?.sourcePage ?? current.context.sourcePage,
+    ),
     sourceTrigger: entry?.sourceTrigger ?? current.context.sourceTrigger,
     sourceMode: entry?.mode ?? current.context.mode,
     privacyAccepted: current.draft.privacyAccepted || undefined,
@@ -170,7 +174,7 @@ export function BookingForm({
     if (compact) {
       openBooking({
         mode: "bottom-sheet",
-        sourcePage: sourcePage ?? window.location.pathname,
+        sourcePage: publicSourcePage(window.location.pathname, sourcePage),
         sourceTrigger: sourceTrigger ?? "hero-embed",
       });
     }

@@ -8,7 +8,7 @@ export const site = {
   chineseGroupName: "凱悅旅遊集團有限公司",
   tagline: "Your reliable private chauffeur in Macau",
   description:
-    "Request a private airport transfer or chauffeur in Macau. Submit a booking request; a person confirms availability before any trip is treated as booked.",
+    "Explore private chauffeur services in Macau for airport transfers, local rides, city tours, and chauffeur hire by the hour. Choose the journey that suits your plans.",
   url: "https://example.invalid",
   phone: "+853 2833 8882",
   fax: "+853 2833 8885",
@@ -22,8 +22,8 @@ export const site = {
   timezone: "Asia/Macau",
   locale: "en",
   contentStatus: "b2c-conservative-b2b-group-portfolio",
-  logo: "/images/logo.svg",
-  defaultOgImage: "/images/hero-home.jpg",
+  logo: "/images/kai-yue-travel-group-logo.png",
+  defaultOgImage: "/images/illustrative/home-hero-family-v2.jpg",
 } as const;
 
 export const serviceIconGlyph = {
@@ -38,32 +38,41 @@ export const serviceIconGlyph = {
 export const services = [
   {
     slug: "airport-transfer",
+    heroImage: "/images/illustrative/airport-transfer-hero.jpg",
+    heroImageAlt:
+      "Illustrative airport pickup with travelers meeting a chauffeur beside a private vehicle",
+    featuredImage: "/images/illustrative/airport-transfer-feature.jpg",
+    featuredImageAlt:
+      "Illustrative airport transfer with luggage being loaded beside a private vehicle",
     serviceType: "airport_transfer" as const,
     title: "Airport transfer",
     h1: "Private airport transfer in Macau",
     seoTitle: "Airport Transfer in Macau — Private Chauffeur",
     seoDescription:
-      "Request a private Macau airport transfer for arrival or departure. A chauffeur request is reviewed by a person before any trip is confirmed.",
-    summary: "Scheduled airport pickup or drop-off for arriving and departing guests.",
+      "Private chauffeur transfers to and from Macau International Airport, connecting arriving and departing guests with hotels and local addresses across Macau.",
+    summary:
+      "Private airport pickup and drop-off between Macau International Airport and hotels or local addresses.",
+    overviewHeading: "Airport arrivals and departures",
+    detailsHeading: "Airport transfer journeys",
     description:
-      "Use this request for Macau International Airport pickup or drop-off. Share flight timing, passenger count, and luggage notes so the team can review vehicle fit and schedule.",
+      "Plan a direct airport journey around your flight time, with space to share your hotel, meeting point, passenger count, and luggage needs.",
     intro:
-      "A private airport transfer is a one-way chauffeur request between Macau International Airport and a hotel, home, or other address in Macau. Submit the form with pickup, destination, and timing. A team member reviews the request and confirms separately if the trip can proceed.",
+      "Travel between Macau International Airport and a hotel, home, or other Macau address with a private chauffeur. Airport transfers suit arrivals, departures, and guests carrying luggage who want one planned journey between the terminal and their destination.",
     whoFor: [
       "Arriving guests who want a pre-arranged pickup",
       "Departing travelers going from a hotel or home to the airport",
-      "Families or groups who need luggage considered in the vehicle review",
+      "Families or groups travelling with luggage",
     ],
     process: [
-      "Submit pickup, destination, flight-aware timing, and passenger details.",
-      "The team reviews notice window, vehicle fit, and notes.",
-      "You receive a separate confirmation if the transfer can proceed.",
+      "Connect Macau International Airport with your hotel or another local address. Add your flight time and preferred meeting point.",
+      "Travel from a hotel, home, or other Macau pickup point to the airport. Choose a pickup time that fits your departure plans.",
+      "Include the number of travellers and luggage so the journey can be planned around your party.",
     ],
-    useCases: ["Arrival pickup", "Departure drop-off", "Hotel to airport"],
+    useCases: ["Airport arrivals", "Airport departures", "Groups and luggage"],
     included: [
       "Private chauffeur request",
       "Meet-and-greet details you provide",
-      "Flight-aware scheduling review",
+      "Flight timing notes",
     ],
     notIncluded: ["Guaranteed live flight tracking", "Automatic confirmation"],
     quoteBasis: "One-way transfer: pickup, drop-off, timing, passengers, and luggage",
@@ -80,241 +89,37 @@ export const services = [
           "The form asks for at least 24 hours’ notice. Same-day airport requests may be reviewed, but they are not guaranteed.",
       },
     ],
-    relatedSlugs: ["hotel-transfer", "point-to-point", "corporate"],
-  },
-  {
-    slug: "hotel-transfer",
-    serviceType: "hotel_transfer" as const,
-    title: "Hotel transfer",
-    h1: "Private hotel transfer in Macau",
-    seoTitle: "Hotel Transfer in Macau — Private Car & Chauffeur",
-    seoDescription:
-      "Request a private hotel transfer in Macau for check-in, inter-hotel moves, or a restaurant drop-off. Confirmation follows a human review.",
-    summary: "Point-to-point hotel pickup and drop-off around Macau.",
-    description:
-      "Use this request when the journey is between a hotel and another address in Macau. Name the hotel, the other stop, and the time you need.",
-    intro:
-      "Hotel transfers cover private chauffeur journeys that start or end at a Macau hotel. Typical uses include check-in from the airport area, moving between hotels, or a timed drop-off. This is still a request until the team confirms it.",
-    whoFor: [
-      "Guests arriving at or leaving a Macau hotel",
-      "Travelers moving between hotels on the same day",
-      "Hosts arranging a pickup for visiting guests",
-    ],
-    process: [
-      "Name the hotel, the other address, and the pickup time.",
-      "Add passenger count and any luggage or accessibility notes.",
-      "Wait for a person to confirm the transfer after review.",
-    ],
-    useCases: ["Hotel check-in", "Inter-hotel moves", "Restaurant drop-off"],
-    included: ["Private vehicle request", "Named passenger list"],
-    notIncluded: ["Room booking", "Event tickets"],
-    quoteBasis: "Point-to-point hotel journey: addresses, timing, and passenger count",
-    icon: "building" as const,
-    faqs: [
-      {
-        question: "Do you go inside the hotel to collect guests?",
-        answer:
-          "Describe the meeting point in the notes, such as a lobby or porte-cochère. Exact pickup instructions are confirmed with the request.",
-      },
-      {
-        question: "Can the chauffeur wait while we check in?",
-        answer:
-          "If you need waiting time, say so in the notes or consider an hourly charter. Waiting is not assumed on a one-way hotel transfer.",
-      },
-    ],
-    relatedSlugs: ["airport-transfer", "point-to-point", "hourly-charter"],
-  },
-  {
-    slug: "point-to-point",
-    serviceType: "point_to_point" as const,
-    title: "Point to point",
-    h1: "Point-to-point private car in Macau",
-    seoTitle: "Point-to-Point Chauffeur in Macau — One-Way Private Car",
-    seoDescription:
-      "Request a one-way private chauffeur journey between two Macau addresses. Share pickup, destination, and timing for a reviewed quote.",
-    summary: "A single private journey between two addresses.",
-    description: "Tell us pickup, destination, and timing. We confirm the request after review.",
-    intro:
-      "Point-to-point is the simplest private chauffeur request: one pickup, one destination, one agreed time in Macau. Use it for meetings, a city drop-off, or any one-way journey that is not an airport or hotel-labelled trip.",
-    whoFor: [
-      "Residents and visitors who need a single private ride",
-      "Guests going to a meeting, dinner, or appointment",
-      "Anyone who knows both addresses in advance",
-    ],
-    process: [
-      "Enter pickup, destination, date and time, and passenger count.",
-      "Add notes that affect the vehicle, such as luggage or child seats.",
-      "The team reviews the journey and confirms if it can proceed.",
-    ],
-    useCases: ["City transfers", "Meetings", "One-way journeys"],
-    included: ["Direct journey request", "Passenger count and luggage notes"],
-    notIncluded: ["Open-ended waiting unless requested as hourly charter"],
-    quoteBasis: "Single one-way journey between two addresses",
-    icon: "route" as const,
-    faqs: [
-      {
-        question: "What if I have more than one stop?",
-        answer:
-          "List extra stops in the notes. Several stops or a flexible itinerary may fit hourly charter better than a single point-to-point request.",
-      },
-      {
-        question: "Can I keep the car for the return?",
-        answer:
-          "Add an optional return time on the form, or send two one-way requests. Return legs are confirmed with the rest of the booking.",
-      },
-    ],
-    relatedSlugs: ["hotel-transfer", "hourly-charter", "airport-transfer"],
-  },
-  {
-    slug: "hourly-charter",
-    serviceType: "hourly_charter" as const,
-    title: "Hourly charter",
-    h1: "Hourly private chauffeur charter in Macau",
-    seoTitle: "Hourly Chauffeur Charter in Macau — Dedicated Private Car",
-    seoDescription:
-      "Request a dedicated private vehicle for a block of time in Macau. Describe the itinerary so the team can review hours, stops, and fit.",
-    summary: "A dedicated vehicle for a block of time rather than a single drop-off.",
-    description:
-      "Destination can be flexible. Describe the itinerary in notes so the team can assess the request.",
-    intro:
-      "Hourly charter is for a block of time with a dedicated chauffeur, rather than a single drop-off. Use it when you expect multiple stops, waiting, or a changing itinerary. The hours you request are reviewed; overtime is not unlimited.",
-    whoFor: [
-      "Guests with several stops in one outing",
-      "Families who want the same vehicle for a half-day",
-      "Coordinators who cannot fix every drop-off in advance",
-    ],
-    process: [
-      "Request a start time and describe the planned hours in notes.",
-      "List likely stops or the area you need to cover in Macau.",
-      "The team reviews duration, vehicle fit, and confirms separately.",
-    ],
-    useCases: ["Half-day movements", "Multiple stops", "Flexible itineraries"],
-    included: ["Time-block request", "Itinerary notes"],
-    notIncluded: ["Unlimited overtime without confirmation"],
-    quoteBasis: "Time block: requested hours, itinerary notes, and vehicle preference",
-    icon: "clock" as const,
-    faqs: [
-      {
-        question: "How many hours should I request?",
-        answer:
-          "Estimate the time you actually need, including waiting. The team confirms the block after review. Extra hours are not automatic.",
-      },
-      {
-        question: "Is destination required?",
-        answer:
-          "Hourly charter can leave destination optional on the form. Still describe the area and likely stops so the review is realistic.",
-      },
-    ],
-    relatedSlugs: ["sightseeing", "point-to-point", "corporate"],
-  },
-  {
-    slug: "sightseeing",
-    serviceType: "sightseeing" as const,
-    title: "Macau sightseeing",
-    h1: "Private Macau sightseeing chauffeur",
-    seoTitle: "Macau Sightseeing with Private Chauffeur — Custom Stops",
-    seoDescription:
-      "Request private sightseeing transport around Macau. Suggest stops and timing; routes and dwell times are confirmed after review.",
-    summary: "Private sightseeing transport around Macau with a dedicated chauffeur.",
-    description:
-      "Request a sightseeing journey. Specific routes and dwell times are confirmed after review.",
-    intro:
-      "Sightseeing requests are private chauffeur journeys around Macau with stops you suggest. This is transport, not a ticketed guided tour. Attraction admission, licensed guiding, and fixed itineraries are outside this request unless the team later confirms something different.",
-    whoFor: [
-      "Families and guests who want a private car between Macau sights",
-      "Visitors with a short list of stops and a preferred pace",
-      "Hosts planning a half-day outing for arriving guests",
-    ],
-    process: [
-      "Share a start time, passenger count, and suggested stops.",
-      "Note any dwell time or accessibility needs.",
-      "The team reviews the route and confirms if the outing can proceed.",
-    ],
-    useCases: ["City highlights", "Custom stops", "Family or guest touring"],
-    included: ["Private vehicle request", "Suggested stop notes"],
-    notIncluded: ["Guided tour tickets or attraction admission"],
-    quoteBasis: "Sightseeing outing: start time, suggested stops, and duration notes",
-    icon: "map" as const,
-    faqs: [
-      {
-        question: "Does the chauffeur act as a tour guide?",
-        answer:
-          "This request is for private transport. Licensed guiding and attraction tickets are not included unless separately confirmed.",
-      },
-      {
-        question: "Can you cover the Greater Bay Area?",
-        answer:
-          "This site currently offers Macau sightseeing requests. Cross-border coverage is not published as a confirmed fact here.",
-      },
-    ],
-    relatedSlugs: ["hourly-charter", "point-to-point", "hotel-transfer"],
-  },
-  {
-    slug: "corporate",
-    serviceType: "corporate" as const,
-    title: "Corporate transport",
-    h1: "Corporate chauffeur requests in Macau",
-    seoTitle: "Corporate Transport in Macau — Executive & Guest Movements",
-    seoDescription:
-      "Request executive and guest chauffeur movements in Macau. For programmes and recurring needs, send a corporate inquiry after the trip request.",
-    summary: "Executive and guest movements for companies, hotels, and event coordinators.",
-    description:
-      "For recurring or multi-guest programmes, use the corporate inquiry form so the team can follow up.",
-    intro:
-      "Corporate transport covers chauffeur requests for executives, hotel guests, and event movements in Macau. A single trip can use the booking form. Recurring programmes, dual-plate Greater Bay Area work, multiple vehicles, or hotel/agency contracts should go through the corporate inquiry path so the team can follow up.",
-    whoFor: [
-      "Companies arranging executive travel in Macau",
-      "Hotels coordinating guest airport and hotel movements",
-      "Event coordinators requesting guest transport",
-    ],
-    process: [
-      "Send a trip request for a known movement, or an inquiry for a programme.",
-      "Include company name, dates, passenger volume, and a named contact.",
-      "A person follows up. This is not a contracted service-level agreement.",
-    ],
-    useCases: ["Executive travel", "Hotel guest programmes", "Event guest movements"],
-    included: ["Named contact and company details", "Human follow-up"],
-    notIncluded: ["Dispatch apps or live GPS in this release"],
-    quoteBasis: "Programme or trip: dates, volume, vehicle notes, and named contact",
-    icon: "briefcase" as const,
-    faqs: [
-      {
-        question: "Should I use this page or the corporate inquiry form?",
-        answer:
-          "Use Book this service for one known journey. Use the corporate inquiry form when you need a programme, several vehicles, or recurring dates.",
-      },
-      {
-        question: "Do you guarantee a response time?",
-        answer:
-          "No contracted response time is published. The team follows up using the contact details you provide.",
-      },
-    ],
-    relatedSlugs: ["airport-transfer", "hourly-charter", "hotel-transfer"],
   },
   {
     slug: "cross-border-rides",
+    heroImage: "/images/illustrative/cross-border-rides-hero.jpg",
+    heroImageAlt: "Illustrative travelers discussing an onward journey beside a private vehicle",
+    featuredImage: "/images/illustrative/cross-border-rides-feature.jpg",
+    featuredImageAlt: "Illustrative itinerary discussion beside a private vehicle in Macau",
     serviceType: "point_to_point" as const,
     title: "Cross border rides",
-    h1: "Cross-border ride requests",
-    seoTitle: "Cross-Border Ride Request — Macau Pickup or Drop-Off",
+    h1: "Cross-border car journeys from Macau",
+    seoTitle: "Cross-Border Private Car from Macau — Journey Enquiry",
     seoDescription:
-      "Send a cross-border ride request for a Macau pickup or drop-off. Availability, documentation, and vehicle eligibility are reviewed by a person before anything is confirmed.",
-    summary: "A journey request that crosses the Macau boundary, reviewed before confirmation.",
+      "Enquire about a private car journey between Macau and a Mainland destination. Share both addresses, preferred crossing, and travel date for route planning.",
+    summary: "Plan a private journey that starts or ends in Macau and crosses to the Mainland.",
+    overviewHeading: "Journeys beyond Macau",
+    detailsHeading: "Cross-border journey details",
     description:
-      "Describe both ends of the journey, the crossing point, and the timing. Nothing is confirmed until the team has reviewed it.",
+      "Cross-border travel depends on the origin, destination, crossing point, and journey date. Share those details to discuss a route that fits your plans.",
     intro:
-      "A cross-border ride request covers a journey that begins or ends outside Macau. Border documentation, vehicle eligibility, and vehicle availability are checked by a person before the request is treated as a trip. This page does not publish a claim of a confirmed cross-border licence, permitted routes, or partner arrangements.",
+      "This enquiry is for a private car journey that begins or ends in Macau and crosses into Mainland China. It helps to provide both addresses, the intended checkpoint, and your travel date. Crossing options and vehicle availability vary by journey.",
     whoFor: [
       "Guests arriving from or departing to the Mainland",
       "Companies moving staff between Macau and Mainland offices",
       "Hotels arranging onward journeys for guests",
     ],
     process: [
-      "Send both addresses, the intended crossing point, and the date and time.",
-      "Add passenger count, luggage, and any document notes the journey depends on.",
-      "The team reviews eligibility and availability, then confirms separately if it can proceed.",
+      "Describe a Mainland pickup and Macau destination, including the checkpoint you expect to use.",
+      "For a Macau departure, give the Mainland address and the time you hope to arrive.",
+      "Border route, passenger documents, and vehicle eligibility all affect how the journey can be arranged.",
     ],
-    useCases: ["Mainland arrival pickup", "Macau departure drop-off", "Business journeys"],
+    useCases: ["Mainland to Macau", "Macau to Mainland", "Crossing requirements"],
     included: ["Journey request", "Crossing and document notes you provide"],
     notIncluded: ["Guaranteed border clearance times", "Automatic confirmation"],
     quoteBasis: "Cross-border journey: both addresses, crossing point, timing, and passengers",
@@ -331,19 +136,26 @@ export const services = [
           "State the crossing point you need in the notes. Whether that crossing can be used for your journey is confirmed after review, not assumed on this page.",
       },
     ],
-    relatedSlugs: ["airport-transfer", "local-transfers", "point-to-point"],
   },
   {
     slug: "local-transfers",
+    heroImage: "/images/illustrative/local-transfers-hero.jpg",
+    heroImageAlt: "Illustrative guest arriving by private vehicle at a Macau venue",
+    featuredImage: "/images/illustrative/local-transfers-feature.jpg",
+    featuredImageAlt:
+      "Illustrative local drop-off with a chauffeur helping a guest from a private vehicle",
     serviceType: "point_to_point" as const,
     title: "Local transfers",
     h1: "Local transfers within Macau",
-    seoTitle: "Local Transfers in Macau — Private Chauffeur Request",
+    seoTitle: "Private Local Transfers in Macau — Chauffeur Service",
     seoDescription:
-      "Request a private transfer between two addresses in Macau. Share pickup, destination, and timing for a quote reviewed by a person.",
-    summary: "A private transfer between two Macau addresses, quoted after review.",
+      "Private local transfers within Macau for hotel, restaurant, meeting, and venue journeys. Travel directly between two addresses with a chauffeur.",
+    summary:
+      "Private chauffeur journeys between hotels, restaurants, offices, and venues in Macau.",
+    overviewHeading: "Direct journeys around Macau",
+    detailsHeading: "Local transfer ideas",
     description:
-      "Name the pickup and the destination in Macau, then the date and time. The team reviews the journey before confirming.",
+      "A local transfer fits a known pickup and destination when you need one direct ride rather than several stops or an hourly vehicle.",
     intro:
       "Local transfers are private chauffeur journeys that start and finish inside Macau. Use this request for a hotel to restaurant drop-off, an office to venue move, or any single journey between two Macau addresses that is not an airport or hourly request.",
     whoFor: [
@@ -352,11 +164,11 @@ export const services = [
       "Hosts arranging pickups for visiting guests",
     ],
     process: [
-      "Enter pickup, destination, and the time you need.",
-      "Add passenger count and any luggage or accessibility notes.",
-      "A person reviews vehicle fit and timing, then confirms separately.",
+      "Travel between a Macau hotel and a restaurant or other local address.",
+      "Move from an office to a meeting, event venue, or client appointment.",
+      "Choose one pickup and one drop-off for a direct local journey without an hourly itinerary.",
     ],
-    useCases: ["Venue to venue", "Restaurant drop-off", "Single Macau journey"],
+    useCases: ["Hotel and dining", "Office and events", "Direct one-way travel"],
     included: ["Private vehicle request", "Passenger and luggage notes"],
     notIncluded: ["Waiting time unless requested as an hourly service"],
     quoteBasis: "Local journey: pickup, destination, timing, and passenger count",
@@ -373,32 +185,38 @@ export const services = [
           "List extra stops in the notes. Several stops or an open itinerary are usually better requested as an hourly service with a dedicated chauffeur.",
       },
     ],
-    relatedSlugs: ["airport-transfer", "point-to-point", "local-chauffeur"],
   },
   {
     slug: "local-chauffeur",
+    heroImage: "/images/illustrative/local-chauffeur-hero-v2.jpg",
+    heroImageAlt:
+      "Illustrative view from the rear passenger area of a chauffeur driving through Macau",
+    featuredImage: "/images/illustrative/local-chauffeur-feature.jpg",
+    featuredImageAlt: "Illustrative chauffeur waiting with a private vehicle between appointments",
     serviceType: "hourly_charter" as const,
     title: "Local chauffeur",
     h1: "Local chauffeur by the hour",
     seoTitle: "Local Chauffeur in Macau by the Hour — Dedicated Private Car",
     seoDescription:
-      "Request a dedicated chauffeur in Macau for a block of hours. Describe the itinerary so the team can review duration, stops, and vehicle fit.",
-    summary: "A dedicated chauffeur in Macau for a block of hours you request.",
+      "Keep a private chauffeur and vehicle by the hour in Macau for meetings, errands, and multiple stops on one flexible local itinerary.",
+    summary: "One private vehicle and chauffeur for a planned block of hours in Macau.",
+    overviewHeading: "Keep a car for your itinerary",
+    detailsHeading: "Ways to use a local chauffeur",
     description:
-      "Give a start time and describe the hours you need. Destination can stay flexible when the itinerary is not fixed yet.",
+      "A local chauffeur by the hour suits days with several Macau stops, time between meetings, or plans that may change along the way.",
     intro:
-      "A local chauffeur booking gives you one vehicle and one chauffeur for a block of hours in Macau rather than a single drop-off. It suits an afternoon of meetings, several stops in one outing, or any plan that changes as the day goes. The hours you request are reviewed, and extra time is not automatic.",
+      "Keep one private vehicle and chauffeur for a planned block of hours in Macau instead of booking separate rides for each stop. This service fits meetings across the city, family errands, or a flexible outing with waiting time between destinations.",
     whoFor: [
       "Guests with several stops in one outing",
       "Companies moving executives between meetings",
       "Families who want the same vehicle for a half-day",
     ],
     process: [
-      "Request a start time and estimate the hours you actually need.",
-      "Describe the area and likely stops in the notes.",
-      "The team reviews duration and vehicle fit, then confirms separately.",
+      "Visit more than one Macau address during the same planned time block.",
+      "Keep the vehicle for travel between business appointments or event venues.",
+      "Share a starting point and broad plan while leaving room to adjust the order of stops.",
     ],
-    useCases: ["Half-day movements", "Multiple stops", "Flexible itineraries"],
+    useCases: ["Several local stops", "Business appointments", "Flexible outings"],
     included: ["Time-block request", "Itinerary notes"],
     notIncluded: ["Unlimited overtime without confirmation"],
     quoteBasis: "Time block: requested hours, itinerary notes, and vehicle preference",
@@ -415,30 +233,36 @@ export const services = [
           "Not for an hourly booking. Still describe the area and likely stops so the review is realistic.",
       },
     ],
-    relatedSlugs: ["weddings", "point-to-point", "local-transfers"],
   },
   {
     slug: "weddings",
+    heroImage: "/images/illustrative/weddings-hero.jpg",
+    heroImageAlt: "Illustrative couple arriving by private vehicle for a wedding in Macau",
+    featuredImage: "/images/illustrative/weddings-feature.jpg",
+    featuredImageAlt: "Illustrative wedding guests boarding a private vehicle between venues",
     serviceType: "hourly_charter" as const,
     title: "Weddings",
-    h1: "Wedding chauffeur requests",
-    seoTitle: "Wedding Chauffeur in Macau — Request Private Car Hire",
+    h1: "Wedding chauffeur transport in Macau",
+    seoTitle: "Macau Wedding Chauffeur — Private Car Transport",
     seoDescription:
-      "Request private chauffeur vehicles for a wedding day in Macau. Share the schedule and guest movements so the team can review vehicle fit and timing.",
-    summary: "Private chauffeur requests for a wedding day, reviewed against your schedule.",
+      "Plan private chauffeur transport for a Macau wedding, from ceremony arrivals and photo stops to guest journeys between venues.",
+    summary:
+      "Private car journeys for ceremony arrivals, photo stops, and wedding guests in Macau.",
+    overviewHeading: "Travel around the wedding schedule",
+    detailsHeading: "Wedding day journeys",
     description:
-      "Send the date, the schedule you are working to, and the movements you need covered. Vehicles are confirmed after review.",
+      "Wedding transport can cover several timed movements in one day, with the schedule, passenger groups, and venue addresses shaping the plan.",
     intro:
-      "Wedding requests cover the day's movements rather than a single journey: ceremony arrivals, photo stops, and guest shuttles between venues. Timing and vehicle count are reviewed against the schedule you send. This is a transport request, not a published wedding package, and decoration or in-car styling is not included unless separately agreed.",
+      "A wedding day may involve travel to the ceremony, stops for photographs, and guest movements between venues. Private chauffeur transport can be planned around those separate journeys and their timing. Decoration and in-car styling are outside the transport service.",
     whoFor: [
       "Couples arranging ceremony and reception transport in Macau",
       "Planners coordinating guest movements between venues",
       "Families who need several vehicles on the same day",
     ],
     process: [
-      "Send the date and the schedule you are working to.",
-      "List each movement, the passenger count, and which vehicle is needed where.",
-      "The team reviews timing and vehicle fit, then confirms separately.",
+      "Plan how the couple, family, and guests will arrive at the ceremony location.",
+      "Allow for travel between venues or photo locations within the day's schedule.",
+      "Describe guest groups and timing when more than one vehicle or movement is needed.",
     ],
     useCases: ["Ceremony arrivals", "Photo stops", "Guest shuttles"],
     included: ["Vehicle request per movement", "Schedule notes you provide"],
@@ -457,32 +281,38 @@ export const services = [
           "The form asks for at least 24 hours' notice, but wedding days involve several movements. Sending the schedule early leaves room for review and confirmation.",
       },
     ],
-    relatedSlugs: ["local-chauffeur", "local-transfers", "point-to-point"],
   },
   {
     slug: "city-tours",
+    heroImage: "/images/illustrative/city-tours-hero.jpg",
+    heroImageAlt: "Illustrative visitors enjoying a Macau city stop near their private vehicle",
+    featuredImage: "/images/illustrative/city-tours-feature.jpg",
+    featuredImageAlt:
+      "Illustrative visitors returning to their private vehicle between Macau sights",
     serviceType: "hourly_charter" as const,
     title: "City tours",
     h1: "City tours with a private chauffeur",
-    seoTitle: "Macau City Tours by the Hour — Private Chauffeur Request",
+    seoTitle: "Private Macau City Tours by the Hour — Chauffeur Transport",
     seoDescription:
-      "Request a private chauffeur for a Macau city tour by the hour. Suggest the stops and pace; routes and duration are reviewed before anything is confirmed.",
+      "Explore Macau by private car with a chauffeur for a planned block of hours. Suggest city sights, photo stops, and a pace that suits your group.",
     summary: "A private city tour by the hour, with stops and pace you suggest.",
+    overviewHeading: "Discover Macau between stops",
+    detailsHeading: "Shape your city outing",
     description:
       "Suggest the places you want to see and how long you want. This is private transport, not a ticketed guided tour.",
     intro:
-      "A city tour booking gives you a vehicle and chauffeur for a block of hours so you can move between Macau's sights at your own pace. Suggest the stops and the dwell time; the route and hours are reviewed before confirmation. Attraction admission and licensed guiding are outside this request unless separately agreed.",
+      "Explore Macau sights in a private vehicle for a planned block of hours. Choose the places that interest your group, leave time for photographs and breaks, and move between stops with a chauffeur. Attraction admission and licensed guiding are separate from transport.",
     whoFor: [
       "Visitors with a short list of Macau stops and a preferred pace",
       "Families touring with children and luggage in the car",
       "Hosts showing arriving guests around the city",
     ],
     process: [
-      "Request a start time and the hours you expect to need.",
-      "List the stops you have in mind, in the order you want them.",
-      "The team reviews the route and duration, then confirms separately.",
+      "Build your outing around the Macau sights your group most wants to visit.",
+      "Choose how long to spend at each stop, including time for photos or breaks.",
+      "Keep your party together in one private car between the places on your list.",
     ],
-    useCases: ["City highlights", "Custom stop lists", "Half-day touring"],
+    useCases: ["Macau sights", "Photo stops and breaks", "Travel together"],
     included: ["Time-block request", "Stop list and pace notes"],
     notIncluded: ["Guided tour tickets or attraction admission"],
     quoteBasis: "City tour: start time, suggested stops, hours needed, and passenger count",
@@ -499,7 +329,6 @@ export const services = [
           "You can, within the hours you requested. Adding time beyond the confirmed block is reviewed with the team rather than assumed.",
       },
     ],
-    relatedSlugs: ["local-chauffeur", "weddings", "sightseeing"],
   },
 ] as const;
 
@@ -585,9 +414,3 @@ export const faqs = [
       "Use the corporate page inquiry form. Include company name, expected volume, and timing so the team can follow up.",
   },
 ] as const;
-
-export function relatedServices(service: ServiceRecord) {
-  return service.relatedSlugs
-    .map((slug) => services.find((item) => item.slug === slug))
-    .filter((item): item is ServiceRecord => Boolean(item));
-}

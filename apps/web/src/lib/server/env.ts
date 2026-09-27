@@ -37,6 +37,10 @@ export type AppEnv = {
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;
   DEV_ADMIN_BYPASS?: string;
+  BETTER_AUTH_SECRET?: string;
+  ADMIN_EMAILS?: string;
+  ADMIN_SETUP_TOKEN?: string;
+  TEMP_ADMIN_EXPIRES_AT?: string;
 };
 
 export function noticeHours(env: AppEnv): number {
@@ -49,5 +53,5 @@ export function businessTimezone(env: AppEnv): string {
 }
 
 export function isDevelopment(env: AppEnv): boolean {
-  return (env.ENVIRONMENT ?? "development") === "development";
+  return env.ENVIRONMENT === "development";
 }

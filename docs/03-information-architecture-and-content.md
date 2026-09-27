@@ -5,11 +5,12 @@
 | Route | Purpose | Primary action |
 |---|---|---|
 | `/` | Explain offer, establish trust, start booking | Book now |
-| `/services/[slug]` | Chauffeur service content with the shared home booking flow; Corporate Service uses B2B inquiry | Request this service |
+| `/services/[slug]` | Six footer-linked chauffeur services with the shared home booking flow | Request this service |
 | `/corporate` | Corporate solution inquiry | Corporate inquiry |
 | `/business/travel-agency` | Travel agency partner inquiry | Agency inquiry |
 | `/business/hotels-resorts` | Hotel and resort guest-transport inquiry | Property inquiry |
-| `/about` | Business story and general inquiry | Contact us |
+| `/about` | Company portfolio: history, services, alliance, business footprint, philosophy, and inquiry | Contact us |
+| `/contact` | General and business inquiries | Send an inquiry |
 | `/faq` | Answer common questions without a hero or form | Contact link where relevant |
 | `/login` | Account availability notice; customer accounts not enabled | Return home or contact |
 | `/booking/confirmation` | Confirm receipt and reference | Contact support / return home |
@@ -18,13 +19,15 @@
 
 `/services` redirects to `/services/airport-transfer`. There is no services index page.
 
-Dedicated service routes exist for each published chauffeur request type.
+The published service routes are `/services/airport-transfer`, `/services/cross-border-rides`, `/services/local-transfers`, `/services/local-chauffeur`, `/services/weddings`, and `/services/city-tours`. Older service slugs are not generated.
 
 ## Navigation
 
-- Primary header: Point To Point, By The Hour, and Business dropdowns (Travel agency, Corporate solution, Hotels & resorts). Logo wordmark is Kai Yue.
+- Primary header: Point To Point, By The Hour, and Business dropdowns (Travel agency, Corporate solution, Hotels & resorts). The public logo uses the owner-supplied Kai Yue Travel Group image.
 - Footer groups the service links, Company (About Us, Contact, FAQ, Privacy, Terms), and B2B Solution (Hotels & Resorts, Travel Agency, Corporate Solutions), with the business phone and address beside the brand.
-- Desktop header keeps the translucent globe language control and WhatsApp General Enquiry action. On mobile, the language control replaces that action; Contact Us appears in the mobile menu. English is currently the only published language. Português and 繁體中文 are listed as coming soon, without links to untranslated English routes. The homepage and consumer service pages embed Journey and open Communication in one shared modal. Only booking-enabled pages offer a mobile sticky booking control.
+- Desktop header keeps the translucent globe language control and WhatsApp General Enquiry action. On mobile, the language control replaces that action; About Us appears in the mobile menu after the service and Business groups. English, Macau Portuguese (`pt-PT`), and Traditional Chinese (`zh-Hant`) have public routes, with the switcher keeping visitors on the corresponding page. The homepage and consumer service pages embed Journey and open Communication in one shared modal. Only booking-enabled pages offer a mobile sticky booking control.
+
+Public English routes remain at their existing paths. Portuguese and Traditional Chinese use `/pt` and `/zh-Hant` prefixes. The localization layer translates public page copy, metadata, navigation, booking and inquiry forms, and form feedback. Public form submissions carry the selected locale and localized source path. Protected admin pages and APIs are outside this public translation scope. Translation drafts require native-language and business-owner review before production publication, especially for group-scale, cross-border, legal, and payment claims.
 - Corporate is visible but does not compete visually with the consumer booking action.
 - On mobile, use a compact menu; never show booking triggers or mount the booking modal on inquiry, FAQ, legal, or account pages.
 
@@ -74,7 +77,9 @@ Vehicle capacity and series/model claims must be verified before publication.
 4. How requests work: request → review → confirmation.
 5. FAQ preview with a link to all questions.
 
-Consumer service pages use the same Journey → Communication flow and modal as home, with service-specific copy and at most two supporting sections. Point-to-point and hourly pages have different section headings, content, and visual order. The service type may be preselected, but the booking interaction is shared. Corporate Service is a B2B inquiry page instead.
+Consumer service pages use the same Journey → Communication flow and modal as home, with service-specific copy and at most two supporting sections. Point-to-point and hourly pages have different section headings, content, and visual order. The service type may be preselected, but the booking interaction is shared. Corporate programmes use `/corporate` and its inquiry form.
+
+Service metadata, hero text, and overview sections should identify the journey type, Macau location, typical origins/destinations, and useful use cases in natural language. The three detail cards describe service-specific journey scenarios rather than repeating a generic request/review/confirmation sequence. Explain the booking status where the visitor takes action and in relevant FAQs or confirmation messages; do not spend each service's search description on that same caveat. Avoid unsupported promises about vehicle availability, waiting, cross-border eligibility, guiding, or inclusions.
 
 ### Corporate
 
@@ -82,7 +87,15 @@ B2B pages follow the owner-approved Kai Yue Group portfolio: alliance (Kai Yue T
 
 Travel agency and hotels & resorts pages reuse the same source, tailored to partner and property coordinators.
 
-Corporate, Travel Agency, Hotels & Resorts, Contact, and About use a two-column desktop hero with copy and one inquiry form (stacked on mobile), followed by no more than two detail sections. These pages do not mount the booking widget. FAQ, Privacy, and Terms have plain content without a photographic hero or any form; legal copy remains draft pending review.
+The corporate page presents all four portfolio scenarios: VIP reception, long-term official cars, events, and meetings/team travel. Its second section gives the Macau company history, explains the three alliance roles, and gives the B2B contact route. The travel-agency and hotels/resorts pages give their respective coordinators concrete journey examples, the information needed for programme review, and the B2B contact number. Capacity, routes, and service terms are always subject to a human review; the portfolio fleet figure does not promise that a specific vehicle is available. Keep the two-section page limit and one inquiry form per page.
+
+Source for this B2B copy is the owner-directed group portfolio summarized in `BUSINESS_INFORMATION.md`; its claims have not been independently verified. Before production publication, the business owner should reconfirm current fleet scale, dual-plate routes, dispatch hours, B2B phone ownership, partner roles, and the Venetian relationship. Do not extend these group claims to B2C pages.
+
+Corporate, Travel Agency, Hotels & Resorts, and Contact use a two-column desktop hero with copy and one inquiry form (stacked on mobile), followed by no more than two detail sections. About is a full company portfolio with a story-led hero, history, service areas, alliance roles, B2B footprint, philosophy, and one inquiry form in the closing section. These pages do not mount the booking widget. FAQ, Privacy, and Terms have plain content without a photographic hero or any form; legal copy remains draft pending review.
+
+The About portfolio uses the owner-directed group profile for company history and B2B scope. Keep individual Macau services separate from group-level Macau–Mainland capacity. Alliance members are presented as cooperating roles, not legal subsidiaries. Do not add historical site case studies, Hong Kong coverage, numerical service-level guarantees, or licence details without current owner validation.
+
+Public About copy should sound like Kai Yue speaking naturally. Use `we` and `our` where they add warmth, with varied sentence openings, the company or partner names where clarity helps, and service-led descriptions in cards. State documented history and B2B capabilities directly while retaining journey-specific route and vehicle qualification; keep source-verification notes in project documentation rather than narrating them to visitors.
 
 The inquiry card contains only the heading, paired short fields (name/company and phone/email when space permits), inquiry type, message, acknowledgement, and submit action. Business contact numbers and operating explanations belong in page content if useful, not in the form card.
 

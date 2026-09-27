@@ -12,6 +12,15 @@ import {
 import { requireAdmin, requireSameOrigin } from "./auth.ts";
 import { createBooking, getBookingByReference } from "./bookings.ts";
 import { createContact } from "./contacts.ts";
+import { assignBooking, editBooking } from "./dispatch.ts";
+import {
+  createDriver,
+  createVehicle,
+  listDrivers,
+  listVehicles,
+  updateDriver,
+  updateVehicle,
+} from "./inventory.ts";
 import type { AppEnv } from "./env.ts";
 import { noticeHours } from "./env.ts";
 import { errorResponse, json, readJson, requestIdFrom } from "./http.ts";
@@ -80,6 +89,58 @@ export async function handleApi(
         return json(await handleAdminBookingsList(request, env), 200, requestId);
       }
 
+      if (pathname === "/api/v1/admin/drivers") {
+        if (request.method === "GET")
+          return json({ items: await listDrivers(env.DB) }, 200, requestId);
+        if (request.method === "POST")
+          return json(
+            { item: await createDriver(env.DB, await readJson(request), actor.id, requestId) },
+            201,
+            requestId,
+          );
+      }
+      const driverParams = match(pathname, "/api/v1/admin/drivers/:id");
+      if (request.method === "PATCH" && driverParams)
+        return json(
+          {
+            item: await updateDriver(
+              env.DB,
+              driverParams.id!,
+              await readJson(request),
+              actor.id,
+              requestId,
+            ),
+          },
+          200,
+          requestId,
+        );
+
+      if (pathname === "/api/v1/admin/vehicles") {
+        if (request.method === "GET")
+          return json({ items: await listVehicles(env.DB) }, 200, requestId);
+        if (request.method === "POST")
+          return json(
+            { item: await createVehicle(env.DB, await readJson(request), actor.id, requestId) },
+            201,
+            requestId,
+          );
+      }
+      const vehicleParams = match(pathname, "/api/v1/admin/vehicles/:id");
+      if (request.method === "PATCH" && vehicleParams)
+        return json(
+          {
+            item: await updateVehicle(
+              env.DB,
+              vehicleParams.id!,
+              await readJson(request),
+              actor.id,
+              requestId,
+            ),
+          },
+          200,
+          requestId,
+        );
+
       if (request.method === "POST" && pathname === "/api/v1/admin/bookings") {
         return await createBooking(request, env, requestId);
       }
@@ -88,6 +149,36 @@ export async function handleApi(
       if (request.method === "GET" && bookingDetailParams) {
         return json(
           await handleAdminBookingDetail(env, bookingDetailParams.reference!),
+          200,
+          requestId,
+        );
+      }
+      if (request.method === "PATCH" && bookingDetailParams) {
+        return json(
+          await editBooking(
+            env.DB,
+            bookingDetailParams.reference!,
+            await readJson(request),
+            actor.id,
+            requestId,
+          ),
+          200,
+          requestId,
+        );
+      }
+      const bookingAssignmentParams = match(
+        pathname,
+        "/api/v1/admin/bookings/:reference/assignment",
+      );
+      if (request.method === "PATCH" && bookingAssignmentParams) {
+        return json(
+          await assignBooking(
+            env.DB,
+            bookingAssignmentParams.reference!,
+            await readJson(request),
+            actor.id,
+            requestId,
+          ),
           200,
           requestId,
         );

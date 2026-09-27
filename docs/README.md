@@ -27,6 +27,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 7. [Admin area specification](07-admin-area.md)
 8. [Environments, deployment, and operations](08-delivery-and-operations.md)
 9. [Quality, security, and implementation phases](09-quality-and-roadmap.md)
+10. [Illustrative Home, service, and B2B image set](10-illustrative-image-set.md)
 
 ## How to use this suite
 

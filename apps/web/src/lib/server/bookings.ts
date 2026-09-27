@@ -9,6 +9,8 @@ import {
   type BookingStatus,
   type NotificationState,
 } from "@kaiyue/contracts";
+import { translateCopy } from "../i18n-copy.ts";
+import type { Locale } from "../i18n.ts";
 import type { AppEnv, D1Database } from "./env.ts";
 import { noticeHours } from "./env.ts";
 import { all, first, nowIso, run } from "./db.ts";
@@ -50,9 +52,80 @@ export type BookingRow = {
   notification_state: NotificationState;
   created_at: string;
   updated_at: string;
+  driver_id: string | null;
+  vehicle_id: string | null;
+};
+
+function publicLocale(value: string): Locale {
+  return value === "pt" || value === "zh-Hant" ? value : "en";
+}
+
+const whatsappLabels: Record<Locale, Record<string, string>> = {
+  en: {
+    heading: "Booking enquiry",
+    service: "Service",
+    from: "From",
+    to: "To",
+    pickup: "Pickup",
+    return: "Return",
+    duration: "Duration",
+    hours: "hours",
+    passengers: "Passengers",
+    phone: "WhatsApp number",
+    message: "Message",
+  },
+  pt: {
+    heading: "Pedido de reserva",
+    service: "Serviço",
+    from: "Origem",
+    to: "Destino",
+    pickup: "Recolha",
+    return: "Regresso",
+    duration: "Duração",
+    hours: "horas",
+    passengers: "Passageiros",
+    phone: "Número de WhatsApp",
+    message: "Mensagem",
+  },
+  "zh-Hant": {
+    heading: "預約申請",
+    service: "服務",
+    from: "上車地點",
+    to: "目的地",
+    pickup: "上車時間",
+    return: "回程時間",
+    duration: "用車時數",
+    hours: "小時",
+    passengers: "乘客人數",
+    phone: "WhatsApp 號碼",
+    message: "備註",
+  },
+};
+
+const whatsappServices: Record<Locale, Record<string, string>> = {
+  en: {},
+  pt: {
+    airport_transfer: "Transfer do aeroporto",
+    hotel_transfer: "Transfer de hotel",
+    point_to_point: "Viagem ponto a ponto",
+    hourly_charter: "Serviço à hora",
+    sightseeing: "Passeio por Macau",
+    corporate: "Transporte empresarial",
+    custom: "Pedido personalizado",
+  },
+  "zh-Hant": {
+    airport_transfer: "機場接送",
+    hotel_transfer: "酒店接送",
+    point_to_point: "點對點接送",
+    hourly_charter: "按小時包車",
+    sightseeing: "澳門市區遊",
+    corporate: "企業用車",
+    custom: "訂製服務",
+  },
 };
 
 export function bookingToPublic(row: BookingRow) {
+  const locale = publicLocale(row.locale);
   const response: {
     reference: string;
     status: BookingStatus;
@@ -63,10 +136,13 @@ export function bookingToPublic(row: BookingRow) {
     reference: row.reference,
     status: row.status,
     receivedAt: row.created_at,
-    nextStep: getPublicConfig().confirmationCopy,
+    nextStep: translateCopy(getPublicConfig().confirmationCopy, locale),
   };
   if (row.communication_channel === "whatsapp") {
-    response.nextStep = "Continue in WhatsApp to send the prepared request to our team.";
+    response.nextStep = translateCopy(
+      "Continue in WhatsApp to send the prepared request to our team.",
+      locale,
+    );
   }
   return response;
 }
@@ -98,6 +174,8 @@ export function bookingToAdmin(row: BookingRow) {
     notificationState: row.notification_state,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    driverId: row.driver_id,
+    vehicleId: row.vehicle_id,
   };
 }
 
@@ -249,17 +327,24 @@ export async function createBooking(
   const body = bookingToPublic(row);
   if (parsed.data.communicationChannel === "whatsapp") {
     const number = (env.WHATSAPP_NUMBER || "+85328338882").replace(/\D/g, "");
+    const locale = publicLocale(parsed.data.locale);
+    const label = whatsappLabels[locale];
+    const service =
+      whatsappServices[locale][parsed.data.serviceType] ??
+      parsed.data.serviceType.replaceAll("_", " ");
     const lines = [
-      `Booking enquiry ${row.reference}`,
-      `Service: ${parsed.data.serviceType.replaceAll("_", " ")}`,
-      `From: ${parsed.data.pickupLocation}`,
-      ...(parsed.data.destination ? [`To: ${parsed.data.destination}`] : []),
-      `Pickup: ${parsed.data.pickupAt}`,
-      ...(parsed.data.returnAt ? [`Return: ${parsed.data.returnAt}`] : []),
-      ...(parsed.data.durationHours ? [`Duration: ${parsed.data.durationHours} hours`] : []),
-      `Passengers: ${parsed.data.passengerCount}`,
-      ...(parsed.data.phoneDisplay ? [`WhatsApp number: ${parsed.data.phoneDisplay}`] : []),
-      ...(parsed.data.message ? [`Message: ${parsed.data.message}`] : []),
+      `${label.heading} ${row.reference}`,
+      `${label.service}: ${service}`,
+      `${label.from}: ${parsed.data.pickupLocation}`,
+      ...(parsed.data.destination ? [`${label.to}: ${parsed.data.destination}`] : []),
+      `${label.pickup}: ${parsed.data.pickupAt}`,
+      ...(parsed.data.returnAt ? [`${label.return}: ${parsed.data.returnAt}`] : []),
+      ...(parsed.data.durationHours
+        ? [`${label.duration}: ${parsed.data.durationHours} ${label.hours}`]
+        : []),
+      `${label.passengers}: ${parsed.data.passengerCount}`,
+      ...(parsed.data.phoneDisplay ? [`${label.phone}: ${parsed.data.phoneDisplay}`] : []),
+      ...(parsed.data.message ? [`${label.message}: ${parsed.data.message}`] : []),
     ];
     body.whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`;
   }
@@ -296,8 +381,8 @@ export async function listBookings(
     cursor?: string;
     limit?: number;
   },
-): Promise<{ items: BookingRow[]; nextCursor: string | null }> {
-  const limit = Math.min(Math.max(filters.limit ?? 20, 1), 50);
+): Promise<{ items: BookingRow[]; nextCursor: string | null; total: number }> {
+  const limit = Math.min(Math.max(Number.isFinite(filters.limit) ? filters.limit! : 20, 1), 50);
   const clauses = ["1 = 1"];
   const params: unknown[] = [];
   if (filters.status) {
@@ -317,12 +402,28 @@ export async function listBookings(
     params.push(filters.to);
   }
   if (filters.cursor) {
-    clauses.push("pickup_at > ?");
-    params.push(filters.cursor);
+    let decoded: { pickupAt: string; id: string };
+    try {
+      decoded = JSON.parse(atob(filters.cursor)) as { pickupAt: string; id: string };
+    } catch {
+      throw new AppError("VALIDATION_FAILED", "Invalid page cursor.");
+    }
+    if (typeof decoded.pickupAt !== "string" || typeof decoded.id !== "string") {
+      throw new AppError("VALIDATION_FAILED", "Invalid page cursor.");
+    }
+    clauses.push("(pickup_at > ? OR (pickup_at = ? AND id > ?))");
+    params.push(decoded.pickupAt, decoded.pickupAt, decoded.id);
   }
+  const countClauses = clauses.filter((clause) => !clause.startsWith("(pickup_at >"));
+  const countParams = filters.cursor ? params.slice(0, -3) : params;
+  const count = await first<{ count: number }>(
+    db,
+    `SELECT COUNT(*) AS count FROM bookings WHERE ${countClauses.join(" AND ")}`,
+    ...countParams,
+  );
   const rows = await all<BookingRow>(
     db,
-    `SELECT * FROM bookings WHERE ${clauses.join(" AND ")} ORDER BY pickup_at ASC LIMIT ?`,
+    `SELECT * FROM bookings WHERE ${clauses.join(" AND ")} ORDER BY pickup_at ASC, id ASC LIMIT ?`,
     ...params,
     limit + 1,
   );
@@ -330,7 +431,11 @@ export async function listBookings(
   const items = extra ? rows.slice(0, limit) : rows;
   return {
     items,
-    nextCursor: extra ? (items.at(-1)?.pickup_at ?? null) : null,
+    nextCursor:
+      extra && items.at(-1)
+        ? btoa(JSON.stringify({ pickupAt: items.at(-1)!.pickup_at, id: items.at(-1)!.id }))
+        : null,
+    total: count?.count ?? 0,
   };
 }
 

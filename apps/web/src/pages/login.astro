@@ -1,22 +1,32 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+export const prerender = false;
+import { LoginForm } from "../components/admin/LoginForm.tsx";
+import { env } from "cloudflare:workers";
+import "../styles/global.css";
 ---
 
-<BaseLayout
-  title="Sign in"
-  description="Customer accounts are not open in this release. You can still request a chauffeur without signing in."
-  noindex
-  showMobileBook={false}
->
-  <section class="section page-content" aria-labelledby="account-title">
-    <div class="wrap page-content__narrow">
-      <p class="kicker">Account</p>
-      <h1 id="account-title">Sign in is unavailable</h1>
-      <p>
-        Customer accounts are not available in this release. You can request a journey through a
-        chauffeur service page without creating an account.
-      </p>
-      <p><a href="/">Return home</a> · <a href="/contact">Contact us</a></p>
-    </div>
-  </section>
-</BaseLayout>
+<!doctype html>
+<html lang="en">
+  <head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    /><meta name="robots" content="noindex, nofollow" /><title>Admin sign in · Kai Yue</title></head
+  ><body class="admin-login-page"
+    ><main class="admin-login-card">
+      <a class="admin-login-brand" href="/">Kai Yue <span>Operations</span></a><p
+        class="admin-eyebrow"
+      >
+        Protected workspace
+      </p><h1>Sign in</h1><p class="muted">
+        Use your approved operator account to manage bookings and dispatch resources.
+      </p><LoginForm client:load />{
+        env.ENVIRONMENT === "development" && (
+          <p class="admin-login-help">
+            First local setup? <a href="/setup-admin">Create the operator account</a>.
+          </p>
+        )
+      }
+    </main></body
+  >
+</html>

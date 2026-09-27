@@ -1,0 +1,7 @@
+---
+export const prerender = false;
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { InventoryPanel } from "../../components/admin/InventoryPanel.tsx";
+---
+
+<AdminLayout title="Drivers & vehicles"><InventoryPanel client:load /></AdminLayout>

@@ -1,6 +1,7 @@
 ---
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
+import { localeFromPath, localeNames, localePath, localeTags, stripLocale } from "../lib/i18n.ts";
 import { footerServiceGroups, nav, site } from "../lib/site.ts";
 import "../styles/global.css";
 
@@ -24,7 +25,8 @@ const {
 const origin = Astro.site ?? site.url;
 const canonical = new URL(Astro.url.pathname, origin).toString();
 const ogImageUrl = new URL(ogImage, origin).toString();
-const path = Astro.url.pathname;
+const locale = localeFromPath(Astro.url.pathname);
+const path = stripLocale(Astro.url.pathname);
 const isHome = path === "/";
 
 function isCurrent(href: string) {
@@ -40,7 +42,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={localeTags[locale]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -48,10 +50,21 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <title>{title} · {site.name}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {
+      (["en", "pt", "zh-Hant"] as const).map((language) => (
+        <link
+          rel="alternate"
+          hreflang={localeTags[language]}
+          href={new URL(localePath(path, language), origin).toString()}
+        />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={new URL(path, origin).toString()} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <meta property="og:title" content={`${title} · ${site.name}`} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={localeTags[locale]} />
     <meta property="og:type" content="website" />
     <meta property="og:image" content={ogImageUrl} />
     <meta name="twitter:card" content="summary_large_image" />
@@ -68,8 +81,13 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <header class="site-header">
       <div class="wrap site-header__inner">
         <a class="logo" href="/">
-          <span class="logo-mark" aria-hidden="true"></span>
-          <span class="logo-word">Kai Yue</span>
+          <img
+            class="logo-image"
+            src={site.logo}
+            alt="Kai Yue Travel Group"
+            width="1500"
+            height="294"
+          />
         </a>
         <nav class="nav nav--pill" aria-label="Primary">
           {
@@ -107,7 +125,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
         </nav>
         <div class="header-actions">
           <details class="lang-switch">
-            <summary aria-label="Language, English">
+            <summary aria-label={`Language, ${localeNames[locale]}`}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"></circle>
                 <path
@@ -115,20 +133,31 @@ function isSectionCurrent(item: (typeof nav)[number]) {
                   stroke="currentColor"
                   stroke-width="1.75"></path>
               </svg>
-              EN
+              {locale === "en" ? "EN" : locale === "pt" ? "PT" : "繁"}
             </summary>
             <ul class="lang-switch__menu">
               <li>
-                <a href={path} hreflang="en" lang="en" aria-current="true">English</a>
-              </li>
-              <li>
-                <span class="lang-switch__unavailable" lang="pt" aria-disabled="true"
-                  >Português <small>Coming soon</small></span
+                <a
+                  href={localePath(path, "en")}
+                  hreflang="en"
+                  lang="en"
+                  aria-current={locale === "en" ? "true" : undefined}>English</a
                 >
               </li>
               <li>
-                <span class="lang-switch__unavailable" lang="zh-Hant" aria-disabled="true"
-                  >繁體中文 <small>即將推出</small></span
+                <a
+                  href={localePath(path, "pt")}
+                  hreflang="pt-PT"
+                  lang="pt-PT"
+                  aria-current={locale === "pt" ? "true" : undefined}>Português</a
+                >
+              </li>
+              <li>
+                <a
+                  href={localePath(path, "zh-Hant")}
+                  hreflang="zh-Hant"
+                  lang="zh-Hant"
+                  aria-current={locale === "zh-Hant" ? "true" : undefined}>繁體中文</a
                 >
               </li>
             </ul>
@@ -157,7 +186,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
             General Enquiry
           </a>
           <details class="mobile-nav">
-            <summary class="menu-toggle" aria-label="Open menu">
+            <summary class="menu-toggle" aria-label="Site menu">
               <span aria-hidden="true"></span>
               <span aria-hidden="true"></span>
               <span aria-hidden="true"></span>
@@ -167,7 +196,14 @@ function isSectionCurrent(item: (typeof nav)[number]) {
                 nav.map((item) =>
                   "children" in item && item.children ? (
                     <details class="mobile-nav__group">
-                      <summary class="mobile-nav__toggle">{item.label}</summary>
+                      <summary
+                        class:list={[
+                          "mobile-nav__toggle",
+                          { "is-current": isSectionCurrent(item) },
+                        ]}
+                      >
+                        {item.label}
+                      </summary>
                       <div class="mobile-nav__submenu">
                         {item.children.map((child) => (
                           <a
@@ -191,8 +227,10 @@ function isSectionCurrent(item: (typeof nav)[number]) {
                   ),
                 )
               }
-              <a href="/contact" aria-current={isCurrent("/contact") ? "page" : undefined}
-                >Contact Us</a
+              <a
+                class="mobile-nav__about"
+                href="/about"
+                aria-current={isCurrent("/about") ? "page" : undefined}>About Us</a
               >
             </nav>
           </details>
@@ -207,7 +245,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
         <div class="mobile-book">
           <BookingLauncher
             client:load
-            sourcePage={path}
+            sourcePage={Astro.url.pathname}
             sourceTrigger="mobile-persistent"
             label="Book now"
           />
@@ -218,8 +256,13 @@ function isSectionCurrent(item: (typeof nav)[number]) {
       <div class="wrap site-footer__grid">
         <div>
           <a class="logo" href="/">
-            <span class="logo-mark" aria-hidden="true"></span>
-            <span class="logo-word">Kai Yue</span>
+            <img
+              class="logo-image"
+              src={site.logo}
+              alt="Kai Yue Travel Group"
+              width="1500"
+              height="294"
+            />
           </a>
           <p>{site.legalName}</p>
           <p class="draft-note">
@@ -270,9 +313,12 @@ function isSectionCurrent(item: (typeof nav)[number]) {
         </div>
       </div>
     </footer>
-    {bookingEnabled ? <BookingSheet client:load /> : null}
+    {bookingEnabled ? <BookingSheet client:only="react" /> : null}
     <script>
       import "../scripts/header-menus.ts";
+    </script>
+    <script>
+      import "../scripts/localize-islands.ts";
     </script>
   </body>
 </html>

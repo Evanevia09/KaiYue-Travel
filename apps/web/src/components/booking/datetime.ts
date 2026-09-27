@@ -9,6 +9,12 @@ export const HOURS_24 = [
 export const DEFAULT_HOUR = 12;
 export const DEFAULT_MINUTE = 0;
 
+export function displayLocale(): string {
+  if (typeof document === "undefined") return "en-US";
+  const lang = document.documentElement.lang;
+  return lang === "pt-PT" || lang === "zh-Hant" ? lang : "en-US";
+}
+
 export type HourCycle = "12" | "24";
 export type DayPeriod = "AM" | "PM";
 
@@ -99,7 +105,11 @@ export function formatFieldDateTime(value: string): string {
   if (!date) {
     return "";
   }
-  const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+  const locale = displayLocale();
+  if (locale !== "en-US") {
+    return `${date.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" })} · ${formatTime24(date)}`;
+  }
+  const weekday = date.toLocaleDateString(locale, { weekday: "short" });
   const month = date.toLocaleDateString("en-US", { month: "short" });
   return `${weekday}, ${month} ${date.getDate()} · ${formatTime24(date)}`;
 }
@@ -109,7 +119,11 @@ export function formatCompactDateTime(value: string): string {
   if (!date) {
     return "";
   }
-  const month = date.toLocaleDateString("en-US", { month: "short" });
+  const locale = displayLocale();
+  if (locale !== "en-US") {
+    return `${date.toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${formatTime24(date)}`;
+  }
+  const month = date.toLocaleDateString(locale, { month: "short" });
   return `${month} ${date.getDate()} · ${formatTime24(date)}`;
 }
 
@@ -118,13 +132,22 @@ export function formatFooterDate(value: string): string {
   if (!date) {
     return "";
   }
-  const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+  const locale = displayLocale();
+  if (locale !== "en-US") {
+    return date.toLocaleDateString(locale, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+  const weekday = date.toLocaleDateString(locale, { weekday: "short" });
   const month = date.toLocaleDateString("en-US", { month: "short" });
   return `${weekday}, ${month} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 export function formatMonthTitle(date: Date): string {
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  return date.toLocaleDateString(displayLocale(), { month: "long", year: "numeric" });
 }
 
 export function monthGrid(year: number, month: number): (Date | null)[] {

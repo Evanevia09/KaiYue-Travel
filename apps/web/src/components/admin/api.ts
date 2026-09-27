@@ -34,6 +34,29 @@ export type AdminBooking = {
   notificationState: string;
   createdAt: string;
   updatedAt: string;
+  driverId: string | null;
+  vehicleId: string | null;
+};
+
+export type AdminDriver = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  notes: string | null;
+  active: boolean;
+  updatedAt: string;
+};
+export type AdminVehicle = {
+  id: string;
+  plateNumber: string;
+  makeModel: string;
+  passengerCapacity: number;
+  contactName: string | null;
+  contactPhone: string | null;
+  notes: string | null;
+  active: boolean;
+  updatedAt: string;
 };
 
 export type AdminContact = {

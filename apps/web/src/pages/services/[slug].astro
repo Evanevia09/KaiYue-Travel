@@ -1,6 +1,5 @@
 ---
 import { BookingEmbedded } from "../../components/booking/BookingEmbedded.tsx";
-import BusinessInquiry from "../../components/content/BusinessInquiry.astro";
 import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import ServiceDetails from "../../components/content/ServiceDetails.astro";
@@ -16,7 +15,6 @@ interface Props {
 }
 
 const { service } = Astro.props;
-const isBusinessService = service.slug === "corporate";
 const path = `/services/${service.slug}`;
 const origin = Astro.site ?? site.url;
 const pageUrl = new URL(path, origin).toString();
@@ -57,23 +55,23 @@ const breadcrumbSchema = {
 <BaseLayout
   title={service.seoTitle}
   description={service.seoDescription}
-  bookingEnabled={!isBusinessService}
+  bookingEnabled={true}
   showMobileBook={false}
 >
   <JsonLd slot="head" data={[serviceSchema, breadcrumbSchema]} />
-  <PageHero eyebrow="Private chauffeur" title={service.h1} lede={service.summary}>
-    {
-      isBusinessService ? (
-        <BusinessInquiry slot="inquiry" sourcePage={path} heading="Ask about corporate transport" />
-      ) : (
-        <BookingEmbedded
-          slot="booking"
-          client:load
-          sourcePage={path}
-          serviceType={service.serviceType}
-        />
-      )
-    }
+  <PageHero
+    eyebrow="Private chauffeur"
+    title={service.h1}
+    lede={service.summary}
+    imageSrc={service.heroImage}
+    imageAlt={service.heroImageAlt}
+  >
+    <BookingEmbedded
+      slot="booking"
+      client:only="react"
+      sourcePage={Astro.url.pathname}
+      serviceType={service.serviceType}
+    />
   </PageHero>
   <ServiceDetails service={service} />
 </BaseLayout>

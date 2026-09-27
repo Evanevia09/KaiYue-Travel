@@ -8,6 +8,7 @@ import {
   addMonths,
   applyTime,
   combineDateAndTime,
+  displayLocale,
   formatCompactDateTime,
   formatFieldDateTime,
   formatFooterDate,
@@ -185,11 +186,18 @@ function MonthGrid({
   const pickup = parseLocalDateTime(pickupAt);
   const returning = parseLocalDateTime(returnAt);
   const cells = useMemo(() => monthGrid(month.getFullYear(), month.getMonth()), [month]);
+  const locale = displayLocale();
+  const weekdays =
+    locale === "en-US"
+      ? WEEKDAYS
+      : Array.from({ length: 7 }, (_, index) =>
+          new Date(2024, 0, index + 1).toLocaleDateString(locale, { weekday: "short" }),
+        );
   return (
     <div className="dtp-month">
       <p className="dtp-month__title">{formatMonthTitle(month)}</p>
       <div className="dtp-month__weekdays">
-        {WEEKDAYS.map((day) => (
+        {weekdays.map((day) => (
           <span key={day}>{day}</span>
         ))}
       </div>
@@ -218,7 +226,7 @@ function MonthGrid({
                 .join(" ")}
               disabled={disabled}
               aria-pressed={selected ? true : undefined}
-              aria-label={day.toLocaleDateString("en-US", {
+              aria-label={day.toLocaleDateString(locale, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
