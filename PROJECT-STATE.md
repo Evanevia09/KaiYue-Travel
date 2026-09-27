@@ -17,6 +17,8 @@ Illustrative Home/service/B2B images (2026-09-27): the six footer-linked service
 
 Home featured-image revision (2026-09-27): after reviewing a generated front-cabin draft, the user chose to reuse the existing About story image for the Home main section. The generated draft remains unused locally. No production deployment was made.
 
+Public accent refinement (2026-09-27): the website accent and section kickers now use the owner-specified `#f3a600`. Related orange shades were aligned for light-surface text and badges; primary actions remain black or white. No production deployment was made.
+
 Service copy refinement (2026-09-27): metadata, hero summaries, overviews, and detail cards across the service routes now describe each journey and its use cases rather than repeating review/confirmation language. Booking-status explanations remain in the booking flow and relevant FAQs. Service claims remain limited to the current Macau-first scope and known service boundaries.
 
 Mobile navigation refinement (2026-09-27): the mobile dropdown is a contained dark glass panel with clearer expandable service/Business groups, active states, and an About Us link in place of Contact Us. The desktop navigation and footer links remain in their existing locations.
@@ -153,6 +155,13 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-09-27 — Align public accent to `#f3a600`
+
+- Changed: set the shared accent token used by section kickers to `#f3a600`; aligned the related strong/soft/text tones, current mobile navigation highlight, About alliance highlights, and other small text accents. Updated the design token documentation.
+- Decision/evidence: direct user request for `#f3a600`, especially on section kicker text.
+- Verified: `pnpm build`, focused documentation formatting, and `git diff --check` passed. A desktop Chrome screenshot of Local Chauffeur showed the new orange kicker over the hero photograph.
+- Open: `#f3a600` has low contrast as small text on white sections (about 2.05:1); the exact requested color is applied, but a background treatment or darker text variant is needed before claiming WCAG AA for those kickers. No deployment was performed.
 
 ### 2026-09-27 — Reuse About story image on Home
 
