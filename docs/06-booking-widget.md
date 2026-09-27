@@ -10,6 +10,8 @@ Build one booking experience that can render:
 
 The variants share fields, validation, request payload, analytics names, error handling, and confirmation behavior. Only service-page content and optional initial service type change. B2B, Contact, About, FAQ, legal, and account pages do not mount this widget.
 
+The booking-field icons and active/completed Journey → Communication progress markers use the site's `#f3a600` accent. Booking request actions, selected ride and communication choices, selected calendar days and times, and date/time Save or Confirm buttons use a lighter green gradient based on `#008c5e`, with dark text for legibility. Step-2 field focus rings use the same green hue.
+
 ## Booking form steps
 
 Use these two steps:
@@ -19,7 +21,7 @@ Use these two steps:
 
 Email fields use “Your Name” and “Your Email” labels; WhatsApp shows “Your WhatsApp Number (optional).” The shared message field reads “Your Message (optional).” An empty message is valid for either channel and is omitted from formatted WhatsApp and email notification details. Name and email remain required for Email. Both phone inputs use the same existing validated/persisted phone field; WhatsApp number is omitted from the deep link when blank.
 
-The communication step keeps the question as its visible heading without a duplicate kicker. In the step-2 sheet, place the Journey → Communication progress indicator in the white header beside the X close control, not again inside the form. Keep a screen-reader-only “Booking request” dialog title. Both channels have a short description: WhatsApp recommends a quick reply for people with WhatsApp, while Email notes the usual 24-hour reply window. The selected channel uses the black primary-action color. Regular action buttons and channel choices use softly rounded rectangular corners rather than pill shapes. Keep the consent explanation.
+The communication step keeps the question as its visible heading without a duplicate kicker. In the step-2 sheet, place the Journey → Communication progress indicator in the white header beside the X close control, not again inside the form. Keep a screen-reader-only “Booking request” dialog title. Both channels have a short description: WhatsApp recommends a quick reply for people with WhatsApp, while Email notes the usual 24-hour reply window. The selected channel uses the booking green gradient. Regular action buttons and channel choices use softly rounded rectangular corners rather than pill shapes. Keep the consent explanation.
 
 Descriptions beneath the communication tabs use smaller helper text. Home and consumer service heroes render Journey only: after Get a quote, step 2 uses the same modal on desktop and mobile. While the modal is open, unmount the hero form so two forms cannot be shown simultaneously. If it closes with a step-2 draft, show a Continue request action in the hero to reopen that modal.
 

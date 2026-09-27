@@ -2,7 +2,7 @@
 
 ## Experience direction
 
-The public site’s visual source of truth is the Transfeero-inspired booking-first layout in `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png`: cinematic dark photography, overlay header, white centered hero copy, a compact From/To booking bar, and black primary actions. Positioning is Macau private chauffeur, not worldwide marketplace. Do not copy Transfeero claims such as 100+ countries, Trustpilot scores, fixed price, or free cancellation. Visual polish must support clarity rather than add friction. The booking action is the dominant interaction; corporate content remains visible but secondary.
+The public site’s visual source of truth is the Transfeero-inspired booking-first layout in `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png`: cinematic dark photography, overlay header, white centered hero copy, and a compact From/To booking bar. Positioning is Macau private chauffeur, not worldwide marketplace. Do not copy Transfeero claims such as 100+ countries, Trustpilot scores, fixed price, or free cancellation. Visual polish must support clarity rather than add friction. The booking action is the dominant interaction; corporate content remains visible but secondary.
 
 ## Design tokens
 
@@ -38,8 +38,8 @@ The owner specified `#f3a600` for the website accent and section kickers on 2026
 - Use Inter / Noto Sans TC with system fallbacks; limit the weight set. Hero headlines are bold white sans-serif, not teal.
 - Use a consistent 4 px spacing base and restrained corner radius/shadow scale.
 - Meet WCAG 2.2 AA contrast. Color never carries status alone.
-- The specified orange accent is used for section kickers and small highlights; the logo retains its own artwork. Primary actions remain black or white.
-- Standard action buttons and booking-flow choices use consistent softly rounded rectangular corners; the selected communication channel uses the black primary-action color with white text. Calendar day markers remain circular.
+- The specified orange accent is used for section kickers, booking-field icons, Journey / Communication progress markers, and small highlights; the logo retains its own artwork. Booking request actions, selected booking choices, and calendar confirmation controls use a light green gradient from `#008c5e`; non-booking actions retain their existing treatment.
+- Standard action buttons and booking-flow choices use consistent softly rounded rectangular corners; selected ride and communication choices use the green gradient with dark text. Calendar day markers remain circular.
 
 ## Page layout
 
@@ -57,8 +57,8 @@ The owner specified `#f3a600` for the website accent and section kickers on 2026
 ## Core components
 
 - Buttons: primary, secondary, text, destructive (admin only), loading, disabled.
-- Form fields: text, phone, email, date, time, select/combobox, passenger stepper, hourly duration stepper, textarea, checkbox. Booking bar uses inline outline icons (map pin, calendar, car, clock, plus) in grayscale.
-- **Date and time:** the journey bar uses a custom calendar (Monday-first, selected days as black circles) with a footer pickup/return date row and a 24h time popover (hour, minute, Save; optional 12h with AM/PM). Pickup-only (hourly, or point-to-point before Add return) shows one month. Adding a return switches to a dual-month range calendar. One-way shows a boxed pickup field plus **Add return**; below 880px Add return sits under the pickup date. A chosen return collapses into one pickup → return field with a clear control. Hourly charter hides Add return and the return date. Display uses 24-hour time (`Wed, Sep 23 · 14:45`). Draft values remain local `YYYY-MM-DDTHH:mm` strings.
+- Form fields: text, phone, email, date, time, select/combobox, passenger stepper, hourly duration stepper, textarea, checkbox. Booking bar uses inline outline icons (map pin, calendar, car, clock, plus) in the orange accent.
+- **Date and time:** the journey bar uses a custom calendar (Monday-first, selected days as green circles) with a footer pickup/return date row and a 24h time popover (hour, minute, Save; optional 12h with AM/PM). Pickup-only (hourly, or point-to-point before Add return) shows one month. Adding a return switches to a dual-month range calendar. One-way shows a boxed pickup field plus **Add return**; below 880px Add return sits under the pickup date. A chosen return collapses into one pickup → return field with a clear control. Hourly charter hides Add return and the return date. Display uses 24-hour time (`Wed, Sep 23 · 14:45`). Draft values remain local `YYYY-MM-DDTHH:mm` strings.
 - Feedback: inline validation, form-level error summary, toast for non-critical admin actions, persistent success state for submissions.
 - Content: service cards, vehicle cards, trust/proof blocks, process steps, FAQ accordion, contact cards.
 - Admin: status badge, filter bar, table/list, calendar event, detail drawer/page, empty/loading/error states.

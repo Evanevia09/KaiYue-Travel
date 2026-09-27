@@ -21,7 +21,7 @@ Home featured-image revision (2026-09-27): after reviewing a generated front-cab
 
 Public accent refinement (2026-09-27): the website accent and section kickers now use the owner-specified `#f3a600`. Related orange shades were aligned for light-surface text and badges. Non-booking primary actions remain black or white. No production deployment was made.
 
-Booking-widget accent refinement (2026-09-27): the pickup, destination, date, and add-return icons use the site's `#f3a600` accent. Booking request buttons use a lighter gradient starting at the owner-specified `#008c5e`, with dark text; calendar controls and non-booking actions keep their prior styling. No production deployment was made.
+Booking-widget accent refinement (2026-09-27): the pickup, destination, date, and add-return icons and Journey → Communication progress markers use the site's `#f3a600` accent. Booking request buttons, selected ride and communication choices, selected calendar days and times, and date/time Save or Confirm buttons use a lighter gradient starting at the owner-specified `#008c5e`, with dark text. Non-booking actions keep their prior styling. No production deployment was made.
 
 Service copy refinement (2026-09-27): metadata, hero summaries, overviews, and detail cards across the service routes now describe each journey and its use cases rather than repeating review/confirmation language. Booking-status explanations remain in the booking flow and relevant FAQs. Service claims remain limited to the current Macau-first scope and known service boundaries.
 
@@ -163,12 +163,26 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Change log
 
+### 2026-09-27 — Use orange accent for booking steps
+
+- Changed: active and completed Journey / Communication step circles now use `#f3a600` with dark numerals; their labels use the darker related accent for contrast on white, and the connector after a completed step uses the orange accent. The selected WhatsApp / Email tab and booking action remain green.
+- Decision/evidence: direct user browser comment on the step-2 mobile progress header.
+- Verified: a browser style preview using the current stylesheet showed orange active/completed step circles, the completed connector, and darker orange labels beside the unchanged green WhatsApp / Email tabs. The full `pnpm run ci` gate passed (formatting, type checking, tests, and production build) before main integration; `git diff --check` passed. The user's browser screenshot supplied the live step-2 layout reference; the preview verified styling rather than a new click-through.
+- Open: no deployment was performed.
+
+### 2026-09-27 — Complete booking selection colors
+
+- Changed: extended the booking green gradient to the selected Point to point / By the Hour switcher, WhatsApp / Email tabs, selected calendar days and time values, progress markers, and calendar Save / Confirm buttons. Step-2 field focus rings use green. Kept the pickup day distinguishable with a dark green inner ring. Unselected ride icons use the orange accent. Updated the design and booking guides.
+- Decision/evidence: direct user correction that these booking controls still had black highlights after the earlier button change.
+- Verified: `pnpm typecheck` passed with 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `pnpm build`, focused documentation formatting, and `git diff --check` passed. A live desktop Home screenshot showed the selected ride switcher in green. A separate browser preview using the current stylesheet showed green selected calendar days and time, Save / Confirm controls, progress markers, and both WhatsApp / Email selected states. The preview checked styling, not the full booking interaction.
+- Open: interactive calendar and step-2 click-through and mobile visual review remain unverified in this pass. No deployment was performed.
+
 ### 2026-09-27 — Booking icon and request-button colors
 
 - Changed: switched booking field icons to the shared orange accent and scoped a green gradient from `#008c5e` to `#2db883` to booking request primary buttons, with a brighter hover gradient and dark text. Updated the design and booking-widget guides.
 - Decision/evidence: direct user request for the existing orange accent on widget icons and a lighter gradient based on `#008c5e` for the button.
-- Verified: focused checks and page review are recorded below.
-- Open: visual review of the gradient and icon color. No deployment was performed.
+- Verified: `pnpm typecheck` passed with 0 errors and 0 warnings (one unrelated deprecated `FormEvent` hint); `pnpm build`, focused documentation formatting, and `git diff --check` passed. A desktop Chrome screenshot at 1440×900 showed the orange booking icons and green gradient Get a quote button on Home, with the bar and headline legible.
+- Open: mobile visual review of the new colors. No deployment was performed.
 
 ### 2026-09-27 — Stabilize local booking widget rendering
 

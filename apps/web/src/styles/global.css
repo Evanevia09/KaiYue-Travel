@@ -6,6 +6,8 @@
   --color-accent-strong: #a46500;
   --color-accent-soft: #fff2d8;
   --color-accent-text: #805300;
+  --booking-green-gradient: linear-gradient(135deg, #008c5e 0%, #2db883 100%);
+  --booking-green-gradient-hover: linear-gradient(135deg, #079767 0%, #42c392 100%);
   --color-surface: #ffffff;
   --color-surface-muted: #f6f6f7;
   --color-surface-dark: #0b0b0d;
@@ -562,6 +564,17 @@ a {
   background: #000;
 }
 
+.booking-card .btn--primary,
+.dtp-popover .btn--primary {
+  background: var(--booking-green-gradient);
+  color: #000;
+}
+
+.booking-card .btn--primary:hover:not(:disabled),
+.dtp-popover .btn--primary:hover:not(:disabled) {
+  background: var(--booking-green-gradient-hover);
+}
+
 .btn--secondary {
   background: transparent;
   border-color: #d6d6db;
@@ -1051,8 +1064,8 @@ a {
 }
 
 .ride-toggle button[aria-pressed="true"] {
-  background: #111;
-  color: white;
+  background: var(--booking-green-gradient);
+  color: #000;
 }
 
 .ride-toggle button svg {
@@ -1062,7 +1075,7 @@ a {
 }
 
 .ride-toggle button:not([aria-pressed="true"]) svg {
-  color: #6b7280;
+  color: var(--color-accent);
 }
 
 .booking-bar {
@@ -1097,7 +1110,7 @@ a {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  color: #9aa0aa;
+  color: var(--color-accent);
 }
 
 .booking-bar__fields {
@@ -1162,7 +1175,7 @@ a {
 }
 
 .booking-bar__add-return .booking-bar__icon {
-  color: #9aa0aa;
+  color: var(--color-accent);
 }
 
 .booking-bar__cell--datetime {
@@ -1226,7 +1239,7 @@ a {
 }
 
 .dtp-trigger .booking-bar__icon {
-  color: #9aa0aa;
+  color: var(--color-accent);
 }
 
 .dtp-trigger__value {
@@ -1438,13 +1451,13 @@ a {
 }
 
 .dtp-day.is-selected {
-  background: #111;
-  color: white;
+  background: var(--booking-green-gradient);
+  color: #000;
   font-weight: 700;
 }
 
 .dtp-day.is-selected.is-pickup {
-  background: rgb(17 17 17 / 72%);
+  box-shadow: inset 0 0 0 2px #005d3e;
 }
 
 .dtp-day:disabled {
@@ -1495,7 +1508,7 @@ a {
   height: 0.55rem;
   margin-top: 0.35rem;
   border-radius: 999px;
-  background: #111;
+  background: var(--booking-green-gradient);
   flex: 0 0 auto;
 }
 
@@ -1542,7 +1555,7 @@ a {
 
 .dtp-time-toggle.is-open,
 .dtp-time-toggle:focus-visible {
-  outline: 2px solid #111;
+  outline: 2px solid #008c5e;
   outline-offset: 1px;
 }
 
@@ -1600,8 +1613,8 @@ a {
 
 .dtp-wheel__value.is-selected {
   border-radius: 0.55rem;
-  background: #111;
-  color: white;
+  background: var(--booking-green-gradient);
+  color: #000;
   font-weight: 700;
 }
 
@@ -1744,6 +1757,10 @@ a {
   background: #e5e7eb;
 }
 
+.booking-steps li.is-done::after {
+  background: var(--color-accent);
+}
+
 .booking-steps__num {
   display: grid;
   place-items: center;
@@ -1755,15 +1772,16 @@ a {
   font-size: 0.75rem;
 }
 
-.booking-steps li[aria-current="step"] {
-  color: #111;
+.booking-steps li[aria-current="step"],
+.booking-steps li.is-done {
+  color: var(--color-accent-strong);
 }
 
 .booking-steps li[aria-current="step"] .booking-steps__num,
 .booking-steps li.is-done .booking-steps__num {
-  border-color: #111;
-  background: #111;
-  color: white;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #000;
 }
 
 .booking-fields {
@@ -1801,8 +1819,8 @@ a {
 }
 
 .communication-tabs button[aria-selected="true"] {
-  background: var(--color-brand);
-  color: white;
+  background: var(--booking-green-gradient);
+  color: #000;
   box-shadow: 0 2px 10px rgb(0 0 0 / 8%);
 }
 
@@ -3930,6 +3948,13 @@ details[open] > .lang-switch__menu {
   box-shadow: 0 0 0 4px rgb(17 17 17 / 7%);
 }
 
+.booking-card .field input:not([type="checkbox"]):focus,
+.booking-card .field select:focus,
+.booking-card .field textarea:focus {
+  border-color: #008c5e;
+  box-shadow: 0 0 0 4px rgb(0 140 94 / 13%);
+}
+
 .field--check input[type="checkbox"] {
   border-radius: 0.3rem;
 }
@@ -4007,7 +4032,7 @@ details[open] > .lang-switch__menu {
   }
 
   .ride-toggle button[aria-pressed="true"]:hover {
-    background: #000;
+    background: var(--booking-green-gradient-hover);
   }
 
   .mobile-nav__panel a:hover,
