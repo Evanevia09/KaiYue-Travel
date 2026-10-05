@@ -39,3 +39,13 @@ Production build on 2026-10-05 completed and generated the catalogue plus all th
 Sample packages remain drafts and noindex. Real package copy, image rights, approved durations, special-offer terms, and staff editing are still open. An unrelated existing Traditional Chinese dictionary label renders the English language name as 聯合國; this task did not change that label.
 
 Next action: the owner reviews the package page and City tours mode, then supplies one approved package, its feature image, and any duration that should be shown. Keep unapproved records hidden before any separately authorized release.
+
+## Closeout after merge
+
+Later the same day the owner asked to commit, push, and merge to `main`, then to fix CI. That supersedes the “no commit” line above.
+
+- `main` `814f530` contains the three packages (Special offer, Half day, Full day), homepage cards, product gallery, footer links, City tours booking mode, green Book now, and big-luggage plus hand-carry dropdowns on step 2.
+- `main` `a9b953e` formats the two City Tour pages that failed lint.
+- GitHub CI run 37293798248 passed on `a9b953e`. Before that push, local typecheck had 0 errors, 49 tests passed, and the production build completed.
+- Status remains `task_verified` for the checked local behavior. `user_accepted` and `released` are not established. The local dev server on port 4321 was stopped at handoff.
+- Resume action: owner review of the three package pages, then approved prices and pictures before any publication.

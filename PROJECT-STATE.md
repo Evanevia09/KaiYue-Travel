@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-05 (Booking luggage counts and package Book now color)
+**Last updated:** 2026-10-05 (City Tour work on main, CI passed)
 **Product-status evidence date:** 2026-10-05 for City Tour booking UI; previous booking/admin evidence remains dated 2026-09-27.
 **Phase:** 2–3 — booking/API completion and lightweight admin workflow
 **Overall status:** Two-channel booking enquiry workflow and expanded operator UI implemented in-repo; a temporary local dashboard login is verified. Nothing is deployed or connected to real Cloudflare/Resend services.
@@ -10,7 +10,7 @@ City Tour planning (2026-10-03, documentation only): [Latest discussion record](
 
 City Tour UI (2026-10-03): `/services/city-tours` now has a dedicated hero without booking, a direct desktop/mobile menu entry, and feature-image cards linking to individual Markdown package pages. Add a file in `apps/web/src/content/city-tours/` and its image in the public asset directory; the build generates the card and English, Portuguese, and Traditional Chinese routes. Four frontmatter fields are required; translations are optional, with explicit English fallback. Three sample themes remain labelled drafts and noindex; their content, routes, pricing, inclusions, availability, translations, and image use require owner review. [Authoring guide](docs/12-city-tour-packages.md) and [task evidence](docs/records/2026-10-03-city-tour-catalogue.md) record verification and limits. This is an uncommitted local change, not user acceptance or release.
 
-City Tour booking (2026-10-05): the header City Tours item is a dropdown for Special offer, Half day (6 hours with a car and driver), and Full day (10 hours with a car and driver). The earlier heritage, waterfront, and visitor-selected-stops samples are removed. Each package hero embeds the shared widget with City tours and that package selected. The homepage shows the same three packages as image cards; Book now opens that package page. The catalogue hero still has no form. No fare is published. [Task evidence](docs/records/2026-10-05-city-tour-booking.md). Staff editing and publication remain open.
+City Tour booking (2026-10-05): the header City Tours item is a dropdown for Special offer, Half day (6 hours with a car and driver), and Full day (10 hours with a car and driver). The earlier heritage, waterfront, and visitor-selected-stops samples are removed. Each package hero embeds the shared widget with City tours and that package selected. The homepage shows the same three packages as image cards; Book now opens that package page and uses the booking-widget green. The catalogue hero still has no form. No fare is published. Step 2 of the shared form collects big luggage and hand carry (0–10). This work is on `main` at `a9b953e`. GitHub CI run 37293798248 passed. `user_accepted` and `released` are not established. [Task evidence](docs/records/2026-10-05-city-tour-booking.md). Staff editing and publication remain open.
 
 Codex workflow documentation (2026-10-03): [Project adapter](docs/11-codex-workflow-adapter.md) and [dated adoption record](docs/records/2026-10-03-codex-workflow-adoption.md) route substantial tasks through current source, bounded file ownership, behavioral checks, independent review, and precise closeout statuses. This documentation-only adoption does not rerun the 2026-09-27 booking/admin checks or establish production readiness. The pre-existing uncommitted local readiness entry below remains intact.
 
@@ -191,6 +191,12 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-05 — City Tour handoff
+
+- Shipped on `main`: `814f530` (packages, booking mode, luggage counts, green Book now) and `a9b953e` (Prettier so CI lint passes).
+- GitHub CI on `a9b953e` passed: [run 37293798248](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/37293798248). Local typecheck had 0 errors, 49 tests passed, and the production build completed before that push.
+- The local dev server on port 4321 was stopped. `user_accepted` and `released` are not established. Prices, real pictures, and staff editing remain open.
 
 ### 2026-10-05 — Booking luggage counts and package Book now color
 
