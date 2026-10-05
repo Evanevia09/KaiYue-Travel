@@ -25,6 +25,14 @@ function validBooking(overrides: Record<string, unknown> = {}) {
 }
 
 describe("bookingCreateSchema", () => {
+  it("accepts big luggage and hand carry counts", () => {
+    const parsed = bookingCreateSchema.parse(validBooking({ luggageCount: 2, handCarryCount: 1 }));
+    expect(parsed.luggageCount).toBe(2);
+    expect(parsed.handCarryCount).toBe(1);
+    expect(bookingCreateSchema.safeParse(validBooking({ handCarryCount: 21 })).success).toBe(false);
+    expect(bookingCreateSchema.safeParse(validBooking({ luggageCount: -1 })).success).toBe(false);
+  });
+
   it("accepts a complete airport transfer", () => {
     const parsed = bookingCreateSchema.parse(validBooking());
     expect(parsed.phone).toBe("+85362345678");
@@ -44,6 +52,40 @@ describe("bookingCreateSchema", () => {
       validBooking({ serviceType: "hourly_charter", destination: "" }),
     );
     expect(result.success).toBe(false);
+  });
+
+  it("accepts a city tour with a package and no destination or return", () => {
+    const parsed = bookingCreateSchema.parse(
+      validBooking({
+        serviceType: "city_tour",
+        destination: "",
+        tourPackageId: "heritage-walk",
+        tourPackageTitle: "Heritage and old-town walk (draft)",
+        tourDurationHours: 6,
+      }),
+    );
+    expect(parsed.destination).toBeUndefined();
+    expect(parsed.returnAt).toBeUndefined();
+    expect(parsed.tourPackageId).toBe("heritage-walk");
+    expect(parsed.tourDurationHours).toBe(6);
+  });
+
+  it("requires a package for a city tour and rejects a return time", () => {
+    expect(
+      bookingCreateSchema.safeParse(validBooking({ serviceType: "city_tour", destination: "" }))
+        .success,
+    ).toBe(false);
+    expect(
+      bookingCreateSchema.safeParse(
+        validBooking({
+          serviceType: "city_tour",
+          destination: "",
+          returnAt: future,
+          tourPackageId: "heritage-walk",
+          tourPackageTitle: "Heritage and old-town walk",
+        }),
+      ).success,
+    ).toBe(false);
   });
 
   it("requires destination for other services", () => {

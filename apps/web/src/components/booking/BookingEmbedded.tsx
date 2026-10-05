@@ -5,8 +5,10 @@ import { getBookingState, openBooking, subscribeBooking } from "./store.ts";
 
 type Props = {
   sourcePage: string;
-  /** Preset for the form's ride state (point to point vs by the hour). */
+  /** Preset for the form's ride state (point to point, by the hour, or city tours). */
   serviceType?: ServiceType;
+  tourPackageId?: string;
+  tourPackageTitle?: string;
 };
 
 class BookingErrorBoundary extends Component<{ children: ReactNode }, { message: string | null }> {
@@ -28,7 +30,12 @@ class BookingErrorBoundary extends Component<{ children: ReactNode }, { message:
   }
 }
 
-export function BookingEmbedded({ sourcePage, serviceType }: Props) {
+export function BookingEmbedded({
+  sourcePage,
+  serviceType,
+  tourPackageId,
+  tourPackageTitle,
+}: Props) {
   const state = useSyncExternalStore(subscribeBooking, getBookingState, getBookingState);
 
   // The sheet and embedded form share one draft/step. Never mount a second form
@@ -63,7 +70,9 @@ export function BookingEmbedded({ sourcePage, serviceType }: Props) {
               compact
               sourcePage={sourcePage}
               sourceTrigger="hero-embed"
-              initialServiceType={serviceType}
+              initialServiceType={tourPackageId ? "city_tour" : serviceType}
+              initialTourPackageId={tourPackageId}
+              initialTourPackageTitle={tourPackageTitle}
             />
           </BookingErrorBoundary>
         )}

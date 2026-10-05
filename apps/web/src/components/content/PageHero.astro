@@ -8,20 +8,30 @@ type Props = {
   imageSrc?: string;
   imageAlt?: string;
   className?: string;
+  id?: string;
+  contentLang?: string;
+  preserveCopy?: boolean;
 };
 
-const { eyebrow, title, lede, imageSrc, imageAlt, className } = Astro.props;
+const { eyebrow, title, lede, imageSrc, imageAlt, className, id, contentLang, preserveCopy } =
+  Astro.props;
 const hasBooking = Astro.slots.has("booking");
 const hasInquiry = Astro.slots.has("inquiry");
 ---
 
-<section class:list={["hero", "hero--page", className, { "hero--inquiry": hasInquiry }]}>
-  <HeroBackdrop src={imageSrc} alt={imageAlt} />
+<section id={id} class:list={["hero", "hero--page", className, { "hero--inquiry": hasInquiry }]}>
+  <HeroBackdrop src={imageSrc} alt={imageAlt} preserveCopy={preserveCopy} />
   <div class="hero__stage">
     <div class="hero__copy">
       {eyebrow ? <p class="kicker">{eyebrow}</p> : null}
-      <h1>{title}</h1>
-      {lede ? <p class="hero-sub">{lede}</p> : null}
+      <h1 lang={contentLang} data-no-localize={preserveCopy || undefined}>{title}</h1>
+      {
+        lede ? (
+          <p class="hero-sub" lang={contentLang} data-no-localize={preserveCopy || undefined}>
+            {lede}
+          </p>
+        ) : null
+      }
     </div>
     {
       hasInquiry ? (

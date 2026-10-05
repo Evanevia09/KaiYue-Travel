@@ -28,6 +28,10 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 8. [Environments, deployment, and operations](08-delivery-and-operations.md)
 9. [Quality, security, and implementation phases](09-quality-and-roadmap.md)
 10. [Illustrative Home, service, and B2B image set](10-illustrative-image-set.md)
+11. [Codex project workflow adapter](11-codex-workflow-adapter.md)
+12. [City tour package authoring](12-city-tour-packages.md)
+
+City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
 ## How to use this suite
 

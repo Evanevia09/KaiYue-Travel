@@ -1,4 +1,4 @@
-import { AppError } from "@kaiyue/contracts";
+import { AppError, destinationRequired, type ServiceType } from "@kaiyue/contracts";
 import type { D1Database } from "./env.ts";
 import { first } from "./db.ts";
 import { bookingToAdmin, getBookingByReference, type BookingRow } from "./bookings.ts";
@@ -60,7 +60,7 @@ export async function editBooking(
     data.destination,
     "destination",
     200,
-    row.service_type !== "hourly_charter",
+    destinationRequired(row.service_type as ServiceType),
   );
   const pickupAt =
     typeof data.pickupAt === "string" && !Number.isNaN(Date.parse(data.pickupAt))

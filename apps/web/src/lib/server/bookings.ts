@@ -68,9 +68,12 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     to: "To",
     pickup: "Pickup",
     return: "Return",
+    package: "Tour package",
     duration: "Duration",
     hours: "hours",
     passengers: "Passengers",
+    bigLuggage: "Big luggage",
+    handCarry: "Hand carry",
     phone: "WhatsApp number",
     message: "Message",
   },
@@ -81,9 +84,12 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     to: "Destino",
     pickup: "Recolha",
     return: "Regresso",
+    package: "Pacote",
     duration: "Duração",
     hours: "horas",
     passengers: "Passageiros",
+    bigLuggage: "Mala grande",
+    handCarry: "Bagagem de mão",
     phone: "Número de WhatsApp",
     message: "Mensagem",
   },
@@ -94,9 +100,12 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     to: "目的地",
     pickup: "上車時間",
     return: "回程時間",
+    package: "遊覽套票",
     duration: "用車時數",
     hours: "小時",
     passengers: "乘客人數",
+    bigLuggage: "大件行李",
+    handCarry: "手提行李",
     phone: "WhatsApp 號碼",
     message: "備註",
   },
@@ -109,6 +118,7 @@ const whatsappServices: Record<Locale, Record<string, string>> = {
     hotel_transfer: "Transfer de hotel",
     point_to_point: "Viagem ponto a ponto",
     hourly_charter: "Serviço à hora",
+    city_tour: "Passeio pela cidade",
     sightseeing: "Passeio por Macau",
     corporate: "Transporte empresarial",
     custom: "Pedido personalizado",
@@ -118,6 +128,7 @@ const whatsappServices: Record<Locale, Record<string, string>> = {
     hotel_transfer: "酒店接送",
     point_to_point: "點對點接送",
     hourly_charter: "按小時包車",
+    city_tour: "城市遊覽",
     sightseeing: "澳門市區遊",
     corporate: "企業用車",
     custom: "訂製服務",
@@ -159,6 +170,7 @@ export function bookingToAdmin(row: BookingRow) {
     returnAt: row.return_at,
     passengerCount: row.passenger_count,
     luggageCount: row.luggage_count,
+    handCarryCount: handCarryFromNotes(row.notes),
     vehiclePreference: row.vehicle_preference,
     communicationChannel: row.communication_channel,
     contactName: row.contact_name,
@@ -179,12 +191,35 @@ export function bookingToAdmin(row: BookingRow) {
   };
 }
 
-function hourlyDurationNote(payload: BookingCreatePayload): string | null {
+function bookingNotes(payload: BookingCreatePayload): string | null {
   const durationNote =
     payload.serviceType === "hourly_charter" && payload.durationHours
       ? `Duration: ${payload.durationHours} hours.`
       : undefined;
-  return [durationNote, payload.notes].filter(Boolean).join("\n\n") || null;
+  const packageNote =
+    payload.serviceType === "city_tour" && payload.tourPackageTitle && payload.tourPackageId
+      ? `City tour package: ${payload.tourPackageTitle} (${payload.tourPackageId}).${
+          payload.tourDurationHours ? ` Duration: ${payload.tourDurationHours} hours.` : ""
+        }`
+      : undefined;
+  const luggageNote = [
+    payload.luggageCount != null ? `Big luggage: ${payload.luggageCount}.` : undefined,
+    payload.handCarryCount != null ? `Hand carry: ${payload.handCarryCount}.` : undefined,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  return (
+    [durationNote, packageNote, luggageNote || undefined, payload.notes]
+      .filter(Boolean)
+      .join("\n\n") || null
+  );
+}
+
+function handCarryFromNotes(notes: string | null): number | null {
+  const match = notes?.match(/(?:^|\n)Hand carry: (\d+)\./);
+  if (!match?.[1]) return null;
+  const count = Number(match[1]);
+  return Number.isInteger(count) && count >= 0 && count <= 20 ? count : null;
 }
 
 async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promise<BookingRow> {
@@ -216,7 +251,7 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     payload.email ?? null,
     payload.company ?? null,
     payload.message,
-    hourlyDurationNote(payload),
+    bookingNotes(payload),
     payload.sourcePage,
     payload.sourceTrigger,
     payload.sourceMode,
@@ -308,9 +343,25 @@ export async function createBooking(
             { label: "Email", value: parsed.data.email ?? "" },
             { label: "Phone", value: parsed.data.phoneDisplay ?? "Not provided" },
             { label: "Pickup", value: parsed.data.pickupLocation },
-            { label: "Destination", value: parsed.data.destination ?? "Hourly service" },
+            {
+              label: "Destination",
+              value:
+                parsed.data.destination ??
+                (parsed.data.serviceType === "city_tour"
+                  ? (parsed.data.tourPackageTitle ?? "City tour")
+                  : "Hourly service"),
+            },
+            ...(parsed.data.serviceType === "city_tour" && parsed.data.tourPackageTitle
+              ? [{ label: "Tour package", value: parsed.data.tourPackageTitle }]
+              : []),
             { label: "Pickup time", value: parsed.data.pickupAt },
             { label: "Passengers", value: String(parsed.data.passengerCount) },
+            ...(parsed.data.luggageCount != null
+              ? [{ label: "Big luggage", value: String(parsed.data.luggageCount) }]
+              : []),
+            ...(parsed.data.handCarryCount != null
+              ? [{ label: "Hand carry", value: String(parsed.data.handCarryCount) }]
+              : []),
             ...(parsed.data.message ? [{ label: "Message", value: parsed.data.message }] : []),
           ],
         })
@@ -337,12 +388,31 @@ export async function createBooking(
       `${label.service}: ${service}`,
       `${label.from}: ${parsed.data.pickupLocation}`,
       ...(parsed.data.destination ? [`${label.to}: ${parsed.data.destination}`] : []),
+      ...(parsed.data.tourPackageTitle
+        ? [`${label.package}: ${parsed.data.tourPackageTitle}`]
+        : []),
       `${label.pickup}: ${parsed.data.pickupAt}`,
       ...(parsed.data.returnAt ? [`${label.return}: ${parsed.data.returnAt}`] : []),
-      ...(parsed.data.durationHours
-        ? [`${label.duration}: ${parsed.data.durationHours} ${label.hours}`]
+      ...((
+        parsed.data.serviceType === "city_tour"
+          ? parsed.data.tourDurationHours
+          : parsed.data.durationHours
+      )
+        ? [
+            `${label.duration}: ${
+              parsed.data.serviceType === "city_tour"
+                ? parsed.data.tourDurationHours
+                : parsed.data.durationHours
+            } ${label.hours}`,
+          ]
         : []),
       `${label.passengers}: ${parsed.data.passengerCount}`,
+      ...(parsed.data.luggageCount != null
+        ? [`${label.bigLuggage}: ${parsed.data.luggageCount}`]
+        : []),
+      ...(parsed.data.handCarryCount != null
+        ? [`${label.handCarry}: ${parsed.data.handCarryCount}`]
+        : []),
       ...(parsed.data.phoneDisplay ? [`${label.phone}: ${parsed.data.phoneDisplay}`] : []),
       ...(parsed.data.message ? [`${label.message}: ${parsed.data.message}`] : []),
     ];

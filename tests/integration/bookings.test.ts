@@ -119,6 +119,42 @@ describe("POST /api/v1/bookings", () => {
     expect(row?.notes).toBe("Duration: 3 hours.\n\nNeed a child seat.");
   });
 
+  it("stores a city tour package without a destination or return", async () => {
+    const env = createTestEnv();
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json", "idempotency-key": "test-booking-key-006" },
+        body: JSON.stringify(
+          bookingPayload({
+            serviceType: "city_tour",
+            destination: "",
+            tourPackageId: "heritage-walk",
+            tourPackageTitle: "Heritage and old-town walk (draft)",
+            tourDurationHours: 6,
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const row = await env.DB.prepare(
+      "SELECT destination, return_at, notes, service_type FROM bookings",
+    ).first<{
+      destination: string | null;
+      return_at: string | null;
+      notes: string;
+      service_type: string;
+    }>();
+    expect(row).toMatchObject({
+      destination: null,
+      return_at: null,
+      service_type: "city_tour",
+      notes:
+        "City tour package: Heritage and old-town walk (draft) (heritage-walk). Duration: 6 hours.",
+    });
+  });
+
   it("persists a WhatsApp enquiry and returns a formatted deep link", async () => {
     const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
     const response = await handleApi(

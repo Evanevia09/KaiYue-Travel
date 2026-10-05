@@ -1,0 +1,269 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { localeFromPath, localePath } from "../../lib/i18n.ts";
+import type { ServiceRecord } from "../../lib/site.ts";
+import PageHero from "./PageHero.astro";
+
+type Props = { service: ServiceRecord };
+const { service } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const packages = (await getCollection("cityTours", ({ data }) => data.status !== "hidden")).sort(
+  (a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id),
+);
+const hasDrafts = packages.some(({ data }) => data.status === "draft");
+const copy = {
+  en: {
+    title: "Discover Macau at your own pace",
+    description: "Explore city tour ideas for a private chauffeur outing in Macau.",
+    eyebrow: "City tours · Macau",
+    lede: "A city of stories, waterfront views, and places to pause. Find an idea for your next Macau outing.",
+    browse: "Explore tour packages",
+    kicker: "Your next city outing",
+    heading: "Three ways to see the city",
+    intro: "Choose a special offer, a 6-hour half day, or a 10-hour full day. Each includes a car and driver.",
+    draft: "Draft package",
+    notice: "The team confirms the quote before travel. Fares are not listed on this page.",
+    details: "View package",
+    fallback: "Package copy is currently available in English.",
+    image: "Illustrative image",
+    empty: "Tour packages are being prepared. Please check back for the collection.",
+    scope: "Private transport, with details agreed before travel",
+    scopeText:
+      "Attraction admission and licensed guiding are separate from chauffeur transport. Any itinerary, quote, and arrangements require confirmation by the team.",
+  },
+  pt: {
+    title: "Descubra Macau ao seu ritmo",
+    description: "Explore ideias de passeios por Macau com motorista privado.",
+    eyebrow: "Passeios pela cidade · Macau",
+    lede: "Uma cidade de histórias, vistas à beira-mar e lugares para fazer uma pausa. Encontre uma ideia para o seu próximo passeio por Macau.",
+    browse: "Explorar os pacotes de passeios",
+    kicker: "O seu próximo passeio pela cidade",
+    heading: "Três formas de ver a cidade",
+    intro: "Escolha uma oferta especial, um meio dia de 6 horas ou um dia inteiro de 10 horas. Cada um inclui carro e motorista.",
+    draft: "Pacote em rascunho",
+    notice: "A equipa confirma o orçamento antes da viagem. As tarifas não estão listadas nesta página.",
+    details: "Ver pacote",
+    fallback: "A descrição deste pacote está atualmente disponível em inglês.",
+    image: "Imagem ilustrativa",
+    empty: "Os pacotes de passeios estão em preparação. Volte para conhecer a coleção.",
+    scope: "Transporte privado, com detalhes acordados antes da viagem",
+    scopeText:
+      "As entradas em atrações e os serviços de guia licenciado são separados do transporte com motorista. O itinerário, orçamento e condições precisam de confirmação pela equipa.",
+  },
+  "zh-Hant": {
+    title: "按自己的步調探索澳門",
+    description: "探索澳門私人司機城市遊覽的行程構想。",
+    eyebrow: "城市遊覽 · 澳門",
+    lede: "探索城市故事、海濱風光與值得停留的地方，為下一趟澳門出遊尋找靈感。",
+    browse: "探索遊覽套票",
+    kicker: "下一趟城市出遊",
+    heading: "三種城市遊覽",
+    intro: "可選特別優惠、六小時半日遊或十小時全日遊。每種均附車輛及司機。",
+    draft: "套票草稿",
+    notice: "出發前由團隊確認報價。本頁不列出票價。",
+    details: "查看套票",
+    fallback: "此套票介紹暫以英文提供。",
+    image: "示意圖片",
+    empty: "遊覽套票正在準備中，歡迎稍後再瀏覽。",
+    scope: "私人交通安排，出發前確認細節",
+    scopeText:
+      "景點門票及持牌導遊服務與司機交通服務分開安排。行程、報價及相關安排須由團隊另行確認。",
+  },
+}[locale];
+---
+
+<BaseLayout
+  title={copy.title}
+  description={copy.description}
+  noindex={hasDrafts}
+  showMobileBook={false}
+>
+  <PageHero
+    className="hero--city-tours"
+    eyebrow={copy.eyebrow}
+    title={copy.title}
+    lede={copy.lede}
+    imageSrc={service.heroImage}
+    imageAlt={service.heroImageAlt}
+  >
+    <a slot="actions" class="btn btn--primary" href="#tour-packages"
+      >{copy.browse} <span aria-hidden="true">↓</span></a
+    >
+  </PageHero>
+  <section
+    id="tour-packages"
+    class="section section--muted tour-catalogue"
+    aria-labelledby="tour-heading"
+  >
+    <div class="wrap">
+      <div class="section-intro">
+        <div><p class="kicker">{copy.kicker}</p><h2 id="tour-heading">{copy.heading}</h2></div>
+        <p>{copy.intro}</p>
+      </div>
+      {hasDrafts && <p class="tour-catalogue__notice">{copy.notice}</p>}
+      <div class="tour-grid">
+        {
+          packages.map(({ id, data }) => {
+            const translation = locale === "en" ? data : (data.translations?.[locale] ?? data);
+            const contentLang = locale === "en" || !data.translations?.[locale] ? "en" : locale;
+            return (
+              <article class="tour-card" aria-labelledby={`tour-${id}`}>
+                <a
+                  class="tour-card__target"
+                  href={localePath(`/services/city-tours/${id}`, locale)}
+                  aria-labelledby={`tour-${id}`}
+                >
+                  {data.image && (
+                    <div class="tour-card__image">
+                      <img
+                        src={data.image}
+                        alt={translation.imageAlt}
+                        width="800"
+                        height="540"
+                        loading="lazy"
+                        data-no-localize
+                      />
+                    </div>
+                  )}
+                  <div class="tour-card__content">
+                    <h3 id={`tour-${id}`} lang={contentLang} data-no-localize>
+                      {translation.title}
+                    </h3>
+                    <p lang={contentLang} data-no-localize>
+                      {translation.summary}
+                    </p>
+                    {locale !== "en" && !data.translations?.[locale] && (
+                      <p class="tour-card__fallback">{copy.fallback}</p>
+                    )}
+                    <span class="tour-card__link">
+                      {copy.details}
+                      <span aria-hidden="true">↗</span>
+                    </span>
+                  </div>
+                </a>
+              </article>
+            );
+          })
+        }
+      </div>
+      {packages.length === 0 && <p>{copy.empty}</p>}
+      <div class="tour-catalogue__scope"><h3>{copy.scope}</h3><p>{copy.scopeText}</p></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  :global(.hero--city-tours) {
+    min-height: 76svh;
+  }
+  :global(.hero--city-tours .hero__bg img) {
+    object-position: center 42%;
+  }
+  .tour-catalogue {
+    scroll-margin-top: calc(var(--header-height) + 1rem);
+  }
+  .tour-catalogue__notice {
+    padding: 1rem 1.25rem;
+    border-left: 3px solid var(--color-accent, #f3a600);
+    background: white;
+    border-radius: 0.5rem;
+    margin: 0 0 2rem;
+    color: #4a4a4a;
+  }
+  .tour-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .tour-card {
+    background: white;
+    border-radius: 1.1rem;
+    overflow: hidden;
+    border: 1px solid #e6e6e6;
+  }
+  .tour-card__target {
+    display: block;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+  .tour-card:has(.tour-card__target:focus-visible) {
+    outline: 3px solid #008c5e;
+    outline-offset: 4px;
+  }
+  .tour-card__image {
+    aspect-ratio: 1.5;
+    overflow: hidden;
+  }
+  .tour-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .tour-card__content {
+    padding: 1.5rem;
+  }
+  .tour-card__badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #654600;
+    background: #fff3d6;
+    padding: 0.3rem 0.65rem;
+    border-radius: 2rem;
+    margin: 0 0 1rem;
+  }
+  .tour-card h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.4rem;
+    line-height: 1.25;
+  }
+  .tour-card p {
+    color: #555;
+    line-height: 1.7;
+  }
+  .tour-card__link {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid #eee;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    font-weight: 600;
+  }
+  .tour-card__link:focus-visible {
+    outline: 2px solid #008c5e;
+    outline-offset: 5px;
+  }
+  .tour-card__fallback {
+    font-size: 0.8rem;
+  }
+  .tour-catalogue__scope {
+    border-top: 1px solid #ddd;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    max-width: 48rem;
+  }
+  .tour-catalogue__scope h3 {
+    margin: 0 0 0.5rem;
+  }
+  .tour-catalogue__scope p {
+    color: #555;
+    margin: 0;
+    line-height: 1.7;
+  }
+  @media (max-width: 1000px) {
+    .tour-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 600px) {
+    .tour-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    :global(.hero--city-tours) {
+      min-height: 72svh;
+    }
+  }
+</style>

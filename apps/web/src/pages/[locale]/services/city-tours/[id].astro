@@ -1,0 +1,14 @@
+---
+import { getCollection } from "astro:content";
+import TourPackagePage from "../../../../components/content/TourPackagePage.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("cityTours", ({ data }) => data.status !== "hidden");
+  return (["pt", "zh-Hant"] as const).flatMap((locale) =>
+    entries.map((entry) => ({ params: { locale, id: entry.id }, props: { entry } })),
+  );
+}
+const { entry } = Astro.props;
+---
+
+<TourPackagePage entry={entry} />

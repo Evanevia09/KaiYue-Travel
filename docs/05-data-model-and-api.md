@@ -17,7 +17,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `pickup_at` | ISO timestamp plus explicit source timezone handling |
 | `return_at` | Optional; must be later than pickup |
 | `passenger_count` | Positive bounded integer |
-| `luggage_count` | Optional bounded integer |
+| `luggage_count` | Optional bounded integer. The booking form stores big-luggage count here (0–10 from the dropdown; the column still allows 0–20). Hand-carry count is not a column; it is written into `notes` as `Hand carry: N.` |
 | `vehicle_preference` | Optional, not a guarantee |
 | `communication_channel` | `whatsapp`, `email`, or `admin` for an authenticated manual entry |
 | `contact_name` | Required for Email; optional for WhatsApp |

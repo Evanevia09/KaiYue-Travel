@@ -3,6 +3,7 @@ import { BookingEmbedded } from "../../components/booking/BookingEmbedded.tsx";
 import JsonLd from "../../components/content/JsonLd.astro";
 import PageHero from "../../components/content/PageHero.astro";
 import ServiceDetails from "../../components/content/ServiceDetails.astro";
+import CityTourPage from "../../components/content/CityTourPage.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { services, site, type ServiceRecord } from "../../lib/site.ts";
 
@@ -52,26 +53,32 @@ const breadcrumbSchema = {
 };
 ---
 
-<BaseLayout
-  title={service.seoTitle}
-  description={service.seoDescription}
-  bookingEnabled={true}
-  showMobileBook={false}
->
-  <JsonLd slot="head" data={[serviceSchema, breadcrumbSchema]} />
-  <PageHero
-    eyebrow="Private chauffeur"
-    title={service.h1}
-    lede={service.summary}
-    imageSrc={service.heroImage}
-    imageAlt={service.heroImageAlt}
-  >
-    <BookingEmbedded
-      slot="booking"
-      client:only="react"
-      sourcePage={Astro.url.pathname}
-      serviceType={service.serviceType}
-    />
-  </PageHero>
-  <ServiceDetails service={service} />
-</BaseLayout>
+{
+  service.slug === "city-tours" ? (
+    <CityTourPage service={service} />
+  ) : (
+    <BaseLayout
+      title={service.seoTitle}
+      description={service.seoDescription}
+      bookingEnabled={true}
+      showMobileBook={false}
+    >
+      <JsonLd slot="head" data={[serviceSchema, breadcrumbSchema]} />
+      <PageHero
+        eyebrow="Private chauffeur"
+        title={service.h1}
+        lede={service.summary}
+        imageSrc={service.heroImage}
+        imageAlt={service.heroImageAlt}
+      >
+        <BookingEmbedded
+          slot="booking"
+          client:only="react"
+          sourcePage={Astro.url.pathname}
+          serviceType={service.serviceType}
+        />
+      </PageHero>
+      <ServiceDetails service={service} />
+    </BaseLayout>
+  )
+}

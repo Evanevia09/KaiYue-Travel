@@ -23,6 +23,7 @@ export type AdminBooking = {
   returnAt: string | null;
   passengerCount: number;
   luggageCount: number | null;
+  handCarryCount: number | null;
   vehiclePreference: string | null;
   communicationChannel: string;
   contactName: string | null;

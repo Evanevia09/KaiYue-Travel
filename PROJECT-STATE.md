@@ -1,9 +1,20 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-10-05 (Booking luggage counts and package Book now color)
+**Product-status evidence date:** 2026-10-05 for City Tour booking UI; previous booking/admin evidence remains dated 2026-09-27.
 **Phase:** 2–3 — booking/API completion and lightweight admin workflow
 **Overall status:** Two-channel booking enquiry workflow and expanded operator UI implemented in-repo; a temporary local dashboard login is verified. Nothing is deployed or connected to real Cloudflare/Resend services.
-**Current objective:** Stabilize the public booking widget in local development, then finish visual/interaction validation of the expanded admin pages and agree a production access policy before provisioning non-production services.
+**Current objective:** Owner review of the three City Tour packages: Special offer, Half day (6 hours), and Full day (10 hours), each with a car and driver. Supply any approved special-offer terms and pictures before publication. Staff package editing remains out of scope. Prior booking/admin hardening and production access decisions remain open.
+
+City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
+
+City Tour UI (2026-10-03): `/services/city-tours` now has a dedicated hero without booking, a direct desktop/mobile menu entry, and feature-image cards linking to individual Markdown package pages. Add a file in `apps/web/src/content/city-tours/` and its image in the public asset directory; the build generates the card and English, Portuguese, and Traditional Chinese routes. Four frontmatter fields are required; translations are optional, with explicit English fallback. Three sample themes remain labelled drafts and noindex; their content, routes, pricing, inclusions, availability, translations, and image use require owner review. [Authoring guide](docs/12-city-tour-packages.md) and [task evidence](docs/records/2026-10-03-city-tour-catalogue.md) record verification and limits. This is an uncommitted local change, not user acceptance or release.
+
+City Tour booking (2026-10-05): the header City Tours item is a dropdown for Special offer, Half day (6 hours with a car and driver), and Full day (10 hours with a car and driver). The earlier heritage, waterfront, and visitor-selected-stops samples are removed. Each package hero embeds the shared widget with City tours and that package selected. The homepage shows the same three packages as image cards; Book now opens that package page. The catalogue hero still has no form. No fare is published. [Task evidence](docs/records/2026-10-05-city-tour-booking.md). Staff editing and publication remain open.
+
+Codex workflow documentation (2026-10-03): [Project adapter](docs/11-codex-workflow-adapter.md) and [dated adoption record](docs/records/2026-10-03-codex-workflow-adoption.md) route substantial tasks through current source, bounded file ownership, behavioral checks, independent review, and precise closeout statuses. This documentation-only adoption does not rerun the 2026-09-27 booking/admin checks or establish production readiness. The pre-existing uncommitted local readiness entry below remains intact.
+
+End-to-end readiness check (2026-09-27): A real local Chrome run completed Home → journey validation → date/time selection → Email communication → API 201 → visible reference. Local D1 contained the matching enquiry (`KY-TUCA24PU`); notification state was `skipped` because local Resend is unconfigured. A 390 px service-page run rendered the hourly form and date dialog without horizontal overflow. Anonymous `/admin` redirected to `/login`, and the admin summary API returned 401. Authenticated dashboard browser testing could not run because the temporary local access has expired. The isolated session integration test passed. All 43 tests, type checking, and production build passed separately; the full CI chain stops at Prettier issues in 74 existing files. Production readiness is **not established**: no production stack, production access policy, real notification delivery, deployed end-to-end test, or owner acceptance is verified.
 
 Public localization (2026-09-27): English public routes now have Portuguese (`/pt`, `pt-PT`) and Traditional Chinese (`/zh-Hant`) counterparts across Home, About, Contact, FAQ, legal drafts, booking confirmation, six service pages, and three B2B pages. The language switch keeps the page context; public metadata, navigation, booking/inquiry forms, feedback, date display, API booking confirmation, and prepared WhatsApp requests are localized. Form submissions carry the selected locale and source path. Protected admin pages remain outside scope. Mobile browser checks passed for representative pages and forms, including mocked contact submission in both added locales. The isolated admin-session test now sets its own temporary expiry, so local `.dev.vars` cannot make that test fail after the real local access expires. The full `pnpm run ci` gate passed: formatting, type checking, 43 tests, and production build. Draft translation wording, especially B2B facts and legal text, needs native-language and business-owner review before any production publication. No deployment was made.
 
@@ -147,6 +158,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
+
 1. Check the booking widget in the existing in-app browser tab after a reload, then verify the booking flow on a non-production preview before release.
 2. Browser-check the mobile booking sheet (not the homepage hero card) for duration, calendar, and Add return stack.
 3. Confirm service types, booking fields, and customer confirmation language.
@@ -154,7 +167,11 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 5. Apply `migrations/0001_init.sql` to a local/preview D1 and verify the slice with real bindings.
 6. Continue business validation of facts before replacing draft copy. Commission original photography to replace the hero crop.
 
+Workflow resume action (2026-10-03): the owning agent should trial a bounded read-only task using the [adapter](docs/11-codex-workflow-adapter.md), return evidence to the Lab coordinator, and record actual acceptance and review evidence before changing shared policy. The user need not route routine work between chats.
+
 ## Verification record
+
+2026-10-03 workflow adoption: 46 local Markdown links resolved; targeted Prettier and `git diff --check` passed; independent read-only review found no actionable issue. Source/revision provenance, dirty-state preservation, and limits are in the [adoption record](docs/records/2026-10-03-codex-workflow-adoption.md). This is `task_verified` for documentation only; no browser, API, D1, CI, or deployed behavior was checked in this task.
 
 2026-09-27 booking-widget stability: After the change and again after a fresh local dev-server restart, headless Chrome rendered the widget on Home in English, Portuguese, and Traditional Chinese and on `/services/local-transfers` across 12/12 reloads in each pass, with no console errors. The visible Home widget switched to hourly fields on click and loaded one `react.js` resource. `pnpm run ci` passed: formatting, strict type checking (0 errors), 43/43 tests, and production build. The existing in-app browser tab and a deployed preview were not inspected.
 
@@ -174,6 +191,73 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-05 — Booking luggage counts and package Book now color
+
+- Package-page Book now uses the same green gradient as the booking widget button.
+- Communication step (step 2) collects big luggage and hand carry as number dropdowns from 0 to 10. Big luggage uses the existing luggage column. Hand carry is stored in booking notes.
+- Decision/evidence: owner direction on 2026-10-05. No luggage fee, size limit, or new database column was added.
+- Verified locally: package Book now computed background matches the booking button gradient (`#008c5e` to `#2db883`, black text). Step 2 shows both dropdowns; selecting 2 big luggage and 1 hand carry keeps those values on the Email tab. At 390 px the fields stack and the page does not overflow. Booking contract and integration tests passed (23). Full CI and a stored enquiry with these counts were not rerun.
+
+### 2026-10-05 — Footer City Tour links
+
+- Changed: the footer Services column lists City Tours as its own group, with Special offer, Half day, and Full day. Those links open the package pages. City Tours is no longer a single link under By The Hour in the footer.
+- Decision/evidence: owner direction on 2026-10-05.
+- Verified: local Chrome at `http://localhost:4321`. Footer Services lists Point To Point, By The Hour, and City Tours. City Tours links to Special offer, Half day, and Full day. Full day opens `/services/city-tours/full-day`.
+
+### 2026-10-05 — City Tour product page body
+
+- Changed: each package page body is now a product block with a photo gallery, title, From price, description, and terms. No fare amount was added. Until `priceFrom` is supplied, the price reads From / On request. Gallery photos are existing illustrative images.
+- Decision/evidence: owner direction on 2026-10-05 to make the package body look like a product page.
+- Verified: local Chrome at `http://localhost:4321/services/city-tours/half-day`. The product block shows a large image with three thumbnails beside it. Choosing the second thumbnail changes the main image. At 390 px the thumbnails sit in a row under the main image, with no horizontal overflow. Price still reads From / On request.
+- Limits: special-offer amount, discount, and real pictures remain open. Not a release.
+
+### 2026-10-05 — Homepage City Tour cards
+
+- Changed: the homepage now shows Special offer, Half day, and Full day as image cards. Each card uses the package feature image. Book now opens that package page. No fare was added.
+- Decision/evidence: owner direction on 2026-10-05 to add a homepage City Tour section with package cards and a Book now action.
+- Verified: local Chrome at `http://localhost:4321`. The homepage section lists Special offer, Half day (6 hours), and Full day (10 hours) with their feature images. Book now on Half day opens `/services/city-tours/half-day` with City tours and Half day selected. Portuguese `/pt/` shows the same three cards and localized package links. At 390 px the cards stack in one column with no horizontal overflow. No fare was added.
+- Limits: packages remain drafts. Special offer and Full day still share an illustrative image. Not a release.
+
+### 2026-10-05 — City Tour package types
+
+- Changed: removed the heritage, waterfront, and visitor-selected-stops samples. City Tours in the header and mobile menu is a dropdown for Special offer, Half day (6 hours), and Full day (10 hours). Each package hero embeds the booking widget with City tours and that package selected. Each package is a car with a driver. No fare was added.
+- Decision/evidence: owner direction on 2026-10-05.
+- Verified: local Chrome at `http://localhost:4321`. City Tours dropdown lists Special offer, Half day, and Full day. Half day, Special offer, and Full day heroes open with City tours pressed and that package selected; durations are 6 hours, none, and 10 hours. Old heritage, waterfront, and your-own-stops URLs return 404. Catalogue returns 200. No fare was added.
+- Limits: special-offer terms, real pictures, and publication remain open. Not a release.
+
+### 2026-10-05 — City Tour package details and booking mode
+
+- Changed: package pages show a key-details band under the feature image and open the shared booking sheet with that package selected. The shared widget adds a City tours mode with package, pickup, date and time, and passengers, and without destination or return. The stored enquiry records the package title and id. Optional `durationHours` is shown only when a package file supplies it. The catalogue still has no embedded hero form.
+- Decision/evidence: 2026-10-03 voice follow-up after the planning note. Passengers stay on the form so the team can suggest vehicles. No prices, itineraries, or offer terms were added. See [task record](docs/records/2026-10-05-city-tour-booking.md).
+- Verified: focused tests (26), production build (catalogue and all three package pages in three locales), local Chrome journeys in English, Portuguese, and Traditional Chinese, homepage mode switching, catalogue with no form, 390 px and 320 px overflow checks, and local D1 row `KY-JFMM8DFB` (`city_tour`, null destination and return, notification `skipped`). Details and limits are in the task record. Full CI is not claimed.
+- Limits: sample packages remain drafts. Real package copy, image rights, special-offer terms, and staff editing are still open. Not a release.
+
+### 2026-10-03 — Record future City Tour planning
+
+- Changed: saved the voice-discussion planning record and linked it from the documentation index/state. Confirmed direction, illustrative examples, superseded durations, proposed booking flow and open staff-authoring decisions are separated.
+- Decision/evidence: latest owner discussion; documentation first, return later to clarify the build. Recommended next step: review the package-detail example and agree staff-authoring scope.
+- Verified: document readback, local links, focused formatting, diff whitespace and unchanged application-source hashes for this increment.
+- Limits: no application/runtime checks rerun, no feature implementation, no commit/push/deployment; commercial content and future design decisions remain pending.
+
+### 2026-10-03 — City Tour catalogue and Markdown package pages
+
+- Changed: dedicated hero (booking deferred), one direct menu entry, feature-image catalogue cards, and shared-template package pages generated from one Markdown folder. Simple four-field authoring supports optional localized labels and explicit English-body fallback. Existing homepage/footer links retain their URL.
+- Decision/evidence: latest owner clarification superseded hero booking and expandable-only details. Three samples remain draft planning themes, with no commercial claims approved. See [task record](docs/records/2026-10-03-city-tour-catalogue.md).
+- Verified: desktop/mobile catalogue and individual-page journeys, Portuguese/Traditional Chinese routing and keyboard/image-card navigation, minimal English-only authoring, hidden-record exclusion, draft/noindex handling, 45 tests, typecheck, production build, focused formatting, diff checks, independent review and corrections.
+- Limits: repository-wide lint has unrelated formatting drift; external hosting publication, real business content/image rights, full body translations, physical devices, and screen readers remain unverified. Dev booking-island optimizer error observed during concurrent checks; production-built homepage form hydrates. No push or deployment.
+
+### 2026-10-03 — Adopt project-specific Codex workflow routing
+
+- Changed: added the compact workflow adapter, dated scope/acceptance record, and links from project instructions and documentation index. The business scope, booking/admin authority, historical checks, and pre-existing local readiness note were not revised.
+- Verified: documentation-only checks and independent review are in the [adoption record](docs/records/2026-10-03-codex-workflow-adoption.md). This task is `task_verified` for documentation; no application behavior, owner acceptance, or release was verified.
+- Next action: trial one bounded read-only resumption from the startup links and record whether the adapter provided sufficient current context.
+
+### 2026-09-27 — Local booking and dashboard readiness test
+
+- Verified: Chrome desktop booking submission returned 201 and displayed the same reference that was stored in local D1; empty journey validation appeared, and there were no browser page errors. Chrome mobile at 390 px loaded the hourly service form and date picker without horizontal overflow. Anonymous admin page and API access were denied as expected. The 43 unit/integration tests, type check, and production build passed.
+- Limitation: local email notification was skipped by configuration; temporary dashboard access has expired, so authenticated dashboard interaction was not exercised in a browser. The isolated admin-session test passed, but it does not establish the complete browser workflow. Repository-wide Prettier check fails on 74 pre-existing files, preventing `pnpm run ci` from passing.
+- Next action: renew or provision a non-production operator identity under the approved access policy, then run booking → dashboard list/detail/status/calendar/contacts in an isolated staging environment with test mail and D1. Resolve the formatting gate and complete owner, accessibility, security, recovery, and release reviews before calling the site production ready.
 
 ### 2026-09-27 — Use orange accent for booking steps
 

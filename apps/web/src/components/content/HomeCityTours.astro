@@ -1,0 +1,218 @@
+---
+import { getCollection } from "astro:content";
+import { localeFromPath, localePath } from "../../lib/i18n.ts";
+
+const locale = localeFromPath(Astro.url.pathname);
+const packages = (await getCollection("cityTours", ({ data }) => data.status !== "hidden")).sort(
+  (a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id),
+);
+const copy = {
+  en: {
+    kicker: "City tours",
+    heading: "Three ways to see the city",
+    intro:
+      "A special offer, a 6-hour half day, or a 10-hour full day. Each one includes a car and driver.",
+    book: "Book now",
+    car: "Car with driver",
+    hours: "{hours} hours",
+    fallback: "Package copy is currently available in English.",
+  },
+  pt: {
+    kicker: "Passeios pela cidade",
+    heading: "Três formas de ver a cidade",
+    intro:
+      "Uma oferta especial, um meio dia de 6 horas ou um dia inteiro de 10 horas. Cada um inclui carro e motorista.",
+    book: "Reservar agora",
+    car: "Carro com motorista",
+    hours: "{hours} horas",
+    fallback: "A descrição deste pacote está atualmente disponível em inglês.",
+  },
+  "zh-Hant": {
+    kicker: "城市遊覽",
+    heading: "三種城市遊覽",
+    intro: "可選特別優惠、六小時半日遊或十小時全日遊。每種均附車輛及司機。",
+    book: "立即預約",
+    car: "車輛連司機",
+    hours: "{hours} 小時",
+    fallback: "此套票介紹暫以英文提供。",
+  },
+}[locale];
+---
+
+{
+  packages.length > 0 && (
+    <section class="section home-tours" aria-labelledby="home-tours" data-no-localize>
+      <div class="wrap">
+        <div class="section-intro">
+          <div>
+            <p class="kicker">{copy.kicker}</p>
+            <h2 id="home-tours">{copy.heading}</h2>
+          </div>
+          <p>{copy.intro}</p>
+        </div>
+        <div class="home-tour-grid">
+          {packages.map(({ id, data }) => {
+            const translation = locale === "en" ? data : (data.translations?.[locale] ?? data);
+            const contentLang = locale === "en" || data.translations?.[locale] ? locale : "en";
+            const fact = data.durationHours
+              ? `${copy.hours.replace("{hours}", String(data.durationHours))} · ${copy.car}`
+              : copy.car;
+            const href = localePath(`/services/city-tours/${id}`, locale);
+            return (
+              <article class="home-tour-card">
+                <div class="home-tour-card__media">
+                  <img
+                    src={data.image}
+                    alt={translation.imageAlt}
+                    width="800"
+                    height="540"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="home-tour-card__body">
+                  <p class="home-tour-card__fact">{fact}</p>
+                  <h3 lang={contentLang}>
+                    <a href={href}>{translation.title}</a>
+                  </h3>
+                  <p class="home-tour-card__summary" lang={contentLang}>
+                    {translation.summary}
+                  </p>
+                  {locale !== "en" && !data.translations?.[locale] && (
+                    <p class="home-tour-card__fallback">{copy.fallback}</p>
+                  )}
+                  <a class="btn btn--primary home-tour-card__book" href={href}>
+                    {copy.book}
+                    <span class="sr-only">: {translation.title}</span>
+                  </a>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .home-tour-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .home-tour-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e2e2e5;
+    border-radius: 1.2rem;
+    background: #fff;
+    box-shadow: 0 18px 40px rgb(0 0 0 / 6%);
+  }
+
+  .home-tour-card__media {
+    display: block;
+    aspect-ratio: 1.45;
+    overflow: hidden;
+    background: #e8e8e8;
+  }
+
+  .home-tour-card__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 420ms ease;
+  }
+
+  .home-tour-card:hover .home-tour-card__media img,
+  .home-tour-card:focus-within .home-tour-card__media img {
+    transform: scale(1.04);
+  }
+
+  .home-tour-card__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.35rem 1.4rem 1.45rem;
+  }
+
+  .home-tour-card__fact {
+    margin: 0;
+    color: var(--color-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-tour-card h3 {
+    margin: 0;
+    font-size: 1.55rem;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+
+  .home-tour-card h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .home-tour-card h3 a:hover,
+  .home-tour-card h3 a:focus-visible {
+    color: var(--color-accent-strong);
+  }
+
+  .home-tour-card__summary,
+  .home-tour-card__fallback {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+
+  .home-tour-card__fallback {
+    font-size: 0.8rem;
+  }
+
+  .home-tour-card__book {
+    width: 100%;
+    margin-top: auto;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 1000px) {
+    .home-tour-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 700px) {
+    .home-tour-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-tour-card__media img {
+      transition: none;
+    }
+
+    .home-tour-card:hover .home-tour-card__media img,
+    .home-tour-card:focus-within .home-tour-card__media img {
+      transform: none;
+    }
+  }
+</style>

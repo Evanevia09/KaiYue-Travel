@@ -3,6 +3,22 @@ import { localizeHtml } from "./i18n-html.ts";
 import { localeFromPath, localePath, publicSourcePage, stripLocale } from "./i18n.ts";
 
 describe("public locale routing", () => {
+  it("retains ordinary metadata localization when preservation is disabled", () => {
+    const result = localizeHtml(
+      '<meta name="description" content="Private travel in Macau" data-no-localize="false">',
+      "pt",
+    );
+    expect(result).toContain('content="Viagens privadas em Macau"');
+  });
+  it("preserves declared English package Markdown while localizing the surrounding page", () => {
+    const result = localizeHtml(
+      '<meta name="description" content="Airport Transfer" data-no-localize><a href="/services/city-tours/heritage-walk">City Tours</a><div lang="en" data-no-localize><p>Airport Transfer</p><a href="/contact">Contact</a></div>',
+      "pt",
+    );
+    expect(result).toContain('href="/pt/services/city-tours/heritage-walk"');
+    expect(result).toContain('content="Airport Transfer"');
+    expect(result).toContain('<p>Airport Transfer</p><a href="/contact">Contact</a>');
+  });
   it("keeps the same public page while switching between locales", () => {
     expect(localeFromPath("/zh-Hant/services/airport-transfer")).toBe("zh-Hant");
     expect(stripLocale("/pt/business/travel-agency")).toBe("/business/travel-agency");

@@ -6,6 +6,7 @@ export const SERVICE_TYPES = [
   "hotel_transfer",
   "point_to_point",
   "hourly_charter",
+  "city_tour",
   "sightseeing",
   "corporate",
   "custom",
@@ -48,6 +49,7 @@ export const bookingCreateSchema = z
       .max(HOURLY_DURATION_MAX_HOURS)
       .optional(),
     luggageCount: z.number().int().min(0).max(20).optional(),
+    handCarryCount: z.number().int().min(0).max(20).optional(),
     vehiclePreference: z.enum(VEHICLE_PREFERENCES).optional(),
     communicationChannel: z.enum(COMMUNICATION_CHANNELS),
     contactName: optionalText(80),
@@ -63,6 +65,14 @@ export const bookingCreateSchema = z
     company: optionalText(120),
     message: z.string().trim().max(800).default(""),
     notes: optionalText(800),
+    tourPackageId: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .max(80)
+      .optional(),
+    tourPackageTitle: z.string().trim().min(1).max(160).optional(),
+    tourDurationHours: z.number().int().min(1).max(24).optional(),
     locale: z.string().trim().min(2).max(16).default("en"),
     sourcePage: z.string().trim().min(1).max(200),
     sourceTrigger: z.string().trim().min(1).max(80),
@@ -71,11 +81,27 @@ export const bookingCreateSchema = z
     website: z.string().max(0).optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.serviceType !== "hourly_charter" && !value.destination) {
+    if (destinationRequired(value.serviceType) && !value.destination) {
       ctx.addIssue({
         code: "custom",
         path: ["destination"],
         message: "Enter a destination.",
+      });
+    }
+
+    if (value.serviceType === "city_tour" && value.returnAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["returnAt"],
+        message: "City tours do not include a return time.",
+      });
+    }
+
+    if (value.serviceType === "city_tour" && (!value.tourPackageId || !value.tourPackageTitle)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tourPackageId"],
+        message: "Choose a tour package.",
       });
     }
 
@@ -146,7 +172,7 @@ export type BookingCreateInput = z.input<typeof bookingCreateSchema>;
 export type BookingCreatePayload = z.output<typeof bookingCreateSchema>;
 
 export function destinationRequired(serviceType: ServiceType): boolean {
-  return serviceType !== "hourly_charter";
+  return serviceType !== "hourly_charter" && serviceType !== "city_tour";
 }
 
 export function validatePickupNotice(

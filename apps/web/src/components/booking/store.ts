@@ -26,6 +26,7 @@ export type BookingDraft = {
   passengerCount: number;
   durationHours: number;
   luggageCount: string;
+  handCarryCount: string;
   vehiclePreference: BookingCreateInput["vehiclePreference"] | "";
   communicationChannel: CommunicationChannel;
   contactName: string;
@@ -33,6 +34,8 @@ export type BookingDraft = {
   email: string;
   company: string;
   notes: string;
+  tourPackageId: string;
+  tourPackageTitle: string;
   message: string;
   privacyAccepted: boolean;
   locale: string;
@@ -43,6 +46,8 @@ export type BookingEntryContext = {
   sourcePage: string;
   sourceTrigger: string;
   initialServiceType?: ServiceType;
+  initialTourPackageId?: string;
+  initialTourPackageTitle?: string;
 };
 
 export type BookingState = {
@@ -68,7 +73,8 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
   returnAt: "",
   passengerCount: 2,
   durationHours: 2,
-  luggageCount: "",
+  luggageCount: "0",
+  handCarryCount: "0",
   vehiclePreference: "",
   communicationChannel: "whatsapp",
   contactName: "",
@@ -76,6 +82,8 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
   email: "",
   company: "",
   notes: "",
+  tourPackageId: "",
+  tourPackageTitle: "",
   message: "",
   privacyAccepted: false,
   locale: "en",
@@ -130,7 +138,10 @@ function persistJourney(draft: BookingDraft): void {
       passengerCount: draft.passengerCount,
       durationHours: draft.durationHours,
       luggageCount: draft.luggageCount,
+      handCarryCount: draft.handCarryCount,
       vehiclePreference: draft.vehiclePreference,
+      tourPackageId: draft.tourPackageId,
+      tourPackageTitle: draft.tourPackageTitle,
       savedAt: Date.now(),
     }),
   );
@@ -164,7 +175,8 @@ export function isDirty(draft: BookingDraft): boolean {
     draft.pickupAt !== empty.pickupAt ||
     draft.contactName !== empty.contactName ||
     draft.phone !== empty.phone ||
-    draft.message !== empty.message
+    draft.message !== empty.message ||
+    draft.tourPackageId !== empty.tourPackageId
   );
 }
 
@@ -185,18 +197,37 @@ export function setStep(step: BookingState["step"]): void {
   emit();
 }
 
+function withoutEmpty<T extends Record<string, unknown>>(value: T | null): Partial<T> {
+  if (!value) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter(([, item]) => item !== undefined),
+  ) as Partial<T>;
+}
+
 export function openBooking(context: BookingEntryContext): void {
-  const restored = restoreJourney();
+  const restored = withoutEmpty(restoreJourney());
+  const serviceType = context.initialTourPackageId
+    ? "city_tour"
+    : (context.initialServiceType ?? restored.serviceType ?? state.draft.serviceType);
+  const cityTour = serviceType === "city_tour";
+  const hourly = serviceType === "hourly_charter";
+  const draft = {
+    ...state.draft,
+    ...restored,
+    serviceType,
+    destination: cityTour || hourly ? "" : (restored.destination ?? state.draft.destination),
+    returnAt: cityTour || hourly ? "" : (restored.returnAt ?? state.draft.returnAt),
+    tourPackageId: cityTour ? (context.initialTourPackageId ?? restored.tourPackageId ?? "") : "",
+    tourPackageTitle: cityTour
+      ? (context.initialTourPackageTitle ?? restored.tourPackageTitle ?? "")
+      : "",
+  };
   state = {
     ...state,
     open: true,
-    status: isDirty({ ...state.draft, ...restored }) ? "open.editing" : "open.pristine",
+    status: isDirty(draft) ? "open.editing" : "open.pristine",
     context,
-    draft: {
-      ...state.draft,
-      ...restored,
-      serviceType: context.initialServiceType ?? restored?.serviceType ?? state.draft.serviceType,
-    },
+    draft,
     fieldErrors: {},
     formError: undefined,
   };

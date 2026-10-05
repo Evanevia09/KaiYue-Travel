@@ -2,14 +2,22 @@
 type Props = {
   src?: string;
   alt?: string;
+  preserveCopy?: boolean;
 };
 
 const {
   src = "/images/hero-home.jpg",
   alt = "Chauffeur welcoming a family beside a private vehicle at a waterfront hotel in Macau",
+  preserveCopy,
 } = Astro.props;
 ---
 
 <div class="hero__bg">
-  <img src={src} width="1920" height="1080" alt={alt} />
+  <img
+    src={src}
+    width="1920"
+    height="1080"
+    alt={alt}
+    data-no-localize={preserveCopy || undefined}
+  />
 </div>

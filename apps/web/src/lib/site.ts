@@ -344,15 +344,13 @@ export type NavLink = { readonly href: string; readonly label: string };
 export type NavGroup = { readonly label: string; readonly children: readonly NavLink[] };
 
 /**
- * Primary navigation. Every entry is currently a dropdown, but the link branch
- * is kept so a plain top-level page can be added back without touching
- * `BaseLayout` — the union is what makes `"children" in item` narrow.
+ * Primary navigation supports both dropdown groups and dedicated page links.
  */
 export type NavItem = NavLink | NavGroup;
 
 /**
- * Service groups are the single source for the service part of the header menus
- * and for the footer services column, so the two cannot drift apart.
+ * Service groups feed the homepage service cards. The header and footer add
+ * City Tours as its own group of package links.
  */
 export const serviceGroups: readonly NavGroup[] = [
   {
@@ -373,8 +371,23 @@ export const serviceGroups: readonly NavGroup[] = [
   },
 ];
 
+const cityTourLinks = [
+  { href: "/services/city-tours/special-offer", label: "Special offer" },
+  { href: "/services/city-tours/half-day", label: "Half day" },
+  { href: "/services/city-tours/full-day", label: "Full day" },
+] as const;
+
+const serviceMenus = serviceGroups.map((group) => ({
+  ...group,
+  children: group.children.filter((child) => child.href !== "/services/city-tours"),
+}));
+
 export const nav: readonly NavItem[] = [
-  ...serviceGroups,
+  ...serviceMenus,
+  {
+    label: "City Tours",
+    children: cityTourLinks,
+  },
   {
     label: "Business",
     children: [
@@ -385,7 +398,13 @@ export const nav: readonly NavItem[] = [
   },
 ];
 
-export const footerServiceGroups = serviceGroups;
+export const footerServiceGroups: readonly NavGroup[] = [
+  ...serviceMenus,
+  {
+    label: "City Tours",
+    children: cityTourLinks,
+  },
+];
 
 export const faqs = [
   {

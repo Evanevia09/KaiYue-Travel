@@ -1,0 +1,417 @@
+---
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import type { CollectionEntry } from "astro:content";
+import { BookingEmbedded } from "../booking/BookingEmbedded.tsx";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { localeFromPath } from "../../lib/i18n.ts";
+import PageHero from "./PageHero.astro";
+
+type Props = { entry: CollectionEntry<"cityTours"> };
+const { entry } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const data = entry.data;
+const translation = locale === "en" ? data : (data.translations?.[locale] ?? data);
+const contentLang = locale === "en" || data.translations?.[locale] ? locale : "en";
+type GalleryPhoto = {
+  src: string;
+  alt: string;
+  altPt?: string;
+  altZhHant?: string;
+};
+type PackageFrontmatter = {
+  description?: string;
+  terms?: string[];
+  priceFrom?: string;
+  gallery?: GalleryPhoto[];
+};
+function readPackageFile(id: string): PackageFrontmatter | undefined {
+  try {
+    const absolute = resolve(process.cwd(), "src/content/city-tours", `${id}.md`);
+    if (!existsSync(absolute)) return undefined;
+    const source = readFileSync(absolute, "utf8");
+    const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!match) return undefined;
+    const lines = match[1].split(/\r?\n/);
+    const result: PackageFrontmatter = {};
+    let photo: GalleryPhoto | undefined;
+    let inGallery = false;
+    const finishPhoto = () => {
+      if (!photo) return;
+      result.gallery = [...(result.gallery ?? []), photo];
+      photo = undefined;
+    };
+    for (const line of lines) {
+      if (line.startsWith("gallery:")) {
+        inGallery = true;
+        continue;
+      }
+      if (inGallery && /^[A-Za-z]/.test(line)) {
+        finishPhoto();
+        inGallery = false;
+      }
+      if (inGallery) {
+        const item = line.match(/^  - (\w+): (.*)$/);
+        const field = line.match(/^    (\w+): (.*)$/);
+        const pair = item ?? field;
+        if (!pair) continue;
+        if (item) finishPhoto();
+        photo = photo ?? { src: "", alt: "" };
+        const key = pair[1];
+        const value = pair[2].trim();
+        if (key === "src" || key === "alt" || key === "altPt" || key === "altZhHant") {
+          photo[key] = value;
+        }
+        continue;
+      }
+      const top = line.match(/^(description|priceFrom): (.*)$/);
+      if (top?.[1] === "description" || top?.[1] === "priceFrom") {
+        result[top[1]] = top[2].trim();
+      }
+    }
+    finishPhoto();
+    return result;
+  } catch {
+    return undefined;
+  }
+}
+const fromFile = data.gallery?.length ? undefined : readPackageFile(entry.id);
+const description =
+  translation.description ?? data.description ?? fromFile?.description ?? translation.summary;
+const extraTerms = translation.terms ?? data.terms ?? fromFile?.terms ?? [];
+const priceFrom = data.priceFrom ?? fromFile?.priceFrom;
+const gallerySource: GalleryPhoto[] = data.gallery?.length
+  ? data.gallery
+  : fromFile?.gallery?.length
+    ? fromFile.gallery
+    : [{ src: data.image, alt: data.imageAlt }];
+const photos = gallerySource.map((photo) => ({
+  src: photo.src,
+  alt:
+    locale === "pt"
+      ? (photo.altPt ?? photo.alt)
+      : locale === "zh-Hant"
+        ? (photo.altZhHant ?? photo.alt)
+        : photo.alt,
+}));
+const copy = {
+  en: {
+    book: "Book now",
+    language: "",
+    description: "Description",
+    terms: "Terms",
+    serviceValue: "Car with driver",
+    hours: "hours",
+    from: "From",
+    onRequest: "On request",
+    photos: "Photos",
+    priceNote: "The team confirms the amount before travel.",
+    showPhoto: "Show photo",
+    sharedTerms: [
+      "A request on this page is not a confirmed booking. The team confirms availability and the fare first.",
+      "Please request at least 24 hours ahead. Same-day requests may be reviewed and are not guaranteed.",
+      "The service is a car with a driver for the time agreed. Attraction tickets and a licensed guide are separate.",
+      "Places to stop can be discussed. How many fit depends on travel time and time spent at each place.",
+      "More time can be discussed with the team. This page does not list an extra-hour rate.",
+    ],
+  },
+  pt: {
+    book: "Reservar agora",
+    language:
+      "Os detalhes deste pacote estão disponíveis em inglês. A tradução portuguesa ainda está em preparação.",
+    description: "Descrição",
+    terms: "Condições",
+    serviceValue: "Carro com motorista",
+    hours: "horas",
+    from: "Desde",
+    onRequest: "Sob consulta",
+    photos: "Fotos",
+    priceNote: "A equipa confirma o valor antes da viagem.",
+    showPhoto: "Mostrar foto",
+    sharedTerms: [
+      "Um pedido nesta página não é uma reserva confirmada. A equipa confirma primeiro a disponibilidade e o preço.",
+      "Peça com pelo menos 24 horas de antecedência. Os pedidos para o próprio dia podem ser analisados, mas não são garantidos.",
+      "O serviço é um carro com motorista pelo tempo acordado. As entradas em atrações e um guia licenciado são separados.",
+      "Os locais de paragem podem ser combinados. O número depende do tempo de viagem e do tempo em cada lugar.",
+      "Tempo adicional pode ser combinado com a equipa. Esta página não indica uma tarifa por hora extra.",
+    ],
+  },
+  "zh-Hant": {
+    book: "立即預約",
+    language: "此套票詳情暫以英文提供，繁體中文翻譯尚在準備中。",
+    description: "說明",
+    terms: "條款",
+    serviceValue: "車輛連司機",
+    hours: "小時",
+    from: "由",
+    onRequest: "另行報價",
+    photos: "圖片",
+    priceNote: "出發前由團隊確認金額。",
+    showPhoto: "顯示圖片",
+    sharedTerms: [
+      "本頁申請並非已確認的預約。團隊會先確認是否可以安排及票價。",
+      "請至少提前 24 小時提出申請。當天申請或可受理，但不保證可以安排。",
+      "服務為約定時間內的車輛及司機。景點門票及持牌導遊另行安排。",
+      "停留地點可以商量。能去幾處取決於車程及每處停留的時間。",
+      "如需加時，可與團隊商量。本頁不列出逾時收費。",
+    ],
+  },
+}[locale];
+const fact = data.durationHours
+  ? `${data.durationHours} ${copy.hours} · ${copy.serviceValue}`
+  : copy.serviceValue;
+const descriptionLang = translation.description || locale === "en" ? contentLang : "en";
+const showLanguageNote = locale !== "en" && !translation.description;
+---
+
+<BaseLayout
+  title={translation.title}
+  description={translation.summary}
+  ogImage={data.image}
+  preserveMetadata={true}
+  noindex={data.status !== "approved"}
+  bookingEnabled={true}
+  showMobileBook={false}
+>
+  <PageHero
+    id="tour-hero"
+    className="hero--tour-package"
+    title={translation.title}
+    lede={translation.summary}
+    imageSrc={data.image}
+    imageAlt={translation.imageAlt}
+    contentLang={contentLang}
+    preserveCopy={true}
+  >
+    <BookingEmbedded
+      slot="booking"
+      client:only="react"
+      sourcePage={Astro.url.pathname}
+      serviceType="city_tour"
+      tourPackageId={entry.id}
+      tourPackageTitle={translation.title}
+    />
+  </PageHero>
+  <section class="section product" aria-labelledby="product-title" data-no-localize>
+    <div class="wrap product__grid">
+      <div class="product-gallery" data-product-gallery>
+        <div class="product-gallery__stage">
+          <img
+            data-gallery-main
+            src={photos[0].src}
+            alt={photos[0].alt}
+            width="1200"
+            height="900"
+          />
+        </div>
+        {
+          photos.length > 1 && (
+            <div class="product-gallery__thumbs" role="group" aria-label={copy.photos}>
+              {photos.map((photo, index) => (
+                <button
+                  type="button"
+                  data-gallery-thumb
+                  data-src={photo.src}
+                  data-alt={photo.alt}
+                  aria-pressed={index === 0 ? "true" : "false"}
+                  aria-label={`${copy.showPhoto} ${index + 1}`}
+                >
+                  <img src={photo.src} alt="" width="240" height="160" />
+                </button>
+              ))}
+            </div>
+          )
+        }
+      </div>
+      <div class="product__info">
+        <p class="product__fact">{fact}</p>
+        <h2 id="product-title" lang={contentLang}>{translation.title}</h2>
+        <div class="product-price">
+          <p class="product-price__label">{copy.from}</p>
+          <p class="product-price__value">{priceFrom ?? copy.onRequest}</p>
+          {!priceFrom && <p class="product-price__note">{copy.priceNote}</p>}
+        </div>
+        <h3>{copy.description}</h3>
+        <p class="product__description" lang={descriptionLang}>{description}</p>
+        <h3>{copy.terms}</h3>
+        <ul class="product-terms">
+          {extraTerms.map((term) => (
+            <li lang={translation.terms ? contentLang : "en"}>{term}</li>
+          ))}
+          {copy.sharedTerms.map((term) => (
+            <li>{term}</li>
+          ))}
+        </ul>
+        {showLanguageNote && <p class="tour-notice">{copy.language}</p>}
+        <a class="btn btn--primary product-book" href="#tour-hero">{copy.book}</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+<script>
+  function bindProductGalleries() {
+    for (const root of document.querySelectorAll<HTMLElement>("[data-product-gallery]")) {
+      if (root.dataset.ready === "true") continue;
+      root.dataset.ready = "true";
+      const main = root.querySelector<HTMLImageElement>("[data-gallery-main]");
+      const buttons = [...root.querySelectorAll<HTMLButtonElement>("[data-gallery-thumb]")];
+      for (const button of buttons) {
+        button.addEventListener("click", () => {
+          const src = button.dataset.src;
+          if (!main || !src) return;
+          main.src = src;
+          main.alt = button.dataset.alt ?? "";
+          for (const item of buttons) item.setAttribute("aria-pressed", item === button ? "true" : "false");
+        });
+      }
+    }
+  }
+  bindProductGalleries();
+  document.addEventListener("astro:page-load", bindProductGalleries);
+</script>
+<style>
+  :global(.hero--tour-package) {
+    min-height: 68svh;
+  }
+  .product__grid {
+    display: grid;
+    align-items: start;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+  }
+  .product-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .product-gallery__stage {
+    overflow: hidden;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.4rem;
+    background: #f6f6f6;
+    aspect-ratio: 1 / 1;
+  }
+  .product-gallery__stage img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .product-gallery__thumbs {
+    display: flex;
+    gap: 0.65rem;
+    overflow-x: auto;
+  }
+  .product-gallery__thumbs button {
+    flex: 0 0 4.75rem;
+    width: 4.75rem;
+    height: 4.75rem;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid #d0d0d0;
+    border-radius: 0.35rem;
+    background: #f6f6f6;
+    cursor: pointer;
+  }
+  .product-gallery__thumbs button[aria-pressed="true"] {
+    border: 2px solid #111;
+  }
+  .product-gallery__thumbs button:focus-visible {
+    outline: 3px solid #008c5e;
+    outline-offset: 3px;
+  }
+  .product-gallery__thumbs img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .product__fact {
+    margin: 0 0 0.45rem;
+    color: var(--color-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .product__info h2 {
+    margin: 0;
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+  }
+  .product-price {
+    margin: 1.35rem 0 1.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e6e6e8;
+  }
+  .product-price__label {
+    margin: 0;
+    color: var(--color-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .product-price__value {
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .product-price__note {
+    margin: 0.35rem 0 0;
+    color: var(--color-text-muted);
+  }
+  .product__info h3 {
+    margin: 0 0 0.55rem;
+    font-size: 1.05rem;
+  }
+  .product__description {
+    margin: 0 0 1.75rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+  }
+  .product-terms {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .product-terms li {
+    padding: 0.85rem 0;
+    border-top: 1px solid #ececef;
+    color: #444;
+    line-height: 1.6;
+  }
+  .tour-notice {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    background: #fff3d6;
+    border-radius: 0.5rem;
+  }
+  .product-book.btn--primary {
+    width: 100%;
+    margin-top: 1.75rem;
+    background: var(--booking-green-gradient);
+    color: #000;
+  }
+  .product-book.btn--primary:hover {
+    background: var(--booking-green-gradient-hover);
+    color: #000;
+  }
+  @media (min-width: 900px) {
+    .product__grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+    }
+    .product-gallery {
+      position: sticky;
+      top: calc(var(--header-height) + 1rem);
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    .product-gallery__thumbs {
+      flex-direction: column;
+      order: -1;
+      overflow: visible;
+    }
+  }
+</style>

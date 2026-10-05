@@ -10,6 +10,7 @@ export const SERVICE_LABELS: Record<(typeof SERVICE_TYPES)[number], string> = {
   hotel_transfer: "Hotel transfer",
   point_to_point: "Point to point",
   hourly_charter: "Hourly charter",
+  city_tour: "City tour",
   sightseeing: "Macau sightseeing",
   corporate: "Corporate transport",
   custom: "Custom request",

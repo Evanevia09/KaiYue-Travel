@@ -145,7 +145,10 @@ export function BookingDetailPanel({ reference }: { reference: string }) {
                   <input
                     name="destination"
                     defaultValue={booking.destination ?? ""}
-                    required={booking.serviceType !== "hourly_charter"}
+                    required={
+                      booking.serviceType !== "hourly_charter" &&
+                      booking.serviceType !== "city_tour"
+                    }
                   />
                 </label>
                 <label className="field">
@@ -217,6 +220,12 @@ export function BookingDetailPanel({ reference }: { reference: string }) {
                   <span>Passengers</span>
                   <strong>{booking.passengerCount}</strong>
                   <small>{booking.serviceType.replaceAll("_", " ")}</small>
+                  {booking.luggageCount != null || booking.handCarryCount != null ? (
+                    <small>
+                      {booking.luggageCount ?? 0} big luggage · {booking.handCarryCount ?? 0} hand
+                      carry
+                    </small>
+                  ) : null}
                 </div>
               </div>
             )}

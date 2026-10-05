@@ -203,6 +203,8 @@ a {
   list-style: none;
   cursor: pointer;
   font: inherit;
+  font-size: 0.8rem;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -1063,6 +1065,8 @@ a {
 
 .ride-toggle {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   padding: 0.22rem;
   background: white;
   border-radius: 0.7rem;
@@ -1149,7 +1153,8 @@ a {
   font-weight: 700;
 }
 
-.booking-bar__cell input {
+.booking-bar__cell input,
+.booking-bar__cell select {
   width: 100%;
   min-height: 1.45rem;
   padding: 0;
@@ -1162,7 +1167,9 @@ a {
 }
 
 .booking-bar__cell input:focus,
-.booking-bar__cell input:focus-visible {
+.booking-bar__cell input:focus-visible,
+.booking-bar__cell select:focus,
+.booking-bar__cell select:focus-visible {
   outline: none;
   box-shadow: none;
 }
@@ -1849,6 +1856,18 @@ a {
 .communication-panel {
   display: grid;
   gap: 0.75rem;
+}
+
+.luggage-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 420px) {
+  .luggage-fields {
+    grid-template-columns: 1fr;
+  }
 }
 
 .communication-panel .booking-fields {
@@ -3482,8 +3501,9 @@ td {
     width: min(68rem, 100%);
   }
 
-  .hero-booking:has(.booking-bar--hourly) {
-    width: min(66rem, 100%);
+  .hero-booking:has(.booking-bar--hourly),
+  .hero-booking:has(.booking-bar--city) {
+    width: min(72rem, 100%);
   }
 
   .form--hero .booking-bar:has(.dtp--roundtrip) {
@@ -3506,7 +3526,8 @@ td {
     padding: 0.28rem;
   }
 
-  .form--hero .booking-bar--hourly {
+  .form--hero .booking-bar--hourly,
+  .form--hero .booking-bar--city {
     grid-template-columns: minmax(10rem, 1.5fr) minmax(12rem, 1.8fr) auto auto auto;
   }
 

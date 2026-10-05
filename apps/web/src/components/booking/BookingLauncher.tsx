@@ -7,6 +7,8 @@ type Props = {
   sourcePage: string;
   sourceTrigger: string;
   serviceType?: ServiceType;
+  tourPackageId?: string;
+  tourPackageTitle?: string;
   className?: string;
 };
 
@@ -16,6 +18,8 @@ export function BookingLauncher({
   sourcePage,
   sourceTrigger,
   serviceType,
+  tourPackageId,
+  tourPackageTitle,
   className = "btn btn--primary",
 }: Props) {
   return (
@@ -27,7 +31,9 @@ export function BookingLauncher({
           mode,
           sourcePage,
           sourceTrigger,
-          initialServiceType: serviceType,
+          initialServiceType: tourPackageId ? "city_tour" : serviceType,
+          initialTourPackageId: tourPackageId,
+          initialTourPackageTitle: tourPackageTitle,
         })
       }
     >

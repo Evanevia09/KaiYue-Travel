@@ -1,4 +1,5 @@
 ---
+import { getCollection } from "astro:content";
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
 import { localeFromPath, localeNames, localePath, localeTags, stripLocale } from "../lib/i18n.ts";
@@ -12,6 +13,7 @@ type Props = {
   showMobileBook?: boolean;
   bookingEnabled?: boolean;
   ogImage?: string;
+  preserveMetadata?: boolean;
 };
 
 const {
@@ -21,6 +23,7 @@ const {
   showMobileBook = true,
   bookingEnabled = false,
   ogImage = site.defaultOgImage,
+  preserveMetadata = false,
 } = Astro.props;
 const origin = Astro.site ?? site.url;
 const canonical = new URL(Astro.url.pathname, origin).toString();
@@ -28,6 +31,18 @@ const ogImageUrl = new URL(ogImage, origin).toString();
 const locale = localeFromPath(Astro.url.pathname);
 const path = stripLocale(Astro.url.pathname);
 const isHome = path === "/";
+const tourPackages = bookingEnabled
+  ? (await getCollection("cityTours", ({ data }) => data.status !== "hidden"))
+      .sort((a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id))
+      .map(({ id, data }) => {
+        const translation = locale === "en" ? data : (data.translations?.[locale] ?? data);
+        return {
+          id,
+          title: translation.title,
+          durationHours: data.durationHours ?? null,
+        };
+      })
+  : [];
 
 function isCurrent(href: string) {
   return href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
@@ -47,8 +62,12 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/images/mark.svg" type="image/svg+xml" />
-    <title>{title} · {site.name}</title>
-    <meta name="description" content={description} />
+    <title data-no-localize={preserveMetadata || undefined}>{title} · {site.name}</title>
+    <meta
+      name="description"
+      content={description}
+      data-no-localize={preserveMetadata || undefined}
+    />
     <link rel="canonical" href={canonical} />
     {
       (["en", "pt", "zh-Hant"] as const).map((language) => (
@@ -61,8 +80,16 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     }
     <link rel="alternate" hreflang="x-default" href={new URL(path, origin).toString()} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
-    <meta property="og:title" content={`${title} · ${site.name}`} />
-    <meta property="og:description" content={description} />
+    <meta
+      property="og:title"
+      content={`${title} · ${site.name}`}
+      data-no-localize={preserveMetadata || undefined}
+    />
+    <meta
+      property="og:description"
+      content={description}
+      data-no-localize={preserveMetadata || undefined}
+    />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={localeTags[locale]} />
     <meta property="og:type" content="website" />
@@ -75,6 +102,13 @@ function isSectionCurrent(item: (typeof nav)[number]) {
       rel="stylesheet"
     />
     <slot name="head" />
+    {
+      bookingEnabled && (
+        <script is:inline define:vars={{ tourPackages }}>
+          window.__KY_TOUR_PACKAGES = tourPackages;
+        </script>
+      )
+    }
   </head>
   <body class:list={{ "page-no-mobile-book": !showMobileBook, "page-home": isHome }}>
     <a class="skip-link" href="#main">Skip to content</a>

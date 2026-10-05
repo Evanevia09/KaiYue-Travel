@@ -29,6 +29,9 @@ function localLink(value: string, locale: Locale) {
 }
 
 function visit(node: Node, locale: Exclude<Locale, "en">, inIsland = false): void {
+  // Package Markdown currently has an explicit English-language fallback.
+  if (node.attrs?.some((attr) => attr.name === "data-no-localize" && attr.value !== "false"))
+    return;
   const island = inIsland || node.tagName === "astro-island";
   if (node.nodeName === "#text" && node.value && !inIsland) {
     node.value = translateCopy(node.value, locale);

@@ -1,5 +1,6 @@
 import {
   bookingCreateSchema,
+  destinationRequired,
   HOURLY_DURATION_MAX_HOURS,
   HOURLY_DURATION_MIN_HOURS,
   type ServiceType,
@@ -20,8 +21,15 @@ import {
   updateDraft,
   type BookingMode,
 } from "./store.ts";
+import { readTourPackages } from "./tour-packages.ts";
 
 const steps = ["Journey", "Communication"] as const;
+const luggageOptions = Array.from({ length: 11 }, (_, count) => count);
+
+function luggageValue(value: string): number {
+  const count = Number(value || "0");
+  return Number.isInteger(count) && count >= 0 && count <= 10 ? count : 0;
+}
 
 export function BookingProgress({ step }: { step: number }) {
   return (
@@ -41,6 +49,7 @@ export function BookingProgress({ step }: { step: number }) {
 }
 const TRANSFER_TYPE: ServiceType = "airport_transfer";
 const HOURLY_TYPE: ServiceType = "hourly_charter";
+const CITY_TYPE: ServiceType = "city_tour";
 
 async function submitBooking(entry?: {
   sourcePage?: string;
@@ -53,12 +62,29 @@ async function submitBooking(entry?: {
   const payload = {
     serviceType: current.draft.serviceType,
     pickupLocation: current.draft.pickupLocation,
-    destination: current.draft.destination,
+    destination: destinationRequired(current.draft.serviceType) ? current.draft.destination : "",
     pickupAt: fromLocalDateTimeValue(current.draft.pickupAt),
-    returnAt: fromLocalDateTimeValue(current.draft.returnAt),
+    returnAt:
+      current.draft.serviceType === CITY_TYPE
+        ? undefined
+        : fromLocalDateTimeValue(current.draft.returnAt),
     passengerCount: current.draft.passengerCount,
+    luggageCount: luggageValue(current.draft.luggageCount),
+    handCarryCount: luggageValue(current.draft.handCarryCount),
     durationHours:
       current.draft.serviceType === HOURLY_TYPE ? current.draft.durationHours : undefined,
+    tourPackageId:
+      current.draft.serviceType === CITY_TYPE ? current.draft.tourPackageId : undefined,
+    tourPackageTitle:
+      current.draft.serviceType === CITY_TYPE
+        ? (readTourPackages().find((item) => item.id === current.draft.tourPackageId)?.title ??
+          current.draft.tourPackageTitle)
+        : undefined,
+    tourDurationHours:
+      current.draft.serviceType === CITY_TYPE
+        ? (readTourPackages().find((item) => item.id === current.draft.tourPackageId)
+            ?.durationHours ?? undefined)
+        : undefined,
     communicationChannel: current.draft.communicationChannel,
     contactName: current.draft.contactName || undefined,
     phone: current.draft.phone || undefined,
@@ -143,6 +169,8 @@ type Props = {
   sourcePage?: string;
   sourceTrigger?: string;
   initialServiceType?: ServiceType;
+  initialTourPackageId?: string;
+  initialTourPackageTitle?: string;
 };
 
 export function BookingForm({
@@ -151,16 +179,23 @@ export function BookingForm({
   sourcePage,
   sourceTrigger,
   initialServiceType,
+  initialTourPackageId,
+  initialTourPackageTitle,
 }: Props) {
   const state = useSyncExternalStore(subscribeBooking, getBookingState, getBookingState);
   const { draft, fieldErrors, step } = state;
   const hourly = draft.serviceType === HOURLY_TYPE;
+  const cityTour = draft.serviceType === CITY_TYPE;
+  const packages = readTourPackages();
   const entry = compact ? { sourcePage, sourceTrigger, mode: "embedded" as const } : undefined;
 
   function advanceFromJourney() {
     const errors: Record<string, string> = {};
     if (draft.pickupLocation.trim().length < 2) errors.pickupLocation = "Enter a pickup location.";
-    if (!hourly && draft.destination.trim().length < 2) errors.destination = "Enter a destination.";
+    if (cityTour && !draft.tourPackageId) errors.tourPackageId = "Choose a tour package.";
+    if (destinationRequired(draft.serviceType) && draft.destination.trim().length < 2) {
+      errors.destination = "Enter a destination.";
+    }
     if (!fromLocalDateTimeValue(draft.pickupAt)) errors.pickupAt = "Choose a pickup date and time.";
     if (Object.keys(errors).length > 0) {
       setBookingResult({
@@ -190,15 +225,26 @@ export function BookingForm({
       return;
     }
     appliedInitialServiceType.current = true;
+    const current = getBookingState();
+    if (initialTourPackageId) {
+      if (current.draft.pickupLocation.trim()) return;
+      updateDraft({
+        serviceType: CITY_TYPE,
+        destination: "",
+        returnAt: "",
+        tourPackageId: initialTourPackageId,
+        tourPackageTitle: initialTourPackageTitle ?? "",
+      });
+      return;
+    }
     if (!initialServiceType) {
       return;
     }
-    const current = getBookingState();
     if (current.draft.serviceType === initialServiceType || isDirty(current.draft)) {
       return;
     }
     updateDraft({ serviceType: initialServiceType });
-  }, [initialServiceType]);
+  }, [initialServiceType, initialTourPackageId, initialTourPackageTitle]);
 
   if (state.status === "success" && state.result) {
     return (
@@ -212,14 +258,22 @@ export function BookingForm({
     );
   }
 
-  function setRideMode(nextHourly: boolean) {
-    if (nextHourly) {
-      updateDraft({ serviceType: HOURLY_TYPE, destination: "", returnAt: "" });
+  function setRideMode(mode: "transfer" | "hourly" | "city") {
+    if (mode === "hourly") {
+      updateDraft({
+        serviceType: HOURLY_TYPE,
+        destination: "",
+        returnAt: "",
+        tourPackageId: "",
+        tourPackageTitle: "",
+      });
       return;
     }
-    if (hourly) {
-      updateDraft({ serviceType: TRANSFER_TYPE });
+    if (mode === "city") {
+      updateDraft({ serviceType: CITY_TYPE, destination: "", returnAt: "" });
+      return;
     }
+    updateDraft({ serviceType: TRANSFER_TYPE, tourPackageId: "", tourPackageTitle: "" });
   }
 
   function bumpPassengers(delta: number) {
@@ -252,11 +306,18 @@ export function BookingForm({
     >
       {step === 1 ? (
         <div className="ride-toggle" role="group" aria-label="Ride type">
-          <button type="button" aria-pressed={!hourly} onClick={() => setRideMode(false)}>
+          <button
+            type="button"
+            aria-pressed={!hourly && !cityTour}
+            onClick={() => setRideMode("transfer")}
+          >
             <BookingIcon name="car" size={16} /> Point to point
           </button>
-          <button type="button" aria-pressed={hourly} onClick={() => setRideMode(true)}>
+          <button type="button" aria-pressed={hourly} onClick={() => setRideMode("hourly")}>
             <BookingIcon name="clock" size={16} /> By the Hour
+          </button>
+          <button type="button" aria-pressed={cityTour} onClick={() => setRideMode("city")}>
+            <BookingIcon name="pin" size={16} /> City tours
           </button>
         </div>
       ) : progressInHeader ? null : (
@@ -275,15 +336,54 @@ export function BookingForm({
           /* Keyed on ride mode so switching Point to point ↔ By the Hour
              remounts the bar and replays the entrance animation. Draft values
              live in the booking store, so nothing entered is lost. */
-          key={hourly ? "hourly" : "point-to-point"}
-          className={hourly ? "booking-bar booking-bar--hourly" : "booking-bar"}
+          key={cityTour ? "city-tour" : hourly ? "hourly" : "point-to-point"}
+          className={
+            cityTour
+              ? "booking-bar booking-bar--city"
+              : hourly
+                ? "booking-bar booking-bar--hourly"
+                : "booking-bar"
+          }
         >
+          {cityTour ? (
+            <div className="booking-bar__cell">
+              <span className="booking-bar__icon">
+                <BookingIcon name="pin" />
+              </span>
+              <div className="booking-bar__fields">
+                <label htmlFor="tourPackageId">Tour package</label>
+                <select
+                  id="tourPackageId"
+                  value={draft.tourPackageId}
+                  onChange={(event) => {
+                    const selected = packages.find((item) => item.id === event.target.value);
+                    updateDraft({
+                      tourPackageId: selected?.id ?? "",
+                      tourPackageTitle: selected?.title ?? "",
+                    });
+                  }}
+                >
+                  <option value="">Choose a package</option>
+                  {packages.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title}
+                    </option>
+                  ))}
+                </select>
+                {fieldErrors.tourPackageId ? (
+                  <p className="field-error">{fieldErrors.tourPackageId}</p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
           <div className="booking-bar__cell">
             <span className="booking-bar__icon">
               <BookingIcon name="pin" />
             </span>
             <div className="booking-bar__fields">
-              <label htmlFor="pickupLocation">{hourly ? "Location" : "From"}</label>
+              <label htmlFor="pickupLocation">
+                {cityTour ? "Pickup" : hourly ? "Location" : "From"}
+              </label>
               <input
                 id="pickupLocation"
                 value={draft.pickupLocation}
@@ -296,7 +396,7 @@ export function BookingForm({
               ) : null}
             </div>
           </div>
-          {hourly ? null : (
+          {hourly || cityTour ? null : (
             <div className="booking-bar__cell">
               <span className="booking-bar__icon">
                 <BookingIcon name="pin" />
@@ -321,7 +421,7 @@ export function BookingForm({
               returnAt={draft.returnAt}
               pickupError={fieldErrors.pickupAt}
               returnError={fieldErrors.returnAt}
-              allowReturn={!hourly}
+              allowReturn={!hourly && !cityTour}
               onPickupChange={(value) => updateDraft({ pickupAt: value })}
               onReturnChange={(value) => updateDraft({ returnAt: value })}
             />
@@ -485,6 +585,36 @@ export function BookingForm({
                 </div>
               </div>
             )}
+            <div className="luggage-fields">
+              <div className="field">
+                <label htmlFor="bigLuggage">Big luggage</label>
+                <select
+                  id="bigLuggage"
+                  value={draft.luggageCount || "0"}
+                  onChange={(event) => updateDraft({ luggageCount: event.target.value })}
+                >
+                  {luggageOptions.map((count) => (
+                    <option key={count} value={String(count)}>
+                      {count}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="handCarry">Hand carry</label>
+                <select
+                  id="handCarry"
+                  value={draft.handCarryCount || "0"}
+                  onChange={(event) => updateDraft({ handCarryCount: event.target.value })}
+                >
+                  {luggageOptions.map((count) => (
+                    <option key={count} value={String(count)}>
+                      {count}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <div className="field field--full">
               <label htmlFor="message">Your Message (optional)</label>
               <textarea

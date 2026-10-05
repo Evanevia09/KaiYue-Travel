@@ -5,7 +5,9 @@
 | Route | Purpose | Primary action |
 |---|---|---|
 | `/` | Explain offer, establish trust, start booking | Book now |
-| `/services/[slug]` | Six footer-linked chauffeur services with the shared home booking flow | Request this service |
+| `/services/[slug]` | Five chauffeur service pages with the shared home booking flow, plus the dedicated City Tour catalogue below | Request this service |
+| `/services/city-tours` | Dedicated City Tour catalogue with Markdown-managed package cards; no embedded hero form | Browse packages |
+| `/services/city-tours/[id]` | Package page: hero booking widget, then a product block with gallery, title, From price, description, and terms | Request this tour |
 | `/corporate` | Corporate solution inquiry | Corporate inquiry |
 | `/business/travel-agency` | Travel agency partner inquiry | Agency inquiry |
 | `/business/hotels-resorts` | Hotel and resort guest-transport inquiry | Property inquiry |
@@ -18,6 +20,8 @@
 | `/admin/*` | Protected staff area | Operational actions |
 
 `/services` redirects to `/services/airport-transfer`. There is no services index page.
+
+City Tours is a header and mobile-menu dropdown with three packages: Special offer, Half day (6 hours), and Full day (10 hours). Each includes a car and driver. The homepage shows one card per package, using that package’s feature image, with Book now opening the package page. The footer Services column lists City Tours as its own group, with Special offer, Half day, and Full day. The catalogue does not embed a booking form. Each package hero embeds the shared booking widget with City tours and that package already selected. The widget uses pickup, date and time, and passengers, without a destination or return. Package English Markdown bodies have explicit locale fallback; optional translated labels and the existing page-context language switch remain available. See [authoring instructions](12-city-tour-packages.md).
 
 The published service routes are `/services/airport-transfer`, `/services/cross-border-rides`, `/services/local-transfers`, `/services/local-chauffeur`, `/services/weddings`, and `/services/city-tours`. Older service slugs are not generated.
 
