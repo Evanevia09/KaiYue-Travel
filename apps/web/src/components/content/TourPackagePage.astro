@@ -235,12 +235,8 @@ const showLanguageNote = locale !== "en" && !translation.description;
         <p class="product__description" lang={descriptionLang}>{description}</p>
         <h3>{copy.terms}</h3>
         <ul class="product-terms">
-          {extraTerms.map((term) => (
-            <li lang={translation.terms ? contentLang : "en"}>{term}</li>
-          ))}
-          {copy.sharedTerms.map((term) => (
-            <li>{term}</li>
-          ))}
+          {extraTerms.map((term) => <li lang={translation.terms ? contentLang : "en"}>{term}</li>)}
+          {copy.sharedTerms.map((term) => <li>{term}</li>)}
         </ul>
         {showLanguageNote && <p class="tour-notice">{copy.language}</p>}
         <a class="btn btn--primary product-book" href="#tour-hero">{copy.book}</a>
@@ -261,7 +257,8 @@ const showLanguageNote = locale !== "en" && !translation.description;
           if (!main || !src) return;
           main.src = src;
           main.alt = button.dataset.alt ?? "";
-          for (const item of buttons) item.setAttribute("aria-pressed", item === button ? "true" : "false");
+          for (const item of buttons)
+            item.setAttribute("aria-pressed", item === button ? "true" : "false");
         });
       }
     }
