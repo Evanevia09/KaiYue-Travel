@@ -14,7 +14,7 @@ Before planning or changing the project, read:
 
 Do not start implementation from a conversation summary alone.
 
-For substantial work, use the personal [execution guide](C:/Users/USER/.codex/workflow/README.md) through this project's [workflow adapter](docs/11-codex-workflow-adapter.md). At startup, confirm the actual checkout, revision, dirty files, task outcome, constraints, and observable acceptance criteria. Assign bounded agents explicit files and checks; the coordinator integrates and verifies their returns. For Lab-coordinated work, the owning agent returns evidence to the Lab coordinator; the user need not route routine work between chats. At closeout, record source, date, revision, checks, review, unresolved gates, and one next action in the project record. Keep `probe_complete`, `task_verified`, `user_accepted`, and `released` distinct; a historical check does not establish current readiness.
+For substantial work, use this project's [workflow adapter](docs/11-codex-workflow-adapter.md). At startup, confirm the actual checkout, revision, dirty files, task outcome, constraints, and observable acceptance criteria. Assign bounded agents explicit files and checks; the coordinator integrates and verifies their returns. For Lab-coordinated work, the owning agent returns evidence to the Lab coordinator; the user need not route routine work between chats. At closeout, record source, date, revision, checks, review, unresolved gates, and one next action in the project record. Keep `probe_complete`, `task_verified`, `user_accepted`, and `released` distinct; a historical check does not establish current readiness.
 
 ## Source-of-truth hierarchy
 
@@ -93,5 +93,3 @@ Before calling a change complete, run the checks appropriate to its risk:
 - preview or deployed end-to-end verification when a release is in scope.
 
 Record what was actually verified in `PROJECT-STATE.md`; clearly label anything not verified.
-
-
