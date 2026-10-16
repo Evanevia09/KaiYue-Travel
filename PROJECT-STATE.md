@@ -202,7 +202,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - `/admin` and `/admin/offers` SSR the first payload; dashboard summary uses one D1 batch; optimistic main/delete/publish with rollback; upload progress.
 - Additive migration `0006_offer_photo_variants.sql` (photo hash/thumb/dimensions plus booking/offer indexes). Did not edit `wrangler.jsonc` D1/R2 bindings.
 - Handover: `docs/handover/special-offers-photos.md`.
-- Limits: not merged to `main`; Access still unset; preview timings recorded after Workers preview checks.
+- Preview check on `https://bd89586f-kaiyue-travel.scalingsmb.workers.dev`: three 4000px TEST JPEGs (~1.3 MB) resized in-browser to ~128 KB WebP + ~27 KB thumbs; hashed immutable photo URLs; `/special-offers` EN/pt/zh-Hant `no-store` and updated immediately on publish/swap/delete; `/admin` and `/admin/offers` served the first payload without a follow-up API fetch. TEST offer deleted. Lighthouse mobile: Home 72→56 (Home was not changed; two after-runs both 56), `/special-offers` 92→92. Console errors: none.
+- Limits: not merged to `main`; Access still unset. A leftover draft titled `Test` from earlier staging work was left in place.
 
 ### 2026-10-16 — Special Offers dashboard (staging PR, not main)
 

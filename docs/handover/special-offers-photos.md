@@ -51,8 +51,51 @@ Do not apply to any other database. Do not run `wrangler deploy`. Do not merge t
 
 Use a TEST title such as `TEST photo speed` for preview offers. After checks, delete that offer from `/admin/offers` so the public page returns to its previous published set. Do not leave 4000px originals in R2; the upload path stores only the resized variants.
 
+The 2026-10-16 preview check created `TEST photo speed` (`b45d7a3e-…`), published it, swapped the main photo, deleted one photo, then deleted the offer. Staging D1 afterwards contained only the earlier leftover draft titled `Test` (`c820d7d4-…`), which this task did not delete.
+
+## Preview verification (2026-10-16)
+
+Preview: `https://bd89586f-kaiyue-travel.scalingsmb.workers.dev`
+
+Branch preview: `https://cursor-special-offers-photos-dashboard-d4d6-kaiyue-travel.scalingsmb.workers.dev`
+
+Compared with previous Special Offers preview `https://9c070e6d-kaiyue-travel.scalingsmb.workers.dev`.
+
+`0006_offer_photo_variants.sql` applied to staging D1 `069aa442` only.
+
+### Photo byte sizes (4000×3000 JPEG → client canvas WebP)
+
+| File | Original JPEG | Display WebP (1600×1200) | Thumbnail WebP (480×360) |
+| --- | ---: | ---: | ---: |
+| test-offer-1 | 1,325,866 | 127,686 | 27,790 |
+| test-offer-2 | 1,343,751 | 130,598 | 28,284 |
+| test-offer-3 | 1,301,287 | 126,042 | 26,804 |
+
+About 90% smaller on the display file. Public photo response: `image/webp`, `Cache-Control: public, max-age=31536000, immutable`.
+
+### Admin load (logged-in Chrome, `networkidle0`)
+
+| Page | Before (extra API after HTML) | After (payload in HTML, no list/summary fetch) |
+| --- | --- | --- |
+| `/admin` | HTML 367 ms + `/api/v1/admin/summary` 466 ms | HTML 465 ms, 0 API |
+| `/admin/offers` | HTML 607 ms + `/api/admin/offers` 521 ms | HTML 576 ms, 0 API |
+
+### Public freshness
+
+- `/special-offers`, `/pt/special-offers`, `/zh-Hant/special-offers`: `Cache-Control: private, no-store` (before: no cache header, so Workers heuristic 2 h).
+- Publish, main-photo swap, photo delete, and offer delete were visible on the next public request. Swap changed the card `src` immediately. Console errors: none.
+
+### Lighthouse mobile performance
+
+| Page | Before | After |
+| --- | ---: | ---: |
+| Home `/` | 72 | 56 (second run also 56; Home was not changed in this work) |
+| `/special-offers` empty | 92 | 92 |
+
+CLS on Home stayed 0.228 in both runs (pre-existing). Empty `/special-offers` CLS 0.
+
 ## Limits
 
 - Access is still not configured. Preview login remains the disposable `admin-test@kaiyue.test` operator.
 - Client canvas resize needs a real browser; API tests upload already-small fixtures.
-- Lighthouse and admin timings below are from the Workers preview on this branch, not production.
+- Lighthouse and admin timings above are from the Workers preview on this branch, not production. Home was not modified in this change.
