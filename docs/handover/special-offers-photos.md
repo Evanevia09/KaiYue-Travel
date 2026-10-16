@@ -170,7 +170,7 @@ Fixes on this branch (same staging PR, not merged):
 - Better Auth `session.cookieCache` (60 s) so the publish POST does not repeat session D1 reads after `/admin/offers` has already authenticated.
 - `keepalive` on mutating admin fetches and a `beforeunload` warning while `busy` is set, so navigating away does not abort the write.
 
-Preview verification of this fix is recorded after the new Workers preview is up.
+Verified on `https://12443955-kaiyue-travel.scalingsmb.workers.dev` (`e35b388`). TEST offer `TEST publish latency`: Publish button showed **Publishing…** (not Unpublishing…); Unpublish showed **Unpublishing…**. Worker round trip was 621 ms publish / 389 ms unpublish. `beforeunload` was prevented while the POST was in flight. Offer appeared on `GET /api/v1/offers` after publish and was deleted afterwards (public list `[]`). The leftover earlier draft titled `Test` was left in place.
 
 ## Limits
 

@@ -160,7 +160,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
-Special Offers next action (2026-10-16): on the new Workers preview, create a TEST offer, confirm Publish shows **Publishing…** (not Unpublishing…), measure publish duration, then delete the TEST offer. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): review the publish-label/latency fix on `https://12443955-kaiyue-travel.scalingsmb.workers.dev`. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -204,7 +204,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Labels now follow the target action (`publish:${id}` / `unpublish:${id}`). Publish writes status + audit in one D1 batch after a batched load and does not reload. Better Auth session cookie cache (60 s) skips extra session D1 reads on the POST.
 - Mutating admin fetches use `keepalive`; `beforeunload` warns while a write is in flight so leaving the page does not leave the offer as a draft.
 - D1/R2 bindings in `wrangler.jsonc` unchanged. Do not merge to `main`.
-- Preview verification and cleanup of a TEST offer are recorded after the new Workers preview is up.
+- Preview `https://12443955-kaiyue-travel.scalingsmb.workers.dev`: TEST offer Publish showed **Publishing…** (not Unpublishing…); Worker round trip 621 ms publish / 389 ms unpublish; leave warning fired while the POST was in flight; TEST offer deleted; public list `[]`.
 - Handover: `docs/handover/special-offers-photos.md`.
 
 ### 2026-10-16 — Browser QA blockers on the Special Offers photos branch (staging PR, not main)
