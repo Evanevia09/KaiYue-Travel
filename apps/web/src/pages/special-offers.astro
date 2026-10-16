@@ -1,0 +1,104 @@
+---
+export const prerender = false;
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { localeFromPath, localePath } from "../lib/i18n.ts";
+import { listPublicOffers } from "../lib/server/offers/service.ts";
+import { env } from "cloudflare:workers";
+
+const locale = localeFromPath(Astro.url.pathname);
+const copy = {
+  en: {
+    title: "Special Offers",
+    description:
+      "Published chauffeur offers with a car and driver. Quotes are confirmed before travel.",
+    kicker: "Current offers",
+    heading: "Special Offers",
+    lede: "These are the published offers that are ready to request. A team member confirms the quote before travel.",
+    empty:
+      "There are no published special offers right now. Ask the team about a city tour or a private car and driver.",
+    from: "From",
+    terms: "Terms",
+    book: "Request this offer",
+  },
+  pt: {
+    title: "Ofertas especiais",
+    description:
+      "Ofertas de motorista publicadas, com carro e condutor. O orçamento confirma-se antes da viagem.",
+    kicker: "Ofertas atuais",
+    heading: "Ofertas especiais",
+    lede: "Estas são as ofertas publicadas e prontas a pedir. Um membro da equipa confirma o orçamento antes da viagem.",
+    empty:
+      "Não há ofertas especiais publicadas neste momento. Fale com a equipa sobre um passeio pela cidade ou um carro com motorista.",
+    from: "Desde",
+    terms: "Condições",
+    book: "Pedir esta oferta",
+  },
+  "zh-Hant": {
+    title: "特別優惠",
+    description: "已發布的司機接送優惠，附車輛及司機。出發前由團隊確認報價。",
+    kicker: "最新優惠",
+    heading: "特別優惠",
+    lede: "以下為已發布、可供申請的優惠。出發前由團隊確認報價。",
+    empty: "目前沒有已發布的特別優惠。歡迎向團隊查詢城市遊覽或包車司機服務。",
+    from: "起",
+    terms: "條款",
+    book: "申請此優惠",
+  },
+}[locale];
+
+let items: Awaited<ReturnType<typeof listPublicOffers>>["items"] = [];
+try {
+  items = (await listPublicOffers(env)).items;
+} catch {
+  items = [];
+}
+---
+
+<BaseLayout title={copy.title} description={copy.description}>
+  <section class="section page-content" aria-labelledby="special-offers-title" data-no-localize>
+    <div class="wrap">
+      <p class="kicker">{copy.kicker}</p>
+      <h1 id="special-offers-title">{copy.heading}</h1>
+      <p class="lede">{copy.lede}</p>
+      {
+        items.length === 0 ? (
+          <p class="muted">{copy.empty}</p>
+        ) : (
+          <div class="home-tour-grid">
+            {items.map((item) => (
+              <article class="home-tour-card">
+                {item.mainPhotoUrl && (
+                  <div class="home-tour-card__media">
+                    <img src={item.mainPhotoUrl} alt="" width="800" height="540" />
+                  </div>
+                )}
+                <div class="home-tour-card__body">
+                  <h2>{item.title}</h2>
+                  <p>{item.description}</p>
+                  {item.priceFrom != null && (
+                    <p class="home-tour-card__fact">
+                      {copy.from} {item.priceFrom}
+                    </p>
+                  )}
+                  {item.terms && (
+                    <p>
+                      <strong>{copy.terms}.</strong> {item.terms}
+                    </p>
+                  )}
+                  <p>
+                    <a
+                      class="btn btn--primary"
+                      href={localePath("/services/city-tours/special-offer", locale)}
+                    >
+                      {copy.book}
+                    </a>
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

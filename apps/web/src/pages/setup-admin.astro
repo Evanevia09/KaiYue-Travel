@@ -3,7 +3,12 @@ export const prerender = false;
 import { env } from "cloudflare:workers";
 import { SetupForm } from "../components/admin/SetupForm.tsx";
 import "../styles/global.css";
-if (env.ENVIRONMENT !== "development") return Astro.redirect("/login", 302);
+if (env.ENVIRONMENT !== "development") {
+  return new Response("Operator setup is disabled.", {
+    status: 403,
+    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+  });
+}
 ---
 
 <!doctype html>

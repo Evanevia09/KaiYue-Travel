@@ -11,10 +11,15 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "kaiyue-travel-dev",
-      // Placeholder only. Replace per environment after a D1 database is created.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "kaiyue-travel-staging",
+      "database_id": "069aa442-30c9-4454-ab3a-26eb372b3a1f",
       "migrations_dir": "../../migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-staging",
     },
   ],
   "vars": {

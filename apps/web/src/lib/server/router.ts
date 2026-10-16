@@ -9,9 +9,11 @@ import {
   handleAdminContactsList,
   handleAdminContactStatus,
 } from "./admin.ts";
+import { assertLiveAdminSurface } from "./admin-gate.ts";
 import { requireAdmin, requireSameOrigin } from "./auth.ts";
 import { createBooking, getBookingByReference } from "./bookings.ts";
 import { createContact } from "./contacts.ts";
+import { handleAdminOfferRoutes, handlePublicOfferRoutes } from "./offers/routes.ts";
 import { assignBooking, editBooking } from "./dispatch.ts";
 import {
   createDriver,
@@ -77,9 +79,19 @@ export async function handleApi(
       return await createContact(request, env, requestId);
     }
 
-    if (pathname.startsWith("/api/v1/admin")) {
+    const publicOffers = await handlePublicOfferRoutes(request, env, requestId, pathname);
+    if (publicOffers) {
+      return publicOffers;
+    }
+
+    if (pathname.startsWith("/api/admin") || pathname.startsWith("/api/v1/admin")) {
+      assertLiveAdminSurface(env, pathname, request);
       requireSameOrigin(request, env);
       const actor = await requireAdmin(request, env);
+      const adminOffers = await handleAdminOfferRoutes(request, env, requestId, pathname, actor);
+      if (adminOffers) {
+        return adminOffers;
+      }
 
       if (request.method === "GET" && pathname === "/api/v1/admin/summary") {
         return json(await adminSummary(env), 200, requestId);

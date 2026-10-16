@@ -19,7 +19,8 @@ import "../styles/global.css";
       >
         Protected workspace
       </p><h1>Sign in</h1><p class="muted">
-        Use your approved operator account to manage bookings and dispatch resources.
+        Preview test operators only. Production admin stays closed until Cloudflare Access is
+        configured.
       </p><LoginForm client:load />{
         env.ENVIRONMENT === "development" && (
           <p class="admin-login-help">
