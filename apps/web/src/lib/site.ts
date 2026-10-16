@@ -372,7 +372,6 @@ export const serviceGroups: readonly NavGroup[] = [
 ];
 
 const cityTourLinks = [
-  { href: "/services/city-tours/special-offer", label: "Special offer" },
   { href: "/services/city-tours/half-day", label: "Half day" },
   { href: "/services/city-tours/full-day", label: "Full day" },
 ] as const;
@@ -388,6 +387,7 @@ export const nav: readonly NavItem[] = [
     label: "City Tours",
     children: cityTourLinks,
   },
+  { href: "/special-offers", label: "Special Offers" },
   {
     label: "Business",
     children: [
@@ -403,6 +403,10 @@ export const footerServiceGroups: readonly NavGroup[] = [
   {
     label: "City Tours",
     children: cityTourLinks,
+  },
+  {
+    label: "Special Offers",
+    children: [{ href: "/special-offers", label: "Current offers" }],
   },
 ];
 

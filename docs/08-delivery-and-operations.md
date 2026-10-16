@@ -11,6 +11,8 @@
 
 Never share D1 databases, email recipients, or secrets across production and non-production. Preview environments must not send real customer/staff mail.
 
+Workers Builds for this repository run from the repo root `wrangler.jsonc`. `wrangler versions upload` uses the top-level config (not `env.preview`) unless `--env` or `CLOUDFLARE_ENV` is set. `npx wrangler preview` uses the `previews` block and does not inherit top-level D1/R2. The dashboard root directory can stay at the repository root; changing it to `apps/web` is a dashboard change and is not required. On the current staging branch, both production and preview bind D1 `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`) and R2 `kaiyue-offers-staging`. Do not merge those bindings to `main`.
+
 ## Configuration and secrets
 
 ### Public build/runtime configuration

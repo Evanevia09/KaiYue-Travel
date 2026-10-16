@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-05 (City Tour work on main, CI passed)
-**Product-status evidence date:** 2026-10-05 for City Tour booking UI; previous booking/admin evidence remains dated 2026-09-27.
-**Phase:** 2–3 — booking/API completion and lightweight admin workflow
-**Overall status:** Two-channel booking enquiry workflow and expanded operator UI implemented in-repo; a temporary local dashboard login is verified. Nothing is deployed or connected to real Cloudflare/Resend services.
-**Current objective:** Owner review of the three City Tour packages: Special offer, Half day (6 hours), and Full day (10 hours), each with a car and driver. Supply any approved special-offer terms and pictures before publication. Staff package editing remains out of scope. Prior booking/admin hardening and production access decisions remain open.
+**Last updated:** 2026-10-16 (Special Offers dashboard on a staging PR; not merged to main)
+**Product-status evidence date:** 2026-10-16 for offers/admin-gate work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
+**Overall status:** Special Offers staff dashboard, published-only public page, fail-closed production admin, and preview-only test login are implemented on `cursor/special-offers-dashboard-d246` targeting `staging`. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are bound on this branch only. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the staging/preview Special Offers dashboard and the preview test login. Provide Access team domain and AUD when ready. Do not merge to `main`.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -158,6 +158,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+Special Offers next action (2026-10-16): review the preview dashboard publish/save feedback, then sign in with the rotated test-admin password. `BETTER_AUTH_SECRET` persists across `versions upload` once set. Do not merge this branch to `main`. Remove the test operator after Access is live.
+
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
 1. Check the booking widget in the existing in-app browser tab after a reload, then verify the booking flow on a non-production preview before release.
@@ -191,6 +193,21 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Special Offers dashboard (staging PR, not main)
+
+- Added `migrations/0005_special_offers.sql` (offers, photos, offer audit). Did not edit 0001–0004.
+- Staff API `/api/admin/offers` and public `GET /api/v1/offers` (published complete offers only). Storage is behind in-memory/D1/R2 interfaces.
+- Dashboard `/admin/offers` with multi-photo upload, main-photo picker, publish/unpublish, and delete confirm.
+- Public `/special-offers` in EN/pt/zh-Hant with empty state. Special Offers added to the main nav after City Tours. Special offer removed from the City Tour menu; `/services/city-tours/special-offer` stays bookable.
+- Root `wrangler.jsonc` is now the full Worker used by Workers Builds (`versions upload` = top-level production vars plus `ADMIN_EMAILS=admin-test@kaiyue.test` on this branch; `previews` block for `wrangler preview`). Worker entry is `apps/web/dist/server/entry.mjs` with assets from `apps/web/dist/client`. Both bind staging D1 `069aa442` and R2 `kaiyue-offers-staging`. Dashboard root directory can stay at the repo root.
+- Production host fail-closed: `/admin`, `/login`, `/setup-admin`, `/api/v1/admin/*`, `/api/admin/*`, `/api/auth/*` return 403 without Access. Preview allows a clearly marked test operator via better-auth. Password and `BETTER_AUTH_SECRET` are not in git.
+- Preview test operator `admin-test@kaiyue.test` / `test-admin-preview-remove-later` was seeded into D1 `069aa442` only. The account is labelled for later removal. `BETTER_AUTH_SECRET` is not attached to the production Worker.
+- Booking hard-failure copy now offers WhatsApp or +853 2833 8882 instead of “wait and retry”.
+- Handover: `docs/handover/special-offers-dashboard.md`.
+- Admin publish no longer flips back to draft from a second click after a slow list refresh. Ready-to-publish is based on copy plus a main photo, not on published status. List photos load in one query. TEST booking `KY-PRDT5RZK` is cancelled, not deleted.
+- After Create draft the dialog switches to edit mode so a second click PATCHes the same offer. Photo/main mutations no longer refetch the full list. `favicon.ico` is generated from the existing mark.
+- Limits: Access is not configured. `BETTER_AUTH_SECRET` is inherited by later `versions upload` after the first version secret. No production deploy. Merging this branch to `main` would replace the live static-only Worker with this full Worker bound to staging D1 `069aa442` and R2 `kaiyue-offers-staging`. Not `user_accepted` or `released`.
 
 ### 2026-10-05 — City Tour handoff
 

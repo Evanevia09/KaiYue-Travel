@@ -37,7 +37,7 @@ describe("admin authorization and mutations", () => {
   it("denies admin APIs without Access identity outside development bypass", async () => {
     const env = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "true" });
     const response = await handleApi(new Request("http://localhost/api/v1/admin/summary"), env);
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it("allows the local development bypass and records audited status changes", async () => {
@@ -47,7 +47,7 @@ describe("admin authorization and mutations", () => {
       new Request(`http://localhost/api/v1/admin/bookings/${created.reference}`),
       { ...env, ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" },
     );
-    expect(deniedPublic.status).toBe(401);
+    expect(deniedPublic.status).toBe(403);
 
     const listed = await handleApi(new Request("http://localhost/api/v1/admin/bookings"), env);
     expect(listed.status).toBe(200);

@@ -1,18 +1,78 @@
 {
-  // The Cloudflare Workers Build for this repository runs from the repository
-  // root unless the dashboard sets a root directory, and `npx wrangler deploy`
-  // there needs both a config at this level and a local wrangler dependency
-  // (see the root package.json). What is deployable from the root is the built
-  // static site, so this is a view-only deployment: no Worker script, therefore
-  // no /api/v1 routes, no D1 binding, no Resend and no Cloudflare Access.
+  // Workers Builds for this repository run from the repo root and currently
+  // call `wrangler versions upload` (or `wrangler preview`) against THIS file.
+  // Keep the Cloudflare dashboard root directory at the repository root.
+  // Changing it to apps/web is not required and would be a dashboard change.
   //
-  // The full stack deploys from apps/web with its own wrangler.jsonc, which is
-  // also where the API routes, D1 and Access live once those are provisioned.
+  // `versions upload` uses this top-level config unless `--env` or
+  // CLOUDFLARE_ENV is set. It does not read env.preview by itself.
+  // `wrangler preview` uses the `previews` block and does not inherit
+  // top-level D1/R2 bindings.
+  //
+  // Both production and preview on THIS branch bind staging D1 069aa442 and
+  // R2 kaiyue-offers-staging. Do not merge this file to main.
+  //
+  // Astro writes the Worker to apps/web/dist/server/entry.mjs and static
+  // files to apps/web/dist/client. The old dist/_worker.js path is gone.
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "kaiyue-travel",
+  "main": "./apps/web/dist/server/entry.mjs",
   "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./apps/web/dist/client",
-    "not_found_handling": "404-page",
+    "binding": "ASSETS",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-staging",
+      "database_id": "069aa442-30c9-4454-ab3a-26eb372b3a1f",
+      "migrations_dir": "./migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-staging",
+    },
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "PUBLIC_SITE_URL": "https://kaiyue-travel.scalingsmb.workers.dev",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "DEV_ADMIN_BYPASS": "false",
+    "ADMIN_EMAILS": "admin-test@kaiyue.test",
+  },
+  "previews": {
+    "vars": {
+      "ENVIRONMENT": "preview",
+      "PUBLIC_SITE_URL": "https://kaiyue-travel.scalingsmb.workers.dev",
+      "BUSINESS_TIMEZONE": "Asia/Macau",
+      "BOOKING_NOTICE_HOURS": "24",
+      "WHATSAPP_NUMBER": "+85328338882",
+      "ACCESS_TEAM_DOMAIN": "",
+      "ACCESS_AUD": "",
+      "DEV_ADMIN_BYPASS": "false",
+      "ADMIN_EMAILS": "admin-test@kaiyue.test",
+    },
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "kaiyue-travel-staging",
+        "database_id": "069aa442-30c9-4454-ab3a-26eb372b3a1f",
+        "migrations_dir": "./migrations",
+      },
+    ],
+    "r2_buckets": [
+      {
+        "binding": "OFFERS_BUCKET",
+        "bucket_name": "kaiyue-offers-staging",
+      },
+    ],
   },
 }
