@@ -815,7 +815,9 @@ a {
   margin-top: 0.85rem;
 }
 
-.card--enquiry {
+/* Beat later .card / .field rules so the contact enquiry card stays green. */
+.hero--inquiry .card.card--enquiry,
+.card.card--enquiry {
   /* Brand canvas green #008c5e, darkened so white text meets WCAG 2.2 AA. */
   background: #00704b;
   border-color: #005c3e;
@@ -823,46 +825,47 @@ a {
   box-shadow: 0 18px 40px rgb(0 48 32 / 28%);
 }
 
-.card--enquiry:hover {
+.hero--inquiry .card.card--enquiry:hover,
+.card.card--enquiry:hover {
   border-color: #004d34;
   box-shadow: 0 22px 46px rgb(0 48 32 / 32%);
 }
 
-.card--enquiry h2,
-.card--enquiry label,
-.card--enquiry .field-label,
-.card--enquiry .field span,
-.card--enquiry p {
+.card.card--enquiry h2,
+.card.card--enquiry label,
+.card.card--enquiry .field-label,
+.card.card--enquiry .field span,
+.card.card--enquiry p {
   color: #fff;
 }
 
-.card--enquiry .field label,
-.card--enquiry .field-label {
+.card.card--enquiry .field label,
+.card.card--enquiry .field-label {
   font-size: 0.95rem;
   font-weight: 700;
 }
 
-.card--enquiry .field input:not([type="checkbox"]),
-.card--enquiry .field select,
-.card--enquiry .field textarea {
+.card.card--enquiry .field input:not([type="checkbox"]),
+.card.card--enquiry .field select,
+.card.card--enquiry .field textarea {
   background: #fff;
   color: #111;
   border-color: #cfe8dc;
 }
 
-.card--enquiry .field-error,
-.card--enquiry .form-error {
+.card.card--enquiry .field-error,
+.card.card--enquiry .form-error {
   color: #ffe8e6;
   font-weight: 700;
 }
 
-.card--enquiry .btn--primary {
+.card.card--enquiry .btn--primary {
   background: #fff;
   color: #004d34;
 }
 
-.card--enquiry .btn--primary:hover,
-.card--enquiry .btn--primary:focus-visible {
+.card.card--enquiry .btn--primary:hover,
+.card.card--enquiry .btn--primary:focus-visible {
   background: #f3fff8;
   color: #003d29;
 }
