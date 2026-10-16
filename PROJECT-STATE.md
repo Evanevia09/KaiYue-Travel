@@ -207,6 +207,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Offer/photo delete clears public list JSON/HTML (`CDN-Cache-Control: no-store`) and removes unique R2 display + thumbnail keys one by one.
 - zh-Hant footer address keeps `600-E`.
 - D1/R2 bindings in `wrangler.jsonc` unchanged. Do not merge to `main`.
+- Preview `https://0c0d8103-kaiyue-travel.scalingsmb.workers.dev`: UI `setInputFiles` of a 9.07 MB 4000px JPEG showed optimise progress, stored a 730 KB 1600px WebP, published immediately, and delete cleared the public list plus display/thumb 404s. No hydration #418. zh-Hant footer keeps `600-E`. Lighthouse mobile Home 3×: EN 88/77/77 (median 77, LCP 1.7–3.2 s), zh-Hant 77/77/77 (LCP 3.3 s). TEST offer cleaned up.
 - Handover: `docs/handover/special-offers-photos.md`.
 
 ### 2026-10-16 — Home LCP follow-up on the Special Offers photos branch (staging PR, not main)

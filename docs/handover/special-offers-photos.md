@@ -136,11 +136,27 @@ Fixes on the same staging PR after Chrome QA on `949dbb5a`. Do not merge to `mai
 1. **Chrome file input.** `takeInputFiles` copies `Array.from(input.files)` before `input.value = ""`. Drag-and-drop uses `filesFromDataTransfer`. Playwright `setInputFiles` covers the copy-before-clear path; the preview UI test uploads a 4000px JPEG over 5 MB and waits for the progress bar.
 2. **Size limit.** Client originals up to 25 MB; 5 MB is enforced on the resized output. Resize/encode failure surfaces “Could not resize this photo…” and does not upload the original. Server stays at 5 MB.
 3. **Hydration.** `formatWhen` builds `dd/mm/yyyy, hh:mm` from `formatToParts` in `Asia/Macau`, so Worker SSR and Chrome match.
-4. **Home waste.** Hero preload `href` is the 1200.webp Lighthouse mobile actually selects from the srcset. Below-fold `hero-home` and city-tour card JPEGs are lazy WebP (`hero-home.webp` 89 KB vs 192 KB JPEG; city-tour 800.webp 51/68 KB vs 309 KB JPEG). Google Fonts no longer load Noto Sans TC (~1 MB of CJK chunks); zh-Hant uses PingFang TC / Microsoft JhengHei with Inter `display=swap`. That Noto cascade plus unused preload and eager below-fold JPEGs was what kept Home from reaching network idle.
+4. **Home waste.** Hero preload includes `imagesrcset` 800/1200/1672 so it matches the candidate the `<picture>` actually uses. Below-fold `hero-home` and city-tour card JPEGs are lazy WebP (`hero-home.webp` 89 KB vs 192 KB JPEG; city-tour 800.webp 51/68 KB vs 309 KB JPEG). Google Fonts no longer load Noto Sans TC (~1 MB of CJK chunks); zh-Hant uses PingFang TC / Microsoft JhengHei with Inter `display=swap`. That Noto cascade plus unused preload and eager below-fold JPEGs was what kept Home from reaching network idle.
 5. **Delete.** Public list JSON and `/special-offers` HTML send Cloudflare CDN `no-store`. R2 `deleteMany` removes unique display and thumbnail keys one by one. Tests assert the public list is empty and both object keys are gone.
 6. **zh-Hant footer.** Address translation keeps `600-E`.
 
-Preview re-measure and Lighthouse Home (3× EN and zh-Hant) are recorded after this commit’s Workers preview is live.
+Measured preview: `https://0c0d8103-kaiyue-travel.scalingsmb.workers.dev` (`a788ea4`). Prettier-only follow-up is `https://5499a601-kaiyue-travel.scalingsmb.workers.dev` (`12ada18`).
+
+### Preview re-check (2026-10-16)
+
+- Chrome `setInputFiles` on `/admin/offers` uploaded a 4000×3000 JPEG of 9,071,564 bytes. The UI showed “Optimising photo 1 of 1…” and the progress bar, then “Photo uploaded.” Stored display WebP was 1600×1200 / 730,358 bytes; thumbnail 103,418 bytes. No React #418 / hydration errors.
+- Publish appeared on `GET /api/v1/offers` and `/special-offers` HTML immediately. After delete the public list was `[]`, the HTML no longer contained the TEST title, and both display and thumbnail URLs returned 404. R2 key removal is also covered by the integration test (`objectKey` and `thumbObjectKey` both null after DELETE). TEST offer `af27110c-…` was deleted. The earlier leftover draft titled `Test` was left in place.
+- zh-Hant footer: `澳門羅理基博士大馬路600-E號, 第一國際商業中心, 16/F, P16-07, 澳門`.
+- Home networkidle in ~1.0 s (21 requests). No Noto Sans TC. No `hero-home.jpg` / `city-tours-*.jpg` downloads; lazy WebP used instead. Inter `display=swap` only.
+
+### Lighthouse mobile Home (three runs each, same CLI as the previous follow-up)
+
+| Locale | Run 1 | Run 2 | Run 3 | Median | LCP |
+| --- | ---: | ---: | ---: | ---: | --- |
+| EN `/` | 88 | 77 | 77 | 77 | 1.7–3.2 s |
+| zh-Hant `/zh-Hant/` | 77 | 77 | 77 | 77 | 3.3 s |
+
+Total transfer ~507–508 KiB (was ~1 MB of Noto chunks on zh-Hant before). `font-display` score 1. Offscreen-images score 1. Home CLS 0.21–0.23 remains (booking widget).
 
 ## Limits
 
