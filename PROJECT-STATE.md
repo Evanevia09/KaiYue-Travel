@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers photos QA blockers on staging PR; not merged to main)
+**Last updated:** 2026-10-16 (Special Offers publish label and D1 latency on staging PR; not merged to main)
 **Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work and WeChat QR placeholder in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging now also includes the WeChat QR placeholder from PR 9. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview photo upload (Chrome FileList + 25 MB originals), public-page freshness after delete, Home waste/fonts, and Home Lighthouse EN/zh-Hant. Do not merge to `main`. Do not change D1/R2 bindings.
+**Current objective:** Review the staging/preview publish fix: **Publishing…** vs **Unpublishing…** from the target state, publish latency under 1 s if possible, and leave-warning/`keepalive` if a write is still in flight. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -160,7 +160,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
-Special Offers next action (2026-10-16): review the Home LCP/WebP follow-up on the new Workers preview against live, then the photo upload/publish/swap/delete flow. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): on the new Workers preview, create a TEST offer, confirm Publish shows **Publishing…** (not Unpublishing…), measure publish duration, then delete the TEST offer. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -197,6 +197,15 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Publish label and latency on the Special Offers photos branch (staging PR, not main)
+
+- Recheck of `0c0d8103` showed Publish taking ~5 s with the button reading **Unpublishing…** because optimistic status flipped to `published` while a shared `status:${id}` busy key selected the Unpublish label.
+- Labels now follow the target action (`publish:${id}` / `unpublish:${id}`). Publish writes status + audit in one D1 batch after a batched load and does not reload. Better Auth session cookie cache (60 s) skips extra session D1 reads on the POST.
+- Mutating admin fetches use `keepalive`; `beforeunload` warns while a write is in flight so leaving the page does not leave the offer as a draft.
+- D1/R2 bindings in `wrangler.jsonc` unchanged. Do not merge to `main`.
+- Preview verification and cleanup of a TEST offer are recorded after the new Workers preview is up.
+- Handover: `docs/handover/special-offers-photos.md`.
 
 ### 2026-10-16 — Browser QA blockers on the Special Offers photos branch (staging PR, not main)
 

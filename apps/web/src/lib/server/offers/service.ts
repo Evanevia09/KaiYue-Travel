@@ -98,9 +98,7 @@ export async function updateOffer(
 
 export async function publishOffer(env: AppEnv, id: string, actorId: string, requestId: string) {
   const { store } = offerRuntime(env);
-  const offer = await store.setStatus(id, "published");
-  await store.recordAudit({
-    offerId: id,
+  const offer = await store.setStatus(id, "published", {
     eventType: "published",
     actorId,
     requestId,
@@ -112,9 +110,7 @@ export async function publishOffer(env: AppEnv, id: string, actorId: string, req
 
 export async function unpublishOffer(env: AppEnv, id: string, actorId: string, requestId: string) {
   const { store } = offerRuntime(env);
-  const offer = await store.setStatus(id, "draft");
-  await store.recordAudit({
-    offerId: id,
+  const offer = await store.setStatus(id, "draft", {
     eventType: "unpublished",
     actorId,
     requestId,

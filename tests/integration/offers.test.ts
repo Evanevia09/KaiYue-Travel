@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createMemoryObjectStore } from "../../apps/web/src/lib/server/offers/objects.ts";
-import { createMemoryOfferStore } from "../../apps/web/src/lib/server/offers/store.ts";
+import {
+  createD1OfferStore,
+  createMemoryOfferStore,
+} from "../../apps/web/src/lib/server/offers/store.ts";
 import { createTestEnv } from "../helpers/memory-d1.ts";
 
 const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);
@@ -308,5 +311,47 @@ describe("special offers API", () => {
     expect(removed.status).toBe(200);
     expect(await objects.get(photo.objectKey)).toBeNull();
     expect(await objects.get(photo.thumbObjectKey)).toBeNull();
+  });
+
+  it("publishes with one D1 load batch and one update+audit batch", async () => {
+    const testEnv = createTestEnv();
+    const batchSizes: number[] = [];
+    const originalBatch = testEnv.DB.batch.bind(testEnv.DB);
+    testEnv.DB.batch = async (statements) => {
+      batchSizes.push(statements.length);
+      return originalBatch(statements);
+    };
+    const store = createD1OfferStore(testEnv.DB);
+    const created = await store.create({
+      title: "Harbour night",
+      description: "Car and driver.",
+    });
+    await store.addPhoto(created.id, {
+      objectKey: `offers/${created.id}/main.jpg`,
+      thumbObjectKey: `offers/${created.id}/main-thumb.jpg`,
+      contentType: "image/jpeg",
+      contentHash: "abc123",
+      isMain: true,
+    });
+    batchSizes.length = 0;
+    const published = await store.setStatus(created.id, "published", {
+      eventType: "published",
+      actorId: "operator-1",
+      requestId: "req-publish",
+      fromValue: "draft",
+      toValue: "published",
+    });
+    expect(published.status).toBe("published");
+    expect(batchSizes).toEqual([2, 2]);
+    const audit = await testEnv.DB.prepare(
+      "SELECT event_type, to_value FROM offer_audit_events WHERE offer_id = ?",
+    )
+      .bind(created.id)
+      .first<{ event_type: string; to_value: string }>();
+    expect(audit).toMatchObject({ event_type: "published", to_value: "published" });
+    const row = await testEnv.DB.prepare("SELECT status FROM offers WHERE id = ?")
+      .bind(created.id)
+      .first<{ status: string }>();
+    expect(row?.status).toBe("published");
   });
 });

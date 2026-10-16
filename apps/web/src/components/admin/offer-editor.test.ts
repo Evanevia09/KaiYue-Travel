@@ -3,6 +3,8 @@ import {
   editorAfterWrite,
   filesFromDataTransfer,
   offerSaveTarget,
+  offerStatusBusyKey,
+  offerStatusControl,
   takeInputFiles,
   withMainPhoto,
   withOfferStatus,
@@ -80,5 +82,27 @@ describe("offer editor save target", () => {
     expect(withOfferStatus(offer, "draft").status).toBe("draft");
     const published: typeof offer = { ...offer, status: "published" };
     expect(withOfferStatus(published, "draft").status).toBe("draft");
+  });
+
+  it("keeps Publishing… after the optimistic status has already flipped to published", () => {
+    const id = "offer-harbour";
+    expect(offerStatusBusyKey(id, "published")).toBe("publish:offer-harbour");
+    expect(offerStatusBusyKey(id, "draft")).toBe("unpublish:offer-harbour");
+    expect(offerStatusControl(`publish:${id}`, id, "published")).toEqual({
+      next: "published",
+      label: "Publishing…",
+    });
+    expect(offerStatusControl(`unpublish:${id}`, id, "draft")).toEqual({
+      next: "draft",
+      label: "Unpublishing…",
+    });
+    expect(offerStatusControl(null, id, "draft")).toEqual({
+      next: "published",
+      label: "Publish",
+    });
+    expect(offerStatusControl(null, id, "published")).toEqual({
+      next: "draft",
+      label: "Unpublish",
+    });
   });
 });

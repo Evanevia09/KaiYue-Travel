@@ -28,6 +28,7 @@ This increment makes Special Offers photos smaller and cache-safe, and makes `/a
 - Dashboard counts run as one D1 `batch()` instead of seven separate queries.
 - Public offer lists read published rows only, using `idx_offers_status_updated`.
 - Main-photo, photo delete, publish/unpublish, and offer delete are optimistic in the UI and roll back if the server rejects them. Upload shows optimise/upload progress. Double-click still no-ops while `busy` is set; Create draft still switches to PATCH on the saved id. The Updated column is formatted in `Asia/Macau` with explicit 2-digit parts so Worker SSR and Chrome hydration match.
+- Publish/unpublish labels use `publish:${id}` / `unpublish:${id}` busy keys so an optimistic flip to `published` does not render **Unpublishing…**. Publish is two D1 batches (load offer+photos, then UPDATE+audit) instead of sequential load, UPDATE, reload, and audit insert. Better Auth session cookie cache (60 s) skips extra session D1 reads on the POST. Mutating `adminFetch` uses `keepalive`, and `beforeunload` warns if staff leave during an in-flight write.
 
 ### Migration `0006_offer_photo_variants.sql`
 
@@ -157,6 +158,19 @@ Measured preview: `https://0c0d8103-kaiyue-travel.scalingsmb.workers.dev` (`a788
 | zh-Hant `/zh-Hant/` | 77 | 77 | 77 | 77 | 3.3 s |
 
 Total transfer ~507–508 KiB (was ~1 MB of Noto chunks on zh-Hant before). `font-display` score 1. Offscreen-images score 1. Home CLS 0.21–0.23 remains (booking widget).
+
+## Publish label and latency (2026-10-16)
+
+Recheck of `0c0d8103` passed except Publish taking ~5 s with the button reading **Unpublishing…**. Cause: optimistic `status = published` plus a shared `status:${id}` busy key, so the Unpublish branch rendered during the POST. The delay was sequential D1: Better Auth `getSession` (several queries) + load offer + load photos + UPDATE + load offer + load photos + audit INSERT.
+
+Fixes on this branch (same staging PR, not merged):
+
+- Button label follows the target action (`Publishing…` / `Unpublishing…`).
+- D1 publish path: one batched load, one batched UPDATE+audit, in-memory return (no second load).
+- Better Auth `session.cookieCache` (60 s) so the publish POST does not repeat session D1 reads after `/admin/offers` has already authenticated.
+- `keepalive` on mutating admin fetches and a `beforeunload` warning while `busy` is set, so navigating away does not abort the write.
+
+Preview verification of this fix is recorded after the new Workers preview is up.
 
 ## Limits
 

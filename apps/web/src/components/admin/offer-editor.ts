@@ -45,3 +45,29 @@ export function withoutPhoto<T extends { photos: Array<{ id: string; isMain: boo
 export function withOfferStatus<T extends { status: string }>(offer: T, status: T["status"]): T {
   return { ...offer, status };
 }
+
+/** Busy key follows the requested next state, not the optimistic current status. */
+export function offerStatusBusyKey(id: string, next: "published" | "draft"): string {
+  return next === "published" ? `publish:${id}` : `unpublish:${id}`;
+}
+
+/**
+ * In-flight publish flips status to published immediately. The button label must still
+ * follow the target action, or the UI reads "Unpublishing…" while the offer is going live.
+ */
+export function offerStatusControl(
+  busy: string | null,
+  id: string,
+  status: "draft" | "published",
+): { next: "published" | "draft"; label: string } {
+  if (busy === `publish:${id}`) {
+    return { next: "published", label: "Publishing…" };
+  }
+  if (busy === `unpublish:${id}`) {
+    return { next: "draft", label: "Unpublishing…" };
+  }
+  if (status === "published") {
+    return { next: "draft", label: "Unpublish" };
+  }
+  return { next: "published", label: "Publish" };
+}

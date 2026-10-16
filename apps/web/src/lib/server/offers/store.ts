@@ -1,6 +1,6 @@
 import { AppError, isOfferReady, type OfferWriteInput } from "@kaiyue/contracts";
 import type { D1Database } from "../env.ts";
-import { all, first, nowIso, run } from "../db.ts";
+import { all, nowIso, run } from "../db.ts";
 
 export type OfferPhotoRecord = {
   id: string;
@@ -29,12 +29,24 @@ export type OfferRecord = {
   photos: OfferPhotoRecord[];
 };
 
+export type OfferAuditWrite = {
+  eventType: string;
+  actorId: string;
+  fromValue?: string | null;
+  toValue?: string | null;
+  requestId: string;
+};
+
 export type OfferStore = {
   list(): Promise<OfferRecord[]>;
   get(id: string): Promise<OfferRecord | null>;
   create(input: OfferWriteInput): Promise<OfferRecord>;
   update(id: string, input: OfferWriteInput): Promise<OfferRecord>;
-  setStatus(id: string, status: "draft" | "published"): Promise<OfferRecord>;
+  setStatus(
+    id: string,
+    status: "draft" | "published",
+    audit?: OfferAuditWrite,
+  ): Promise<OfferRecord>;
   delete(id: string): Promise<OfferRecord>;
   addPhoto(
     offerId: string,
@@ -233,7 +245,7 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
       offer.updatedAt = nowIso();
       return structuredClone(offer);
     },
-    async setStatus(id, status) {
+    async setStatus(id, status, audit) {
       const offer = requireOffer(id);
       if (status === "published" && !isOfferReady(offer)) {
         throw new AppError(
@@ -243,6 +255,9 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
       }
       offer.status = status;
       offer.updatedAt = nowIso();
+      if (audit) {
+        audits.push({ ...audit, offerId: id, createdAt: nowIso() });
+      }
       return structuredClone(offer);
     },
     async delete(id) {
@@ -329,19 +344,26 @@ async function loadMany(db: D1Database, status?: "published"): Promise<OfferReco
 }
 
 export function createD1OfferStore(db: D1Database): OfferStore {
-  async function photosFor(offerId: string): Promise<OfferPhotoRecord[]> {
-    const rows = await all<PhotoRow>(
-      db,
-      "SELECT * FROM offer_photos WHERE offer_id = ? ORDER BY sort_order ASC, created_at ASC",
-      offerId,
-    );
-    return rows.map(mapPhoto);
+  async function loadRow(
+    id: string,
+  ): Promise<{ row: OfferRow | null; photos: OfferPhotoRecord[] }> {
+    const [offerResult, photoResult] = await db.batch([
+      db.prepare("SELECT * FROM offers WHERE id = ?").bind(id),
+      db
+        .prepare(
+          "SELECT * FROM offer_photos WHERE offer_id = ? ORDER BY sort_order ASC, created_at ASC",
+        )
+        .bind(id),
+    ]);
+    const row = (offerResult?.results as OfferRow[] | undefined)?.[0] ?? null;
+    const photos = ((photoResult?.results as PhotoRow[] | undefined) ?? []).map(mapPhoto);
+    return { row, photos };
   }
 
   async function load(id: string): Promise<OfferRecord> {
-    const row = await first<OfferRow>(db, "SELECT * FROM offers WHERE id = ?", id);
+    const { row, photos } = await loadRow(id);
     if (!row) throw new AppError("NOT_FOUND", "Offer not found.");
-    return mapOffer(row, await photosFor(id));
+    return mapOffer(row, photos);
   }
 
   return {
@@ -352,8 +374,8 @@ export function createD1OfferStore(db: D1Database): OfferStore {
       return loadMany(db, "published");
     },
     async get(id) {
-      const row = await first<OfferRow>(db, "SELECT * FROM offers WHERE id = ?", id);
-      return row ? mapOffer(row, await photosFor(id)) : null;
+      const { row, photos } = await loadRow(id);
+      return row ? mapOffer(row, photos) : null;
     },
     async create(input) {
       const id = crypto.randomUUID();
@@ -387,7 +409,7 @@ export function createD1OfferStore(db: D1Database): OfferStore {
       if (result.meta.changes === 0) throw new AppError("NOT_FOUND", "Offer not found.");
       return load(id);
     },
-    async setStatus(id, status) {
+    async setStatus(id, status, audit) {
       const current = await load(id);
       if (status === "published" && !isOfferReady(current)) {
         throw new AppError(
@@ -395,14 +417,33 @@ export function createD1OfferStore(db: D1Database): OfferStore {
           "Publish requires a title, description, and a main photo.",
         );
       }
-      await run(
-        db,
-        "UPDATE offers SET status = ?, updated_at = ? WHERE id = ?",
-        status,
-        nowIso(),
-        id,
-      );
-      return load(id);
+      const now = nowIso();
+      const statements = [
+        db
+          .prepare("UPDATE offers SET status = ?, updated_at = ? WHERE id = ?")
+          .bind(status, now, id),
+      ];
+      if (audit) {
+        statements.push(
+          db
+            .prepare(
+              `INSERT INTO offer_audit_events (id, offer_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            )
+            .bind(
+              crypto.randomUUID(),
+              id,
+              audit.eventType,
+              audit.actorId,
+              audit.fromValue ?? null,
+              audit.toValue ?? null,
+              audit.requestId,
+              now,
+            ),
+        );
+      }
+      await db.batch(statements);
+      return { ...current, status, updatedAt: now };
     },
     async delete(id) {
       const current = await load(id);

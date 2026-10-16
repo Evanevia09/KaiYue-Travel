@@ -5,6 +5,8 @@ import {
   editorAfterWrite,
   filesFromDataTransfer,
   offerSaveTarget,
+  offerStatusBusyKey,
+  offerStatusControl,
   takeInputFiles,
   withMainPhoto,
   withOfferStatus,
@@ -145,6 +147,16 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
     if (!confirmId && dialog.open) dialog.close();
   }, [confirmId]);
 
+  useEffect(() => {
+    if (!busy) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [busy]);
+
   function openCreate() {
     setEditing(null);
     setForm(emptyForm);
@@ -272,7 +284,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
     if (busy) return;
     const current = items.find((item) => item.id === id);
     if (current) applyOffer(withOfferStatus(current, next));
-    setBusy(`status:${id}`);
+    setBusy(offerStatusBusyKey(id, next));
     setError("");
     try {
       const saved = await adminFetch<{ item: AdminOffer }>(
@@ -347,7 +359,13 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
             ? `${upload.phase === "optimising" ? "Optimising" : "Uploading"} photo ${upload.index} of ${upload.total}${
                 upload.phase === "uploading" ? ` (${upload.percent}%)` : "…"
               }`
-            : `Working… ${busy.startsWith("status:") ? "Updating publication status." : "Please wait."}`}
+            : `Working… ${
+                busy.startsWith("publish:")
+                  ? "Publishing this offer."
+                  : busy.startsWith("unpublish:")
+                    ? "Unpublishing this offer."
+                    : "Please wait."
+              }`}
         </p>
       )}
       {upload && (
@@ -383,56 +401,48 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <strong>{item.title}</strong>
-                    <small>{item.complete ? "Ready to publish" : "Incomplete"}</small>
-                  </td>
-                  <td>
-                    <span className={`badge badge--${item.status}`}>{item.status}</span>
-                  </td>
-                  <td>{item.priceFrom == null ? "Hidden" : item.priceFrom}</td>
-                  <td>{formatWhen(item.updatedAt)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="admin-inline-link"
-                      onClick={() => openEdit(item)}
-                      disabled={locked}
-                    >
-                      Edit
-                    </button>{" "}
-                    {item.status === "published" ? (
+              {items.map((item) => {
+                const action = offerStatusControl(busy, item.id, item.status);
+                return (
+                  <tr key={item.id}>
+                    <td>
+                      <strong>{item.title}</strong>
+                      <small>{item.complete ? "Ready to publish" : "Incomplete"}</small>
+                    </td>
+                    <td>
+                      <span className={`badge badge--${item.status}`}>{item.status}</span>
+                    </td>
+                    <td>{item.priceFrom == null ? "Hidden" : item.priceFrom}</td>
+                    <td>{formatWhen(item.updatedAt)}</td>
+                    <td>
                       <button
                         type="button"
                         className="admin-inline-link"
-                        onClick={() => void setStatus(item.id, "draft")}
+                        onClick={() => openEdit(item)}
                         disabled={locked}
                       >
-                        {busy === `status:${item.id}` ? "Unpublishing…" : "Unpublish"}
-                      </button>
-                    ) : (
+                        Edit
+                      </button>{" "}
                       <button
                         type="button"
                         className="admin-inline-link"
-                        onClick={() => void setStatus(item.id, "published")}
+                        onClick={() => void setStatus(item.id, action.next)}
                         disabled={locked}
                       >
-                        {busy === `status:${item.id}` ? "Publishing…" : "Publish"}
+                        {action.label}
+                      </button>{" "}
+                      <button
+                        type="button"
+                        className="admin-inline-link"
+                        onClick={() => setConfirmId(item.id)}
+                        disabled={locked}
+                      >
+                        Delete
                       </button>
-                    )}{" "}
-                    <button
-                      type="button"
-                      className="admin-inline-link"
-                      onClick={() => setConfirmId(item.id)}
-                      disabled={locked}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
