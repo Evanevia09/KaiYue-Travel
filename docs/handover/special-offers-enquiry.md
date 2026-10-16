@@ -33,7 +33,7 @@ Adds nullable `offer_id` and `offer_title` on `bookings`, plus `idx_bookings_off
 
 - PR: https://github.com/Evanevia09/KaiYue-Travel/pull/13 (draft into `staging`)
 - Branch preview: https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev
-- Commit preview (green-card CSS fix): https://6bf692da-kaiyue-travel.scalingsmb.workers.dev
+- Latest commit preview: https://8ef6d610-kaiyue-travel.scalingsmb.workers.dev
 - GitHub `check` and Workers Builds succeeded on `b7d0327`. Do not merge to `main`.
 
 Checked on the branch/commit Workers preview at desktop and 390px:
