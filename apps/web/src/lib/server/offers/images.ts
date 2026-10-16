@@ -1,4 +1,9 @@
-import { AppError, OFFER_IMAGE_MAX_BYTES, OFFER_IMAGE_TYPES } from "@kaiyue/contracts";
+import {
+  AppError,
+  OFFER_IMAGE_MAX_BYTES,
+  OFFER_IMAGE_TYPES,
+  type OfferImageType,
+} from "@kaiyue/contracts";
 
 const SIGNATURES = {
   "image/jpeg": [0xff, 0xd8, 0xff],
@@ -25,7 +30,7 @@ function looksLikeSvg(bytes: Uint8Array): boolean {
   return head.startsWith("<svg") || head.startsWith("<?xml");
 }
 
-export function detectImageType(bytes: Uint8Array): (typeof OFFER_IMAGE_TYPES)[number] | null {
+export function detectImageType(bytes: Uint8Array): OfferImageType | null {
   if (looksLikeSvg(bytes)) return null;
   if (startsWith(bytes, SIGNATURES["image/jpeg"])) return "image/jpeg";
   if (startsWith(bytes, SIGNATURES["image/png"])) return "image/png";
@@ -33,10 +38,7 @@ export function detectImageType(bytes: Uint8Array): (typeof OFFER_IMAGE_TYPES)[n
   return null;
 }
 
-export function assertOfferImage(
-  bytes: Uint8Array,
-  declaredType: string,
-): (typeof OFFER_IMAGE_TYPES)[number] {
+export function assertOfferImage(bytes: Uint8Array, declaredType: string): OfferImageType {
   if (bytes.byteLength === 0) {
     throw new AppError("VALIDATION_FAILED", "Choose a JPEG, PNG, or WebP image.", {
       fields: { photo: "Choose a JPEG, PNG, or WebP image." },
@@ -49,11 +51,7 @@ export function assertOfferImage(
   }
   const detected = detectImageType(bytes);
   const mime = declaredType.split(";")[0]?.trim().toLowerCase() ?? "";
-  if (
-    !detected ||
-    !OFFER_IMAGE_TYPES.includes(mime as (typeof OFFER_IMAGE_TYPES)[number]) ||
-    detected !== mime
-  ) {
+  if (!detected || !OFFER_IMAGE_TYPES.includes(mime as OfferImageType) || detected !== mime) {
     throw new AppError("VALIDATION_FAILED", "Only JPEG, PNG, or WebP files are accepted.", {
       fields: { photo: "Only JPEG, PNG, or WebP files are accepted." },
     });
@@ -61,11 +59,29 @@ export function assertOfferImage(
   return detected;
 }
 
+export async function hashOfferImage(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes));
+  return Array.from(new Uint8Array(digest), (value) => value.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 20);
+}
+
 export function offerObjectKey(
   offerId: string,
-  contentType: (typeof OFFER_IMAGE_TYPES)[number],
+  photoId: string,
+  contentHash: string,
+  contentType: OfferImageType,
+  variant: "full" | "thumb" = "full",
 ): string {
   const extension =
     contentType === "image/jpeg" ? "jpg" : contentType === "image/png" ? "png" : "webp";
-  return `offers/${offerId}/${crypto.randomUUID()}.${extension}`;
+  const suffix = variant === "thumb" ? ".thumb" : "";
+  return `offers/${offerId}/${photoId}/${contentHash}${suffix}.${extension}`;
+}
+
+export function parseOfferImageDimension(value: FormDataEntryValue | null): number | null {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 20_000) return null;
+  return parsed;
 }

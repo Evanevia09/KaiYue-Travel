@@ -2917,6 +2917,19 @@ html[lang="zh-Hant"] astro-island[ssr] {
   border-radius: 0.4rem;
   background: #eef2f4;
 }
+.admin-upload-progress {
+  height: 0.45rem;
+  margin: 0 0 1rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8eef0;
+}
+.admin-upload-progress span {
+  display: block;
+  height: 100%;
+  background: #008c5e;
+  transition: width 160ms ease;
+}
 .badge--assigned {
   background: #e5f6ee;
   color: #176b45;

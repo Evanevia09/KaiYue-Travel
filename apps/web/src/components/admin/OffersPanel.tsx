@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState } from "react";
+import { optimizeOfferPhoto } from "../../lib/offer-image.ts";
 import { adminFetch } from "./api.ts";
-import { editorAfterWrite, offerSaveTarget } from "./offer-editor.ts";
+import {
+  editorAfterWrite,
+  offerSaveTarget,
+  withMainPhoto,
+  withOfferStatus,
+  withoutPhoto,
+} from "./offer-editor.ts";
 
-type OfferPhoto = {
+export type OfferPhoto = {
   id: string;
   isMain: boolean;
   contentType: string;
+  url?: string;
+  thumbUrl?: string;
+  width?: number | null;
+  height?: number | null;
 };
 
-type AdminOffer = {
+export type AdminOffer = {
   id: string;
   status: "draft" | "published";
   title: string;
@@ -27,22 +38,63 @@ type FormState = {
   terms: string;
 };
 
+type UploadState = {
+  index: number;
+  total: number;
+  phase: "optimising" | "uploading";
+  percent: number;
+};
+
 const emptyForm: FormState = { title: "", description: "", priceFrom: "", terms: "" };
 
-function photoUrl(offerId: string, photoId: string): string {
-  return `/api/admin/offers/${offerId}/photos/${photoId}`;
+function photoSrc(offerId: string, photo: OfferPhoto): string {
+  return photo.thumbUrl || photo.url || `/api/admin/offers/${offerId}/photos/${photo.id}`;
 }
 
-export function OffersPanel() {
-  const [items, setItems] = useState<AdminOffer[]>([]);
+function uploadWithProgress(
+  url: string,
+  data: FormData,
+  onProgress: (percent: number) => void,
+): Promise<AdminOffer> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+    xhr.onload = () => {
+      try {
+        const body = JSON.parse(xhr.responseText) as {
+          item?: AdminOffer;
+          error?: { message?: string };
+        };
+        if (xhr.status >= 200 && xhr.status < 300 && body.item) {
+          resolve(body.item);
+          return;
+        }
+        reject(new Error(body.error?.message ?? "Photo upload failed."));
+      } catch {
+        reject(new Error("Photo upload failed."));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Photo upload failed."));
+    xhr.send(data);
+  });
+}
+
+export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer[] | null }) {
+  const [items, setItems] = useState<AdminOffer[]>(initialItems ?? []);
   const [editing, setEditing] = useState<AdminOffer | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [modal, setModal] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialItems == null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [upload, setUpload] = useState<UploadState | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const confirmRef = useRef<HTMLDialogElement>(null);
   const loadSeq = useRef(0);
@@ -67,11 +119,15 @@ export function OffersPanel() {
   }
 
   useEffect(() => {
+    if (initialItems != null) {
+      setLoading(false);
+      return;
+    }
     void load().catch((err: Error) => {
       setError(err.message);
       setLoading(false);
     });
-  }, []);
+  }, [initialItems]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -144,30 +200,41 @@ export function OffersPanel() {
     if (!editing || !files?.length || busy) return;
     setBusy("photos");
     setError("");
+    const offerId = editing.id;
     try {
       let latest = editing;
-      for (const file of files) {
+      const list = [...files];
+      for (const [index, file] of list.entries()) {
+        setUpload({ index: index + 1, total: list.length, phase: "optimising", percent: 0 });
         const data = new FormData();
-        data.append("photo", file);
-        const saved = await fetch(`/api/admin/offers/${editing.id}/photos`, {
-          method: "POST",
-          body: data,
-        });
-        const body = (await saved.json()) as { item?: AdminOffer; error?: { message?: string } };
-        if (!saved.ok) throw new Error(body.error?.message ?? "Photo upload failed.");
-        latest = body.item!;
+        try {
+          const optimized = await optimizeOfferPhoto(file);
+          data.append("photo", optimized.display.file, optimized.display.file.name);
+          data.append("thumbnail", optimized.thumbnail.file, optimized.thumbnail.file.name);
+          data.append("width", String(optimized.display.width));
+          data.append("height", String(optimized.display.height));
+        } catch {
+          data.append("photo", file);
+        }
+        setUpload({ index: index + 1, total: list.length, phase: "uploading", percent: 0 });
+        latest = await uploadWithProgress(`/api/admin/offers/${offerId}/photos`, data, (percent) =>
+          setUpload({ index: index + 1, total: list.length, phase: "uploading", percent }),
+        );
         applyOffer(latest);
       }
-      setNotice("Photos uploaded.");
+      setNotice(list.length === 1 ? "Photo uploaded." : "Photos uploaded.");
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setBusy(null);
+      setUpload(null);
     }
   }
 
   async function setMain(photoId: string) {
     if (!editing || busy) return;
+    const snapshot = editing;
+    applyOffer(withMainPhoto(editing, photoId));
     setBusy(`main:${photoId}`);
     setError("");
     try {
@@ -177,6 +244,7 @@ export function OffersPanel() {
       );
       applyOffer(saved.item);
     } catch (err) {
+      applyOffer(snapshot);
       setError((err as Error).message);
     } finally {
       setBusy(null);
@@ -185,6 +253,8 @@ export function OffersPanel() {
 
   async function removePhoto(photoId: string) {
     if (!editing || busy) return;
+    const snapshot = editing;
+    applyOffer(withoutPhoto(editing, photoId));
     setBusy(`photo:${photoId}`);
     setError("");
     try {
@@ -194,6 +264,7 @@ export function OffersPanel() {
       );
       applyOffer(saved.item);
     } catch (err) {
+      applyOffer(snapshot);
       setError((err as Error).message);
     } finally {
       setBusy(null);
@@ -202,6 +273,8 @@ export function OffersPanel() {
 
   async function setStatus(id: string, next: "published" | "draft") {
     if (busy) return;
+    const current = items.find((item) => item.id === id);
+    if (current) applyOffer(withOfferStatus(current, next));
     setBusy(`status:${id}`);
     setError("");
     try {
@@ -215,6 +288,7 @@ export function OffersPanel() {
       applyOffer(saved.item);
       setNotice(next === "published" ? "Offer published." : "Offer unpublished.");
     } catch (err) {
+      if (current) applyOffer(current);
       setError((err as Error).message);
     } finally {
       setBusy(null);
@@ -223,18 +297,20 @@ export function OffersPanel() {
 
   async function remove(id: string) {
     if (busy) return;
+    const snapshot = items;
     setBusy(`delete:${id}`);
     setError("");
+    setItems((current) => current.filter((item) => item.id !== id));
+    setConfirmId(null);
+    if (editing?.id === id) {
+      setModal(false);
+      setEditing(null);
+    }
     try {
       await adminFetch(`/api/admin/offers/${id}`, { method: "DELETE" });
-      setConfirmId(null);
-      setItems((current) => current.filter((item) => item.id !== id));
-      if (editing?.id === id) {
-        setModal(false);
-        setEditing(null);
-      }
       setNotice("Offer deleted.");
     } catch (err) {
+      setItems(snapshot);
       setError((err as Error).message);
     } finally {
       setBusy(null);
@@ -270,8 +346,28 @@ export function OffersPanel() {
       )}
       {busy && (
         <p role="status" className="admin-feedback">
-          Working… {busy.startsWith("status:") ? "Updating publication status." : "Please wait."}
+          {upload
+            ? `${upload.phase === "optimising" ? "Optimising" : "Uploading"} photo ${upload.index} of ${upload.total}${
+                upload.phase === "uploading" ? ` (${upload.percent}%)` : "…"
+              }`
+            : `Working… ${busy.startsWith("status:") ? "Updating publication status." : "Please wait."}`}
         </p>
+      )}
+      {upload && (
+        <div
+          className="admin-upload-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={upload.phase === "uploading" ? upload.percent : 0}
+          aria-label="Photo upload progress"
+        >
+          <span
+            style={{
+              width: `${upload.phase === "uploading" ? Math.max(upload.percent, 8) : 12}%`,
+            }}
+          />
+        </div>
       )}
       <section className="admin-card admin-table-card">
         {loading ? (
@@ -425,18 +521,31 @@ export function OffersPanel() {
           {editing && (
             <div className="admin-offer-photos">
               <h3>Photos</h3>
-              <p className="muted">JPEG, PNG, or WebP. 5 MB each. Choose one main photo.</p>
+              <p className="muted">
+                JPEG, PNG, or WebP. Large photos are resized to 1600px and compressed before upload.
+                5 MB each after optimisation. Choose one main photo.
+              </p>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
                 disabled={locked}
-                onChange={(event) => void uploadPhotos(event.target.files)}
+                onChange={(event) => {
+                  const selected = event.target.files;
+                  event.target.value = "";
+                  void uploadPhotos(selected);
+                }}
               />
               <ul className="admin-offer-photo-list">
                 {editing.photos.map((photo) => (
                   <li key={photo.id}>
-                    <img src={photoUrl(editing.id, photo.id)} alt="" width="120" height="80" />
+                    <img
+                      src={photoSrc(editing.id, photo)}
+                      alt=""
+                      width={photo.width ?? 120}
+                      height={photo.height ?? 80}
+                      loading="lazy"
+                    />
                     <label>
                       <input
                         type="radio"

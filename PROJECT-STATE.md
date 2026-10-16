@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers dashboard on a staging PR; not merged to main)
-**Product-status evidence date:** 2026-10-16 for offers/admin-gate work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-16 (Special Offers photo optimisation and dashboard speed on a staging PR; not merged to main)
+**Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** Special Offers staff dashboard, published-only public page, fail-closed production admin, and preview-only test login are implemented on `cursor/special-offers-dashboard-d246` targeting `staging`. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are bound on this branch only. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview Special Offers dashboard and the preview test login. Provide Access team domain and AUD when ready. Do not merge to `main`.
+**Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the staging/preview photo upload and public-page freshness, then the dashboard timings. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -158,7 +158,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Special Offers next action (2026-10-16): review the preview dashboard publish/save feedback, then sign in with the rotated test-admin password. `BETTER_AUTH_SECRET` persists across `versions upload` once set. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): apply `0006_offer_photo_variants.sql` to staging D1 `069aa442` only if it is not already applied, review the preview photo upload/publish/swap/delete flow, then delete TEST offers. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -193,6 +193,16 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Special Offers photos and dashboard speed (staging PR, not main)
+
+- Client canvas resize (1600px display, 480px thumbnail, WebP/JPEG) before upload; Worker still validates type and 5 MB.
+- Versioned photo URLs with a content hash; public blobs `immutable` for one year; unversioned URLs `no-store`.
+- Public `/special-offers` (EN, pt, zh-Hant) HTML is `private, no-store` so publish/edit/delete is visible on the next request.
+- `/admin` and `/admin/offers` SSR the first payload; dashboard summary uses one D1 batch; optimistic main/delete/publish with rollback; upload progress.
+- Additive migration `0006_offer_photo_variants.sql` (photo hash/thumb/dimensions plus booking/offer indexes). Did not edit `wrangler.jsonc` D1/R2 bindings.
+- Handover: `docs/handover/special-offers-photos.md`.
+- Limits: not merged to `main`; Access still unset; preview timings recorded after Workers preview checks.
 
 ### 2026-10-16 — Special Offers dashboard (staging PR, not main)
 

@@ -5,11 +5,13 @@ import {
   type OfferWriteInput,
 } from "@kaiyue/contracts";
 import type { AppEnv } from "../env.ts";
-import { assertOfferImage, offerObjectKey } from "./images.ts";
+import { assertOfferImage, hashOfferImage, offerObjectKey } from "./images.ts";
 import { createMemoryObjectStore, createR2ObjectStore, type ObjectStore } from "./objects.ts";
 import {
   createD1OfferStore,
   createMemoryOfferStore,
+  offerPhotoObjectKeys,
+  offerPhotoVersion,
   toAdminOffer,
   toPublicOffer,
   type OfferStore,
@@ -49,7 +51,9 @@ export async function getAdminOffer(env: AppEnv, id: string) {
 
 export async function listPublicOffers(env: AppEnv) {
   const { store } = offerRuntime(env);
-  const items = (await store.list()).filter((offer) => isCompleteOffer(offer)).map(toPublicOffer);
+  const items = (await store.listPublished())
+    .filter((offer) => isCompleteOffer(offer))
+    .map(toPublicOffer);
   return { items };
 }
 
@@ -123,7 +127,7 @@ export async function unpublishOffer(env: AppEnv, id: string, actorId: string, r
 export async function deleteOffer(env: AppEnv, id: string, actorId: string, requestId: string) {
   const { store, objects } = offerRuntime(env);
   const offer = await store.delete(id);
-  await objects.deleteMany(offer.photos.map((photo) => photo.objectKey));
+  await objects.deleteMany(offer.photos.flatMap((photo) => offerPhotoObjectKeys(photo)));
   await store.recordAudit({
     offerId: id,
     eventType: "deleted",
@@ -137,7 +141,13 @@ export async function deleteOffer(env: AppEnv, id: string, actorId: string, requ
 export async function addOfferPhoto(
   env: AppEnv,
   offerId: string,
-  file: { bytes: Uint8Array; type: string },
+  file: {
+    bytes: Uint8Array;
+    type: string;
+    thumbnail?: { bytes: Uint8Array; type: string };
+    width?: number | null;
+    height?: number | null;
+  },
   actorId: string,
   requestId: string,
 ) {
@@ -145,13 +155,29 @@ export async function addOfferPhoto(
   const { store, objects } = offerRuntime(env);
   const existing = await store.get(offerId);
   if (!existing) throw new AppError("NOT_FOUND", "Offer not found.");
-  const objectKey = offerObjectKey(offerId, contentType);
+  const photoId = crypto.randomUUID();
+  const contentHash = await hashOfferImage(file.bytes);
+  const objectKey = offerObjectKey(offerId, photoId, contentHash, contentType);
+  const storedKeys = [objectKey];
   await objects.put(objectKey, file.bytes, contentType);
+  let thumbObjectKey = objectKey;
   try {
+    if (file.thumbnail) {
+      const thumbType = assertOfferImage(file.thumbnail.bytes, file.thumbnail.type);
+      thumbObjectKey = offerObjectKey(offerId, photoId, contentHash, thumbType, "thumb");
+      await objects.put(thumbObjectKey, file.thumbnail.bytes, thumbType);
+      storedKeys.push(thumbObjectKey);
+    }
     const offer = await store.addPhoto(offerId, {
+      id: photoId,
       objectKey,
+      thumbObjectKey,
       contentType,
+      contentHash,
       isMain: existing.photos.length === 0,
+      width: file.width ?? null,
+      height: file.height ?? null,
+      byteSize: file.bytes.byteLength,
     });
     await store.recordAudit({
       offerId,
@@ -161,7 +187,7 @@ export async function addOfferPhoto(
     });
     return { item: toAdminOffer(offer) };
   } catch (error) {
-    await objects.delete(objectKey);
+    await objects.deleteMany(storedKeys);
     throw error;
   }
 }
@@ -174,8 +200,8 @@ export async function deleteOfferPhoto(
   requestId: string,
 ) {
   const { store, objects } = offerRuntime(env);
-  const { offer, objectKey } = await store.removePhoto(offerId, photoId);
-  await objects.delete(objectKey);
+  const { offer, objectKeys } = await store.removePhoto(offerId, photoId);
+  await objects.deleteMany(objectKeys);
   await store.recordAudit({
     offerId,
     eventType: "photo_deleted",
@@ -208,7 +234,7 @@ export async function readOfferPhoto(
   env: AppEnv,
   offerId: string,
   photoId: string,
-  options: { publicOnly?: boolean } = {},
+  options: { publicOnly?: boolean; variant?: "full" | "thumb"; version?: string } = {},
 ) {
   const { store, objects } = offerRuntime(env);
   const offer = await store.get(offerId);
@@ -218,7 +244,11 @@ export async function readOfferPhoto(
   }
   const photo = offer.photos.find((item) => item.id === photoId);
   if (!photo) throw new AppError("NOT_FOUND", "Photo not found.");
-  const object = await objects.get(photo.objectKey);
+  if (options.version && options.version !== offerPhotoVersion(photo)) {
+    throw new AppError("NOT_FOUND", "Photo not found.");
+  }
+  const objectKey = options.variant === "thumb" ? photo.thumbObjectKey : photo.objectKey;
+  const object = await objects.get(objectKey);
   if (!object) throw new AppError("NOT_FOUND", "Photo not found.");
-  return object;
+  return { ...object, photo };
 }

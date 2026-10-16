@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCompleteOffer, isOfferReady, offerWriteSchema } from "./offer.ts";
+import { isCompleteOffer, isOfferReady, offerWriteSchema, scaledOfferImageSize } from "./offer.ts";
 
 describe("offer validation", () => {
   it("accepts a complete write payload and drops empty optional fields", () => {
@@ -43,5 +43,11 @@ describe("offer validation", () => {
         photos: [{ isMain: false }],
       }),
     ).toBe(false);
+  });
+
+  it("scales the long edge and leaves smaller images unchanged", () => {
+    expect(scaledOfferImageSize(4000, 3000, 1600)).toEqual({ width: 1600, height: 1200 });
+    expect(scaledOfferImageSize(800, 600, 1600)).toEqual({ width: 800, height: 600 });
+    expect(scaledOfferImageSize(1200, 4000, 480)).toEqual({ width: 144, height: 480 });
   });
 });

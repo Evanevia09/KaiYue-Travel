@@ -30,6 +30,23 @@ async function admin(path: string, init?: RequestInit, testEnv = env()) {
 }
 
 describe("special offers API", () => {
+  it("applies photo and dashboard indexes", async () => {
+    const listed = await createTestEnv()
+      .DB.prepare("SELECT name FROM sqlite_master WHERE type = 'index'")
+      .all<{ name: string }>();
+    const names = listed.results.map((row) => row.name);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "idx_offers_status_updated",
+        "idx_offer_photos_offer",
+        "idx_offer_photos_hash",
+        "idx_bookings_status_created",
+        "idx_bookings_status_updated",
+        "idx_bookings_notification_state",
+      ]),
+    );
+  });
+
   it("rejects unauthenticated admin offer routes in production", async () => {
     const production = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "true" });
     const response = await handleApi(
@@ -124,9 +141,23 @@ describe("special offers API", () => {
     );
     expect(uploaded.status).toBe(201);
     const uploadedBody = (await uploaded.json()) as {
-      item: { photos: Array<{ objectKey: string }> };
+      item: {
+        photos: Array<{
+          id: string;
+          objectKey: string;
+          thumbObjectKey: string;
+          contentHash: string;
+          url: string;
+          thumbUrl: string;
+        }>;
+      };
     };
-    const objectKey = uploadedBody.item.photos[0]!.objectKey;
+    const stored = uploadedBody.item.photos[0]!;
+    const objectKey = stored.objectKey;
+    expect(stored.contentHash).toMatch(/^[0-9a-f]{20}$/);
+    expect(stored.url).toContain(`/${stored.id}/${stored.contentHash}`);
+    expect(stored.thumbUrl).toContain(`/thumb/${stored.contentHash}`);
+    expect(stored.thumbObjectKey).toBe(objectKey);
 
     const listedDraft = await admin("/api/admin/offers", undefined, testEnv);
     const draftItem = (
@@ -157,11 +188,100 @@ describe("special offers API", () => {
     ).toMatchObject({ status: "published", complete: true });
 
     const publicList = await handleApi(new Request("http://localhost:4321/api/v1/offers"), testEnv);
-    const items = ((await publicList.json()) as { items: Array<{ id: string }> }).items;
+    expect(publicList.headers.get("cache-control")).toContain("no-store");
+    const items = (
+      (await publicList.json()) as {
+        items: Array<{
+          id: string;
+          mainPhotoUrl: string;
+          mainPhotoThumbUrl: string;
+          photos: Array<{ url: string; id: string }>;
+        }>;
+      }
+    ).items;
     expect(items[0]?.id).toBe(id);
+    expect(items[0]?.mainPhotoUrl).toContain(stored.contentHash);
+    expect(items[0]?.mainPhotoThumbUrl).toContain("/thumb/");
+
+    const served = await handleApi(
+      new Request(`http://localhost:4321${items[0]!.mainPhotoUrl}`),
+      testEnv,
+    );
+    expect(served.status).toBe(200);
+    expect(served.headers.get("cache-control")).toContain("immutable");
+    expect(served.headers.get("cache-control")).toContain("max-age=31536000");
+    expect(served.headers.get("etag")).toBe(`"${stored.contentHash}"`);
+
+    const stale = await handleApi(
+      new Request(
+        `http://localhost:4321/api/v1/offers/${id}/photos/${stored.id}/deadbeefdeadbeefdead`,
+      ),
+      testEnv,
+    );
+    expect(stale.status).toBe(404);
 
     const deleted = await admin(`/api/admin/offers/${id}`, { method: "DELETE" }, testEnv);
     expect(deleted.status).toBe(200);
     expect(await objects.get(objectKey)).toBeNull();
+  });
+
+  it("stores a thumbnail variant and serves it from a versioned URL", async () => {
+    const objects = createMemoryObjectStore();
+    const testEnv = createTestEnv({
+      offerStore: createMemoryOfferStore(),
+      objectStore: objects,
+    });
+    const created = await admin(
+      "/api/admin/offers",
+      {
+        method: "POST",
+        body: JSON.stringify({ title: "Thumb check", description: "Car and driver." }),
+      },
+      testEnv,
+    );
+    const id = ((await created.json()) as { item: { id: string } }).item.id;
+    const form = new FormData();
+    form.set("photo", new File([png], "main.png", { type: "image/png" }));
+    form.set("thumbnail", new File([jpeg], "main-thumb.jpg", { type: "image/jpeg" }));
+    form.set("width", "1600");
+    form.set("height", "1200");
+    const uploaded = await admin(
+      `/api/admin/offers/${id}/photos`,
+      { method: "POST", body: form },
+      testEnv,
+    );
+    expect(uploaded.status).toBe(201);
+    const photo = (
+      (await uploaded.json()) as {
+        item: {
+          photos: Array<{
+            objectKey: string;
+            thumbObjectKey: string;
+            width: number;
+            height: number;
+            thumbUrl: string;
+          }>;
+        };
+      }
+    ).item.photos[0]!;
+    expect(photo.thumbObjectKey).not.toBe(photo.objectKey);
+    expect(photo.width).toBe(1600);
+    expect(photo.height).toBe(1200);
+    expect(await objects.get(photo.objectKey)).not.toBeNull();
+    expect(await objects.get(photo.thumbObjectKey)).not.toBeNull();
+
+    const published = await admin(
+      `/api/admin/offers/${id}/publish`,
+      { method: "POST", body: "{}" },
+      testEnv,
+    );
+    expect(published.status).toBe(200);
+    const thumb = await handleApi(
+      new Request(`http://localhost:4321${photo.thumbUrl.replace("/api/admin/", "/api/v1/")}`),
+      testEnv,
+    );
+    expect(thumb.status).toBe(200);
+    expect(thumb.headers.get("content-type")).toBe("image/jpeg");
+    expect(thumb.headers.get("cache-control")).toContain("immutable");
   });
 });
