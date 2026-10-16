@@ -13,9 +13,24 @@ import { faqs, serviceGroups, site } from "../lib/site.ts";
   bookingEnabled={true}
   showMobileBook={false}
 >
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    type="image/webp"
+    href="/images/illustrative/home-hero-family-v2-800.webp"
+    imagesrcset="/images/illustrative/home-hero-family-v2-800.webp 800w, /images/illustrative/home-hero-family-v2-1200.webp 1200w, /images/illustrative/home-hero-family-v2-1672.webp 1672w"
+    imagesizes="100vw"
+    fetchpriority="high"
+  />
   <section class="hero hero--home">
     <HeroBackdrop
       src="/images/illustrative/home-hero-family-v2.jpg"
+      webpSrcset="/images/illustrative/home-hero-family-v2-800.webp 800w, /images/illustrative/home-hero-family-v2-1200.webp 1200w, /images/illustrative/home-hero-family-v2-1672.webp 1672w"
+      sizes="100vw"
+      width={1672}
+      height={941}
+      fetchpriority="high"
       alt="Illustrative family enjoying a Macau outing with a private vehicle behind them"
     />
     <div class="hero__stage">

@@ -94,8 +94,31 @@ About 90% smaller on the display file. Public photo response: `image/webp`, `Cac
 
 CLS on Home stayed 0.228 in both runs (pre-existing). Empty `/special-offers` CLS 0.
 
+## Staging merge and Home Lighthouse (2026-10-16 follow-up)
+
+Merged `origin/staging` at `3e6e310` (WeChat QR placeholder from PR 9). The only conflict was `PROJECT-STATE.md`.
+
+### Shared Home-path audit
+
+The photo/dashboard PR loaded two shared files on Home:
+
+- `apps/web/src/styles/global.css` — added `.admin-upload-progress` only. Home does not use that class.
+- `apps/web/src/middleware.ts` — sets `private, no-store` only when the path is `/special-offers`. Home cache headers are unchanged.
+
+It did not change `BaseLayout.astro`, Home `index.astro`, Google Fonts, booking islands, or the hero JPEG. Live `https://kaiyue-travel.scalingsmb.workers.dev/` HTML matched the previous preview hero, PNG logo, and Inter+Noto font link. Live already includes `/images/wechat-qr.svg` from PR 9. The earlier 72→56 pair is not explained by a Home layout/script/font change in this PR.
+
+### Home LCP work in this follow-up
+
+- Home hero: WebP srcset 800/1200/1672 w (37/68/111 KB vs 259 KB JPEG), `fetchpriority=high`, preload, width/height 1672×941.
+- Header/footer logo: WebP 28 KB at 624×122 with the original PNG fallback, instead of two 134 KB 1500px PNGs. Footer logo is lazy.
+- English and Portuguese skip Noto Sans TC. Footer WeChat QR uses `loading="lazy"`.
+
+### Migration `0006` vs live D1 `069aa442`
+
+Already applied (`d1_migrations` id 6). Purely additive: extra `offer_photos` columns with defaults, plus `CREATE INDEX IF NOT EXISTS` on offers, offer_photos, and bookings. Main code does not select the new photo columns. Extra bookings indexes do not change query results. Safe for the live Worker that shares this D1. Do not merge this branch to `main`.
+
 ## Limits
 
 - Access is still not configured. Preview login remains the disposable `admin-test@kaiyue.test` operator.
 - Client canvas resize needs a real browser; API tests upload already-small fixtures.
-- Lighthouse and admin timings above are from the Workers preview on this branch, not production. Home was not modified in this change.
+- First Lighthouse pair above is from the Workers preview before the Home LCP follow-up. Live vs preview scores from the three-run check are recorded after the new preview deploys.

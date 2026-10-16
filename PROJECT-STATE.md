@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers photos/dashboard speed branch updated with staging WeChat QR; not merged to main)
+**Last updated:** 2026-10-16 (Special Offers photos branch merged with staging WeChat QR; Home LCP/WebP follow-up; not merged to main)
 **Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work and WeChat QR placeholder in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging now also includes the WeChat QR placeholder from PR 9. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
@@ -160,7 +160,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
-Special Offers next action (2026-10-16): Home Lighthouse mobile dropped 72→56 on the previous preview and is being re-checked against live and this branch. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): review the Home LCP/WebP follow-up on the new Workers preview against live, then the photo upload/publish/swap/delete flow. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -197,6 +197,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Home LCP follow-up on the Special Offers photos branch (staging PR, not main)
+
+- Merged staging WeChat QR (`3e6e310` / PR 9). `wrangler.jsonc` D1/R2 bindings unchanged.
+- Shared-file audit: the photo PR only added unused admin CSS and `/special-offers` `no-store`. Live Home HTML already had the same hero JPEG, PNG logo, and Inter+Noto fonts; live also already had the WeChat QR.
+- Home hero now serves WebP srcset (37/68/111 KB vs 259 KB JPEG) with preload and `fetchpriority=high`. Logo uses a 28 KB WebP with PNG fallback. EN/pt skip Noto Sans TC. Footer WeChat QR is lazy.
+- Migration `0006` is applied on shared D1 `069aa442` and is additive (new columns with defaults + extra indexes). Safe for live main code. Do not merge to `main`.
 
 ### 2026-10-16 — Special Offers photos and dashboard speed (staging PR, not main)
 

@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
+import SiteLogo from "../components/content/SiteLogo.astro";
 import WeChatQr from "../components/content/WeChatQr.astro";
 import { localeFromPath, localeNames, localePath, localeTags, stripLocale } from "../lib/i18n.ts";
 import { footerServiceGroups, nav, site } from "../lib/site.ts";
@@ -100,9 +101,22 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    {
+      locale === "zh-Hant" ? (
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
+      ) : null
+    }
     <slot name="head" />
     {
       bookingEnabled && (
@@ -116,15 +130,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap site-header__inner">
-        <a class="logo" href="/">
-          <img
-            class="logo-image"
-            src={site.logo}
-            alt="Kai Yue Travel Group"
-            width="1500"
-            height="294"
-          />
-        </a>
+        <SiteLogo />
         <nav class="nav nav--pill" aria-label="Primary">
           {
             nav.map((item) =>
@@ -292,15 +298,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
     <footer class="site-footer">
       <div class="wrap site-footer__grid">
         <div>
-          <a class="logo" href="/">
-            <img
-              class="logo-image"
-              src={site.logo}
-              alt="Kai Yue Travel Group"
-              width="1500"
-              height="294"
-            />
-          </a>
+          <SiteLogo loading="lazy" />
           <p>{site.legalName}</p>
           <p class="draft-note">
             Private bookings on this site are Macau chauffeur requests, quoted after review.
