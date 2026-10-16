@@ -1986,6 +1986,79 @@ html[lang="zh-Hant"] astro-island[ssr] {
   color: #171717;
 }
 
+.feature-lines > .feature-lines__wechat {
+  display: block;
+}
+
+.wechat-qr {
+  margin: 1.1rem 0 0;
+  display: grid;
+  justify-items: start;
+  gap: 0.45rem;
+}
+
+.wechat-qr--page {
+  margin: 0;
+}
+
+.wechat-qr__frame {
+  position: relative;
+  width: 9rem;
+  aspect-ratio: 1 / 1;
+  background: #ffffff;
+  border-radius: 0.55rem;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgb(17 17 17 / 8%);
+}
+
+.wechat-qr--footer .wechat-qr__frame {
+  width: 8.5rem;
+}
+
+.wechat-qr img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+
+.wechat-qr__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.32rem 0.4rem 0.38rem;
+  background: rgb(11 11 13 / 82%);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.wechat-qr--footer .wechat-qr__label {
+  padding: 0.3rem 0.35rem 0.34rem;
+  font-size: 0.6rem;
+}
+
+.wechat-qr__caption {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.site-footer .wechat-qr__caption {
+  color: #ececf0;
+}
+
+.site-footer .wechat-qr__frame {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
 .section-intro {
   display: flex;
   justify-content: space-between;

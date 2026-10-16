@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers photo optimisation and dashboard speed on a staging PR; not merged to main)
-**Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-16 (Special Offers photos/dashboard speed branch updated with staging WeChat QR; not merged to main)
+**Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work and WeChat QR placeholder in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview photo upload and public-page freshness, then the dashboard timings. Do not merge to `main`. Do not change D1/R2 bindings.
+**Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging now also includes the WeChat QR placeholder from PR 9. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the staging/preview photo upload and public-page freshness, dashboard timings, and Home Lighthouse. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -158,7 +158,9 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Special Offers next action (2026-10-16): apply `0006_offer_photo_variants.sql` to staging D1 `069aa442` only if it is not already applied, review the preview photo upload/publish/swap/delete flow, then delete TEST offers. Do not merge this branch to `main`. Remove the test operator after Access is live.
+WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
+
+Special Offers next action (2026-10-16): Home Lighthouse mobile dropped 72→56 on the previous preview and is being re-checked against live and this branch. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -172,6 +174,8 @@ City Tour next action (2026-10-05): review the homepage package cards and each p
 Workflow resume action (2026-10-03): the owning agent should trial a bounded read-only task using the [adapter](docs/11-codex-workflow-adapter.md), return evidence to the Lab coordinator, and record actual acceptance and review evidence before changing shared policy. The user need not route routine work between chats.
 
 ## Verification record
+
+2026-10-16 WeChat QR placeholder: shared `WeChatQr` component and `/images/wechat-qr.svg` added to the footer contact column and the contact Reach us section. Localized EN/pt/zh-Hant label and alt. Booking, admin, offers, `wrangler.jsonc`, and the database were not changed. Workers preview and GitHub CI checks passed; footer QR was widened so zh-Hant overlay copy fits.
 
 2026-10-03 workflow adoption: 46 local Markdown links resolved; targeted Prettier and `git diff --check` passed; independent read-only review found no actionable issue. Source/revision provenance, dirty-state preservation, and limits are in the [adoption record](docs/records/2026-10-03-codex-workflow-adoption.md). This is `task_verified` for documentation only; no browser, API, D1, CI, or deployed behavior was checked in this task.
 
@@ -204,6 +208,16 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Handover: `docs/handover/special-offers-photos.md`.
 - Preview check on `https://bd89586f-kaiyue-travel.scalingsmb.workers.dev`: three 4000px TEST JPEGs (~1.3 MB) resized in-browser to ~128 KB WebP + ~27 KB thumbs; hashed immutable photo URLs; `/special-offers` EN/pt/zh-Hant `no-store` and updated immediately on publish/swap/delete; `/admin` and `/admin/offers` served the first payload without a follow-up API fetch. TEST offer deleted. Lighthouse mobile: Home 72→56 (Home was not changed; two after-runs both 56), `/special-offers` 92→92. Console errors: none.
 - Limits: not merged to `main`; Access still unset. A leftover draft titled `Test` from earlier staging work was left in place.
+
+### 2026-10-16 — WeChat QR placeholder (staging PR, not main)
+
+- Added `apps/web/public/images/wechat-qr.svg`: a square QR-style pattern with a center chat mark so it is not a scannable code. No WeChat ID is published.
+- Added shared `WeChatQr` component. Image path is the single constant `WECHAT_QR_SRC` (`/images/wechat-qr.svg`). Swap the real QR later by replacing that file.
+- Wired the component into the footer contact column and the contact page Reach us list. Caption/alt: “WeChat QR – coming soon” (EN), “微信二維碼 – 即將推出” (zh-Hant), “QR WeChat – em breve” (pt).
+- Fixed square frame (`aspect-ratio: 1`) and explicit image width/height to avoid layout shift.
+- Did not change booking, admin, offers, `wrangler.jsonc`, or database files.
+- Preview: `https://cursor-wechat-qr-placeholder-7d43-kaiyue-travel.scalingsmb.workers.dev`. Contact and footer checked in EN/pt/zh-Hant at 1440 and 390. Two square QRs per contact page, localized alt/label, no horizontal overflow, no console errors. GitHub `check` and Workers Builds succeeded on `37d8964`. Footer QR widened to 8.5rem after zh-Hant overlay wrapped a trailing character.
+- Limits: not `user_accepted` or `released`. Real WeChat QR and ID still required from the owner.
 
 ### 2026-10-16 — Special Offers dashboard (staging PR, not main)
 

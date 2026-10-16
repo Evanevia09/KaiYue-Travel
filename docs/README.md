@@ -35,6 +35,8 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
+WeChat QR placeholder: [2026-10-16 record](records/2026-10-16-wechat-qr-placeholder.md). Replace `apps/web/public/images/wechat-qr.svg` with the real code when supplied; do not invent a WeChat ID.
+
 ## How to use this suite
 
 - Treat **Agreed** items as the Release 1 baseline.
