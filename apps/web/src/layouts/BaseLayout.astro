@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import { BookingLauncher } from "../components/booking/BookingLauncher.tsx";
 import { BookingSheet } from "../components/booking/BookingSheet.tsx";
+import WeChatQr from "../components/content/WeChatQr.astro";
 import { localeFromPath, localeNames, localePath, localeTags, stripLocale } from "../lib/i18n.ts";
 import { footerServiceGroups, nav, site } from "../lib/site.ts";
 import "../styles/global.css";
@@ -309,6 +310,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
             <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>
           </p>
           <p>{site.addressLines.join(", ")}</p>
+          <WeChatQr variant="footer" />
         </div>
         <div>
           <h2>Services</h2>

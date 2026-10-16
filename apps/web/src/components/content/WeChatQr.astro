@@ -1,0 +1,29 @@
+---
+/**
+ * Shared WeChat QR entry for the footer and contact page.
+ * Replace `apps/web/public/images/wechat-qr.svg` with the real code later.
+ * Do not invent a WeChat ID until the owner supplies one.
+ */
+export const WECHAT_QR_SRC = "/images/wechat-qr.svg";
+export const WECHAT_QR_SIZE = 160;
+
+type Props = {
+  variant?: "footer" | "page";
+};
+
+const { variant = "page" } = Astro.props;
+---
+
+<figure class:list={["wechat-qr", `wechat-qr--${variant}`]}>
+  <div class="wechat-qr__frame">
+    <img
+      src={WECHAT_QR_SRC}
+      width={WECHAT_QR_SIZE}
+      height={WECHAT_QR_SIZE}
+      alt="WeChat QR – coming soon"
+      decoding="async"
+    />
+    <span class="wechat-qr__label" aria-hidden="true">WeChat QR – coming soon</span>
+  </div>
+  <figcaption class="wechat-qr__caption">WeChat</figcaption>
+</figure>
