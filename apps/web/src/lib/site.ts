@@ -6,9 +6,9 @@ export const site = {
   groupLegalNameZh: "凱悅集團有限公司",
   chineseName: "凱悅旅遊",
   chineseGroupName: "凱悅旅遊集團有限公司",
-  tagline: "Your reliable private chauffeur in Macau",
+  tagline: "Your reliable private chauffeur across the Greater Bay Area",
   description:
-    "Explore private chauffeur services in Macau for airport transfers, local rides, city tours, and chauffeur hire by the hour. Choose the journey that suits your plans.",
+    "Explore private chauffeur services across Macau, Mainland China, and Hong Kong for airport transfers, local rides, Macau city tours, and chauffeur hire by the hour. Choose the journey that suits your plans.",
   url: "https://example.invalid",
   phone: "+853 2833 8882",
   fax: "+853 2833 8885",
@@ -46,26 +46,26 @@ export const services = [
       "Illustrative airport transfer with luggage being loaded beside a private vehicle",
     serviceType: "airport_transfer" as const,
     title: "Airport transfer",
-    h1: "Private airport transfer in Macau",
-    seoTitle: "Airport Transfer in Macau — Private Chauffeur",
+    h1: "Private airport transfer",
+    seoTitle: "Airport Transfer — Private Chauffeur",
     seoDescription:
-      "Private chauffeur transfers to and from Macau International Airport, connecting arriving and departing guests with hotels and local addresses across Macau.",
+      "Private chauffeur transfers to and from airports in Macau, Mainland China, and Hong Kong, connecting arriving and departing guests with hotels and local addresses.",
     summary:
-      "Private airport pickup and drop-off between Macau International Airport and hotels or local addresses.",
+      "Private airport pickup and drop-off between an airport and a hotel or local address in Macau, Mainland China, or Hong Kong.",
     overviewHeading: "Airport arrivals and departures",
     detailsHeading: "Airport transfer journeys",
     description:
       "Plan a direct airport journey around your flight time, with space to share your hotel, meeting point, passenger count, and luggage needs.",
     intro:
-      "Travel between Macau International Airport and a hotel, home, or other Macau address with a private chauffeur. Airport transfers suit arrivals, departures, and guests carrying luggage who want one planned journey between the terminal and their destination.",
+      "Travel between an airport in Macau, Mainland China, or Hong Kong and a hotel, home, or other local address with a private chauffeur. Airport transfers suit arrivals, departures, and guests carrying luggage who want one planned journey between the terminal and their destination.",
     whoFor: [
       "Arriving guests who want a pre-arranged pickup",
       "Departing travelers going from a hotel or home to the airport",
       "Families or groups travelling with luggage",
     ],
     process: [
-      "Connect Macau International Airport with your hotel or another local address. Add your flight time and preferred meeting point.",
-      "Travel from a hotel, home, or other Macau pickup point to the airport. Choose a pickup time that fits your departure plans.",
+      "Connect the airport with your hotel or another local address. Add your flight time and preferred meeting point.",
+      "Travel from a hotel, home, or other pickup point to the airport. Choose a pickup time that fits your departure plans.",
       "Include the number of travellers and luggage so the journey can be planned around your party.",
     ],
     useCases: ["Airport arrivals", "Airport departures", "Groups and luggage"],
@@ -98,28 +98,32 @@ export const services = [
     featuredImageAlt: "Illustrative itinerary discussion beside a private vehicle in Macau",
     serviceType: "point_to_point" as const,
     title: "Cross border rides",
-    h1: "Cross-border car journeys from Macau",
-    seoTitle: "Cross-Border Private Car from Macau — Journey Enquiry",
+    h1: "Cross-border car journeys",
+    seoTitle: "Cross-Border Private Car — Journey Enquiry",
     seoDescription:
-      "Enquire about a private car journey between Macau and a Mainland destination. Share both addresses, preferred crossing, and travel date for route planning.",
-    summary: "Plan a private journey that starts or ends in Macau and crosses to the Mainland.",
-    overviewHeading: "Journeys beyond Macau",
+      "Enquire about a private car journey between Macau, Mainland China, and Hong Kong. Share both addresses, preferred crossing, and travel date for route planning.",
+    summary: "Plan a private journey between Macau, Mainland China, and Hong Kong.",
+    overviewHeading: "Journeys across the Greater Bay Area",
     detailsHeading: "Cross-border journey details",
     description:
       "Cross-border travel depends on the origin, destination, crossing point, and journey date. Share those details to discuss a route that fits your plans.",
     intro:
-      "This enquiry is for a private car journey that begins or ends in Macau and crosses into Mainland China. It helps to provide both addresses, the intended checkpoint, and your travel date. Crossing options and vehicle availability vary by journey.",
+      "This enquiry is for a private car journey between Macau, Mainland China, and Hong Kong. It helps to provide both addresses, the intended crossing, and your travel date. Crossing options and vehicle availability vary by journey.",
     whoFor: [
-      "Guests arriving from or departing to the Mainland",
-      "Companies moving staff between Macau and Mainland offices",
+      "Guests travelling between Macau, Mainland China, and Hong Kong",
+      "Companies moving staff between offices in these regions",
       "Hotels arranging onward journeys for guests",
     ],
     process: [
-      "Describe a Mainland pickup and Macau destination, including the checkpoint you expect to use.",
-      "For a Macau departure, give the Mainland address and the time you hope to arrive.",
+      "Describe the pickup and destination in Macau, Mainland China, or Hong Kong, including the crossing you expect to use.",
+      "Give both addresses and the time you hope to arrive.",
       "Border route, passenger documents, and vehicle eligibility all affect how the journey can be arranged.",
     ],
-    useCases: ["Mainland to Macau", "Macau to Mainland", "Crossing requirements"],
+    useCases: [
+      "Macau, Mainland China, and Hong Kong",
+      "Onward connections",
+      "Crossing requirements",
+    ],
     included: ["Journey request", "Crossing and document notes you provide"],
     notIncluded: ["Guaranteed border clearance times", "Automatic confirmation"],
     quoteBasis: "Cross-border journey: both addresses, crossing point, timing, and passengers",
@@ -146,25 +150,25 @@ export const services = [
       "Illustrative local drop-off with a chauffeur helping a guest from a private vehicle",
     serviceType: "point_to_point" as const,
     title: "Local transfers",
-    h1: "Local transfers within Macau",
-    seoTitle: "Private Local Transfers in Macau — Chauffeur Service",
+    h1: "Local transfers",
+    seoTitle: "Private Local Transfers — Chauffeur Service",
     seoDescription:
-      "Private local transfers within Macau for hotel, restaurant, meeting, and venue journeys. Travel directly between two addresses with a chauffeur.",
+      "Private local transfers in Macau, Mainland China, or Hong Kong for hotel, restaurant, meeting, and venue journeys. Travel directly between two addresses with a chauffeur.",
     summary:
-      "Private chauffeur journeys between hotels, restaurants, offices, and venues in Macau.",
-    overviewHeading: "Direct journeys around Macau",
+      "Private chauffeur journeys between hotels, restaurants, offices, and venues in Macau, Mainland China, or Hong Kong.",
+    overviewHeading: "Direct journeys in the same city",
     detailsHeading: "Local transfer ideas",
     description:
       "A local transfer fits a known pickup and destination when you need one direct ride rather than several stops or an hourly vehicle.",
     intro:
-      "Local transfers are private chauffeur journeys that start and finish inside Macau. Use this request for a hotel to restaurant drop-off, an office to venue move, or any single journey between two Macau addresses that is not an airport or hourly request.",
+      "Local transfers are private chauffeur journeys that start and finish in the same city in Macau, Mainland China, or Hong Kong. Use this request for a hotel to restaurant drop-off, an office to venue move, or any single journey between two local addresses that is not an airport or hourly request.",
     whoFor: [
-      "Guests moving between venues in Macau",
+      "Guests moving between venues in the same city",
       "Residents who need a single private journey",
       "Hosts arranging pickups for visiting guests",
     ],
     process: [
-      "Travel between a Macau hotel and a restaurant or other local address.",
+      "Travel between a hotel and a restaurant or other local address.",
       "Move from an office to a meeting, event venue, or client appointment.",
       "Choose one pickup and one drop-off for a direct local journey without an hourly itinerary.",
     ],
@@ -177,7 +181,7 @@ export const services = [
       {
         question: "How is this different from a point-to-point request?",
         answer:
-          "It is the same one-way journey model. Choose this when both addresses are inside Macau and you are not arranging an airport pickup or drop-off.",
+          "It is the same one-way journey model. Choose this when both addresses are in the same city and you are not arranging an airport pickup or drop-off.",
       },
       {
         question: "Can I add stops along the way?",
@@ -196,23 +200,23 @@ export const services = [
     serviceType: "hourly_charter" as const,
     title: "Local chauffeur",
     h1: "Local chauffeur by the hour",
-    seoTitle: "Local Chauffeur in Macau by the Hour — Dedicated Private Car",
+    seoTitle: "Local Chauffeur by the Hour — Dedicated Private Car",
     seoDescription:
-      "Keep a private chauffeur and vehicle by the hour in Macau for meetings, errands, and multiple stops on one flexible local itinerary.",
-    summary: "One private vehicle and chauffeur for a planned block of hours in Macau.",
+      "Keep a private chauffeur and vehicle by the hour in Macau, Mainland China, or Hong Kong for meetings, errands, and multiple stops on one flexible local itinerary.",
+    summary: "One private vehicle and chauffeur for a planned block of hours.",
     overviewHeading: "Keep a car for your itinerary",
     detailsHeading: "Ways to use a local chauffeur",
     description:
-      "A local chauffeur by the hour suits days with several Macau stops, time between meetings, or plans that may change along the way.",
+      "A local chauffeur by the hour suits days with several stops, time between meetings, or plans that may change along the way.",
     intro:
-      "Keep one private vehicle and chauffeur for a planned block of hours in Macau instead of booking separate rides for each stop. This service fits meetings across the city, family errands, or a flexible outing with waiting time between destinations.",
+      "Keep one private vehicle and chauffeur for a planned block of hours in Macau, Mainland China, or Hong Kong instead of booking separate rides for each stop. This service fits meetings across the city, family errands, or a flexible outing with waiting time between destinations.",
     whoFor: [
       "Guests with several stops in one outing",
       "Companies moving executives between meetings",
       "Families who want the same vehicle for a half-day",
     ],
     process: [
-      "Visit more than one Macau address during the same planned time block.",
+      "Visit more than one address in the same city during the same planned time block.",
       "Keep the vehicle for travel between business appointments or event venues.",
       "Share a starting point and broad plan while leaving room to adjust the order of stops.",
     ],
@@ -242,12 +246,11 @@ export const services = [
     featuredImageAlt: "Illustrative wedding guests boarding a private vehicle between venues",
     serviceType: "hourly_charter" as const,
     title: "Weddings",
-    h1: "Wedding chauffeur transport in Macau",
-    seoTitle: "Macau Wedding Chauffeur — Private Car Transport",
+    h1: "Wedding chauffeur transport",
+    seoTitle: "Wedding Chauffeur — Private Car Transport",
     seoDescription:
-      "Plan private chauffeur transport for a Macau wedding, from ceremony arrivals and photo stops to guest journeys between venues.",
-    summary:
-      "Private car journeys for ceremony arrivals, photo stops, and wedding guests in Macau.",
+      "Plan private chauffeur transport for a wedding in Macau, Mainland China, or Hong Kong, from ceremony arrivals and photo stops to guest journeys between venues.",
+    summary: "Private car journeys for ceremony arrivals, photo stops, and wedding guests.",
     overviewHeading: "Travel around the wedding schedule",
     detailsHeading: "Wedding day journeys",
     description:
@@ -255,7 +258,7 @@ export const services = [
     intro:
       "A wedding day may involve travel to the ceremony, stops for photographs, and guest movements between venues. Private chauffeur transport can be planned around those separate journeys and their timing. Decoration and in-car styling are outside the transport service.",
     whoFor: [
-      "Couples arranging ceremony and reception transport in Macau",
+      "Couples arranging ceremony and reception transport",
       "Planners coordinating guest movements between venues",
       "Families who need several vehicles on the same day",
     ],

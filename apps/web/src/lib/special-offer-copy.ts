@@ -23,7 +23,7 @@ export const specialOfferCopy = {
     enquiryProgress: "Special Offer enquiry",
     continue: "Continue request →",
     close: "Close special offer enquiry",
-    heroEyebrow: "Special offers · Macau",
+    heroEyebrow: "Special offers · Greater Bay Area",
     heroTitle: "Current chauffeur offers",
     heroLede:
       "Choose a published offer, tell us where to collect you, and send a request. The team confirms the quote before travel.",
@@ -52,7 +52,7 @@ export const specialOfferCopy = {
     enquiryProgress: "Pedido de oferta especial",
     continue: "Continuar pedido →",
     close: "Fechar o pedido de oferta especial",
-    heroEyebrow: "Ofertas especiais · Macau",
+    heroEyebrow: "Ofertas especiais · Grande Baía",
     heroTitle: "Ofertas atuais com motorista",
     heroLede:
       "Escolha uma oferta publicada, diga-nos onde o ir buscar e envie o pedido. A equipa confirma o orçamento antes da viagem.",
@@ -79,7 +79,7 @@ export const specialOfferCopy = {
     enquiryProgress: "特別優惠查詢",
     continue: "繼續申請 →",
     close: "關閉特別優惠查詢",
-    heroEyebrow: "特別優惠 · 澳門",
+    heroEyebrow: "特別優惠 · 大灣區",
     heroTitle: "最新司機接送優惠",
     heroLede: "選擇已發布的優惠，告訴我們接載地點，然後送出申請。出發前由團隊確認報價。",
     browse: "查看最新優惠",
