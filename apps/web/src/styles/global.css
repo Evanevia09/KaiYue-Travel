@@ -3077,6 +3077,10 @@ td {
   font-weight: 750;
   text-decoration: none;
 }
+.admin-inline-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .admin-row-link {
   white-space: nowrap;
 }

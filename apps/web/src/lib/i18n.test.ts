@@ -40,4 +40,14 @@ describe("public locale routing", () => {
     expect(result).toContain('href="/admin"');
     expect(result).toContain("<astro-island><span>Airport Transfer</span></astro-island>");
   });
+
+  it("localizes the Special Offers nav label and href in Portuguese", () => {
+    const result = localizeHtml(
+      '<nav><a href="/special-offers">Special Offers</a><a href="/services/city-tours/half-day">Half day</a></nav>',
+      "pt",
+    );
+    expect(result).toContain('href="/pt/special-offers"');
+    expect(result).toContain(">Ofertas especiais</a>");
+    expect(result).toContain(">Meio dia</a>");
+  });
 });

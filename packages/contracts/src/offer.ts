@@ -28,17 +28,24 @@ export const offerWriteSchema = z.object({
 
 export type OfferWriteInput = z.infer<typeof offerWriteSchema>;
 
+export function isOfferReady(offer: {
+  title: string;
+  description: string;
+  photos: Array<{ isMain: boolean }>;
+}): boolean {
+  return (
+    offer.title.trim().length > 0 &&
+    offer.description.trim().length > 0 &&
+    offer.photos.length > 0 &&
+    offer.photos.some((photo) => photo.isMain)
+  );
+}
+
 export function isCompleteOffer(offer: {
   status: string;
   title: string;
   description: string;
   photos: Array<{ isMain: boolean }>;
 }): boolean {
-  return (
-    offer.status === "published" &&
-    offer.title.trim().length > 0 &&
-    offer.description.trim().length > 0 &&
-    offer.photos.length > 0 &&
-    offer.photos.some((photo) => photo.isMain)
-  );
+  return offer.status === "published" && isOfferReady(offer);
 }

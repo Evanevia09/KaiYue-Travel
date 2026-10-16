@@ -158,7 +158,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Special Offers next action (2026-10-16): set `BETTER_AUTH_SECRET` as a Worker version secret (do not `wrangler deploy`), then sign in at the preview `/login` as `admin-test@kaiyue.test`. The D1 test user `test-admin-preview-remove-later` is already seeded on `069aa442`. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): review the preview dashboard publish/save feedback, then sign in with the rotated test-admin password. `BETTER_AUTH_SECRET` persists across `versions upload` once set. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -205,7 +205,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Preview test operator `admin-test@kaiyue.test` / `test-admin-preview-remove-later` was seeded into D1 `069aa442` only. The account is labelled for later removal. `BETTER_AUTH_SECRET` is not attached to the production Worker.
 - Booking hard-failure copy now offers WhatsApp or +853 2833 8882 instead of “wait and retry”.
 - Handover: `docs/handover/special-offers-dashboard.md`.
-- Limits: Access is not configured. Preview `BETTER_AUTH_SECRET` must be set as a Worker/preview secret. No production deploy. Not `user_accepted` or `released`.
+- Admin publish no longer flips back to draft from a second click after a slow list refresh. Ready-to-publish is based on copy plus a main photo, not on published status. List photos load in one query. TEST booking `KY-PRDT5RZK` is cancelled, not deleted.
+- Limits: Access is not configured. `BETTER_AUTH_SECRET` is inherited by later `versions upload` after the first version secret. No production deploy. Not `user_accepted` or `released`.
 
 ### 2026-10-05 — City Tour handoff
 

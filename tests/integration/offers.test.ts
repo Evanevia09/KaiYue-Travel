@@ -128,12 +128,33 @@ describe("special offers API", () => {
     };
     const objectKey = uploadedBody.item.photos[0]!.objectKey;
 
+    const listedDraft = await admin("/api/admin/offers", undefined, testEnv);
+    const draftItem = (
+      (await listedDraft.json()) as {
+        items: Array<{ id: string; complete: boolean; status: string }>;
+      }
+    ).items[0];
+    expect(draftItem).toMatchObject({ id, status: "draft", complete: true });
+
     const published = await admin(
       `/api/admin/offers/${id}/publish`,
       { method: "POST", body: "{}" },
       testEnv,
     );
     expect(published.status).toBe(200);
+
+    const patched = await admin(
+      `/api/admin/offers/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ title: "Sunset drive", description: "Car and driver." }),
+      },
+      testEnv,
+    );
+    expect(patched.status).toBe(200);
+    expect(
+      ((await patched.json()) as { item: { status: string; complete: boolean } }).item,
+    ).toMatchObject({ status: "published", complete: true });
 
     const publicList = await handleApi(new Request("http://localhost:4321/api/v1/offers"), testEnv);
     const items = ((await publicList.json()) as { items: Array<{ id: string }> }).items;

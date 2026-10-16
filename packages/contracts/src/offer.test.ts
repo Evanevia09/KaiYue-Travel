@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCompleteOffer, offerWriteSchema } from "./offer.ts";
+import { isCompleteOffer, isOfferReady, offerWriteSchema } from "./offer.ts";
 
 describe("offer validation", () => {
   it("accepts a complete write payload and drops empty optional fields", () => {
@@ -27,26 +27,17 @@ describe("offer validation", () => {
     ).toBe(false);
   });
 
-  it("treats only published offers with copy and a main photo as complete", () => {
+  it("treats copy plus a main photo as ready, and only published ready offers as complete", () => {
+    const ready = {
+      title: "Evening drive",
+      description: "Car and driver.",
+      photos: [{ isMain: true }],
+    };
+    expect(isOfferReady(ready)).toBe(true);
+    expect(isCompleteOffer({ status: "published", ...ready })).toBe(true);
+    expect(isCompleteOffer({ status: "draft", ...ready })).toBe(false);
     expect(
-      isCompleteOffer({
-        status: "published",
-        title: "Evening drive",
-        description: "Car and driver.",
-        photos: [{ isMain: true }],
-      }),
-    ).toBe(true);
-    expect(
-      isCompleteOffer({
-        status: "draft",
-        title: "Evening drive",
-        description: "Car and driver.",
-        photos: [{ isMain: true }],
-      }),
-    ).toBe(false);
-    expect(
-      isCompleteOffer({
-        status: "published",
+      isOfferReady({
         title: "Evening drive",
         description: "Car and driver.",
         photos: [{ isMain: false }],

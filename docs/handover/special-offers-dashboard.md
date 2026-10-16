@@ -53,10 +53,12 @@ The password, `BETTER_AUTH_SECRET`, and any setup token are **not** in git, the 
 
 This branch's top-level `ADMIN_EMAILS=admin-test@kaiyue.test` is required because the live non-production trigger is `npx wrangler versions upload`, which does not read the `previews` block. Production host `kaiyue-travel.scalingsmb.workers.dev` still 403s admin/auth routes.
 
-Preview still needs `BETTER_AUTH_SECRET` as a Worker secret (32+ characters). This tooling cannot attach a preview-only secret without writing it onto the production Worker script, so set a **version** secret and do not `wrangler deploy` / `wrangler secret put`:
+Preview still needs `BETTER_AUTH_SECRET` as a Worker secret (32+ characters). Workers Builds for this repo runs `npx wrangler versions upload`, not `wrangler preview`. Cloudflare preserves secrets from the previous version on each `versions upload`; you do **not** re-add the secret after the first `versions secret put`. `wrangler preview base-config secret put` only applies if the deploy command is switched to `wrangler preview`.
+
+This tooling cannot attach a preview-only secret without writing it onto the production Worker script, so set a **version** secret once and do not `wrangler deploy` / `wrangler secret put`:
 
 ```bash
-# Creates a new unpublished Worker version with the secret. Does not deploy.
+# Creates a new unpublished Worker version with the secret. Later versions upload inherit it.
 printf '%s' '<32+ character secret>' | npx wrangler versions secret put BETTER_AUTH_SECRET --name kaiyue-travel
 ```
 
@@ -106,3 +108,4 @@ Do not apply to any other D1 database. Do not run `wrangler deploy`. Do not merg
 - Test operator: `admin-test@kaiyue.test` / `test-admin-preview-remove-later`.
 - Any booking whose contact name, email, or message contains `TEST` or `admin-test@kaiyue.test`.
 - Offer drafts created during preview checks.
+- To cancel a TEST booking without deleting the row, use `scripts/cancel-test-booking.sql` against D1 `069aa442` only, or Cancel on `/admin/bookings/:reference`.

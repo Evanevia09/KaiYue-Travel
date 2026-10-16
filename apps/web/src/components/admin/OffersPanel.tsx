@@ -40,17 +40,36 @@ export function OffersPanel() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const confirmRef = useRef<HTMLDialogElement>(null);
+  const loadSeq = useRef(0);
 
   async function load() {
+    const seq = ++loadSeq.current;
     const result = await adminFetch<{ items: AdminOffer[] }>("/api/admin/offers");
+    if (seq !== loadSeq.current) return;
     setItems(result.items);
+    setLoading(false);
+  }
+
+  function applyOffer(offer: AdminOffer) {
+    setItems((current) => {
+      const index = current.findIndex((item) => item.id === offer.id);
+      if (index === -1) return [offer, ...current];
+      const next = [...current];
+      next[index] = offer;
+      return next;
+    });
+    setEditing((current) => (current?.id === offer.id ? offer : current));
   }
 
   useEffect(() => {
-    void load().catch((err: Error) => setError(err.message));
+    void load().catch((err: Error) => {
+      setError(err.message);
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -86,9 +105,10 @@ export function OffersPanel() {
     setModal(true);
   }
 
-  async function save(event: React.FormEvent<HTMLFormElement>) {
+  async function save(event: { preventDefault(): void }) {
     event.preventDefault();
-    setSaving(true);
+    if (busy) return;
+    setBusy("save");
     setError("");
     try {
       const body = {
@@ -106,21 +126,22 @@ export function OffersPanel() {
             method: "POST",
             body: JSON.stringify(body),
           });
-      setEditing(saved.item);
+      applyOffer(saved.item);
       setNotice(editing ? "Offer updated." : "Draft offer created.");
-      await load();
+      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setSaving(false);
+      setBusy(null);
     }
   }
 
   async function uploadPhotos(files: FileList | null) {
-    if (!editing || !files?.length) return;
-    setSaving(true);
+    if (!editing || !files?.length || busy) return;
+    setBusy("photos");
     setError("");
     try {
+      let latest = editing;
       for (const file of files) {
         const data = new FormData();
         data.append("photo", file);
@@ -130,72 +151,101 @@ export function OffersPanel() {
         });
         const body = (await saved.json()) as { item?: AdminOffer; error?: { message?: string } };
         if (!saved.ok) throw new Error(body.error?.message ?? "Photo upload failed.");
-        setEditing(body.item!);
+        latest = body.item!;
+        applyOffer(latest);
       }
-      await load();
       setNotice("Photos uploaded.");
+      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setSaving(false);
+      setBusy(null);
     }
   }
 
   async function setMain(photoId: string) {
-    if (!editing) return;
-    const saved = await adminFetch<{ item: AdminOffer }>(
-      `/api/admin/offers/${editing.id}/photos/${photoId}/main`,
-      { method: "POST", body: JSON.stringify({}) },
-    );
-    setEditing(saved.item);
-    await load();
+    if (!editing || busy) return;
+    setBusy(`main:${photoId}`);
+    setError("");
+    try {
+      const saved = await adminFetch<{ item: AdminOffer }>(
+        `/api/admin/offers/${editing.id}/photos/${photoId}/main`,
+        { method: "POST", body: JSON.stringify({}) },
+      );
+      applyOffer(saved.item);
+      void load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function removePhoto(photoId: string) {
-    if (!editing) return;
-    const saved = await adminFetch<{ item: AdminOffer }>(
-      `/api/admin/offers/${editing.id}/photos/${photoId}`,
-      { method: "DELETE" },
-    );
-    setEditing(saved.item);
-    await load();
+    if (!editing || busy) return;
+    setBusy(`photo:${photoId}`);
+    setError("");
+    try {
+      const saved = await adminFetch<{ item: AdminOffer }>(
+        `/api/admin/offers/${editing.id}/photos/${photoId}`,
+        { method: "DELETE" },
+      );
+      applyOffer(saved.item);
+      void load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function setStatus(id: string, next: "published" | "draft") {
+    if (busy) return;
+    setBusy(`status:${id}`);
     setError("");
     try {
-      await adminFetch(
+      const saved = await adminFetch<{ item: AdminOffer }>(
         `/api/admin/offers/${id}/${next === "published" ? "publish" : "unpublish"}`,
         {
           method: "POST",
           body: JSON.stringify({}),
         },
       );
-      await load();
+      applyOffer(saved.item);
       setNotice(next === "published" ? "Offer published." : "Offer unpublished.");
+      void load();
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setBusy(null);
     }
   }
 
   async function remove(id: string) {
+    if (busy) return;
+    setBusy(`delete:${id}`);
     setError("");
     try {
       await adminFetch(`/api/admin/offers/${id}`, { method: "DELETE" });
       setConfirmId(null);
+      setItems((current) => current.filter((item) => item.id !== id));
       if (editing?.id === id) {
         setModal(false);
         setEditing(null);
       }
-      await load();
       setNotice("Offer deleted.");
+      void load();
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setBusy(null);
     }
   }
 
+  const locked = Boolean(busy);
+
   return (
-    <div className="admin-inventory">
+    <div className="admin-inventory" aria-busy={locked || loading}>
       <div className="admin-list-toolbar">
         <div>
           <p className="admin-eyebrow">Catalogue</p>
@@ -205,7 +255,7 @@ export function OffersPanel() {
             ready. Leave terms empty unless they are supplied.
           </p>
         </div>
-        <button type="button" className="btn btn--primary" onClick={openCreate}>
+        <button type="button" className="btn btn--primary" onClick={openCreate} disabled={locked}>
           + New offer
         </button>
       </div>
@@ -219,8 +269,15 @@ export function OffersPanel() {
           {notice}
         </p>
       )}
+      {busy && (
+        <p role="status" className="admin-feedback">
+          Working… {busy.startsWith("status:") ? "Updating publication status." : "Please wait."}
+        </p>
+      )}
       <section className="admin-card admin-table-card">
-        {items.length === 0 ? (
+        {loading ? (
+          <p className="muted">Loading offers…</p>
+        ) : items.length === 0 ? (
           <p className="muted">No offers yet. Create a draft to get started.</p>
         ) : (
           <table className="admin-bookings-table">
@@ -250,6 +307,7 @@ export function OffersPanel() {
                       type="button"
                       className="admin-inline-link"
                       onClick={() => openEdit(item)}
+                      disabled={locked}
                     >
                       Edit
                     </button>{" "}
@@ -258,22 +316,25 @@ export function OffersPanel() {
                         type="button"
                         className="admin-inline-link"
                         onClick={() => void setStatus(item.id, "draft")}
+                        disabled={locked}
                       >
-                        Unpublish
+                        {busy === `status:${item.id}` ? "Unpublishing…" : "Unpublish"}
                       </button>
                     ) : (
                       <button
                         type="button"
                         className="admin-inline-link"
                         onClick={() => void setStatus(item.id, "published")}
+                        disabled={locked}
                       >
-                        Publish
+                        {busy === `status:${item.id}` ? "Publishing…" : "Publish"}
                       </button>
                     )}{" "}
                     <button
                       type="button"
                       className="admin-inline-link"
                       onClick={() => setConfirmId(item.id)}
+                      disabled={locked}
                     >
                       Delete
                     </button>
@@ -302,6 +363,7 @@ export function OffersPanel() {
               className="admin-editor-dialog__close"
               aria-label="Close"
               onClick={() => dialogRef.current?.close()}
+              disabled={locked}
             >
               ×
             </button>
@@ -313,6 +375,7 @@ export function OffersPanel() {
                 value={form.title}
                 maxLength={120}
                 required
+                disabled={locked}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, title: event.target.value }))
                 }
@@ -325,6 +388,7 @@ export function OffersPanel() {
                 maxLength={2000}
                 rows={5}
                 required
+                disabled={locked}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, description: event.target.value }))
                 }
@@ -337,6 +401,7 @@ export function OffersPanel() {
                 min="0.01"
                 step="0.01"
                 value={form.priceFrom}
+                disabled={locked}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, priceFrom: event.target.value }))
                 }
@@ -348,13 +413,14 @@ export function OffersPanel() {
                 value={form.terms}
                 maxLength={4000}
                 rows={4}
+                disabled={locked}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, terms: event.target.value }))
                 }
               />
             </label>
-            <button className="btn btn--primary" disabled={saving}>
-              {saving ? "Saving…" : editing ? "Save changes" : "Create draft"}
+            <button className="btn btn--primary" disabled={locked}>
+              {busy === "save" ? "Saving…" : editing ? "Save changes" : "Create draft"}
             </button>
           </form>
           {editing && (
@@ -365,6 +431,7 @@ export function OffersPanel() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
+                disabled={locked}
                 onChange={(event) => void uploadPhotos(event.target.files)}
               />
               <ul className="admin-offer-photo-list">
@@ -376,12 +443,17 @@ export function OffersPanel() {
                         type="radio"
                         name="main-photo"
                         checked={photo.isMain}
+                        disabled={locked}
                         onChange={() => void setMain(photo.id)}
                       />{" "}
                       Main photo
                     </label>
-                    <button type="button" onClick={() => void removePhoto(photo.id)}>
-                      Remove
+                    <button
+                      type="button"
+                      disabled={locked}
+                      onClick={() => void removePhoto(photo.id)}
+                    >
+                      {busy === `photo:${photo.id}` ? "Removing…" : "Remove"}
                     </button>
                   </li>
                 ))}
@@ -401,15 +473,21 @@ export function OffersPanel() {
           <h2 id="offer-delete-title">Delete this offer?</h2>
           <p>This removes the offer and its stored photos. This cannot be undone.</p>
           <div className="admin-topbar__actions">
-            <button type="button" className="btn btn--secondary" onClick={() => setConfirmId(null)}>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setConfirmId(null)}
+              disabled={locked}
+            >
               Cancel
             </button>
             <button
               type="button"
               className="btn btn--primary"
+              disabled={locked}
               onClick={() => confirmId && void remove(confirmId)}
             >
-              Delete offer
+              {busy?.startsWith("delete:") ? "Deleting…" : "Delete offer"}
             </button>
           </div>
         </section>

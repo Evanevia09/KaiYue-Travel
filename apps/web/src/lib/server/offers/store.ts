@@ -1,4 +1,4 @@
-import { AppError, isCompleteOffer, type OfferWriteInput } from "@kaiyue/contracts";
+import { AppError, isOfferReady, type OfferWriteInput } from "@kaiyue/contracts";
 import type { D1Database } from "../env.ts";
 import { all, first, nowIso, run } from "../db.ts";
 
@@ -99,7 +99,7 @@ function mapOffer(row: OfferRow, photos: OfferPhotoRecord[]): OfferRecord {
 export function toAdminOffer(offer: OfferRecord) {
   return {
     ...offer,
-    complete: isCompleteOffer(offer),
+    complete: isOfferReady(offer),
   };
 }
 
@@ -167,7 +167,7 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
     },
     async setStatus(id, status) {
       const offer = requireOffer(id);
-      if (status === "published" && !isCompleteOffer({ ...offer, status: "published" })) {
+      if (status === "published" && !isOfferReady(offer)) {
         throw new AppError(
           "VALIDATION_FAILED",
           "Publish requires a title, description, and a main photo.",
@@ -243,11 +243,18 @@ export function createD1OfferStore(db: D1Database): OfferStore {
   return {
     async list() {
       const rows = await all<OfferRow>(db, "SELECT * FROM offers ORDER BY updated_at DESC");
-      const records: OfferRecord[] = [];
-      for (const row of rows) {
-        records.push(mapOffer(row, await photosFor(row.id)));
+      if (rows.length === 0) return [];
+      const photoRows = await all<PhotoRow>(
+        db,
+        "SELECT * FROM offer_photos ORDER BY sort_order ASC, created_at ASC",
+      );
+      const photosByOffer = new Map<string, OfferPhotoRecord[]>();
+      for (const photo of photoRows) {
+        const list = photosByOffer.get(photo.offer_id) ?? [];
+        list.push(mapPhoto(photo));
+        photosByOffer.set(photo.offer_id, list);
       }
-      return records;
+      return rows.map((row) => mapOffer(row, photosByOffer.get(row.id) ?? []));
     },
     async get(id) {
       const row = await first<OfferRow>(db, "SELECT * FROM offers WHERE id = ?", id);
@@ -287,7 +294,7 @@ export function createD1OfferStore(db: D1Database): OfferStore {
     },
     async setStatus(id, status) {
       const current = await load(id);
-      if (status === "published" && !isCompleteOffer({ ...current, status: "published" })) {
+      if (status === "published" && !isOfferReady(current)) {
         throw new AppError(
           "VALIDATION_FAILED",
           "Publish requires a title, description, and a main photo.",
