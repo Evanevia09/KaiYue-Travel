@@ -17,6 +17,7 @@ This branch adds a staff Special Offers dashboard, a public published-only offer
 - Special Offers is in the main nav after City Tours. The City Tour menu keeps Half day and Full day. `/services/city-tours/special-offer` remains bookable.
 - Offer storage is behind `OfferStore` / `ObjectStore` interfaces so tests run against in-memory fakes.
 - Images: JPEG/PNG/WebP only, magic bytes plus MIME, 5 MB max, server-generated keys, no SVG. Delete removes R2 objects.
+- Follow-on photo optimisation, immutable URLs, and dashboard speed: [special-offers-photos.md](special-offers-photos.md).
 
 ## Workers Build / wrangler (no dashboard change)
 

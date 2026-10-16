@@ -1,7 +1,16 @@
 ---
 export const prerender = false;
+import { OffersPanel, type AdminOffer } from "../../components/admin/OffersPanel.tsx";
 import AdminLayout from "../../layouts/AdminLayout.astro";
-import { OffersPanel } from "../../components/admin/OffersPanel.tsx";
+import { listAdminOffers } from "../../lib/server/offers/service.ts";
+import { env } from "cloudflare:workers";
+
+let items: AdminOffer[] | null = null;
+try {
+  items = (await listAdminOffers(env)).items;
+} catch {
+  items = null;
+}
 ---
 
-<AdminLayout title="Special Offers"><OffersPanel client:load /></AdminLayout>
+<AdminLayout title="Special Offers"><OffersPanel client:load initialItems={items} /></AdminLayout>

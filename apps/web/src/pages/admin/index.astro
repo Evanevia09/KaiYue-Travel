@@ -1,9 +1,18 @@
 ---
 export const prerender = false;
-import { DashboardPanel } from "../../components/admin/DashboardPanel.tsx";
+import { DashboardPanel, type DashboardSummary } from "../../components/admin/DashboardPanel.tsx";
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import { adminSummary } from "../../lib/server/admin.ts";
+import { env } from "cloudflare:workers";
+
+let summary: DashboardSummary | null = null;
+try {
+  summary = await adminSummary(env);
+} catch {
+  summary = null;
+}
 ---
 
 <AdminLayout title="Dashboard">
-  <DashboardPanel client:load />
+  <DashboardPanel client:load initial={summary} />
 </AdminLayout>

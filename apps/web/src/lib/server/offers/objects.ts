@@ -61,8 +61,10 @@ export function createR2ObjectStore(bucket: OfferR2Bucket): ObjectStore {
       await bucket.delete(key);
     },
     async deleteMany(keys) {
-      if (keys.length === 0) return;
-      await bucket.delete(keys);
+      const unique = [...new Set(keys.filter(Boolean))];
+      for (const key of unique) {
+        await bucket.delete(key);
+      }
     },
   };
 }

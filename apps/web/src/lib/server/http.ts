@@ -9,7 +9,9 @@ export function requestIdFrom(request: Request, existing?: string): string {
 export function json(data: unknown, status = 200, requestId?: string): Response {
   const headers = new Headers({
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store",
+    "cache-control": "private, no-store, no-cache, must-revalidate",
+    "cdn-cache-control": "no-store",
+    "cloudflare-cdn-cache-control": "no-store",
   });
   if (requestId) {
     headers.set("x-request-id", requestId);

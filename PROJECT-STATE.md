@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (WeChat QR placeholder on a staging PR; Special Offers dashboard remains on staging, not merged to main)
-**Product-status evidence date:** 2026-10-16 for WeChat QR placeholder and offers/admin-gate work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-16 (Special Offers publish label and D1 latency on staging PR; not merged to main)
+**Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work and WeChat QR placeholder in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** A placeholder WeChat QR is on `cursor/wechat-qr-placeholder-7d43` targeting `staging`. Special Offers staff dashboard, published-only public page, fail-closed production admin, and preview-only test login remain on staging. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are bound on staging only. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the WeChat QR placeholder on the Workers preview (footer and contact, EN/pt/zh-Hant, mobile and desktop). Supply the real QR file to replace `apps/web/public/images/wechat-qr.svg` when ready. Do not invent a WeChat ID. Do not merge to `main`.
+**Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging now also includes the WeChat QR placeholder from PR 9. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the staging/preview publish fix: **Publishing…** vs **Unpublishing…** from the target state, publish latency under 1 s if possible, and leave-warning/`keepalive` if a write is still in flight. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -160,7 +160,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
-Special Offers next action (2026-10-16): review the preview dashboard publish/save feedback, then sign in with the rotated test-admin password. `BETTER_AUTH_SECRET` persists across `versions upload` once set. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): review the publish-label/latency fix on `https://12443955-kaiyue-travel.scalingsmb.workers.dev`. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -197,6 +197,46 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Publish label and latency on the Special Offers photos branch (staging PR, not main)
+
+- Recheck of `0c0d8103` showed Publish taking ~5 s with the button reading **Unpublishing…** because optimistic status flipped to `published` while a shared `status:${id}` busy key selected the Unpublish label.
+- Labels now follow the target action (`publish:${id}` / `unpublish:${id}`). Publish writes status + audit in one D1 batch after a batched load and does not reload. Better Auth session cookie cache (60 s) skips extra session D1 reads on the POST.
+- Mutating admin fetches use `keepalive`; `beforeunload` warns while a write is in flight so leaving the page does not leave the offer as a draft.
+- D1/R2 bindings in `wrangler.jsonc` unchanged. Do not merge to `main`.
+- Preview `https://12443955-kaiyue-travel.scalingsmb.workers.dev`: TEST offer Publish showed **Publishing…** (not Unpublishing…); Worker round trip 621 ms publish / 389 ms unpublish; leave warning fired while the POST was in flight; TEST offer deleted; public list `[]`.
+- Handover: `docs/handover/special-offers-photos.md`.
+
+### 2026-10-16 — Browser QA blockers on the Special Offers photos branch (staging PR, not main)
+
+- Chrome admin upload copies `FileList` before clearing the input and accepts drag-and-drop. Playwright `setInputFiles` covers that path.
+- Client originals up to 25 MB; 5 MB applies after resize and on the Worker. Resize failure is an error, not an original-file upload.
+- Admin “Updated” timestamps use `Asia/Macau` `formatToParts` so SSR and Chrome hydration match.
+- Home preload matches the 1200.webp srcset candidate Lighthouse uses; below-fold `hero-home` and city-tour cards are lazy WebP; Noto Sans TC is no longer fetched (system CJK + Inter `display=swap`).
+- Offer/photo delete clears public list JSON/HTML (`CDN-Cache-Control: no-store`) and removes unique R2 display + thumbnail keys one by one.
+- zh-Hant footer address keeps `600-E`.
+- D1/R2 bindings in `wrangler.jsonc` unchanged. Do not merge to `main`.
+- Preview `https://0c0d8103-kaiyue-travel.scalingsmb.workers.dev`: UI `setInputFiles` of a 9.07 MB 4000px JPEG showed optimise progress, stored a 730 KB 1600px WebP, published immediately, and delete cleared the public list plus display/thumb 404s. No hydration #418. zh-Hant footer keeps `600-E`. Lighthouse mobile Home 3×: EN 88/77/77 (median 77, LCP 1.7–3.2 s), zh-Hant 77/77/77 (LCP 3.3 s). TEST offer cleaned up.
+- Handover: `docs/handover/special-offers-photos.md`.
+
+### 2026-10-16 — Home LCP follow-up on the Special Offers photos branch (staging PR, not main)
+
+- Merged staging WeChat QR (`3e6e310` / PR 9). `wrangler.jsonc` D1/R2 bindings unchanged.
+- Shared-file audit: the photo PR only added unused admin CSS and `/special-offers` `no-store`. Live Home HTML already had the same hero JPEG, PNG logo, and Inter+Noto fonts; live also already had the WeChat QR.
+- Home hero now serves WebP srcset (37/68/111 KB vs 259 KB JPEG) with preload and `fetchpriority=high`. Logo uses a 28 KB WebP with PNG fallback. EN/pt skip Noto Sans TC. Google Fonts CSS is non-blocking. Footer WeChat QR is lazy.
+- Lighthouse mobile Home, three runs: live 69/69/70, previous photo preview 57/57/57, this preview 86/87/77 (median 86, all ≥ 72). LCP 4.7 s live / 6.3 s old preview → 2.0–3.2 s. `/special-offers` 92. New preview `https://949dbb5a-kaiyue-travel.scalingsmb.workers.dev`.
+- Migration `0006` is applied on shared D1 `069aa442` and is additive (new columns with defaults + extra indexes). Safe for live main code. Do not merge to `main`.
+
+### 2026-10-16 — Special Offers photos and dashboard speed (staging PR, not main)
+
+- Client canvas resize (1600px display, 480px thumbnail, WebP/JPEG) before upload; Worker still validates type and 5 MB.
+- Versioned photo URLs with a content hash; public blobs `immutable` for one year; unversioned URLs `no-store`.
+- Public `/special-offers` (EN, pt, zh-Hant) HTML is `private, no-store` so publish/edit/delete is visible on the next request.
+- `/admin` and `/admin/offers` SSR the first payload; dashboard summary uses one D1 batch; optimistic main/delete/publish with rollback; upload progress.
+- Additive migration `0006_offer_photo_variants.sql` (photo hash/thumb/dimensions plus booking/offer indexes). Did not edit `wrangler.jsonc` D1/R2 bindings.
+- Handover: `docs/handover/special-offers-photos.md`.
+- Preview check on `https://bd89586f-kaiyue-travel.scalingsmb.workers.dev`: three 4000px TEST JPEGs (~1.3 MB) resized in-browser to ~128 KB WebP + ~27 KB thumbs; hashed immutable photo URLs; `/special-offers` EN/pt/zh-Hant `no-store` and updated immediately on publish/swap/delete; `/admin` and `/admin/offers` served the first payload without a follow-up API fetch. TEST offer deleted. Lighthouse mobile: Home 72→56 (Home was not changed; two after-runs both 56), `/special-offers` 92→92. Console errors: none.
+- Limits: not merged to `main`; Access still unset. A leftover draft titled `Test` from earlier staging work was left in place.
 
 ### 2026-10-16 — WeChat QR placeholder (staging PR, not main)
 

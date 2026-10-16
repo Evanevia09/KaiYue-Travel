@@ -3,21 +3,37 @@ type Props = {
   src?: string;
   alt?: string;
   preserveCopy?: boolean;
+  fetchpriority?: "high" | "low" | "auto";
+  webpSrcset?: string;
+  sizes?: string;
+  width?: number;
+  height?: number;
 };
 
 const {
   src = "/images/hero-home.jpg",
   alt = "Chauffeur welcoming a family beside a private vehicle at a waterfront hotel in Macau",
   preserveCopy,
+  fetchpriority,
+  webpSrcset,
+  sizes,
+  width = 1920,
+  height = 1080,
 } = Astro.props;
 ---
 
 <div class="hero__bg">
-  <img
-    src={src}
-    width="1920"
-    height="1080"
-    alt={alt}
-    data-no-localize={preserveCopy || undefined}
-  />
+  <picture>
+    {webpSrcset ? <source type="image/webp" srcset={webpSrcset} sizes={sizes} /> : null}
+    <img
+      src={src}
+      width={width}
+      height={height}
+      sizes={sizes}
+      alt={alt}
+      fetchpriority={fetchpriority}
+      decoding={fetchpriority === "high" ? "sync" : "async"}
+      data-no-localize={preserveCopy || undefined}
+    />
+  </picture>
 </div>

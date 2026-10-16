@@ -36,7 +36,7 @@ The owner specified `#f3a600` for the website accent and section kickers on 2026
 }
 ```
 
-- Use Inter / Noto Sans TC with system fallbacks; limit the weight set. Hero headlines are bold white sans-serif, not teal.
+- Use Inter from Google Fonts (`display=swap`, weights 400/600/700) with PingFang TC, Microsoft JhengHei, and system CJK fallbacks. Do not fetch Noto Sans TC from Google; Traditional Chinese pages use installed system fonts. Hero headlines are bold white sans-serif, not teal.
 - Use a consistent 4 px spacing base and restrained corner radius/shadow scale.
 - Meet WCAG 2.2 AA contrast. Color never carries status alone.
 - The outer site canvas uses the owner-specified `#008c5e`. Main content and regular sections use white surfaces; muted and dark sections retain their own backgrounds. The specified orange accent is used for section kickers, booking-field icons, Journey / Communication progress markers, and small highlights; the logo retains its own artwork. Booking request actions, selected booking choices, and calendar confirmation controls use a light green gradient from `#008c5e`; non-booking actions retain their existing treatment.

@@ -28,6 +28,12 @@ export function createAdminSessionAuth(env: AppEnv, allowSignup = false, request
     baseURL,
     trustedOrigins: [...trustedOrigins],
     emailAndPassword: { enabled: true, disableSignUp: !allowSignup, minPasswordLength: 12 },
-    session: { expiresIn: 60 * 60 * 8, updateAge: 60 * 60 },
+    session: {
+      expiresIn: 60 * 60 * 8,
+      updateAge: 60 * 60,
+      // Preview admin POSTs were spending most of their 5 s on sequential Better Auth
+      // D1 session reads. A short signed cookie cache skips those round trips.
+      cookieCache: { enabled: true, maxAge: 60 },
+    },
   });
 }
