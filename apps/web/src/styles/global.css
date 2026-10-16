@@ -2012,7 +2012,7 @@ html[lang="zh-Hant"] astro-island[ssr] {
 }
 
 .wechat-qr--footer .wechat-qr__frame {
-  width: 7rem;
+  width: 8.5rem;
 }
 
 .wechat-qr img {
@@ -2036,6 +2036,12 @@ html[lang="zh-Hant"] astro-island[ssr] {
   letter-spacing: 0.01em;
   line-height: 1.25;
   text-align: center;
+  text-wrap: balance;
+}
+
+.wechat-qr--footer .wechat-qr__label {
+  padding: 0.3rem 0.35rem 0.34rem;
+  font-size: 0.6rem;
 }
 
 .wechat-qr__caption {

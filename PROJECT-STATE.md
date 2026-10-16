@@ -175,7 +175,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Verification record
 
-2026-10-16 WeChat QR placeholder: shared `WeChatQr` component and `/images/wechat-qr.svg` added to the footer contact column and the contact Reach us section. Localized EN/pt/zh-Hant label and alt. Booking, admin, offers, `wrangler.jsonc`, and the database were not changed. Preview browser checks are recorded in the change log after the Workers preview is available.
+2026-10-16 WeChat QR placeholder: shared `WeChatQr` component and `/images/wechat-qr.svg` added to the footer contact column and the contact Reach us section. Localized EN/pt/zh-Hant label and alt. Booking, admin, offers, `wrangler.jsonc`, and the database were not changed. Workers preview and GitHub CI checks passed; footer QR was widened so zh-Hant overlay copy fits.
 
 2026-10-03 workflow adoption: 46 local Markdown links resolved; targeted Prettier and `git diff --check` passed; independent read-only review found no actionable issue. Source/revision provenance, dirty-state preservation, and limits are in the [adoption record](docs/records/2026-10-03-codex-workflow-adoption.md). This is `task_verified` for documentation only; no browser, API, D1, CI, or deployed behavior was checked in this task.
 
@@ -205,7 +205,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Wired the component into the footer contact column and the contact page Reach us list. Caption/alt: “WeChat QR – coming soon” (EN), “微信二維碼 – 即將推出” (zh-Hant), “QR WeChat – em breve” (pt).
 - Fixed square frame (`aspect-ratio: 1`) and explicit image width/height to avoid layout shift.
 - Did not change booking, admin, offers, `wrangler.jsonc`, or database files.
-- Limits: not `user_accepted` or `released`. Real WeChat QR and ID still required from the owner. Preview verification is recorded after the Workers preview URL is live.
+- Preview: `https://cursor-wechat-qr-placeholder-7d43-kaiyue-travel.scalingsmb.workers.dev`. Contact and footer checked in EN/pt/zh-Hant at 1440 and 390. Two square QRs per contact page, localized alt/label, no horizontal overflow, no console errors. GitHub `check` and Workers Builds succeeded on `37d8964`. Footer QR widened to 8.5rem after zh-Hant overlay wrapped a trailing character.
+- Limits: not `user_accepted` or `released`. Real WeChat QR and ID still required from the owner.
 
 ### 2026-10-16 — Special Offers dashboard (staging PR, not main)
 
