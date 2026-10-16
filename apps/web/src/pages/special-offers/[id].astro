@@ -49,4 +49,10 @@ if (!page) {
 }
 ---
 
-{page ? <SpecialOfferPage publishedOffers={page.publishedOffers} offer={page.offer} /> : <NotFound />}
+{
+  page ? (
+    <SpecialOfferPage publishedOffers={page.publishedOffers} offer={page.offer} />
+  ) : (
+    <NotFound />
+  )
+}
