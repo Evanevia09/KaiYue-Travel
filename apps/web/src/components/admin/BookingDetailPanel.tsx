@@ -219,7 +219,11 @@ export function BookingDetailPanel({ reference }: { reference: string }) {
                 <div>
                   <span>Passengers</span>
                   <strong>{booking.passengerCount}</strong>
-                  <small>{booking.serviceType.replaceAll("_", " ")}</small>
+                  <small>
+                    {booking.offerTitle
+                      ? "Special offer"
+                      : booking.serviceType.replaceAll("_", " ")}
+                  </small>
                   {booking.offerTitle ? (
                     <small>
                       Special offer: {booking.offerTitle}

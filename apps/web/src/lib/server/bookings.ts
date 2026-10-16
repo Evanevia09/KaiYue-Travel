@@ -141,6 +141,17 @@ const whatsappServices: Record<Locale, Record<string, string>> = {
   },
 };
 
+const specialOfferServiceLabels: Record<Locale, string> = {
+  en: "special offer",
+  pt: "Oferta especial",
+  "zh-Hant": "特別優惠",
+};
+
+function whatsappServiceName(locale: Locale, serviceType: string, isSpecialOffer: boolean): string {
+  if (isSpecialOffer) return specialOfferServiceLabels[locale];
+  return whatsappServices[locale][serviceType] ?? serviceType.replaceAll("_", " ");
+}
+
 export function bookingToPublic(row: BookingRow) {
   const locale = publicLocale(row.locale);
   const response: {
@@ -373,9 +384,11 @@ export async function createBooking(
               label: "Destination",
               value:
                 parsed.data.destination ??
-                (parsed.data.serviceType === "city_tour"
-                  ? (parsed.data.tourPackageTitle ?? "City tour")
-                  : "Hourly service"),
+                (parsed.data.offerTitle
+                  ? parsed.data.offerTitle
+                  : parsed.data.serviceType === "city_tour"
+                    ? (parsed.data.tourPackageTitle ?? "City tour")
+                    : "Hourly service"),
             },
             ...(parsed.data.offerTitle
               ? [{ label: "Special offer", value: parsed.data.offerTitle }]
@@ -408,9 +421,11 @@ export async function createBooking(
     const number = (env.WHATSAPP_NUMBER || "+85328338882").replace(/\D/g, "");
     const locale = publicLocale(parsed.data.locale);
     const label = whatsappLabels[locale];
-    const service =
-      whatsappServices[locale][parsed.data.serviceType] ??
-      parsed.data.serviceType.replaceAll("_", " ");
+    const service = whatsappServiceName(
+      locale,
+      parsed.data.serviceType,
+      Boolean(parsed.data.offerId),
+    );
     const lines = [
       `${label.heading} ${row.reference}`,
       `${label.service}: ${service}`,

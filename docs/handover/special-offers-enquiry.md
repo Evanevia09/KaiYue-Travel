@@ -54,6 +54,18 @@ Test enquiry (cancelled after checks):
 - Reference: `KY-S99HVV5K`
 - Admin list and detail showed `Special offer: [Sample] Zhuhai Day Trip` and the offer id. Status marked **cancelled**. D1 row on `069aa442` matches. Sample offers were not edited.
 
+## WhatsApp / enquiry service label (2026-10-16 follow-up)
+
+Special Offer enquiries still persist `service_type = city_tour` plus `offer_id` / `offer_title`. The generated WhatsApp body and admin service summary now use a special-offer label instead of “city tour”:
+
+- EN: `Service: special offer`
+- pt: `Serviço: Oferta especial`
+- zh-Hant: `服務: 特別優惠`
+
+City Tours WhatsApp still says `Service: city tour` / localized city-tour equivalent. The offer title remains on its own `Special offer:` line.
+
+Preview QA enquiry `KY-DAVMC536` (WhatsApp handoff, `[Sample] Macau City Highlights Tour`, `2e59c876-88b9-40aa-befd-2c73324f0023`) landed as `enquiry` with no email. Marked **cancelled** on staging D1 `069aa442` with an audit `status_change`. Sample offers were not edited.
+
 ## Limits
 
 - Access is still not configured. Preview login remains the disposable `admin-test@kaiyue.test` operator.

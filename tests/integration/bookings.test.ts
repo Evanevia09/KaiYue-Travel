@@ -336,6 +336,118 @@ describe("POST /api/v1/bookings", () => {
     });
   });
 
+  it("labels a special-offer WhatsApp enquiry as special offer, not city tour", async () => {
+    const env = createTestEnv({
+      WHATSAPP_NUMBER: "+853 2833 8882",
+      offerStore: publishedOfferStore(),
+    });
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json", "idempotency-key": "offer-whatsapp-001" },
+        body: JSON.stringify(
+          bookingPayload({
+            serviceType: "city_tour",
+            destination: "",
+            tourPackageId: sampleOfferId,
+            tourPackageTitle: "[Sample] Harbour lights",
+            offerId: sampleOfferId,
+            offerTitle: "[Sample] Harbour lights",
+            communicationChannel: "whatsapp",
+            contactName: "",
+            phone: "",
+            email: "",
+            sourcePage: "/special-offers",
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as { whatsappUrl: string };
+    const text = decodeURIComponent(body.whatsappUrl);
+    expect(text).toContain("Service: special offer");
+    expect(text).toContain("Special offer: [Sample] Harbour lights");
+    expect(text).not.toContain("Service: city tour");
+  });
+
+  it.each([
+    ["pt", "Serviço: Oferta especial"],
+    ["zh-Hant", "服務: 特別優惠"],
+  ])("localizes the %s special-offer WhatsApp service label", async (locale, service) => {
+    const env = createTestEnv({
+      WHATSAPP_NUMBER: "+853 2833 8882",
+      offerStore: publishedOfferStore(),
+    });
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": `offer-whatsapp-${locale}`,
+        },
+        body: JSON.stringify(
+          bookingPayload({
+            locale,
+            sourcePage: `/${locale}/special-offers`,
+            serviceType: "city_tour",
+            destination: "",
+            tourPackageId: sampleOfferId,
+            tourPackageTitle: "[Sample] Harbour lights",
+            offerId: sampleOfferId,
+            offerTitle: "[Sample] Harbour lights",
+            communicationChannel: "whatsapp",
+            contactName: "",
+            phone: "",
+            email: "",
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as { whatsappUrl: string };
+    expect(decodeURIComponent(body.whatsappUrl)).toContain(service);
+    expect(decodeURIComponent(body.whatsappUrl)).not.toMatch(
+      /Serviço: Passeio pela cidade|服務: 城市遊覽|Service: city tour/,
+    );
+  });
+
+  it("keeps city tour on a City Tours WhatsApp enquiry", async () => {
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "city-tour-whatsapp-001",
+        },
+        body: JSON.stringify(
+          bookingPayload({
+            serviceType: "city_tour",
+            destination: "",
+            tourPackageId: "half-day",
+            tourPackageTitle: "Half day",
+            tourDurationHours: 6,
+            communicationChannel: "whatsapp",
+            contactName: "",
+            phone: "",
+            email: "",
+            sourcePage: "/services/city-tours/half-day",
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as { whatsappUrl: string };
+    const text = decodeURIComponent(body.whatsappUrl);
+    expect(text).toContain("Service: city tour");
+    expect(text).toContain("Tour package: Half day");
+    expect(text).not.toContain("Service: special offer");
+    expect(text).not.toContain("Special offer:");
+  });
+
   it("rejects an enquiry for an unpublished special offer", async () => {
     const env = createTestEnv({ offerStore: publishedOfferStore("draft") });
     const response = await handleApi(

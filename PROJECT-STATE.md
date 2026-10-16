@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (GBA chauffeur copy + Special Offers enquiry/pages on staging PR #13; not merged to main)
+**Last updated:** 2026-10-16 (Special Offer WhatsApp service label + GBA copy + Special Offers pages on staging PR #13; not merged to main)
 **Product-status evidence date:** 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Draft PR #13 on `cursor/special-offers-enquiry-pages-e1be` into `staging` adds Special Offers hero/enquiry/pages and rewrites B2C copy so Kai Yue is a chauffeur service across Macau, Mainland China, and Hong Kong. City Tours stay Macau-only. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
@@ -197,6 +197,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Special Offer WhatsApp service label (staging PR, not main)
+
+- Special Offer enquiry WhatsApp/email summaries no longer say `Service: city tour`. They use `special offer` / `Oferta especial` / `特別優惠` while still storing `offer_id` and `offer_title`. City Tours keep the city-tour label.
+- Admin booking detail shows “Special offer” instead of “city tour” when an offer is attached.
+- Preview QA `KY-DAVMC536` marked cancelled on staging D1 `069aa442`. Sample offers unchanged. Do not merge to `main`.
+- Handover: `docs/handover/special-offers-enquiry.md`.
 
 ### 2026-10-16 — Greater Bay Area chauffeur copy (staging PR, not main)
 
