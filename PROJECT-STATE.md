@@ -206,7 +206,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Booking hard-failure copy now offers WhatsApp or +853 2833 8882 instead of “wait and retry”.
 - Handover: `docs/handover/special-offers-dashboard.md`.
 - Admin publish no longer flips back to draft from a second click after a slow list refresh. Ready-to-publish is based on copy plus a main photo, not on published status. List photos load in one query. TEST booking `KY-PRDT5RZK` is cancelled, not deleted.
-- Limits: Access is not configured. `BETTER_AUTH_SECRET` is inherited by later `versions upload` after the first version secret. No production deploy. Not `user_accepted` or `released`.
+- After Create draft the dialog switches to edit mode so a second click PATCHes the same offer. Photo/main mutations no longer refetch the full list. `favicon.ico` is generated from the existing mark.
+- Limits: Access is not configured. `BETTER_AUTH_SECRET` is inherited by later `versions upload` after the first version secret. No production deploy. Merging this branch to `main` would replace the live static-only Worker with this full Worker bound to staging D1 `069aa442` and R2 `kaiyue-offers-staging`. Not `user_accepted` or `released`.
 
 ### 2026-10-05 — City Tour handoff
 

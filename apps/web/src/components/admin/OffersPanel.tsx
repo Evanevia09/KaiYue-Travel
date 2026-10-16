@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { adminFetch } from "./api.ts";
+import { editorAfterWrite, offerSaveTarget } from "./offer-editor.ts";
 
 type OfferPhoto = {
   id: string;
@@ -117,18 +118,21 @@ export function OffersPanel() {
         priceFrom: form.priceFrom.trim() === "" ? undefined : Number(form.priceFrom),
         terms: form.terms,
       };
-      const saved = editing
-        ? await adminFetch<{ item: AdminOffer }>(`/api/admin/offers/${editing.id}`, {
-            method: "PATCH",
-            body: JSON.stringify(body),
-          })
-        : await adminFetch<{ item: AdminOffer }>("/api/admin/offers", {
-            method: "POST",
-            body: JSON.stringify(body),
-          });
-      applyOffer(saved.item);
+      const target = offerSaveTarget(editing?.id ?? null);
+      const saved = await adminFetch<{ item: AdminOffer }>(target.path, {
+        method: target.method,
+        body: JSON.stringify(body),
+      });
+      const item = editorAfterWrite(saved.item);
+      applyOffer(item);
+      setEditing(item);
+      setForm({
+        title: item.title,
+        description: item.description,
+        priceFrom: item.priceFrom == null ? "" : String(item.priceFrom),
+        terms: item.terms ?? "",
+      });
       setNotice(editing ? "Offer updated." : "Draft offer created.");
-      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -155,7 +159,6 @@ export function OffersPanel() {
         applyOffer(latest);
       }
       setNotice("Photos uploaded.");
-      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -173,7 +176,6 @@ export function OffersPanel() {
         { method: "POST", body: JSON.stringify({}) },
       );
       applyOffer(saved.item);
-      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -191,7 +193,6 @@ export function OffersPanel() {
         { method: "DELETE" },
       );
       applyOffer(saved.item);
-      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -213,7 +214,6 @@ export function OffersPanel() {
       );
       applyOffer(saved.item);
       setNotice(next === "published" ? "Offer published." : "Offer unpublished.");
-      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -234,7 +234,6 @@ export function OffersPanel() {
         setEditing(null);
       }
       setNotice("Offer deleted.");
-      void load();
     } catch (err) {
       setError((err as Error).message);
     } finally {

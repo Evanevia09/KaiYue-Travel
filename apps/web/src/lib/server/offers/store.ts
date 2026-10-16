@@ -357,15 +357,19 @@ export function createD1OfferStore(db: D1Database): OfferStore {
       if (!offer.photos.some((item) => item.id === photoId)) {
         throw new AppError("NOT_FOUND", "Photo not found.");
       }
-      await run(db, "UPDATE offer_photos SET is_main = 0 WHERE offer_id = ?", offerId);
-      await run(
-        db,
-        "UPDATE offer_photos SET is_main = 1 WHERE id = ? AND offer_id = ?",
-        photoId,
-        offerId,
-      );
-      await run(db, "UPDATE offers SET updated_at = ? WHERE id = ?", nowIso(), offerId);
-      return load(offerId);
+      const now = nowIso();
+      await db.batch([
+        db.prepare("UPDATE offer_photos SET is_main = 0 WHERE offer_id = ?").bind(offerId),
+        db
+          .prepare("UPDATE offer_photos SET is_main = 1 WHERE id = ? AND offer_id = ?")
+          .bind(photoId, offerId),
+        db.prepare("UPDATE offers SET updated_at = ? WHERE id = ?").bind(now, offerId),
+      ]);
+      return {
+        ...offer,
+        updatedAt: now,
+        photos: offer.photos.map((item) => ({ ...item, isMain: item.id === photoId })),
+      };
     },
     async recordAudit(input) {
       await run(
