@@ -44,6 +44,8 @@ export type AdminBooking = {
   updatedAt: string;
   driverId: string | null;
   vehicleId: string | null;
+  offerId: string | null;
+  offerTitle: string | null;
 };
 
 export type AdminDriver = {

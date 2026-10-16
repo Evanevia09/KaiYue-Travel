@@ -88,6 +88,35 @@ describe("bookingCreateSchema", () => {
     ).toBe(false);
   });
 
+  it("accepts a special offer id and title on a city tour enquiry", () => {
+    const parsed = bookingCreateSchema.parse(
+      validBooking({
+        serviceType: "city_tour",
+        destination: "",
+        tourPackageId: "3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33",
+        tourPackageTitle: "[Sample] Harbour lights",
+        offerId: "3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33",
+        offerTitle: "[Sample] Harbour lights",
+      }),
+    );
+    expect(parsed.offerId).toBe("3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33");
+    expect(parsed.offerTitle).toBe("[Sample] Harbour lights");
+  });
+
+  it("rejects a special offer title without an offer id", () => {
+    expect(
+      bookingCreateSchema.safeParse(
+        validBooking({
+          serviceType: "city_tour",
+          destination: "",
+          tourPackageId: "half-day",
+          tourPackageTitle: "Half day",
+          offerTitle: "[Sample] Harbour lights",
+        }),
+      ).success,
+    ).toBe(false);
+  });
+
   it("requires destination for other services", () => {
     const result = bookingCreateSchema.safeParse(validBooking({ destination: "" }));
     expect(result.success).toBe(false);

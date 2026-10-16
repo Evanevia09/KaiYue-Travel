@@ -6,7 +6,7 @@
 
 1. **Legal names.** Group: **Kai Yue Group Limited** / 凱悅集團有限公司. Travel company: **Kai Yue Travel Group Limited** / 凱悅旅遊集團有限公司. Predecessor: Zhaoxin International Travel Limited (昭信國際旅遊有限公司), founded 2009, renamed 2024. Headquartered in Macau with a Hengqin branch.
 2. **B2B copy.** `/corporate`, `/business/travel-agency`, and `/business/hotels-resorts` follow the group portfolio: alliance roles, 200+ Alphard 40 Series including dual-plate cars, 7×24 dispatch, Greater Bay Area cities (Macau, Zhuhai, Guangzhou, Shenzhen, Zhongshan, Jiangmen), Venetian official business-car wording, DSAT plus MGTO licences, programme commitments, and B2B phones **+853 6366 6665 / 6654 8888 / 6588 9999**.
-3. **B2C copy.** Home, service, booking, fleet, and pricing pages stay Macau-only, quote-after-review, 24-hour form notice, listing phone **+853 2833 8882**, fax **+853 2833 8885**, and the First International Commercial Centre address until separately changed.
+3. **B2C copy (updated 2026-10-16).** Home, service, booking, and about pages present Kai Yue as a chauffeur service across **Macau, Mainland China, and Hong Kong (the Greater Bay Area)**. **City Tours stay Macau only.** Quote-after-review, 24-hour form notice, listing phone **+853 2833 8882**, fax **+853 2833 8885**, and the First International Commercial Centre address are unchanged. Do not invent prices, terms, licences, fleet size, or other operational claims.
 4. **This website vs operations.** Public forms still create human-reviewed requests or inquiries. Live GPS, instant dispatch, and online payment are described as alliance/operations capabilities, not as features of this Astro site. Programme SLAs apply to agreed corporate work, not to submitting the web form.
 
 Portuguese name GRUPO DE VIAGENS KAI YUE and licence No. 0162 remain from the older public-site extract. They are not used as the legal name and are not printed on B2B pages.
@@ -23,7 +23,7 @@ Portuguese name GRUPO DE VIAGENS KAI YUE and licence No. 0162 remain from the ol
 **Source-reported license validity (older extract):** 2026-09-20  
 **Group-portfolio licences (B2B pages):** MGTO travel-agency licence; DSAT tourist passenger-transport licence (no numbers published)
 
-Kai Yue Travel Group Limited is a Macau-based premium travel and chauffeur company. B2C positioning on this website is private chauffeur requests in Macau. B2B positioning follows the group portfolio: one-stop, customized, compliant corporate and hotel mobility across Macau and the Greater Bay Area, with Mingmen Tourism (dispatch) and Mingmen Technology (One-Click Travel platform).
+Kai Yue Travel Group Limited is a Macau-based premium travel and chauffeur company. B2C positioning on this website (2026-10-16 owner decision) is private chauffeur requests across Macau, Mainland China, and Hong Kong. City Tours remain Macau-only. B2B positioning follows the group portfolio: one-stop, customized, compliant corporate and hotel mobility across Macau and the Greater Bay Area, with Mingmen Tourism (dispatch) and Mingmen Technology (One-Click Travel platform).
 
 ## Contact Information
 

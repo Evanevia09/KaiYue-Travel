@@ -1,8 +1,11 @@
 ---
 export const prerender = false;
+import { BookingEmbedded } from "../components/booking/BookingEmbedded.tsx";
+import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { localeFromPath, localePath } from "../lib/i18n.ts";
 import { listPublicOffers } from "../lib/server/offers/service.ts";
+import { specialOfferUi } from "../lib/special-offer-copy.ts";
 import { env } from "cloudflare:workers";
 
 Astro.response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
@@ -10,45 +13,7 @@ Astro.response.headers.set("CDN-Cache-Control", "no-store");
 Astro.response.headers.set("Cloudflare-CDN-Cache-Control", "no-store");
 
 const locale = localeFromPath(Astro.url.pathname);
-const copy = {
-  en: {
-    title: "Special Offers",
-    description:
-      "Published chauffeur offers with a car and driver. Quotes are confirmed before travel.",
-    kicker: "Current offers",
-    heading: "Special Offers",
-    lede: "These are the published offers that are ready to request. A team member confirms the quote before travel.",
-    empty:
-      "There are no published special offers right now. Ask the team about a city tour or a private car and driver.",
-    from: "From",
-    terms: "Terms",
-    book: "Request this offer",
-  },
-  pt: {
-    title: "Ofertas especiais",
-    description:
-      "Ofertas de motorista publicadas, com carro e condutor. O orçamento confirma-se antes da viagem.",
-    kicker: "Ofertas atuais",
-    heading: "Ofertas especiais",
-    lede: "Estas são as ofertas publicadas e prontas a pedir. Um membro da equipa confirma o orçamento antes da viagem.",
-    empty:
-      "Não há ofertas especiais publicadas neste momento. Fale com a equipa sobre um passeio pela cidade ou um carro com motorista.",
-    from: "Desde",
-    terms: "Condições",
-    book: "Pedir esta oferta",
-  },
-  "zh-Hant": {
-    title: "特別優惠",
-    description: "已發布的司機接送優惠，附車輛及司機。出發前由團隊確認報價。",
-    kicker: "最新優惠",
-    heading: "特別優惠",
-    lede: "以下為已發布、可供申請的優惠。出發前由團隊確認報價。",
-    empty: "目前沒有已發布的特別優惠。歡迎向團隊查詢城市遊覽或包車司機服務。",
-    from: "起",
-    terms: "條款",
-    book: "申請此優惠",
-  },
-}[locale];
+const copy = specialOfferUi(locale);
 
 let items: Awaited<ReturnType<typeof listPublicOffers>>["items"] = [];
 try {
@@ -56,13 +21,35 @@ try {
 } catch {
   items = [];
 }
+const widgetOffers = items.map((item) => ({ id: item.id, title: item.title }));
 ---
 
-<BaseLayout title={copy.title} description={copy.description}>
-  <section class="section page-content" aria-labelledby="special-offers-title" data-no-localize>
+<BaseLayout
+  title={copy.title}
+  description={copy.description}
+  bookingEnabled={true}
+  showMobileBook={false}
+  specialOffers={widgetOffers}
+>
+  <PageHero
+    className="hero--city-tours"
+    eyebrow={copy.heroEyebrow}
+    title={copy.heroTitle}
+    lede={copy.heroLede}
+    imageSrc="/images/illustrative/city-tours-hero.jpg"
+    imageAlt="Illustrative scene of a private car with visitors in Macau."
+  >
+    <BookingEmbedded
+      slot="booking"
+      client:only="react"
+      sourcePage={Astro.url.pathname}
+      enquiryKind="special_offer"
+    />
+  </PageHero>
+  <section class="section page-offers" aria-labelledby="special-offers-title" data-no-localize>
     <div class="wrap">
       <p class="kicker">{copy.kicker}</p>
-      <h1 id="special-offers-title">{copy.heading}</h1>
+      <h2 id="special-offers-title">{copy.heading}</h2>
       <p class="lede">{copy.lede}</p>
       {
         items.length === 0 ? (
@@ -72,7 +59,10 @@ try {
             {items.map((item, index) => (
               <article class="home-tour-card">
                 {item.mainPhotoUrl && (
-                  <div class="home-tour-card__media">
+                  <a
+                    class="home-tour-card__media"
+                    href={localePath(`/special-offers/${item.id}`, locale)}
+                  >
                     <img
                       src={item.mainPhotoThumbUrl ?? item.mainPhotoUrl}
                       srcset={
@@ -88,10 +78,12 @@ try {
                       decoding="async"
                       fetchpriority={index === 0 ? "high" : "low"}
                     />
-                  </div>
+                  </a>
                 )}
                 <div class="home-tour-card__body">
-                  <h2>{item.title}</h2>
+                  <h3>
+                    <a href={localePath(`/special-offers/${item.id}`, locale)}>{item.title}</a>
+                  </h3>
                   <p>{item.description}</p>
                   {item.priceFrom != null && (
                     <p class="home-tour-card__fact">
@@ -106,7 +98,7 @@ try {
                   <p>
                     <a
                       class="btn btn--primary"
-                      href={localePath("/services/city-tours/special-offer", locale)}
+                      href={localePath(`/special-offers/${item.id}`, locale)}
                     >
                       {copy.book}
                     </a>
@@ -122,6 +114,18 @@ try {
 </BaseLayout>
 
 <style>
+  :global(.hero--city-tours) {
+    min-height: 76svh;
+  }
+  :global(.hero--city-tours .hero__bg img) {
+    object-position: center 42%;
+  }
+  .page-offers {
+    scroll-margin-top: calc(var(--header-height) + 1rem);
+  }
+  .page-offers h2 {
+    margin: 0 0 0.75rem;
+  }
   .home-tour-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -155,6 +159,19 @@ try {
     gap: 0.7rem;
     padding: 1.35rem 1.4rem 1.45rem;
   }
+  .home-tour-card h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    line-height: 1.25;
+  }
+  .home-tour-card h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .home-tour-card h3 a:hover,
+  .home-tour-card h3 a:focus-visible {
+    color: var(--color-accent-strong);
+  }
   @media (max-width: 1000px) {
     .home-tour-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -163,6 +180,9 @@ try {
   @media (max-width: 700px) {
     .home-tour-grid {
       grid-template-columns: minmax(0, 1fr);
+    }
+    :global(.hero--city-tours) {
+      min-height: 72svh;
     }
   }
 </style>

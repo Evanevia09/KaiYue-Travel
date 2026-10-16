@@ -16,6 +16,7 @@ type Props = {
   bookingEnabled?: boolean;
   ogImage?: string;
   preserveMetadata?: boolean;
+  specialOffers?: Array<{ id: string; title: string }>;
 };
 
 const {
@@ -26,6 +27,7 @@ const {
   bookingEnabled = false,
   ogImage = site.defaultOgImage,
   preserveMetadata = false,
+  specialOffers,
 } = Astro.props;
 const origin = Astro.site ?? site.url;
 const canonical = new URL(Astro.url.pathname, origin).toString();
@@ -34,7 +36,12 @@ const locale = localeFromPath(Astro.url.pathname);
 const path = stripLocale(Astro.url.pathname);
 const isHome = path === "/";
 const tourPackages = bookingEnabled
-  ? (await getCollection("cityTours", ({ data }) => data.status !== "hidden"))
+  ? (
+      await getCollection(
+        "cityTours",
+        ({ id, data }) => data.status !== "hidden" && id !== "special-offer",
+      )
+    )
       .sort((a, b) => a.data.order - b.data.order || a.id.localeCompare(b.id))
       .map(({ id, data }) => {
         const translation = locale === "en" ? data : (data.translations?.[locale] ?? data);
@@ -122,6 +129,13 @@ function isSectionCurrent(item: (typeof nav)[number]) {
       bookingEnabled && (
         <script is:inline define:vars={{ tourPackages }}>
           window.__KY_TOUR_PACKAGES = tourPackages;
+        </script>
+      )
+    }
+    {
+      specialOffers && (
+        <script is:inline define:vars={{ specialOffers }}>
+          window.__KY_SPECIAL_OFFERS = specialOffers;
         </script>
       )
     }
@@ -301,8 +315,9 @@ function isSectionCurrent(item: (typeof nav)[number]) {
           <SiteLogo loading="lazy" />
           <p>{site.legalName}</p>
           <p class="draft-note">
-            Private bookings on this site are Macau chauffeur requests, quoted after review.
-            Corporate, hotel, and agency programmes follow the Kai Yue Group portfolio.
+            Private bookings on this site are chauffeur requests for Macau, Mainland China, and Hong
+            Kong, quoted after review. Corporate, hotel, and agency programmes follow the Kai Yue
+            Group portfolio.
           </p>
           <p>
             <a href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a>

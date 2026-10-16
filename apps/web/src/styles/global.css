@@ -815,6 +815,61 @@ a {
   margin-top: 0.85rem;
 }
 
+/* Beat later .card / .field rules so the contact enquiry card stays green. */
+.hero--inquiry .card.card--enquiry,
+.card.card--enquiry {
+  /* Brand canvas green #008c5e, darkened so white text meets WCAG 2.2 AA. */
+  background: #00704b;
+  border-color: #005c3e;
+  color: #fff;
+  box-shadow: 0 18px 40px rgb(0 48 32 / 28%);
+}
+
+.hero--inquiry .card.card--enquiry:hover,
+.card.card--enquiry:hover {
+  border-color: #004d34;
+  box-shadow: 0 22px 46px rgb(0 48 32 / 32%);
+}
+
+.card.card--enquiry h2,
+.card.card--enquiry label,
+.card.card--enquiry .field-label,
+.card.card--enquiry .field span,
+.card.card--enquiry p {
+  color: #fff;
+}
+
+.card.card--enquiry .field label,
+.card.card--enquiry .field-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.card.card--enquiry .field input:not([type="checkbox"]),
+.card.card--enquiry .field select,
+.card.card--enquiry .field textarea {
+  background: #fff;
+  color: #111;
+  border-color: #cfe8dc;
+}
+
+.card.card--enquiry .field-error,
+.card.card--enquiry .form-error {
+  color: #ffe8e6;
+  font-weight: 700;
+}
+
+.card.card--enquiry .btn--primary {
+  background: #fff;
+  color: #004d34;
+}
+
+.card.card--enquiry .btn--primary:hover,
+.card.card--enquiry .btn--primary:focus-visible {
+  background: #f3fff8;
+  color: #003d29;
+}
+
 .inquiry-form {
   gap: 0.7rem;
 }
@@ -943,6 +998,10 @@ a {
   justify-content: space-between;
   padding: 0.6rem 1.15rem 0;
   background: white;
+  color: #111;
+}
+
+.booking-card__header--minimal h2 {
   color: #111;
 }
 

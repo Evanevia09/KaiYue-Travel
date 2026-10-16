@@ -27,10 +27,11 @@ const serviceSchema = {
   serviceType: service.title,
   description: service.seoDescription,
   url: pageUrl,
-  areaServed: {
-    "@type": "City",
-    name: "Macau",
-  },
+  areaServed: [
+    { "@type": "City", name: "Macau" },
+    { "@type": "City", name: "Hong Kong" },
+    { "@type": "AdministrativeArea", name: "Greater Bay Area" },
+  ],
   provider: {
     "@type": "Organization",
     name: site.name,

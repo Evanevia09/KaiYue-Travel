@@ -204,10 +204,12 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
                     </td>
                     <td>
                       <strong>{item.pickupLocation}</strong>
-                      <small>→ {item.destination || "Hourly service"}</small>
+                      <small>→ {item.destination || item.offerTitle || "Hourly service"}</small>
                       <small>
-                        {SERVICE_LABELS[item.serviceType as keyof typeof SERVICE_LABELS] ??
-                          item.serviceType}
+                        {item.offerTitle
+                          ? `Special offer: ${item.offerTitle}`
+                          : (SERVICE_LABELS[item.serviceType as keyof typeof SERVICE_LABELS] ??
+                            item.serviceType)}
                       </small>
                     </td>
                     <td>
