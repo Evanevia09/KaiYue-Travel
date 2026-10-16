@@ -5,10 +5,21 @@ import { localeFromPath, localePath, publicSourcePage, stripLocale } from "./i18
 describe("public locale routing", () => {
   it("retains ordinary metadata localization when preservation is disabled", () => {
     const result = localizeHtml(
-      '<meta name="description" content="Private travel in Macau" data-no-localize="false">',
+      '<meta name="description" content="Private chauffeur travel" data-no-localize="false">',
       "pt",
     );
-    expect(result).toContain('content="Viagens privadas em Macau"');
+    expect(result).toContain('content="Viagens privadas com motorista"');
+  });
+
+  it("localizes Greater Bay Area chauffeur framing in Portuguese and Traditional Chinese", () => {
+    const markup =
+      "<h1>Your reliable private chauffeur across the Greater Bay Area</h1><p>Private chauffeur travel</p>";
+    const pt = localizeHtml(markup, "pt");
+    const zh = localizeHtml(markup, "zh-Hant");
+    expect(pt).toContain(">O seu motorista privado de confiança na Grande Baía</h1>");
+    expect(pt).toContain(">Viagens privadas com motorista</p>");
+    expect(zh).toContain(">大灣區可信賴的私人司機接送</h1>");
+    expect(zh).toContain(">私人司機出行</p>");
   });
   it("preserves declared English package Markdown while localizing the surrounding page", () => {
     const result = localizeHtml(
@@ -31,10 +42,10 @@ describe("public locale routing", () => {
 
   it("translates public copy and links without changing a React island before hydration", () => {
     const result = localizeHtml(
-      '<!doctype html><html lang="pt-PT"><head><meta name="description" content="Private travel in Macau"></head><body><a href="/services/airport-transfer?from=home">Airport Transfer</a><a href="/admin">Admin</a><astro-island><span>Airport Transfer</span></astro-island></body></html>',
+      '<!doctype html><html lang="pt-PT"><head><meta name="description" content="Private chauffeur travel"></head><body><a href="/services/airport-transfer?from=home">Airport Transfer</a><a href="/admin">Admin</a><astro-island><span>Airport Transfer</span></astro-island></body></html>',
       "pt",
     );
-    expect(result).toContain('content="Viagens privadas em Macau"');
+    expect(result).toContain('content="Viagens privadas com motorista"');
     expect(result).toContain('href="/pt/services/airport-transfer?from=home"');
     expect(result).toContain(">Transfer do aeroporto</a>");
     expect(result).toContain('href="/admin"');
@@ -49,6 +60,15 @@ describe("public locale routing", () => {
     expect(result).toContain('href="/pt/special-offers"');
     expect(result).toContain(">Ofertas especiais</a>");
     expect(result).toContain(">Meio dia</a>");
+  });
+
+  it("localizes a special-offer package page link", () => {
+    const result = localizeHtml(
+      '<a href="/special-offers/3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33">Request this offer</a>',
+      "pt",
+    );
+    expect(result).toContain('href="/pt/special-offers/3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33"');
+    expect(result).toContain(">Pedir esta oferta</a>");
   });
 
   it("keeps 600-E in the zh-Hant footer address", () => {

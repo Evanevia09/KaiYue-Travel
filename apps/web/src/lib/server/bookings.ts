@@ -23,6 +23,7 @@ import {
   writeIdempotency,
 } from "./idempotency.ts";
 import { sendNotifications } from "./notifications.ts";
+import { getPublicOffer } from "./offers/service.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
 
 export type BookingRow = {
@@ -54,6 +55,8 @@ export type BookingRow = {
   updated_at: string;
   driver_id: string | null;
   vehicle_id: string | null;
+  offer_id: string | null;
+  offer_title: string | null;
 };
 
 function publicLocale(value: string): Locale {
@@ -69,6 +72,7 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     pickup: "Pickup",
     return: "Return",
     package: "Tour package",
+    offer: "Special offer",
     duration: "Duration",
     hours: "hours",
     passengers: "Passengers",
@@ -85,6 +89,7 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     pickup: "Recolha",
     return: "Regresso",
     package: "Pacote",
+    offer: "Oferta especial",
     duration: "Duração",
     hours: "horas",
     passengers: "Passageiros",
@@ -101,6 +106,7 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     pickup: "上車時間",
     return: "回程時間",
     package: "遊覽套票",
+    offer: "特別優惠",
     duration: "用車時數",
     hours: "小時",
     passengers: "乘客人數",
@@ -134,6 +140,17 @@ const whatsappServices: Record<Locale, Record<string, string>> = {
     custom: "訂製服務",
   },
 };
+
+const specialOfferServiceLabels: Record<Locale, string> = {
+  en: "special offer",
+  pt: "Oferta especial",
+  "zh-Hant": "特別優惠",
+};
+
+function whatsappServiceName(locale: Locale, serviceType: string, isSpecialOffer: boolean): string {
+  if (isSpecialOffer) return specialOfferServiceLabels[locale];
+  return whatsappServices[locale][serviceType] ?? serviceType.replaceAll("_", " ");
+}
 
 export function bookingToPublic(row: BookingRow) {
   const locale = publicLocale(row.locale);
@@ -188,6 +205,8 @@ export function bookingToAdmin(row: BookingRow) {
     updatedAt: row.updated_at,
     driverId: row.driver_id,
     vehicleId: row.vehicle_id,
+    offerId: row.offer_id ?? null,
+    offerTitle: row.offer_title ?? null,
   };
 }
 
@@ -197,11 +216,13 @@ function bookingNotes(payload: BookingCreatePayload): string | null {
       ? `Duration: ${payload.durationHours} hours.`
       : undefined;
   const packageNote =
-    payload.serviceType === "city_tour" && payload.tourPackageTitle && payload.tourPackageId
-      ? `City tour package: ${payload.tourPackageTitle} (${payload.tourPackageId}).${
-          payload.tourDurationHours ? ` Duration: ${payload.tourDurationHours} hours.` : ""
-        }`
-      : undefined;
+    payload.offerId && payload.offerTitle
+      ? `Special offer: ${payload.offerTitle} (${payload.offerId}).`
+      : payload.serviceType === "city_tour" && payload.tourPackageTitle && payload.tourPackageId
+        ? `City tour package: ${payload.tourPackageTitle} (${payload.tourPackageId}).${
+            payload.tourDurationHours ? ` Duration: ${payload.tourDurationHours} hours.` : ""
+          }`
+        : undefined;
   const luggageNote = [
     payload.luggageCount != null ? `Big luggage: ${payload.luggageCount}.` : undefined,
     payload.handCarryCount != null ? `Hand carry: ${payload.handCarryCount}.` : undefined,
@@ -231,9 +252,9 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     `INSERT INTO bookings (
       id, reference, status, service_type, pickup_location, destination, pickup_at, return_at,
       passenger_count, luggage_count, vehicle_preference, communication_channel, contact_name, phone, phone_display,
-      email, company, message, notes, source_page, source_trigger, source_mode, locale, notification_state,
+      email, company, message, notes, offer_id, offer_title, source_page, source_trigger, source_mode, locale, notification_state,
       created_at, updated_at
-    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
     id,
     reference,
     payload.serviceType,
@@ -252,6 +273,8 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     payload.company ?? null,
     payload.message,
     bookingNotes(payload),
+    payload.offerId ?? null,
+    payload.offerTitle ?? null,
     payload.sourcePage,
     payload.sourceTrigger,
     payload.sourceMode,
@@ -308,6 +331,20 @@ export async function createBooking(
     fail("VALIDATION_FAILED", "Check the highlighted fields.", { pickupAt: noticeError });
   }
 
+  if (parsed.data.offerId) {
+    try {
+      const { item } = await getPublicOffer(env, parsed.data.offerId);
+      parsed.data.offerTitle = item.title;
+      parsed.data.tourPackageId = item.id;
+      parsed.data.tourPackageTitle = item.title;
+    } catch {
+      fail("VALIDATION_FAILED", "Check the highlighted fields.", {
+        offerId: "Choose a published special offer.",
+        tourPackageId: "Choose a published special offer.",
+      });
+    }
+  }
+
   const keyHash = await hashIdempotency(idempotencyKey);
   const requestHash = await hashRequest(parsed.data);
   const replay = await readIdempotency(env.DB, keyHash, requestHash);
@@ -347,13 +384,17 @@ export async function createBooking(
               label: "Destination",
               value:
                 parsed.data.destination ??
-                (parsed.data.serviceType === "city_tour"
-                  ? (parsed.data.tourPackageTitle ?? "City tour")
-                  : "Hourly service"),
+                (parsed.data.offerTitle
+                  ? parsed.data.offerTitle
+                  : parsed.data.serviceType === "city_tour"
+                    ? (parsed.data.tourPackageTitle ?? "City tour")
+                    : "Hourly service"),
             },
-            ...(parsed.data.serviceType === "city_tour" && parsed.data.tourPackageTitle
-              ? [{ label: "Tour package", value: parsed.data.tourPackageTitle }]
-              : []),
+            ...(parsed.data.offerTitle
+              ? [{ label: "Special offer", value: parsed.data.offerTitle }]
+              : parsed.data.serviceType === "city_tour" && parsed.data.tourPackageTitle
+                ? [{ label: "Tour package", value: parsed.data.tourPackageTitle }]
+                : []),
             { label: "Pickup time", value: parsed.data.pickupAt },
             { label: "Passengers", value: String(parsed.data.passengerCount) },
             ...(parsed.data.luggageCount != null
@@ -380,17 +421,21 @@ export async function createBooking(
     const number = (env.WHATSAPP_NUMBER || "+85328338882").replace(/\D/g, "");
     const locale = publicLocale(parsed.data.locale);
     const label = whatsappLabels[locale];
-    const service =
-      whatsappServices[locale][parsed.data.serviceType] ??
-      parsed.data.serviceType.replaceAll("_", " ");
+    const service = whatsappServiceName(
+      locale,
+      parsed.data.serviceType,
+      Boolean(parsed.data.offerId),
+    );
     const lines = [
       `${label.heading} ${row.reference}`,
       `${label.service}: ${service}`,
       `${label.from}: ${parsed.data.pickupLocation}`,
       ...(parsed.data.destination ? [`${label.to}: ${parsed.data.destination}`] : []),
-      ...(parsed.data.tourPackageTitle
-        ? [`${label.package}: ${parsed.data.tourPackageTitle}`]
-        : []),
+      ...(parsed.data.offerTitle
+        ? [`${label.offer}: ${parsed.data.offerTitle}`]
+        : parsed.data.tourPackageTitle
+          ? [`${label.package}: ${parsed.data.tourPackageTitle}`]
+          : []),
       `${label.pickup}: ${parsed.data.pickupAt}`,
       ...(parsed.data.returnAt ? [`${label.return}: ${parsed.data.returnAt}`] : []),
       ...((

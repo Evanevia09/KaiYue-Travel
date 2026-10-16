@@ -46,6 +46,7 @@ describe("special offers API", () => {
         "idx_bookings_status_created",
         "idx_bookings_status_updated",
         "idx_bookings_notification_state",
+        "idx_bookings_offer_id",
       ]),
     );
   });

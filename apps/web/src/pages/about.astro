@@ -15,9 +15,9 @@ const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
 const portfolio = [
   {
     number: "01",
-    title: "Private travel in Macau",
+    title: "Private chauffeur travel",
     description:
-      "Airport transfers, local rides, chauffeur hire, weddings, and city journeys planned around your Macau itinerary.",
+      "Airport transfers, local rides, chauffeur hire, and weddings across Macau, Mainland China, and Hong Kong. City tours remain a Macau outing.",
     href: "/services/airport-transfer",
     link: "Explore private services",
   },
@@ -25,7 +25,7 @@ const portfolio = [
     number: "02",
     title: "Corporate mobility",
     description:
-      "Executive reception, recurring business cars, events, and meeting travel across Macau and selected Greater Bay Area routes.",
+      "Executive reception, recurring business cars, events, and meeting travel across Macau, Mainland China, Hong Kong, and selected Greater Bay Area routes.",
     href: "/corporate",
     link: "Explore corporate solutions",
   },
@@ -57,14 +57,14 @@ const scenarios = [
 
 <BaseLayout
   title="About Kai Yue Travel Group"
-  description="Kai Yue Travel Group's Macau history, private travel services, corporate mobility programmes, alliance partners, and Greater Bay Area business footprint."
+  description="Kai Yue Travel Group's Macau history, chauffeur services across Macau, Mainland China, and Hong Kong, corporate mobility programmes, alliance partners, and Greater Bay Area business footprint."
 >
   <JsonLd slot="head" data={organizationJsonLd(pageUrl)} />
   <PageHero
     className="hero--about"
     eyebrow="About us"
-    title="Kai Yue Travel Group, rooted in Macau"
-    lede="Private travel in Macau sits alongside business mobility programmes we develop with Mingmen Tourism and Mingmen Technology."
+    title="Kai Yue Travel Group, chauffeur services across the Greater Bay Area"
+    lede="Private chauffeur services across Macau, Mainland China, and Hong Kong sit alongside business mobility programmes we develop with Mingmen Tourism and Mingmen Technology."
     imageSrc="/images/illustrative/about-fleet-hero.jpg"
     imageAlt="Illustrative company team and drivers standing before a parked Alphard fleet and office building"
   />
@@ -90,8 +90,8 @@ const scenarios = [
         </p>
         <p>
           {site.groupLegalName} ({site.groupLegalNameZh}) is the wider group. Alongside individual
-          journeys, Kai Yue works with business partners on transport programmes that can span Macau
-          and Mainland destinations.
+          journeys, Kai Yue works with business partners on transport programmes that can span
+          Macau, Mainland China, and Hong Kong.
         </p>
         <div class="about-timeline" aria-label="Company milestones">
           <div><strong>2009</strong><span>Travel company established in Macau</span></div>
@@ -111,8 +111,8 @@ const scenarios = [
           </h2>
         </div>
         <p>
-          From a single Macau journey to a recurring company programme, each service has a clear
-          route to the right team.
+          From a single chauffeur journey across the Greater Bay Area to a recurring company
+          programme, each service has a clear route to the right team.
         </p>
       </div>
       <div class="about-portfolio-grid">
@@ -155,7 +155,7 @@ const scenarios = [
               <p class="about-alliance-grid__role">{member.role}</p>
               <p>
                 {index === 0
-                  ? "Kai Yue Travel Group brings Macau travel services and transport capacity to business programmes."
+                  ? "Kai Yue Travel Group brings chauffeur services across Macau, Mainland China, and Hong Kong, plus transport capacity, to business programmes."
                   : index === 1
                     ? "Mingmen Tourism coordinates dispatch, chauffeurs, and day-to-day journey operations."
                     : "Mingmen Technology brings its One-Click Travel platform to booking and operational coordination."}
@@ -184,8 +184,8 @@ const scenarios = [
       <div class="about-business__panel">
         <h3>Where programmes can take shape</h3>
         <p>
-          Business programmes cover Macau, Zhuhai, Guangzhou, Shenzhen, Zhongshan, and Jiangmen,
-          with route details discussed for each programme.
+          Business programmes cover Macau, Hong Kong, Zhuhai, Guangzhou, Shenzhen, Zhongshan, and
+          Jiangmen, with route details discussed for each programme.
         </p>
         <ul>{scenarios.map((scenario) => <li>{scenario}</li>)}</ul>
       </div>
@@ -223,8 +223,8 @@ const scenarios = [
         <p class="kicker">Start a conversation</p>
         <h2 id="about-contact">Tell us where you want to go next</h2>
         <p class="lede">
-          Whether you are planning private travel in Macau or exploring an ongoing business
-          programme, share your needs with our team.
+          Whether you are planning private chauffeur travel across the Greater Bay Area or exploring
+          an ongoing business programme, share your needs with our team.
         </p>
         <div class="feature-lines">
           <div>

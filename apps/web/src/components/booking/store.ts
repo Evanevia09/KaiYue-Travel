@@ -6,6 +6,7 @@ import {
 } from "@kaiyue/contracts";
 
 export type BookingMode = "embedded" | "bottom-sheet" | "page";
+export type BookingEnquiryKind = "standard" | "special_offer";
 
 export type BookingUiStatus =
   | "closed"
@@ -45,6 +46,7 @@ export type BookingEntryContext = {
   mode: BookingMode;
   sourcePage: string;
   sourceTrigger: string;
+  enquiryKind?: BookingEnquiryKind;
   initialServiceType?: ServiceType;
   initialTourPackageId?: string;
   initialTourPackageTitle?: string;
@@ -90,7 +92,12 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
 });
 
 function defaultContext(): BookingEntryContext {
-  return { mode: "bottom-sheet", sourcePage: "/", sourceTrigger: "header" };
+  return {
+    mode: "bottom-sheet",
+    sourcePage: "/",
+    sourceTrigger: "header",
+    enquiryKind: "standard",
+  };
 }
 
 function createState(): BookingState {
@@ -204,29 +211,44 @@ function withoutEmpty<T extends Record<string, unknown>>(value: T | null): Parti
   ) as Partial<T>;
 }
 
+export function patchBookingContext(patch: Partial<BookingEntryContext>): void {
+  state = { ...state, context: { ...state.context, ...patch } };
+  emit();
+}
+
 export function openBooking(context: BookingEntryContext): void {
   const restored = withoutEmpty(restoreJourney());
-  const serviceType = context.initialTourPackageId
-    ? "city_tour"
-    : (context.initialServiceType ?? restored.serviceType ?? state.draft.serviceType);
+  const enquiryKind = context.enquiryKind ?? state.context.enquiryKind ?? "standard";
+  const serviceType =
+    enquiryKind === "special_offer"
+      ? "city_tour"
+      : context.initialTourPackageId
+        ? "city_tour"
+        : (context.initialServiceType ?? restored.serviceType ?? state.draft.serviceType);
   const cityTour = serviceType === "city_tour";
   const hourly = serviceType === "hourly_charter";
+  const nextContext = { ...context, enquiryKind };
   const draft = {
     ...state.draft,
     ...restored,
     serviceType,
     destination: cityTour || hourly ? "" : (restored.destination ?? state.draft.destination),
     returnAt: cityTour || hourly ? "" : (restored.returnAt ?? state.draft.returnAt),
-    tourPackageId: cityTour ? (context.initialTourPackageId ?? restored.tourPackageId ?? "") : "",
+    tourPackageId: cityTour
+      ? (context.initialTourPackageId ?? state.draft.tourPackageId ?? restored.tourPackageId ?? "")
+      : "",
     tourPackageTitle: cityTour
-      ? (context.initialTourPackageTitle ?? restored.tourPackageTitle ?? "")
+      ? (context.initialTourPackageTitle ??
+        state.draft.tourPackageTitle ??
+        restored.tourPackageTitle ??
+        "")
       : "",
   };
   state = {
     ...state,
     open: true,
     status: isDirty(draft) ? "open.editing" : "open.pristine",
-    context,
+    context: nextContext,
     draft,
     fieldErrors: {},
     formError: undefined,

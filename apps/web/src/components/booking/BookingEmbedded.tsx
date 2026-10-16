@@ -1,7 +1,14 @@
 import type { ServiceType } from "@kaiyue/contracts";
 import { Component, useSyncExternalStore, type ReactNode } from "react";
+import { localeFromPath } from "../../lib/i18n.ts";
+import { specialOfferUi } from "../../lib/special-offer-copy.ts";
 import { BookingForm } from "./BookingForm.tsx";
-import { getBookingState, openBooking, subscribeBooking } from "./store.ts";
+import {
+  getBookingState,
+  openBooking,
+  subscribeBooking,
+  type BookingEnquiryKind,
+} from "./store.ts";
 
 type Props = {
   sourcePage: string;
@@ -9,6 +16,7 @@ type Props = {
   serviceType?: ServiceType;
   tourPackageId?: string;
   tourPackageTitle?: string;
+  enquiryKind?: BookingEnquiryKind;
 };
 
 class BookingErrorBoundary extends Component<{ children: ReactNode }, { message: string | null }> {
@@ -35,8 +43,11 @@ export function BookingEmbedded({
   serviceType,
   tourPackageId,
   tourPackageTitle,
+  enquiryKind = "standard",
 }: Props) {
   const state = useSyncExternalStore(subscribeBooking, getBookingState, getBookingState);
+  const specialOffer = enquiryKind === "special_offer";
+  const copy = specialOfferUi(localeFromPath(sourcePage));
 
   // The sheet and embedded form share one draft/step. Never mount a second form
   // behind an open sheet, and keep step 2 exclusively in that sheet.
@@ -47,7 +58,7 @@ export function BookingEmbedded({
   return (
     <section className="booking-card booking-card--hero" aria-labelledby="embedded-booking-title">
       <h2 id="embedded-booking-title" className="sr-only">
-        Request a private chauffeur
+        {specialOffer ? copy.enquiryTitle : "Request a private chauffeur"}
       </h2>
       <div className="booking-card__body">
         {state.step === 2 ? (
@@ -59,10 +70,14 @@ export function BookingEmbedded({
                 mode: "bottom-sheet",
                 sourcePage,
                 sourceTrigger: "hero-embed",
+                enquiryKind,
+                initialServiceType: tourPackageId || specialOffer ? "city_tour" : serviceType,
+                initialTourPackageId: tourPackageId,
+                initialTourPackageTitle: tourPackageTitle,
               })
             }
           >
-            Continue request →
+            {specialOffer ? copy.continue : "Continue request →"}
           </button>
         ) : (
           <BookingErrorBoundary>
@@ -70,7 +85,8 @@ export function BookingEmbedded({
               compact
               sourcePage={sourcePage}
               sourceTrigger="hero-embed"
-              initialServiceType={tourPackageId ? "city_tour" : serviceType}
+              enquiryKind={enquiryKind}
+              initialServiceType={tourPackageId || specialOffer ? "city_tour" : serviceType}
               initialTourPackageId={tourPackageId}
               initialTourPackageTitle={tourPackageTitle}
             />

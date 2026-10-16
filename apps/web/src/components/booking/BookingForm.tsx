@@ -7,18 +7,22 @@ import {
 } from "@kaiyue/contracts";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { localeFromPath, publicSourcePage } from "../../lib/i18n.ts";
+import { specialOfferUi } from "../../lib/special-offer-copy.ts";
 import { BookingIcon } from "./BookingIcons.tsx";
 import { DateTimePicker } from "./DateTimePicker.tsx";
+import { readSpecialOffers } from "./special-offers.ts";
 import {
   discardBooking,
   fromLocalDateTimeValue,
   getBookingState,
   isDirty,
   openBooking,
+  patchBookingContext,
   setBookingResult,
   setStep,
   subscribeBooking,
   updateDraft,
+  type BookingEnquiryKind,
   type BookingMode,
 } from "./store.ts";
 import { readTourPackages } from "./tour-packages.ts";
@@ -77,13 +81,23 @@ async function submitBooking(entry?: {
       current.draft.serviceType === CITY_TYPE ? current.draft.tourPackageId : undefined,
     tourPackageTitle:
       current.draft.serviceType === CITY_TYPE
-        ? (readTourPackages().find((item) => item.id === current.draft.tourPackageId)?.title ??
-          current.draft.tourPackageTitle)
+        ? current.context.enquiryKind === "special_offer"
+          ? (readSpecialOffers().find((item) => item.id === current.draft.tourPackageId)?.title ??
+            current.draft.tourPackageTitle)
+          : (readTourPackages().find((item) => item.id === current.draft.tourPackageId)?.title ??
+            current.draft.tourPackageTitle)
         : undefined,
     tourDurationHours:
-      current.draft.serviceType === CITY_TYPE
+      current.draft.serviceType === CITY_TYPE && current.context.enquiryKind !== "special_offer"
         ? (readTourPackages().find((item) => item.id === current.draft.tourPackageId)
             ?.durationHours ?? undefined)
+        : undefined,
+    offerId:
+      current.context.enquiryKind === "special_offer" ? current.draft.tourPackageId : undefined,
+    offerTitle:
+      current.context.enquiryKind === "special_offer"
+        ? (readSpecialOffers().find((item) => item.id === current.draft.tourPackageId)?.title ??
+          current.draft.tourPackageTitle)
         : undefined,
     communicationChannel: current.draft.communicationChannel,
     contactName: current.draft.contactName || undefined,
@@ -135,10 +149,12 @@ async function submitBooking(entry?: {
       if (current.draft.communicationChannel === "whatsapp" && body.whatsappUrl) {
         window.location.assign(body.whatsappUrl);
       }
+      const enquiryKind = current.context.enquiryKind;
       discardBooking();
       setBookingResult({
         status: "success",
         open: current.context.mode !== "page",
+        context: { ...getBookingState().context, enquiryKind },
         result: {
           reference: body.reference,
           receivedAt: body.receivedAt,
@@ -174,6 +190,7 @@ type Props = {
   initialServiceType?: ServiceType;
   initialTourPackageId?: string;
   initialTourPackageTitle?: string;
+  enquiryKind?: BookingEnquiryKind;
 };
 
 export function BookingForm({
@@ -184,18 +201,34 @@ export function BookingForm({
   initialServiceType,
   initialTourPackageId,
   initialTourPackageTitle,
+  enquiryKind = "standard",
 }: Props) {
   const state = useSyncExternalStore(subscribeBooking, getBookingState, getBookingState);
   const { draft, fieldErrors, step } = state;
-  const hourly = draft.serviceType === HOURLY_TYPE;
-  const cityTour = draft.serviceType === CITY_TYPE;
-  const packages = readTourPackages();
-  const entry = compact ? { sourcePage, sourceTrigger, mode: "embedded" as const } : undefined;
+  const specialOffer =
+    enquiryKind === "special_offer" || state.context.enquiryKind === "special_offer";
+  const hourly = !specialOffer && draft.serviceType === HOURLY_TYPE;
+  const cityTour = specialOffer || draft.serviceType === CITY_TYPE;
+  const locale = localeFromPath(
+    typeof window === "undefined" ? (sourcePage ?? "/") : window.location.pathname,
+  );
+  const offerCopy = specialOfferUi(locale);
+  const packages = specialOffer ? readSpecialOffers() : readTourPackages();
+  const entry = compact
+    ? {
+        sourcePage,
+        sourceTrigger,
+        mode: "embedded" as const,
+        enquiryKind: specialOffer ? ("special_offer" as const) : enquiryKind,
+      }
+    : undefined;
 
   function advanceFromJourney() {
     const errors: Record<string, string> = {};
     if (draft.pickupLocation.trim().length < 2) errors.pickupLocation = "Enter a pickup location.";
-    if (cityTour && !draft.tourPackageId) errors.tourPackageId = "Choose a tour package.";
+    if (cityTour && !draft.tourPackageId) {
+      errors.tourPackageId = specialOffer ? offerCopy.choosePackageError : "Choose a tour package.";
+    }
     if (destinationRequired(draft.serviceType) && draft.destination.trim().length < 2) {
       errors.destination = "Enter a destination.";
     }
@@ -214,6 +247,10 @@ export function BookingForm({
         mode: "bottom-sheet",
         sourcePage: publicSourcePage(window.location.pathname, sourcePage),
         sourceTrigger: sourceTrigger ?? "hero-embed",
+        enquiryKind: specialOffer ? "special_offer" : "standard",
+        initialServiceType: specialOffer ? CITY_TYPE : draft.serviceType,
+        initialTourPackageId: draft.tourPackageId || undefined,
+        initialTourPackageTitle: draft.tourPackageTitle || undefined,
       });
     }
   }
@@ -224,19 +261,24 @@ export function BookingForm({
   // over a journey the visitor has already started typing.
   const appliedInitialServiceType = useRef(false);
   useEffect(() => {
+    if (specialOffer) {
+      patchBookingContext({ enquiryKind: "special_offer" });
+    }
     if (appliedInitialServiceType.current) {
       return;
     }
     appliedInitialServiceType.current = true;
     const current = getBookingState();
-    if (initialTourPackageId) {
-      if (current.draft.pickupLocation.trim()) return;
+    if (specialOffer || initialTourPackageId) {
+      if (current.draft.pickupLocation.trim() && current.context.enquiryKind === "special_offer") {
+        return;
+      }
       updateDraft({
         serviceType: CITY_TYPE,
         destination: "",
         returnAt: "",
-        tourPackageId: initialTourPackageId,
-        tourPackageTitle: initialTourPackageTitle ?? "",
+        tourPackageId: initialTourPackageId ?? current.draft.tourPackageId,
+        tourPackageTitle: initialTourPackageTitle ?? current.draft.tourPackageTitle,
       });
       return;
     }
@@ -247,7 +289,13 @@ export function BookingForm({
       return;
     }
     updateDraft({ serviceType: initialServiceType });
-  }, [initialServiceType, initialTourPackageId, initialTourPackageTitle]);
+  }, [
+    enquiryKind,
+    initialServiceType,
+    initialTourPackageId,
+    initialTourPackageTitle,
+    specialOffer,
+  ]);
 
   if (state.status === "success" && state.result) {
     return (
@@ -307,7 +355,7 @@ export function BookingForm({
         void submitBooking(entry);
       }}
     >
-      {step === 1 ? (
+      {step === 1 && !specialOffer ? (
         <div className="ride-toggle" role="group" aria-label="Ride type">
           <button
             type="button"
@@ -323,7 +371,7 @@ export function BookingForm({
             <BookingIcon name="pin" size={16} /> City tours
           </button>
         </div>
-      ) : progressInHeader ? null : (
+      ) : progressInHeader ? null : specialOffer ? null : (
         <BookingProgress step={step} />
       )}
 
@@ -354,7 +402,9 @@ export function BookingForm({
                 <BookingIcon name="pin" />
               </span>
               <div className="booking-bar__fields">
-                <label htmlFor="tourPackageId">Tour package</label>
+                <label htmlFor="tourPackageId">
+                  {specialOffer ? offerCopy.packageLabel : "Tour package"}
+                </label>
                 <select
                   id="tourPackageId"
                   value={draft.tourPackageId}
@@ -366,7 +416,9 @@ export function BookingForm({
                     });
                   }}
                 >
-                  <option value="">Choose a package</option>
+                  <option value="">
+                    {specialOffer ? offerCopy.choosePackage : "Choose a package"}
+                  </option>
                   {packages.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.title}

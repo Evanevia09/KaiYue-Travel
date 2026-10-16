@@ -208,7 +208,7 @@ export function BookingDetailPanel({ reference }: { reference: string }) {
                 </div>
                 <div>
                   <span>Destination</span>
-                  <strong>{booking.destination || "Hourly charter"}</strong>
+                  <strong>{booking.destination || booking.offerTitle || "Hourly charter"}</strong>
                   {booking.returnAt && <small>Return {formatWhen(booking.returnAt)}</small>}
                 </div>
                 <div>
@@ -219,7 +219,17 @@ export function BookingDetailPanel({ reference }: { reference: string }) {
                 <div>
                   <span>Passengers</span>
                   <strong>{booking.passengerCount}</strong>
-                  <small>{booking.serviceType.replaceAll("_", " ")}</small>
+                  <small>
+                    {booking.offerTitle
+                      ? "Special offer"
+                      : booking.serviceType.replaceAll("_", " ")}
+                  </small>
+                  {booking.offerTitle ? (
+                    <small>
+                      Special offer: {booking.offerTitle}
+                      {booking.offerId ? ` (${booking.offerId})` : ""}
+                    </small>
+                  ) : null}
                   {booking.luggageCount != null || booking.handCarryCount != null ? (
                     <small>
                       {booking.luggageCount ?? 0} big luggage · {booking.handCarryCount ?? 0} hand

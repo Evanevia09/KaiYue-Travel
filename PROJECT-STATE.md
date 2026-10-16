@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers publish label and D1 latency on staging PR; not merged to main)
-**Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work and WeChat QR placeholder in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-16 (Special Offer WhatsApp service label + GBA copy + Special Offers pages on staging PR #13; not merged to main)
+**Product-status evidence date:** 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging now also includes the WeChat QR placeholder from PR 9. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview publish fix: **Publishing…** vs **Unpublishing…** from the target state, publish latency under 1 s if possible, and leave-warning/`keepalive` if a write is still in flight. Do not merge to `main`. Do not change D1/R2 bindings.
+**Overall status:** Draft PR #13 on `cursor/special-offers-enquiry-pages-e1be` into `staging` adds Special Offers hero/enquiry/pages and rewrites B2C copy so Kai Yue is a chauffeur service across Macau, Mainland China, and Hong Kong. City Tours stay Macau-only. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review draft PR #13 into `staging` (preview `https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev`). Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -80,7 +80,7 @@ Public page-layout refinement (2026-09-21): home and consumer chauffeur service 
 
 Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark and a compact Point to point / Hourly booking bar. Home and consumer service pages embed Journey and open Communication in one modal; B2B and general inquiry pages use a two-column hero with an inquiry form; FAQ and legal pages have no hero or form. The standalone `/booking` route has been removed. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
-No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy is conservative (Macau, quote-after-review). B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
+No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy (2026-10-16) presents chauffeur services across Macau, Mainland China, and Hong Kong; City Tours stay Macau-only; quotes remain after review. B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
 ## Confirmed decisions
 
@@ -96,7 +96,7 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
 - GitHub is the versioning and deployment source of truth.
 - Booking submission creates a request awaiting human confirmation.
 - Legal names: Kai Yue Group Limited / Kai Yue Travel Group Limited, per the group portfolio.
-- B2B pages follow the Kai Yue Group portfolio; B2C booking pages remain Macau-only quote-after-review.
+- B2B pages follow the Kai Yue Group portfolio; B2C booking pages present chauffeur services across Macau, Mainland China, and Hong Kong (City Tours stay Macau-only), quoted after review.
 
 ## Verified repository state
 
@@ -107,7 +107,7 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
   - `migrations/0001_init.sql` — bookings, contacts, notes, audit, idempotency, rate limits
   - Vitest unit/integration tests and GitHub Actions CI
 - Local/integration tests cover booking create + idempotency, contact validation, admin allow/deny, and audited status transitions.
-- Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, compact booking bar, dark footer). The journey bar uses a custom calendar/time picker instead of the native datetime control. B2C copy remains Macau-only and quote-after-review. B2B pages (`/corporate`, `/business/travel-agency`, `/business/hotels-resorts`) follow the group portfolio. Home and consumer service pages embed one shared booking flow; inquiry pages show one hero form; FAQ/legal/account pages show neither booking nor inquiry forms.
+- Public-site visual system follows `docs/design-refs/transfeero-desktop.jpg` and `docs/design-refs/transfeero-mobile.png` (dark overlay header, gold mark + Kai Yue wordmark, compact booking bar, dark footer). The journey bar uses a custom calendar/time picker instead of the native datetime control. B2C copy (2026-10-16) presents chauffeur services across Macau, Mainland China, and Hong Kong; City Tours stay Macau-only; quotes remain after review. B2B pages (`/corporate`, `/business/travel-agency`, `/business/hotels-resorts`) follow the group portfolio. Home and consumer service pages embed one shared booking flow; inquiry pages show one hero form; FAQ/legal/account pages show neither booking nor inquiry forms.
 - Each chauffeur service has an SEO landing page under `/services/[slug]`. Header Business is a dropdown to Travel agency, Corporate solution, and Hotels & resorts. `/services` redirects to airport transfer. Homepage service cards cover all six services. Standalone `/pricing`, `/fleet`, and `/booking` pages are retired.
 - GitHub Actions `check` job is pinned to the `package.json` `packageManager` version only.
 - Header navigation and motion (2026-09-18): `Help` is removed from the primary menu — `/faq` still exists and stays linked in the footer Company column. Every primary item is now a dropdown (`Point To Point`, `By The Hour`, `Business`, plus the added `City Tours` page). On mobile the same items are collapsed-by-default `<details>` submenus with a rotating chevron, animated reveal, and a panel that drops in under the header. `apps/web/src/scripts/header-menus.ts` owns all header menu behaviour: one menu open at a time (opening a dropdown or the language switch collapses whichever was open, and expanding a mobile group collapses its siblings without closing the panel), an outside click or tap closes the open menu, Escape closes it and returns focus to its summary, following a link closes it, tabbing out of the header abandons a desktop dropdown, and the mobile panel always reopens collapsed. Motion polish is site-wide: dropdown and submenu reveals, hamburger-to-close morph, wizard step entrances (`.booking-bar` / `.booking-fields`), mobile sheet entrance, and hover feedback on buttons, chips, nav items, footer links, cards and form fields. All of it is disabled under `prefers-reduced-motion` and hover effects are gated behind `(hover: hover) and (pointer: fine)`.
@@ -125,7 +125,7 @@ No Cloudflare account, D1 database, Resend domain, or Access policy has been pro
 
 ## Business validation required
 
-Legal names and B2B offer copy are owner-directed to the group portfolio (2026-09-17). Still confirm before launch: B2C phone/hours/address vs B2B phones; whether 200+ may appear on B2C fleet pages; licence number 0162; Hong Kong coverage (not in the group portfolio); notification recipients; privacy/terms. B2C pages must not absorb group-portfolio fleet, GPS, or 7×24 claims.
+Legal names and B2B offer copy are owner-directed to the group portfolio (2026-09-17). B2C geography (2026-10-16) is Macau, Mainland China, and Hong Kong; City Tours stay Macau-only. Still confirm before launch: B2C phone/hours/address vs B2B phones; whether 200+ may appear on B2C fleet pages; licence number 0162; notification recipients; privacy/terms. B2C pages must not absorb group-portfolio fleet, GPS, or 7×24 claims.
 
 ## Open product and technical decisions
 
@@ -160,7 +160,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
-Special Offers next action (2026-10-16): review the publish-label/latency fix on `https://12443955-kaiyue-travel.scalingsmb.workers.dev`. Do not merge this branch to `main`. Remove the test operator after Access is live.
+Special Offers next action (2026-10-16): review the hero, package pages, and enquiry modal on this branch’s Workers preview. Cancel the TEST offer enquiry after checks. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -197,6 +197,31 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Special Offer WhatsApp service label (staging PR, not main)
+
+- Special Offer enquiry WhatsApp/email summaries no longer say `Service: city tour`. They use `special offer` / `Oferta especial` / `特別優惠` while still storing `offer_id` and `offer_title`. City Tours keep the city-tour label.
+- Admin booking detail shows “Special offer” instead of “city tour” when an offer is attached.
+- Preview QA `KY-DAVMC536` marked cancelled on staging D1 `069aa442`. Sample offers unchanged. Do not merge to `main`.
+- Handover: `docs/handover/special-offers-enquiry.md`.
+
+### 2026-10-16 — Greater Bay Area chauffeur copy (staging PR, not main)
+
+- Evan directed that published B2C copy stop framing Kai Yue as Macau-only. The site now presents chauffeur services across Macau, Mainland China, and Hong Kong / the Greater Bay Area.
+- City Tours catalogue, package Markdown, and city-tour service copy stay Macau-only.
+- Hero, home, service SEO/body (except City Tours), footer, about, Special Offers eyebrow, and travel-agency route helper were rewritten in EN with pt and zh-Hant reviewed keys. No new prices, terms, licences, or fleet claims.
+- Handover with every changed string: `docs/handover/gba-chauffeur-copy.md`.
+
+### 2026-10-16 — Special Offers hero, enquiry modal, and package pages (staging PR, not main)
+
+- Contact general-enquiry card uses brand green with white text (AA contrast). A later `.card` rule had been resetting it to white; `.hero--inquiry .card.card--enquiry` now wins.
+- City Tours booking dropdown no longer lists the Markdown `special-offer` option.
+- `/special-offers` has a City Tours-style hero widget whose dropdown is published D1 offers only (SSR, no extra client fetch). Empty catalogue shows no packages.
+- Continuing opens a Special Offer enquiry modal that reuses the City Tour booking workflow and stores `offer_id` / `offer_title` on the booking. `/admin/bookings` shows the package.
+- Published offers have `/special-offers/:id` in EN, pt, and zh-Hant, matching City Tour detail pages. Unpublished or deleted offers 404. Cards link to these pages.
+- Additive migration `0007_booking_offer.sql` only. D1/R2 bindings unchanged. Do not merge to `main`.
+- Preview verified on `https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev` and `https://6bf692da-kaiyue-travel.scalingsmb.workers.dev` at desktop and 390px. Test enquiry `KY-S99HVV5K` (`TEST offer enquiry - delete me` / `qa@kaiyue.test`) stored `[Sample] Zhuhai Day Trip` and was marked cancelled. Sample offers were not edited.
+- Handover: `docs/handover/special-offers-enquiry.md`.
 
 ### 2026-10-16 — Publish label and latency on the Special Offers photos branch (staging PR, not main)
 

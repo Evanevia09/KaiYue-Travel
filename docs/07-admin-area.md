@@ -30,7 +30,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 
 ## Bookings list
 
-- Columns/card fields: reference, pickup date/time, pickup/destination summary, customer name, service type, passenger count, status, received time.
+- Columns/card fields: reference, pickup date/time, pickup/destination summary, customer name, service type, passenger count, status, received time. Special-offer enquiries also show the published package title (and id on the detail page) from `offer_title` / `offer_id`.
 - Filters: date range, status, service type; text lookup by exact/limited reference or approved customer fields.
 - Default sort: nearest relevant pickup first, with overdue/new items visibly flagged.
 - Pagination is server-side. Empty, loading, partial-error, and no-result states are distinct.
