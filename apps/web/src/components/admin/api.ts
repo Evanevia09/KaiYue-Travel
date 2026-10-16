@@ -1,11 +1,18 @@
-export async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+export function adminFetchInit(init?: RequestInit): RequestInit {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const mutating = method !== "GET" && method !== "HEAD";
+  return {
     ...init,
+    keepalive: init?.keepalive ?? mutating,
     headers: {
       "content-type": "application/json",
       ...(init?.headers ?? {}),
     },
-  });
+  };
+}
+
+export async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, adminFetchInit(init));
   const body = (await response.json()) as T & { error?: { message?: string } };
   if (!response.ok) {
     throw new Error(body.error?.message ?? "Admin request failed.");
@@ -75,9 +82,16 @@ export type AdminContact = {
 };
 
 export function formatWhen(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Macau",
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("day")}/${get("month")}/${get("year")}, ${get("hour")}:${get("minute")}`;
 }

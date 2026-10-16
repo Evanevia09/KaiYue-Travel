@@ -8,8 +8,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 class MemoryPreparedStatement {
   constructor(
-    private readonly db: DatabaseSync,
-    private readonly sql: string,
+    readonly db: DatabaseSync,
+    readonly sql: string,
     private readonly params: unknown[] = [],
   ) {}
 
@@ -57,7 +57,11 @@ class MemoryD1 {
   ): Promise<Array<D1QueryResult<T>>> {
     const results: Array<D1QueryResult<T>> = [];
     for (const statement of statements) {
-      results.push((await statement.run()) as D1QueryResult<T>);
+      if (/^\s*select/i.test(statement.sql)) {
+        results.push((await statement.all()) as D1QueryResult<T>);
+      } else {
+        results.push((await statement.run()) as D1QueryResult<T>);
+      }
     }
     return results;
   }

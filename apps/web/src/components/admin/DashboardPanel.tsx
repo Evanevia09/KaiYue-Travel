@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminFetch, formatWhen, type AdminBooking } from "./api.ts";
 
-type Summary = {
+export type DashboardSummary = {
   timezone: string;
   newBookingsToday: number;
   assignedUpcoming: number;
@@ -12,15 +12,16 @@ type Summary = {
   recent: AdminBooking[];
 };
 
-export function DashboardPanel() {
-  const [data, setData] = useState<Summary | null>(null);
+export function DashboardPanel({ initial }: { initial?: DashboardSummary | null }) {
+  const [data, setData] = useState<DashboardSummary | null>(initial ?? null);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    void adminFetch<Summary>("/api/v1/admin/summary")
+    if (initial) return;
+    void adminFetch<DashboardSummary>("/api/v1/admin/summary")
       .then(setData)
       .catch((err: Error) => setError(err.message));
-  }, []);
+  }, [initial]);
 
   if (error) {
     return <p role="alert">{error}</p>;

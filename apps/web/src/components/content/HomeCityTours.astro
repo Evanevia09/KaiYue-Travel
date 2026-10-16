@@ -37,6 +37,16 @@ const copy = {
     fallback: "此套票介紹暫以英文提供。",
   },
 }[locale];
+
+function cardSources(src: string) {
+  if (src.endsWith("city-tours-hero.jpg")) {
+    return { webp: "/images/illustrative/city-tours-hero-800.webp", jpg: src };
+  }
+  if (src.endsWith("city-tours-feature.jpg")) {
+    return { webp: "/images/illustrative/city-tours-feature-800.webp", jpg: src };
+  }
+  return { webp: null as string | null, jpg: src };
+}
 ---
 
 {
@@ -61,13 +71,23 @@ const copy = {
             return (
               <article class="home-tour-card">
                 <div class="home-tour-card__media">
-                  <img
-                    src={data.image}
-                    alt={translation.imageAlt}
-                    width="800"
-                    height="540"
-                    loading="lazy"
-                  />
+                  {(() => {
+                    const sources = cardSources(data.image);
+                    return (
+                      <picture>
+                        {sources.webp ? <source type="image/webp" srcset={sources.webp} /> : null}
+                        <img
+                          src={sources.jpg}
+                          alt={translation.imageAlt}
+                          width="800"
+                          height="540"
+                          loading="lazy"
+                          decoding="async"
+                          fetchpriority="low"
+                        />
+                      </picture>
+                    );
+                  })()}
                 </div>
                 <div class="home-tour-card__body">
                   <p class="home-tour-card__fact">{fact}</p>
@@ -118,10 +138,14 @@ const copy = {
     background: #e8e8e8;
   }
 
+  .home-tour-card__media picture,
   .home-tour-card__media img {
     display: block;
     width: 100%;
     height: 100%;
+  }
+
+  .home-tour-card__media img {
     object-fit: cover;
     transition: transform 420ms ease;
   }

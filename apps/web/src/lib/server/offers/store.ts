@@ -1,14 +1,19 @@
 import { AppError, isOfferReady, type OfferWriteInput } from "@kaiyue/contracts";
 import type { D1Database } from "../env.ts";
-import { all, first, nowIso, run } from "../db.ts";
+import { all, nowIso, run } from "../db.ts";
 
 export type OfferPhotoRecord = {
   id: string;
   offerId: string;
   objectKey: string;
+  thumbObjectKey: string;
   contentType: string;
+  contentHash: string;
   isMain: boolean;
   sortOrder: number;
+  width: number | null;
+  height: number | null;
+  byteSize: number | null;
   createdAt: string;
 };
 
@@ -24,18 +29,44 @@ export type OfferRecord = {
   photos: OfferPhotoRecord[];
 };
 
+export type OfferAuditWrite = {
+  eventType: string;
+  actorId: string;
+  fromValue?: string | null;
+  toValue?: string | null;
+  requestId: string;
+};
+
 export type OfferStore = {
   list(): Promise<OfferRecord[]>;
   get(id: string): Promise<OfferRecord | null>;
   create(input: OfferWriteInput): Promise<OfferRecord>;
   update(id: string, input: OfferWriteInput): Promise<OfferRecord>;
-  setStatus(id: string, status: "draft" | "published"): Promise<OfferRecord>;
+  setStatus(
+    id: string,
+    status: "draft" | "published",
+    audit?: OfferAuditWrite,
+  ): Promise<OfferRecord>;
   delete(id: string): Promise<OfferRecord>;
   addPhoto(
     offerId: string,
-    photo: { objectKey: string; contentType: string; isMain: boolean },
+    photo: {
+      id?: string;
+      objectKey: string;
+      thumbObjectKey: string;
+      contentType: string;
+      contentHash: string;
+      isMain: boolean;
+      width?: number | null;
+      height?: number | null;
+      byteSize?: number | null;
+    },
   ): Promise<OfferRecord>;
-  removePhoto(offerId: string, photoId: string): Promise<{ offer: OfferRecord; objectKey: string }>;
+  listPublished(): Promise<OfferRecord[]>;
+  removePhoto(
+    offerId: string,
+    photoId: string,
+  ): Promise<{ offer: OfferRecord; objectKeys: string[] }>;
   setMainPhoto(offerId: string, photoId: string): Promise<OfferRecord>;
   recordAudit(input: {
     offerId: string;
@@ -62,21 +93,57 @@ type PhotoRow = {
   id: string;
   offer_id: string;
   object_key: string;
+  thumb_object_key: string | null;
   content_type: string;
+  content_hash: string | null;
   is_main: number;
   sort_order: number;
+  width: number | null;
+  height: number | null;
+  byte_size: number | null;
   created_at: string;
 };
 
 function mapPhoto(row: PhotoRow): OfferPhotoRecord {
+  const contentHash = row.content_hash?.trim() || row.id;
   return {
     id: row.id,
     offerId: row.offer_id,
     objectKey: row.object_key,
+    thumbObjectKey: row.thumb_object_key?.trim() || row.object_key,
     contentType: row.content_type,
+    contentHash,
     isMain: row.is_main === 1,
     sortOrder: row.sort_order,
+    width: row.width,
+    height: row.height,
+    byteSize: row.byte_size,
     createdAt: row.created_at,
+  };
+}
+
+export function offerPhotoVersion(photo: Pick<OfferPhotoRecord, "id" | "contentHash">): string {
+  return photo.contentHash?.trim() || photo.id;
+}
+
+export function offerPhotoObjectKeys(
+  photo: Pick<OfferPhotoRecord, "objectKey" | "thumbObjectKey">,
+): string[] {
+  return [...new Set([photo.objectKey, photo.thumbObjectKey].filter(Boolean))];
+}
+
+export function offerPhotoUrls(
+  offerId: string,
+  photo: Pick<OfferPhotoRecord, "id" | "contentHash">,
+  options: { admin?: boolean } = {},
+) {
+  const version = offerPhotoVersion(photo);
+  const base = options.admin
+    ? `/api/admin/offers/${offerId}/photos`
+    : `/api/v1/offers/${offerId}/photos`;
+  return {
+    url: `${base}/${photo.id}/${version}`,
+    thumbUrl: `${base}/${photo.id}/thumb/${version}`,
   };
 }
 
@@ -100,11 +167,16 @@ export function toAdminOffer(offer: OfferRecord) {
   return {
     ...offer,
     complete: isOfferReady(offer),
+    photos: offer.photos.map((photo) => ({
+      ...photo,
+      ...offerPhotoUrls(offer.id, photo, { admin: true }),
+    })),
   };
 }
 
 export function toPublicOffer(offer: OfferRecord) {
   const main = offer.photos.find((photo) => photo.isMain) ?? offer.photos[0];
+  const mainUrls = main ? offerPhotoUrls(offer.id, main) : null;
   return {
     id: offer.id,
     title: offer.title,
@@ -115,9 +187,14 @@ export function toPublicOffer(offer: OfferRecord) {
       id: photo.id,
       contentType: photo.contentType,
       isMain: photo.isMain,
-      url: `/api/v1/offers/${offer.id}/photos/${photo.id}`,
+      width: photo.width,
+      height: photo.height,
+      ...offerPhotoUrls(offer.id, photo),
     })),
-    mainPhotoUrl: main ? `/api/v1/offers/${offer.id}/photos/${main.id}` : null,
+    mainPhotoUrl: mainUrls?.url ?? null,
+    mainPhotoThumbUrl: mainUrls?.thumbUrl ?? null,
+    mainPhotoWidth: main?.width ?? null,
+    mainPhotoHeight: main?.height ?? null,
     updatedAt: offer.updatedAt,
   };
 }
@@ -135,6 +212,9 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
   return {
     async list() {
       return [...offers.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    },
+    async listPublished() {
+      return (await this.list()).filter((offer) => offer.status === "published");
     },
     async get(id) {
       const offer = offers.get(id);
@@ -165,7 +245,7 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
       offer.updatedAt = nowIso();
       return structuredClone(offer);
     },
-    async setStatus(id, status) {
+    async setStatus(id, status, audit) {
       const offer = requireOffer(id);
       if (status === "published" && !isOfferReady(offer)) {
         throw new AppError(
@@ -175,6 +255,9 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
       }
       offer.status = status;
       offer.updatedAt = nowIso();
+      if (audit) {
+        audits.push({ ...audit, offerId: id, createdAt: nowIso() });
+      }
       return structuredClone(offer);
     },
     async delete(id) {
@@ -185,12 +268,17 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
     async addPhoto(offerId, photo) {
       const offer = requireOffer(offerId);
       const record: OfferPhotoRecord = {
-        id: crypto.randomUUID(),
+        id: photo.id ?? crypto.randomUUID(),
         offerId,
         objectKey: photo.objectKey,
+        thumbObjectKey: photo.thumbObjectKey || photo.objectKey,
         contentType: photo.contentType,
+        contentHash: photo.contentHash,
         isMain: photo.isMain || offer.photos.length === 0,
         sortOrder: offer.photos.length,
+        width: photo.width ?? null,
+        height: photo.height ?? null,
+        byteSize: photo.byteSize ?? null,
         createdAt: nowIso(),
       };
       if (record.isMain) {
@@ -207,7 +295,7 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
       offer.photos = offer.photos.filter((item) => item.id !== photoId);
       if (photo.isMain && offer.photos[0]) offer.photos[0].isMain = true;
       offer.updatedAt = nowIso();
-      return { offer: structuredClone(offer), objectKey: photo.objectKey };
+      return { offer: structuredClone(offer), objectKeys: offerPhotoObjectKeys(photo) };
     },
     async setMainPhoto(offerId, photoId) {
       const offer = requireOffer(offerId);
@@ -224,41 +312,70 @@ export function createMemoryOfferStore(seed: OfferRecord[] = []): OfferStore {
   };
 }
 
+async function loadMany(db: D1Database, status?: "published"): Promise<OfferRecord[]> {
+  const rows = status
+    ? await all<OfferRow>(
+        db,
+        "SELECT * FROM offers WHERE status = ? ORDER BY updated_at DESC",
+        status,
+      )
+    : await all<OfferRow>(db, "SELECT * FROM offers ORDER BY updated_at DESC");
+  if (rows.length === 0) return [];
+  const photoRows =
+    status === "published"
+      ? await all<PhotoRow>(
+          db,
+          `SELECT offer_photos.* FROM offer_photos
+           INNER JOIN offers ON offers.id = offer_photos.offer_id
+           WHERE offers.status = 'published'
+           ORDER BY offer_photos.sort_order ASC, offer_photos.created_at ASC`,
+        )
+      : await all<PhotoRow>(
+          db,
+          "SELECT * FROM offer_photos ORDER BY sort_order ASC, created_at ASC",
+        );
+  const photosByOffer = new Map<string, OfferPhotoRecord[]>();
+  for (const photo of photoRows) {
+    const list = photosByOffer.get(photo.offer_id) ?? [];
+    list.push(mapPhoto(photo));
+    photosByOffer.set(photo.offer_id, list);
+  }
+  return rows.map((row) => mapOffer(row, photosByOffer.get(row.id) ?? []));
+}
+
 export function createD1OfferStore(db: D1Database): OfferStore {
-  async function photosFor(offerId: string): Promise<OfferPhotoRecord[]> {
-    const rows = await all<PhotoRow>(
-      db,
-      "SELECT * FROM offer_photos WHERE offer_id = ? ORDER BY sort_order ASC, created_at ASC",
-      offerId,
-    );
-    return rows.map(mapPhoto);
+  async function loadRow(
+    id: string,
+  ): Promise<{ row: OfferRow | null; photos: OfferPhotoRecord[] }> {
+    const [offerResult, photoResult] = await db.batch([
+      db.prepare("SELECT * FROM offers WHERE id = ?").bind(id),
+      db
+        .prepare(
+          "SELECT * FROM offer_photos WHERE offer_id = ? ORDER BY sort_order ASC, created_at ASC",
+        )
+        .bind(id),
+    ]);
+    const row = (offerResult?.results as OfferRow[] | undefined)?.[0] ?? null;
+    const photos = ((photoResult?.results as PhotoRow[] | undefined) ?? []).map(mapPhoto);
+    return { row, photos };
   }
 
   async function load(id: string): Promise<OfferRecord> {
-    const row = await first<OfferRow>(db, "SELECT * FROM offers WHERE id = ?", id);
+    const { row, photos } = await loadRow(id);
     if (!row) throw new AppError("NOT_FOUND", "Offer not found.");
-    return mapOffer(row, await photosFor(id));
+    return mapOffer(row, photos);
   }
 
   return {
     async list() {
-      const rows = await all<OfferRow>(db, "SELECT * FROM offers ORDER BY updated_at DESC");
-      if (rows.length === 0) return [];
-      const photoRows = await all<PhotoRow>(
-        db,
-        "SELECT * FROM offer_photos ORDER BY sort_order ASC, created_at ASC",
-      );
-      const photosByOffer = new Map<string, OfferPhotoRecord[]>();
-      for (const photo of photoRows) {
-        const list = photosByOffer.get(photo.offer_id) ?? [];
-        list.push(mapPhoto(photo));
-        photosByOffer.set(photo.offer_id, list);
-      }
-      return rows.map((row) => mapOffer(row, photosByOffer.get(row.id) ?? []));
+      return loadMany(db);
+    },
+    async listPublished() {
+      return loadMany(db, "published");
     },
     async get(id) {
-      const row = await first<OfferRow>(db, "SELECT * FROM offers WHERE id = ?", id);
-      return row ? mapOffer(row, await photosFor(id)) : null;
+      const { row, photos } = await loadRow(id);
+      return row ? mapOffer(row, photos) : null;
     },
     async create(input) {
       const id = crypto.randomUUID();
@@ -292,7 +409,7 @@ export function createD1OfferStore(db: D1Database): OfferStore {
       if (result.meta.changes === 0) throw new AppError("NOT_FOUND", "Offer not found.");
       return load(id);
     },
-    async setStatus(id, status) {
+    async setStatus(id, status, audit) {
       const current = await load(id);
       if (status === "published" && !isOfferReady(current)) {
         throw new AppError(
@@ -300,14 +417,33 @@ export function createD1OfferStore(db: D1Database): OfferStore {
           "Publish requires a title, description, and a main photo.",
         );
       }
-      await run(
-        db,
-        "UPDATE offers SET status = ?, updated_at = ? WHERE id = ?",
-        status,
-        nowIso(),
-        id,
-      );
-      return load(id);
+      const now = nowIso();
+      const statements = [
+        db
+          .prepare("UPDATE offers SET status = ?, updated_at = ? WHERE id = ?")
+          .bind(status, now, id),
+      ];
+      if (audit) {
+        statements.push(
+          db
+            .prepare(
+              `INSERT INTO offer_audit_events (id, offer_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            )
+            .bind(
+              crypto.randomUUID(),
+              id,
+              audit.eventType,
+              audit.actorId,
+              audit.fromValue ?? null,
+              audit.toValue ?? null,
+              audit.requestId,
+              now,
+            ),
+        );
+      }
+      await db.batch(statements);
+      return { ...current, status, updatedAt: now };
     },
     async delete(id) {
       const current = await load(id);
@@ -316,23 +452,29 @@ export function createD1OfferStore(db: D1Database): OfferStore {
       return current;
     },
     async addPhoto(offerId, photo) {
-      await load(offerId);
-      const existing = await photosFor(offerId);
-      const id = crypto.randomUUID();
-      const isMain = photo.isMain || existing.length === 0;
+      const existing = await load(offerId);
+      const id = photo.id ?? crypto.randomUUID();
+      const isMain = photo.isMain || existing.photos.length === 0;
       if (isMain) {
         await run(db, "UPDATE offer_photos SET is_main = 0 WHERE offer_id = ?", offerId);
       }
       await run(
         db,
-        `INSERT INTO offer_photos (id, offer_id, object_key, content_type, is_main, sort_order, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO offer_photos (
+           id, offer_id, object_key, thumb_object_key, content_type, content_hash,
+           is_main, sort_order, width, height, byte_size, created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         id,
         offerId,
         photo.objectKey,
+        photo.thumbObjectKey || photo.objectKey,
         photo.contentType,
+        photo.contentHash,
         isMain ? 1 : 0,
-        existing.length,
+        existing.photos.length,
+        photo.width ?? null,
+        photo.height ?? null,
+        photo.byteSize ?? null,
         nowIso(),
       );
       await run(db, "UPDATE offers SET updated_at = ? WHERE id = ?", nowIso(), offerId);
@@ -350,7 +492,7 @@ export function createD1OfferStore(db: D1Database): OfferStore {
         }
       }
       await run(db, "UPDATE offers SET updated_at = ? WHERE id = ?", nowIso(), offerId);
-      return { offer: await load(offerId), objectKey: photo.objectKey };
+      return { offer: await load(offerId), objectKeys: offerPhotoObjectKeys(photo) };
     },
     async setMainPhoto(offerId, photoId) {
       const offer = await load(offerId);

@@ -23,55 +23,45 @@ function startOfToday(timezone: string): string {
   return `${parts}T00:00:00.000Z`;
 }
 
+function countFrom(result: { results?: unknown[] } | undefined): number {
+  const row = result?.results?.[0];
+  if (!row || typeof row !== "object" || !("count" in row)) return 0;
+  return Number(row.count ?? 0);
+}
+
 export async function adminSummary(env: AppEnv) {
   const timezone = businessTimezone(env);
   const today = startOfToday(timezone);
-  const [
-    newBookingsToday,
-    assignedUpcoming,
-    completedThisMonth,
-    cancelledThisMonth,
-    newInquiries,
-    notificationFailures,
-    recent,
-  ] = await Promise.all([
-    first<{ count: number }>(
-      env.DB,
+  const monthStart = `${today.slice(0, 8)}01T00:00:00.000Z`;
+  const results = await env.DB.batch([
+    env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'enquiry' AND created_at >= ?",
-      today,
-    ),
-    first<{ count: number }>(
-      env.DB,
+    ).bind(today),
+    env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'assigned' AND pickup_at >= ?",
-      new Date().toISOString(),
-    ),
-    first<{ count: number }>(
-      env.DB,
+    ).bind(new Date().toISOString()),
+    env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'completed' AND updated_at >= ?",
-      today.slice(0, 8) + "01T00:00:00.000Z",
-    ),
-    first<{ count: number }>(
-      env.DB,
+    ).bind(monthStart),
+    env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'cancelled' AND updated_at >= ?",
-      today.slice(0, 8) + "01T00:00:00.000Z",
-    ),
-    first<{ count: number }>(env.DB, "SELECT COUNT(*) as count FROM contacts WHERE status = 'new'"),
-    first<{ count: number }>(
-      env.DB,
+    ).bind(monthStart),
+    env.DB.prepare("SELECT COUNT(*) as count FROM contacts WHERE status = 'new'"),
+    env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE notification_state IN ('failed', 'pending')",
     ),
-    all<BookingRow>(env.DB, "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 8"),
+    env.DB.prepare("SELECT * FROM bookings ORDER BY created_at DESC LIMIT 8"),
   ]);
 
   return {
     timezone,
-    newBookingsToday: newBookingsToday?.count ?? 0,
-    assignedUpcoming: assignedUpcoming?.count ?? 0,
-    completedThisMonth: completedThisMonth?.count ?? 0,
-    cancelledThisMonth: cancelledThisMonth?.count ?? 0,
-    newInquiries: newInquiries?.count ?? 0,
-    notificationFailures: notificationFailures?.count ?? 0,
-    recent: recent.map(bookingToAdmin),
+    newBookingsToday: countFrom(results[0]),
+    assignedUpcoming: countFrom(results[1]),
+    completedThisMonth: countFrom(results[2]),
+    cancelledThisMonth: countFrom(results[3]),
+    newInquiries: countFrom(results[4]),
+    notificationFailures: countFrom(results[5]),
+    recent: ((results[6]?.results ?? []) as BookingRow[]).map(bookingToAdmin),
   };
 }
 

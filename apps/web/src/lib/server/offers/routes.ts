@@ -1,7 +1,8 @@
-import { AppError } from "@kaiyue/contracts";
+import { AppError, OFFER_IMAGE_CACHE_SECONDS } from "@kaiyue/contracts";
 import type { AdminIdentity } from "../auth.ts";
 import type { AppEnv } from "../env.ts";
 import { json, readJson } from "../http.ts";
+import { parseOfferImageDimension } from "./images.ts";
 import {
   addOfferPhoto,
   createOffer,
@@ -17,6 +18,7 @@ import {
   unpublishOffer,
   updateOffer,
 } from "./service.ts";
+import { offerPhotoVersion } from "./store.ts";
 
 function match(pathname: string, pattern: string): Record<string, string> | null {
   const pathParts = pathname.split("/").filter(Boolean);
@@ -39,7 +41,13 @@ function methodNotAllowed(): never {
   throw new AppError("VALIDATION_FAILED", "Method not allowed.", { status: 405 });
 }
 
-async function readUpload(request: Request): Promise<{ bytes: Uint8Array; type: string }> {
+async function readUpload(request: Request): Promise<{
+  bytes: Uint8Array;
+  type: string;
+  thumbnail?: { bytes: Uint8Array; type: string };
+  width: number | null;
+  height: number | null;
+}> {
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.includes("multipart/form-data")) {
     throw new AppError("VALIDATION_FAILED", "Send the photo as multipart form data.", {
@@ -53,21 +61,63 @@ async function readUpload(request: Request): Promise<{ bytes: Uint8Array; type: 
       fields: { photo: "Choose a JPEG, PNG, or WebP image." },
     });
   }
+  const thumb = form.get("thumbnail");
   return {
     bytes: new Uint8Array(await file.arrayBuffer()),
     type: file.type || "application/octet-stream",
+    thumbnail:
+      thumb instanceof File
+        ? { bytes: new Uint8Array(await thumb.arrayBuffer()), type: thumb.type || file.type }
+        : undefined,
+    width: parseOfferImageDimension(form.get("width")),
+    height: parseOfferImageDimension(form.get("height")),
   };
 }
 
-function photoResponse(body: Uint8Array, contentType: string): Response {
+function photoResponse(
+  body: Uint8Array,
+  contentType: string,
+  options: { immutable: boolean; publicPhoto?: boolean; version?: string } = { immutable: false },
+): Response {
   const copy = new Uint8Array(body);
-  return new Response(copy, {
-    status: 200,
-    headers: {
-      "content-type": contentType,
-      "cache-control": "private, max-age=300",
-      "x-content-type-options": "nosniff",
-    },
+  const cacheControl = options.immutable
+    ? options.publicPhoto
+      ? `public, max-age=${OFFER_IMAGE_CACHE_SECONDS}, immutable`
+      : `private, max-age=${OFFER_IMAGE_CACHE_SECONDS}, immutable`
+    : "private, no-store";
+  const headers = new Headers({
+    "content-type": contentType,
+    "cache-control": cacheControl,
+    "x-content-type-options": "nosniff",
+  });
+  if (options.immutable && options.publicPhoto) {
+    headers.set("cdn-cache-control", `public, max-age=${OFFER_IMAGE_CACHE_SECONDS}, immutable`);
+    headers.set(
+      "cloudflare-cdn-cache-control",
+      `public, max-age=${OFFER_IMAGE_CACHE_SECONDS}, immutable`,
+    );
+  } else {
+    headers.set("cdn-cache-control", "no-store");
+    headers.set("cloudflare-cdn-cache-control", "no-store");
+  }
+  if (options.version) {
+    headers.set("etag", `"${options.version}"`);
+  }
+  return new Response(copy, { status: 200, headers });
+}
+
+async function serveOfferPhoto(
+  env: AppEnv,
+  offerId: string,
+  photoId: string,
+  options: { publicOnly?: boolean; variant?: "full" | "thumb"; version?: string } = {},
+): Promise<Response> {
+  const object = await readOfferPhoto(env, offerId, photoId, options);
+  const version = offerPhotoVersion(object.photo);
+  return photoResponse(object.body, object.contentType, {
+    immutable: Boolean(options.version),
+    publicPhoto: options.publicOnly,
+    version,
   });
 }
 
@@ -85,11 +135,27 @@ export async function handlePublicOfferRoutes(
     if (request.method !== "GET") methodNotAllowed();
     return json(await getPublicOffer(env, detail.id!), 200, requestId);
   }
+  const thumbVersioned = match(pathname, "/api/v1/offers/:id/photos/:photoId/thumb/:hash");
+  if (thumbVersioned) {
+    if (request.method !== "GET") methodNotAllowed();
+    return serveOfferPhoto(env, thumbVersioned.id!, thumbVersioned.photoId!, {
+      publicOnly: true,
+      variant: "thumb",
+      version: thumbVersioned.hash,
+    });
+  }
+  const versioned = match(pathname, "/api/v1/offers/:id/photos/:photoId/:hash");
+  if (versioned) {
+    if (request.method !== "GET") methodNotAllowed();
+    return serveOfferPhoto(env, versioned.id!, versioned.photoId!, {
+      publicOnly: true,
+      version: versioned.hash,
+    });
+  }
   const photo = match(pathname, "/api/v1/offers/:id/photos/:photoId");
   if (photo) {
     if (request.method !== "GET") methodNotAllowed();
-    const object = await readOfferPhoto(env, photo.id!, photo.photoId!, { publicOnly: true });
-    return photoResponse(object.body, object.contentType);
+    return serveOfferPhoto(env, photo.id!, photo.photoId!, { publicOnly: true });
   }
   return null;
 }
@@ -139,11 +205,23 @@ export async function handleAdminOfferRoutes(
       requestId,
     );
   }
+  const thumbVersioned = match(pathname, `${base}/:id/photos/:photoId/thumb/:hash`);
+  if (thumbVersioned) {
+    if (request.method !== "GET") methodNotAllowed();
+    return serveOfferPhoto(env, thumbVersioned.id!, thumbVersioned.photoId!, {
+      variant: "thumb",
+      version: thumbVersioned.hash,
+    });
+  }
+  const versioned = match(pathname, `${base}/:id/photos/:photoId/:hash`);
+  if (versioned) {
+    if (request.method !== "GET") methodNotAllowed();
+    return serveOfferPhoto(env, versioned.id!, versioned.photoId!, { version: versioned.hash });
+  }
   const photo = match(pathname, `${base}/:id/photos/:photoId`);
   if (photo) {
     if (request.method === "GET") {
-      const object = await readOfferPhoto(env, photo.id!, photo.photoId!);
-      return photoResponse(object.body, object.contentType);
+      return serveOfferPhoto(env, photo.id!, photo.photoId!);
     }
     if (request.method === "DELETE") {
       return json(

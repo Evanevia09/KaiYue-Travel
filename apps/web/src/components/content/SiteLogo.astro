@@ -1,0 +1,24 @@
+---
+import { site } from "../../lib/site.ts";
+
+type Props = {
+  loading?: "eager" | "lazy";
+};
+
+const { loading = "eager" } = Astro.props;
+---
+
+<a class="logo" href="/">
+  <picture>
+    <source type="image/webp" srcset="/images/kai-yue-travel-group-logo.webp" />
+    <img
+      class="logo-image"
+      src={site.logo}
+      alt="Kai Yue Travel Group"
+      width="624"
+      height="122"
+      loading={loading}
+      decoding="async"
+    />
+  </picture>
+</a>
