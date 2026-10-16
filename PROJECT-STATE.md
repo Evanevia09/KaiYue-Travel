@@ -158,7 +158,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Special Offers next action (2026-10-16): review the staging/preview dashboard at `/admin/offers` with the preview test login, then set `BETTER_AUTH_SECRET` as a preview Worker secret if login fails. Create the Cloudflare Access app on the preview hostname when ready. Do not merge this branch to `main`. Keep the test operator marked for removal.
+Special Offers next action (2026-10-16): set `BETTER_AUTH_SECRET` as a Worker version secret (do not `wrangler deploy`), then sign in at the preview `/login` as `admin-test@kaiyue.test`. The D1 test user `test-admin-preview-remove-later` is already seeded on `069aa442`. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
 
@@ -200,8 +200,9 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Staff API `/api/admin/offers` and public `GET /api/v1/offers` (published complete offers only). Storage is behind in-memory/D1/R2 interfaces.
 - Dashboard `/admin/offers` with multi-photo upload, main-photo picker, publish/unpublish, and delete confirm.
 - Public `/special-offers` in EN/pt/zh-Hant with empty state. Special Offers added to the main nav after City Tours. Special offer removed from the City Tour menu; `/services/city-tours/special-offer` stays bookable.
-- Root `wrangler.jsonc` is now the full Worker used by Workers Builds (`versions upload` = top-level production vars; `previews` block for `wrangler preview`). Both bind staging D1 `069aa442` and R2 `kaiyue-offers-staging`. Dashboard root directory can stay at the repo root.
+- Root `wrangler.jsonc` is now the full Worker used by Workers Builds (`versions upload` = top-level production vars plus `ADMIN_EMAILS=admin-test@kaiyue.test` on this branch; `previews` block for `wrangler preview`). Worker entry is `apps/web/dist/server/entry.mjs` with assets from `apps/web/dist/client`. Both bind staging D1 `069aa442` and R2 `kaiyue-offers-staging`. Dashboard root directory can stay at the repo root.
 - Production host fail-closed: `/admin`, `/login`, `/setup-admin`, `/api/v1/admin/*`, `/api/admin/*`, `/api/auth/*` return 403 without Access. Preview allows a clearly marked test operator via better-auth. Password and `BETTER_AUTH_SECRET` are not in git.
+- Preview test operator `admin-test@kaiyue.test` / `test-admin-preview-remove-later` was seeded into D1 `069aa442` only. The account is labelled for later removal. `BETTER_AUTH_SECRET` is not attached to the production Worker.
 - Booking hard-failure copy now offers WhatsApp or +853 2833 8882 instead of “wait and retry”.
 - Handover: `docs/handover/special-offers-dashboard.md`.
 - Limits: Access is not configured. Preview `BETTER_AUTH_SECRET` must be set as a Worker/preview secret. No production deploy. Not `user_accepted` or `released`.

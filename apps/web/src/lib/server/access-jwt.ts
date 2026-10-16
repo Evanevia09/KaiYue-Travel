@@ -79,8 +79,9 @@ export async function getAccessJwks(
   return keys;
 }
 
-function bytesFromBase64Url(value: string): Uint8Array {
-  return Uint8Array.from(decodeSegment(value), (char) => char.charCodeAt(0));
+function bytesFromBase64Url(value: string): Uint8Array<ArrayBuffer> {
+  const bytes = Uint8Array.from(decodeSegment(value), (char) => char.charCodeAt(0));
+  return new Uint8Array(bytes);
 }
 
 export async function verifyAccessJwt(

@@ -11,13 +11,16 @@
   //
   // Both production and preview on THIS branch bind staging D1 069aa442 and
   // R2 kaiyue-offers-staging. Do not merge this file to main.
+  //
+  // Astro writes the Worker to apps/web/dist/server/entry.mjs and static
+  // files to apps/web/dist/client. The old dist/_worker.js path is gone.
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "kaiyue-travel",
-  "main": "./apps/web/dist/_worker.js",
+  "main": "./apps/web/dist/server/entry.mjs",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": "./apps/web/dist",
+    "directory": "./apps/web/dist/client",
     "binding": "ASSETS",
   },
   "d1_databases": [
@@ -43,6 +46,7 @@
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
     "DEV_ADMIN_BYPASS": "false",
+    "ADMIN_EMAILS": "admin-test@kaiyue.test",
   },
   "previews": {
     "vars": {

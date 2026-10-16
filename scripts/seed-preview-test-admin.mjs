@@ -8,8 +8,18 @@
  *   BETTER_AUTH_SECRET
  *
  * Writes SQL to stdout for D1 069aa442-30c9-4454-ab3a-26eb372b3a1f only.
+ * Resolves better-auth from apps/web so this file can live under /scripts.
  */
-import { hashPassword } from "better-auth/crypto";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const betterAuthCrypto = pathToFileURL(
+  join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../apps/web/node_modules/better-auth/dist/crypto/index.mjs",
+  ),
+).href;
+const { hashPassword } = await import(betterAuthCrypto);
 
 const email = process.env.PREVIEW_ADMIN_EMAIL?.trim().toLowerCase();
 const password = process.env.PREVIEW_ADMIN_PASSWORD;
@@ -24,7 +34,7 @@ if (!email || !password || !secret || secret.length < 32 || password.length < 16
 
 const now = new Date();
 const userId = "test-admin-preview-remove-later";
-const accountId = "test-admin-preview-account";
+const accountRowId = "test-admin-preview-account";
 const hash = await hashPassword(password);
 const name = "TEST admin — remove after Access is configured";
 
@@ -40,7 +50,7 @@ INSERT OR REPLACE INTO "account" (
   "id", "accountId", "providerId", "userId", "accessToken", "refreshToken", "idToken",
   "accessTokenExpiresAt", "refreshTokenExpiresAt", "scope", "password", "createdAt", "updatedAt"
 ) VALUES (
-  ${sqlString(accountId)}, ${sqlString(email)}, 'credential', ${sqlString(userId)},
+  ${sqlString(accountRowId)}, ${sqlString(userId)}, 'credential', ${sqlString(userId)},
   NULL, NULL, NULL, NULL, NULL, NULL, ${sqlString(hash)},
   ${sqlString(now.toISOString())}, ${sqlString(now.toISOString())}
 );

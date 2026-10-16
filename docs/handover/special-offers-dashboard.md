@@ -23,7 +23,8 @@ This branch adds a staff Special Offers dashboard, a public published-only offer
 The live Workers Build uses the **repository-root** `wrangler.jsonc`. That file is now the full Worker (script + assets + D1 + R2), not the old static-only profile.
 
 - **Dashboard root directory can stay at the repository root.** Do not change it to `apps/web` unless you also change the build/preview commands. That would be a dashboard change.
-- `wrangler versions upload` uses the **top-level** config unless `--env` or `CLOUDFLARE_ENV` is set. Top-level `ENVIRONMENT` is `production`.
+- `wrangler versions upload` uses the **top-level** config unless `--env` or `CLOUDFLARE_ENV` is set. Top-level `ENVIRONMENT` is `production`. The live non-production trigger is `npx wrangler versions upload`, so this branch also sets top-level `ADMIN_EMAILS=admin-test@kaiyue.test`. Production host `kaiyue-travel.scalingsmb.workers.dev` still returns 403 for admin/auth routes. Do not merge this file to `main`.
+- Worker entry is the Astro server bundle `apps/web/dist/server/entry.mjs` with assets from `apps/web/dist/client` (not the old `dist/_worker.js` path).
 - `npx wrangler preview` uses the `previews` block and does **not** inherit top-level D1/R2. This branch duplicates the staging D1 and R2 bindings there, with `ENVIRONMENT=preview` and `ADMIN_EMAILS=admin-test@kaiyue.test`.
 - Both production and preview on this branch bind staging D1 `069aa442` and R2 `kaiyue-offers-staging`.
 - `RESEND_*` is unset in the root/production config. Bookings still persist; staff email is skipped.
@@ -42,7 +43,7 @@ Access JWT checks: exact issuer (`https://<team-domain>`), audience, `exp`, `nbf
 
 ## Preview test operator
 
-A disposable test user is seeded in D1 `069aa442` only:
+A disposable test user is seeded in D1 `069aa442` only (applied 2026-10-16):
 
 - Email: `admin-test@kaiyue.test`
 - Display name: `TEST admin — remove after Access is configured`
@@ -50,15 +51,13 @@ A disposable test user is seeded in D1 `069aa442` only:
 
 The password, `BETTER_AUTH_SECRET`, and any setup token are **not** in git, the PR, or this file.
 
-`ADMIN_EMAILS=admin-test@kaiyue.test` is a preview var only. Preview still needs `BETTER_AUTH_SECRET` as a Worker secret (32+ characters). This tooling cannot attach a preview-only secret without touching the production Worker, so set it with:
+This branch's top-level `ADMIN_EMAILS=admin-test@kaiyue.test` is required because the live non-production trigger is `npx wrangler versions upload`, which does not read the `previews` block. Production host `kaiyue-travel.scalingsmb.workers.dev` still 403s admin/auth routes.
+
+Preview still needs `BETTER_AUTH_SECRET` as a Worker secret (32+ characters). This tooling cannot attach a preview-only secret without writing it onto the production Worker script, so set a **version** secret and do not `wrangler deploy` / `wrangler secret put`:
 
 ```bash
-# After the preview exists, prefer a preview/version secret — not a production deploy:
-npx wrangler versions secret put BETTER_AUTH_SECRET --name kaiyue-travel
-# If the dashboard Preview command is `npx wrangler preview`, set the preview secret
-# in Cloudflare → Workers → kaiyue-travel → Settings → Variables and Secrets
-# for the Preview environment, or:
-npx wrangler secret put BETTER_AUTH_SECRET --name kaiyue-travel
+# Creates a new unpublished Worker version with the secret. Does not deploy.
+printf '%s' '<32+ character secret>' | npx wrangler versions secret put BETTER_AUTH_SECRET --name kaiyue-travel
 ```
 
 Do **not** put `BETTER_AUTH_SECRET` in `wrangler.jsonc`. Production routes ignore better-auth even if the secret exists on the Worker.
@@ -69,13 +68,13 @@ Re-seed (does not print the password):
 PREVIEW_ADMIN_EMAIL=admin-test@kaiyue.test \
 PREVIEW_ADMIN_PASSWORD='<password>' \
 BETTER_AUTH_SECRET='<32+ character secret>' \
-pnpm --filter @kaiyue/web exec node ../../scripts/seed-preview-test-admin.mjs > /tmp/seed-preview-admin.sql
+node scripts/seed-preview-test-admin.mjs > /tmp/seed-preview-admin.sql
 
 npx wrangler d1 execute kaiyue-travel-staging --remote --config wrangler.jsonc --file /tmp/seed-preview-admin.sql
 ```
 
-Login URL after the preview build: `https://<preview-host>/login`  
-Expected preview host shape: `<sanitized-branch>-kaiyue-travel.scalingsmb.workers.dev`.
+Login URL after a successful `versions upload`: the Cloudflare bot comment on the PR, typically `https://<version>-kaiyue-travel.scalingsmb.workers.dev/login`.  
+If Preview is later enabled: `https://<sanitized-branch>-kaiyue-travel.scalingsmb.workers.dev/login`.
 
 ## Cloudflare Access setup (Evan)
 
