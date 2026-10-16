@@ -1,6 +1,7 @@
 ---
 import PageHero from "../components/content/PageHero.astro";
 import FeatureIcon from "../components/content/FeatureIcon.astro";
+import WeChatQr from "../components/content/WeChatQr.astro";
 import { ContactForm } from "../components/content/ContactForm.tsx";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { localeFromPath } from "../lib/i18n.ts";
@@ -45,6 +46,9 @@ const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
                 href={`tel:${site.phone.replaceAll(" ", "")}`}>{site.phone}</a
               >
             </p>
+          </div>
+          <div class="feature-lines__wechat">
+            <WeChatQr variant="page" />
           </div>
           <div>
             <span class="icon-frame"><FeatureIcon name="building" /></span><p>

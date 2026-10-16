@@ -50,4 +50,17 @@ describe("public locale routing", () => {
     expect(result).toContain(">Ofertas especiais</a>");
     expect(result).toContain(">Meio dia</a>");
   });
+
+  it("localizes the WeChat QR placeholder label and alt text", () => {
+    const markup =
+      '<img alt="WeChat QR – coming soon"><span>WeChat QR – coming soon</span><figcaption>WeChat</figcaption>';
+    const pt = localizeHtml(markup, "pt");
+    const zh = localizeHtml(markup, "zh-Hant");
+    expect(pt).toContain('alt="QR WeChat – em breve"');
+    expect(pt).toContain(">QR WeChat – em breve</span>");
+    expect(pt).toContain(">WeChat</figcaption>");
+    expect(zh).toContain('alt="微信二維碼 – 即將推出"');
+    expect(zh).toContain(">微信二維碼 – 即將推出</span>");
+    expect(zh).toContain(">微信</figcaption>");
+  });
 });

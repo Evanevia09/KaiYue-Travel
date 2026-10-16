@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers dashboard on a staging PR; not merged to main)
-**Product-status evidence date:** 2026-10-16 for offers/admin-gate work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-16 (WeChat QR placeholder on a staging PR; Special Offers dashboard remains on staging, not merged to main)
+**Product-status evidence date:** 2026-10-16 for WeChat QR placeholder and offers/admin-gate work in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** Special Offers staff dashboard, published-only public page, fail-closed production admin, and preview-only test login are implemented on `cursor/special-offers-dashboard-d246` targeting `staging`. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are bound on this branch only. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview Special Offers dashboard and the preview test login. Provide Access team domain and AUD when ready. Do not merge to `main`.
+**Overall status:** A placeholder WeChat QR is on `cursor/wechat-qr-placeholder-7d43` targeting `staging`. Special Offers staff dashboard, published-only public page, fail-closed production admin, and preview-only test login remain on staging. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are bound on staging only. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the WeChat QR placeholder on the Workers preview (footer and contact, EN/pt/zh-Hant, mobile and desktop). Supply the real QR file to replace `apps/web/public/images/wechat-qr.svg` when ready. Do not invent a WeChat ID. Do not merge to `main`.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -158,6 +158,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
+
 Special Offers next action (2026-10-16): review the preview dashboard publish/save feedback, then sign in with the rotated test-admin password. `BETTER_AUTH_SECRET` persists across `versions upload` once set. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
 City Tour next action (2026-10-05): review the homepage package cards and each package page in the browser, then provide approved special-offer terms and real pictures before publication. Keep unapproved records hidden before any separately authorized release. Staff editing and special-offer prices remain undecided.
@@ -172,6 +174,8 @@ City Tour next action (2026-10-05): review the homepage package cards and each p
 Workflow resume action (2026-10-03): the owning agent should trial a bounded read-only task using the [adapter](docs/11-codex-workflow-adapter.md), return evidence to the Lab coordinator, and record actual acceptance and review evidence before changing shared policy. The user need not route routine work between chats.
 
 ## Verification record
+
+2026-10-16 WeChat QR placeholder: shared `WeChatQr` component and `/images/wechat-qr.svg` added to the footer contact column and the contact Reach us section. Localized EN/pt/zh-Hant label and alt. Booking, admin, offers, `wrangler.jsonc`, and the database were not changed. Preview browser checks are recorded in the change log after the Workers preview is available.
 
 2026-10-03 workflow adoption: 46 local Markdown links resolved; targeted Prettier and `git diff --check` passed; independent read-only review found no actionable issue. Source/revision provenance, dirty-state preservation, and limits are in the [adoption record](docs/records/2026-10-03-codex-workflow-adoption.md). This is `task_verified` for documentation only; no browser, API, D1, CI, or deployed behavior was checked in this task.
 
@@ -193,6 +197,15 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — WeChat QR placeholder (staging PR, not main)
+
+- Added `apps/web/public/images/wechat-qr.svg`: a square QR-style pattern with a center chat mark so it is not a scannable code. No WeChat ID is published.
+- Added shared `WeChatQr` component. Image path is the single constant `WECHAT_QR_SRC` (`/images/wechat-qr.svg`). Swap the real QR later by replacing that file.
+- Wired the component into the footer contact column and the contact page Reach us list. Caption/alt: “WeChat QR – coming soon” (EN), “微信二維碼 – 即將推出” (zh-Hant), “QR WeChat – em breve” (pt).
+- Fixed square frame (`aspect-ratio: 1`) and explicit image width/height to avoid layout shift.
+- Did not change booking, admin, offers, `wrangler.jsonc`, or database files.
+- Limits: not `user_accepted` or `released`. Real WeChat QR and ID still required from the owner. Preview verification is recorded after the Workers preview URL is live.
 
 ### 2026-10-16 — Special Offers dashboard (staging PR, not main)
 

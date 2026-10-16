@@ -105,7 +105,7 @@ The inquiry card contains only the heading, paired short fields (name/company an
 
 ### Contact
 
-Separate urgent/booking guidance from general inquiries. Fields: name, phone, optional email/company, inquiry type, message, and privacy acknowledgement where legally required.
+Separate urgent/booking guidance from general inquiries. Fields: name, phone, optional email/company, inquiry type, message, and privacy acknowledgement where legally required. The Reach us section lists phone, WeChat, the Macau office, and a link to the Business pages. WeChat uses the shared QR component and `/images/wechat-qr.svg`; replace that one file with the real code later. Do not publish a WeChat ID until the owner supplies one.
 
 ## SEO and metadata
 
