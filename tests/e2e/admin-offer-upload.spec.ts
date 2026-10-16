@@ -95,9 +95,7 @@ const password = process.env.PREVIEW_ADMIN_PASSWORD ?? "";
 test.describe("admin offer photo UI", () => {
   test.skip(!preview || !password, "PREVIEW_URL and PREVIEW_ADMIN_PASSWORD are required");
 
-  test("uploads a 4000px JPEG over 5 MB through the file input with progress", async ({
-    page,
-  }) => {
+  test("uploads a 4000px JPEG over 5 MB through the file input with progress", async ({ page }) => {
     const file = jpegPath(4000, 3000, 92, "phone-4000.jpg");
     const size = statSync(file).size;
     expect(size).toBeGreaterThan(5 * 1024 * 1024);
