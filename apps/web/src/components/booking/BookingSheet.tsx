@@ -71,7 +71,7 @@ export function BookingSheet() {
       >
         <div
           className={
-            state.step === 2
+            state.step === 2 && !specialOffer
               ? "booking-card__header booking-card__header--minimal"
               : "booking-card__header"
           }

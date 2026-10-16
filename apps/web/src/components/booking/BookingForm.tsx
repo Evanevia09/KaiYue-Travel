@@ -149,10 +149,12 @@ async function submitBooking(entry?: {
       if (current.draft.communicationChannel === "whatsapp" && body.whatsappUrl) {
         window.location.assign(body.whatsappUrl);
       }
+      const enquiryKind = current.context.enquiryKind;
       discardBooking();
       setBookingResult({
         status: "success",
         open: current.context.mode !== "page",
+        context: { ...getBookingState().context, enquiryKind },
         result: {
           reference: body.reference,
           receivedAt: body.receivedAt,

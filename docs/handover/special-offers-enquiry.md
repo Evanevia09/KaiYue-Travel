@@ -31,14 +31,28 @@ Adds nullable `offer_id` and `offer_title` on `bookings`, plus `idx_bookings_off
 
 ## Preview verification
 
-Preview URL and screenshots will be recorded after the Workers preview is live.
+- PR: https://github.com/Evanevia09/KaiYue-Travel/pull/13 (draft into `staging`)
+- Branch preview: https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev
+- Commit preview (green-card CSS fix): https://6bf692da-kaiyue-travel.scalingsmb.workers.dev
+- GitHub `check` and Workers Builds succeeded on `b7d0327`. Do not merge to `main`.
 
-Test enquiry (to cancel after checks):
+Checked on the branch/commit Workers preview at desktop and 390px:
+
+- Contact general-enquiry card is brand green (`#00704b`) with white labels and white inputs. An earlier `.card` rule had been painting it white; specificity was raised so the green wins.
+- City Tours `/services/city-tours/half-day` widget dropdown: Half day, Full day only. No special-offer option.
+- `/special-offers` hero lists the three published `[Sample]` offers. Cards link to `/special-offers/:id`.
+- `/special-offers/465463fc-29ba-4ddb-88b9-a427dcdd99ca` shows title, description, gallery, and a preselected widget. Unknown id returns HTTP 404 + not-found page.
+- `/pt/special-offers` and `/zh-Hant/special-offers` load with localized chrome.
+- No application console errors. DevTools Issues had one pre-existing CLS note about a lazy image without dimensions (not a JS exception).
+
+Test enquiry (cancelled after checks):
 
 - Name: `TEST offer enquiry - delete me`
 - Email: `qa@kaiyue.test`
-
-Cancel on `/admin/bookings/:reference` or with `scripts/cancel-test-booking.sql` against D1 `069aa442` only. Do not delete live `[Sample]` offers.
+- Pickup: Macau International Airport, 23 Oct 2026 13:00
+- Package: `[Sample] Zhuhai Day Trip` (`465463fc-29ba-4ddb-88b9-a427dcdd99ca`)
+- Reference: `KY-S99HVV5K`
+- Admin list and detail showed `Special offer: [Sample] Zhuhai Day Trip` and the offer id. Status marked **cancelled**. D1 row on `069aa442` matches. Sample offers were not edited.
 
 ## Limits
 

@@ -4,7 +4,7 @@
 **Product-status evidence date:** 2026-10-16 for special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-enquiry-pages-e1be`) adds a Special Offers hero widget, a Special Offer enquiry modal that stores `offer_id`/`offer_title` on D1 bookings, per-offer public pages, a green general-enquiry card, and removes `special-offer` from the City Tours booking dropdown. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview Special Offers hero, package pages, and enquiry modal. Confirm the City Tours dropdown no longer lists special offers. Do not merge to `main`. Do not change D1/R2 bindings.
+**Current objective:** Review draft PR #13 into `staging` (preview `https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev`). Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -200,12 +200,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ### 2026-10-16 — Special Offers hero, enquiry modal, and package pages (staging PR, not main)
 
-- Contact general-enquiry card uses brand green with white text (AA contrast).
+- Contact general-enquiry card uses brand green with white text (AA contrast). A later `.card` rule had been resetting it to white; `.hero--inquiry .card.card--enquiry` now wins.
 - City Tours booking dropdown no longer lists the Markdown `special-offer` option.
 - `/special-offers` has a City Tours-style hero widget whose dropdown is published D1 offers only (SSR, no extra client fetch). Empty catalogue shows no packages.
 - Continuing opens a Special Offer enquiry modal that reuses the City Tour booking workflow and stores `offer_id` / `offer_title` on the booking. `/admin/bookings` shows the package.
 - Published offers have `/special-offers/:id` in EN, pt, and zh-Hant, matching City Tour detail pages. Unpublished or deleted offers 404. Cards link to these pages.
 - Additive migration `0007_booking_offer.sql` only. D1/R2 bindings unchanged. Do not merge to `main`.
+- Preview verified on `https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev` and `https://6bf692da-kaiyue-travel.scalingsmb.workers.dev` at desktop and 390px. Test enquiry `KY-S99HVV5K` (`TEST offer enquiry - delete me` / `qa@kaiyue.test`) stored `[Sample] Zhuhai Day Trip` and was marked cancelled. Sample offers were not edited.
 - Handover: `docs/handover/special-offers-enquiry.md`.
 
 ### 2026-10-16 — Publish label and latency on the Special Offers photos branch (staging PR, not main)
