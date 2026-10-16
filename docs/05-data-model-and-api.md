@@ -112,6 +112,13 @@ Returns non-sensitive form configuration such as approved service types and book
 | `GET /api/v1/admin/contacts/:id` | Inquiry detail |
 | `PATCH /api/v1/admin/contacts/:id/status` | Update inquiry status |
 | `POST /api/v1/admin/contacts/:id/notes` | Add internal note |
+| `GET/POST /api/admin/offers` and `/api/v1/admin/offers` | Staff special-offer list and create (draft) |
+| `GET/PATCH/DELETE /api/admin/offers/:id` | Offer detail, edit, delete (delete also removes stored photos) |
+| `POST /api/admin/offers/:id/publish` and `/unpublish` | Publish a complete offer, or return it to draft |
+| `POST /api/admin/offers/:id/photos` | JPEG/PNG/WebP upload, magic-byte checked, 5 MB max |
+| `GET /api/v1/offers` | Public list of published, complete offers only |
+
+Offer tables (`offers`, `offer_photos`, `offer_audit_events`) are added by `migrations/0005_special_offers.sql`. Public endpoints never return drafts. Terms stay empty unless staff supply them.
 
 List endpoints use bounded `limit`, cursor pagination, stable sort, and whitelisted filters. CSV export, deletion, bulk actions, and record editing are out of scope unless approved.
 

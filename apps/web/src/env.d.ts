@@ -3,7 +3,9 @@
 type AppBindings = {
   DB: import("./lib/server/env").D1Database;
   ENVIRONMENT?: string;
+  ENV?: string;
   PUBLIC_SITE_URL?: string;
+  OFFERS_BUCKET?: import("./lib/server/offers/objects").OfferR2Bucket;
   BUSINESS_TIMEZONE?: string;
   BOOKING_NOTICE_HOURS?: string;
   RESEND_API_KEY?: string;

@@ -2,6 +2,11 @@ import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { createAdminSessionAuth } from "../../../lib/server/admin-session.ts";
 import { allowedAdminEmails } from "../../../lib/server/admin-session.ts";
+import {
+  assertLiveAdminSurface,
+  forbiddenResponse,
+  passwordAdminAllowed,
+} from "../../../lib/server/admin-gate.ts";
 import { isDevelopment } from "../../../lib/server/env.ts";
 
 export const prerender = false;
@@ -14,7 +19,17 @@ function equalSecret(input: string, expected: string) {
 }
 
 export const ALL: APIRoute = async ({ request }) => {
-  const signup = new URL(request.url).pathname === "/api/auth/sign-up/email";
+  const pathname = new URL(request.url).pathname;
+  try {
+    assertLiveAdminSurface(env, pathname, request);
+  } catch {
+    return forbiddenResponse();
+  }
+  if (!passwordAdminAllowed(env, request)) {
+    return forbiddenResponse();
+  }
+
+  const signup = pathname === "/api/auth/sign-up/email";
   if (signup) {
     if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
     const token = env.ADMIN_SETUP_TOKEN;
@@ -45,6 +60,6 @@ export const ALL: APIRoute = async ({ request }) => {
     )
       return new Response("Forbidden", { status: 403 });
   }
-  const auth = createAdminSessionAuth(env, signup);
+  const auth = createAdminSessionAuth(env, signup, request);
   return auth.handler(request);
 };

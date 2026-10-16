@@ -3,7 +3,12 @@ export const prerender = false;
 import { env } from "cloudflare:workers";
 import { SetupForm } from "../components/admin/SetupForm.tsx";
 import "../styles/global.css";
-if (env.ENVIRONMENT !== "development") return Astro.redirect("/login", 302);
+if (env.ENVIRONMENT !== "development") {
+  return new Response("Operator setup is disabled.", {
+    status: 403,
+    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+  });
+}
 ---
 
 <!doctype html>
@@ -12,7 +17,11 @@ if (env.ENVIRONMENT !== "development") return Astro.redirect("/login", 302);
     ><meta charset="utf-8" /><meta
       name="viewport"
       content="width=device-width, initial-scale=1"
-    /><meta name="robots" content="noindex, nofollow" /><title>
+    /><meta name="robots" content="noindex, nofollow" /><link
+      rel="icon"
+      href="/favicon.ico"
+      sizes="any"
+    /><link rel="icon" href="/images/mark.svg" type="image/svg+xml" /><title>
       Set up operator · Kai Yue
     </title></head
   ><body class="admin-login-page"

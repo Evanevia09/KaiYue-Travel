@@ -26,6 +26,7 @@ export type D1Database = {
 export type AppEnv = {
   DB: D1Database;
   ENVIRONMENT?: string;
+  ENV?: string;
   PUBLIC_SITE_URL?: string;
   BUSINESS_TIMEZONE?: string;
   BOOKING_NOTICE_HOURS?: string;
@@ -41,6 +42,9 @@ export type AppEnv = {
   ADMIN_EMAILS?: string;
   ADMIN_SETUP_TOKEN?: string;
   TEMP_ADMIN_EXPIRES_AT?: string;
+  OFFERS_BUCKET?: import("./offers/objects.ts").OfferR2Bucket;
+  offerStore?: import("./offers/store.ts").OfferStore;
+  objectStore?: import("./offers/objects.ts").ObjectStore;
 };
 
 export function noticeHours(env: AppEnv): number {
@@ -53,5 +57,5 @@ export function businessTimezone(env: AppEnv): string {
 }
 
 export function isDevelopment(env: AppEnv): boolean {
-  return env.ENVIRONMENT === "development";
+  return env.ENVIRONMENT === "development" || env.ENVIRONMENT === "local" || env.ENV === "local";
 }

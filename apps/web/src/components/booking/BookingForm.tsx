@@ -148,17 +148,20 @@ async function submitBooking(entry?: {
       });
       return;
     }
+    const validation = Boolean(body.error?.fields && Object.keys(body.error.fields).length > 0);
     setBookingResult({
       status: "error.recoverable",
       fieldErrors: body.error?.fields ?? {},
-      formError: body.error?.message ?? "We could not send this request.",
+      formError: validation
+        ? (body.error?.message ?? "Check the highlighted fields.")
+        : "We could not send this request. Contact us on WhatsApp or call +853 2833 8882.",
       requestId: body.error?.requestId,
     });
   } catch {
     setBookingResult({
       status: "error.unknown_outcome",
       formError:
-        "The request may have reached us already. Please wait and retry with the same form rather than creating a second booking.",
+        "The request may have reached us already. Do not submit a second booking. Contact us on WhatsApp or call +853 2833 8882 to confirm.",
     });
   }
 }

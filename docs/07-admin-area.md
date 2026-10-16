@@ -13,6 +13,7 @@ Local first-account setup requires a one-time token and is disabled outside `ENV
 - **Calendar** — booking schedule.
 - **Contacts** — general/corporate inquiries.
 - **Drivers & vehicles** — staff-managed dispatch inventory and contact details.
+- **Special Offers** — draft/publish catalogue with photos. `/admin/offers`.
 
 ## Dashboard
 

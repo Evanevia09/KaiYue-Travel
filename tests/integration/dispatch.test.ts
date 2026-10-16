@@ -43,7 +43,7 @@ describe("dispatch administration", () => {
       ENVIRONMENT: "production",
       DEV_ADMIN_BYPASS: "false",
     });
-    expect(denied.status).toBe(401);
+    expect(denied.status).toBe(403);
     const driverResponse = await handleApi(
       admin("/api/v1/admin/drivers", "POST", { name: "Alex Chan", phone: "+853 6666 8888" }),
       env,

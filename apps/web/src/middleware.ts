@@ -1,7 +1,12 @@
 import { defineMiddleware } from "astro:middleware";
-import { createRequestId } from "@kaiyue/contracts";
+import { AppError, createRequestId } from "@kaiyue/contracts";
 import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags } from "./lib/i18n.ts";
+import {
+  assertLiveAdminSurface,
+  forbiddenResponse,
+  isProtectedAdminPath,
+} from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -13,12 +18,19 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
-  if (context.url.pathname === "/admin" || context.url.pathname.startsWith("/admin/")) {
+  if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
     try {
       // Static pages are prerendered in Node, where the Worker-only module is unavailable.
       const { env } = await import("cloudflare:workers");
+      assertLiveAdminSurface(env, context.url.pathname, context.request);
+      if (context.url.pathname === "/login" || context.url.pathname === "/setup-admin") {
+        return next();
+      }
       await requireAdmin(context.request, env);
-    } catch {
+    } catch (error) {
+      if (error instanceof AppError && (error.code === "FORBIDDEN" || error.status === 403)) {
+        return forbiddenResponse(error.message);
+      }
       return context.redirect("/login", 302);
     }
   }

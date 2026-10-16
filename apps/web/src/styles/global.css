@@ -2881,6 +2881,42 @@ html[lang="zh-Hant"] astro-island[ssr] {
   background: var(--color-accent-soft);
   color: var(--color-accent-text);
 }
+.badge--draft {
+  background: #eef2f4;
+  color: #44555e;
+}
+.badge--published {
+  background: #e9f5ef;
+  color: #206b47;
+}
+.admin-editor-dialog--wide {
+  width: min(48rem, calc(100vw - 2rem));
+}
+.admin-offer-photos {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dce2e5;
+}
+.admin-offer-photo-list {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.admin-offer-photo-list li {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  gap: 0.7rem;
+  align-items: center;
+}
+.admin-offer-photo-list img {
+  width: 7.5rem;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  background: #eef2f4;
+}
 .badge--assigned {
   background: #e5f6ee;
   color: #176b45;
@@ -3040,6 +3076,10 @@ td {
   color: #91641a;
   font-weight: 750;
   text-decoration: none;
+}
+.admin-inline-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .admin-row-link {
   white-space: nowrap;

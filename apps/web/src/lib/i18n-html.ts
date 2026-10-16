@@ -12,7 +12,7 @@ type Node = {
 
 const TEXT_ATTRS = new Set(["alt", "aria-label", "placeholder", "title"]);
 const PUBLIC_PATH =
-  /^(\/(?:about|contact|corporate|faq|privacy|terms|booking\/confirmation|business\/|services\/)|\/$)/;
+  /^(\/(?:about|contact|corporate|faq|privacy|terms|special-offers|booking\/confirmation|business\/|services\/)|\/$)/;
 
 function localLink(value: string, locale: Locale) {
   if (!value.startsWith("/") || value.startsWith("//")) return value;
