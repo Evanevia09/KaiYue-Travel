@@ -43,7 +43,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set("cache-control", "no-store");
   }
   const pagePath = stripLocale(context.url.pathname).replace(/\/$/, "") || "/";
-  if (pagePath === "/special-offers") {
+  if (pagePath === "/special-offers" || pagePath.startsWith("/special-offers/")) {
     response.headers.set("cache-control", "private, no-store, no-cache, must-revalidate");
     response.headers.set("cdn-cache-control", "no-store");
     response.headers.set("cloudflare-cdn-cache-control", "no-store");

@@ -26,6 +26,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `company` | Optional |
 | `message` | Optional customer message, length-limited plain text; store an empty string when omitted |
 | `notes` | Optional booking metadata. Hourly charter duration is stored here as `Duration: N hours.` until a dedicated column exists. |
+| `offer_id`, `offer_title` | Optional published special-offer identity. Additive columns from `migrations/0007_booking_offer.sql`. Shown in `/admin/bookings`. |
 | `source_page`, `source_trigger` | Attribution without sensitive content |
 | `locale` | Submitted locale |
 | `notification_state` | e.g. `pending`, `sent`, `partial`, `failed` |
@@ -120,7 +121,7 @@ Returns non-sensitive form configuration such as approved service types and book
 | `GET /api/v1/offers/:id/photos/:photoId/:hash` | Versioned display photo; `Cache-Control: public, max-age=31536000, immutable` |
 | `GET /api/v1/offers/:id/photos/:photoId/thumb/:hash` | Versioned thumbnail for cards and admin |
 
-Offer tables (`offers`, `offer_photos`, `offer_audit_events`) are added by `migrations/0005_special_offers.sql`. Photo variants, content hashes, and dashboard indexes are added by `migrations/0006_offer_photo_variants.sql`. Public endpoints never return drafts. Terms stay empty unless staff supply them. Public `/special-offers` HTML uses `Cache-Control: private, no-store`. Photo URLs include a content hash so a replace or delete never reuses a cached blob.
+Offer tables (`offers`, `offer_photos`, `offer_audit_events`) are added by `migrations/0005_special_offers.sql`. Photo variants, content hashes, and dashboard indexes are added by `migrations/0006_offer_photo_variants.sql`. Booking rows may store `offer_id` and `offer_title` from `migrations/0007_booking_offer.sql`. Public endpoints never return drafts. Terms stay empty unless staff supply them. Public `/special-offers` and `/special-offers/:id` HTML uses `Cache-Control: private, no-store`. Photo URLs include a content hash so a replace or delete never reuses a cached blob. Unpublished or deleted offers 404. The Special Offers hero widget lists published offers from D1 at request time; it does not call a second public API from the browser.
 
 List endpoints use bounded `limit`, cursor pagination, stable sort, and whitelisted filters. CSV export, deletion, bulk actions, and record editing are out of scope unless approved.
 

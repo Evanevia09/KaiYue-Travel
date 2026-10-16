@@ -15,7 +15,7 @@ const isLocalized = localeFromPath(Astro.url.pathname) !== "en";
     title="Talk with the team"
     lede="Ask a general question or tell us about a business programme. For a single chauffeur journey, choose the relevant service from the menu."
   >
-    <div slot="inquiry" class="card" id="inquiry">
+    <div slot="inquiry" class="card card--enquiry" id="inquiry">
       <h2>Send an inquiry</h2>
       {
         isLocalized ? (

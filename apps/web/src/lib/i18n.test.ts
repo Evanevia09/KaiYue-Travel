@@ -51,6 +51,15 @@ describe("public locale routing", () => {
     expect(result).toContain(">Meio dia</a>");
   });
 
+  it("localizes a special-offer package page link", () => {
+    const result = localizeHtml(
+      '<a href="/special-offers/3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33">Request this offer</a>',
+      "pt",
+    );
+    expect(result).toContain('href="/pt/special-offers/3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33"');
+    expect(result).toContain(">Pedir esta oferta</a>");
+  });
+
   it("keeps 600-E in the zh-Hant footer address", () => {
     const result = localizeHtml(
       "<p>600-E Avenida do Dr. Rodrigo Rodrigues, First International Commercial Centre, 16/F, P16-07, Macau</p>",

@@ -32,6 +32,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 12. [City tour package authoring](12-city-tour-packages.md)
 13. [Special Offers dashboard handover](handover/special-offers-dashboard.md)
 14. [Special Offers photos and dashboard speed](handover/special-offers-photos.md)
+15. [Special Offers enquiry, hero, and package pages](handover/special-offers-enquiry.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

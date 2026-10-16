@@ -1,0 +1,92 @@
+import type { Locale } from "./i18n.ts";
+
+export const specialOfferCopy = {
+  en: {
+    title: "Special Offers",
+    description:
+      "Published chauffeur offers with a car and driver. Quotes are confirmed before travel.",
+    kicker: "Current offers",
+    heading: "Special Offers",
+    lede: "These are the published offers that are ready to request. A team member confirms the quote before travel.",
+    empty:
+      "There are no published special offers right now. Ask the team about a city tour or a private car and driver.",
+    from: "From",
+    terms: "Terms",
+    book: "Request this offer",
+    descriptionHeading: "Description",
+    photos: "Photos",
+    showPhoto: "Show photo",
+    packageLabel: "Package",
+    choosePackage: "Choose a package",
+    choosePackageError: "Choose a package.",
+    enquiryTitle: "Special Offer enquiry",
+    enquiryProgress: "Special Offer enquiry",
+    continue: "Continue request →",
+    close: "Close special offer enquiry",
+    heroEyebrow: "Special offers · Macau",
+    heroTitle: "Current chauffeur offers",
+    heroLede:
+      "Choose a published offer, tell us where to collect you, and send a request. The team confirms the quote before travel.",
+    browse: "See current offers",
+    serviceValue: "Car with driver",
+  },
+  pt: {
+    title: "Ofertas especiais",
+    description:
+      "Ofertas de motorista publicadas, com carro e condutor. O orçamento confirma-se antes da viagem.",
+    kicker: "Ofertas atuais",
+    heading: "Ofertas especiais",
+    lede: "Estas são as ofertas publicadas e prontas a pedir. Um membro da equipa confirma o orçamento antes da viagem.",
+    empty:
+      "Não há ofertas especiais publicadas neste momento. Fale com a equipa sobre um passeio pela cidade ou um carro com motorista.",
+    from: "Desde",
+    terms: "Condições",
+    book: "Pedir esta oferta",
+    descriptionHeading: "Descrição",
+    photos: "Fotos",
+    showPhoto: "Mostrar foto",
+    packageLabel: "Pacote",
+    choosePackage: "Escolha um pacote",
+    choosePackageError: "Escolha um pacote.",
+    enquiryTitle: "Pedido de oferta especial",
+    enquiryProgress: "Pedido de oferta especial",
+    continue: "Continuar pedido →",
+    close: "Fechar o pedido de oferta especial",
+    heroEyebrow: "Ofertas especiais · Macau",
+    heroTitle: "Ofertas atuais com motorista",
+    heroLede:
+      "Escolha uma oferta publicada, diga-nos onde o ir buscar e envie o pedido. A equipa confirma o orçamento antes da viagem.",
+    browse: "Ver ofertas atuais",
+    serviceValue: "Carro com motorista",
+  },
+  "zh-Hant": {
+    title: "特別優惠",
+    description: "已發布的司機接送優惠，附車輛及司機。出發前由團隊確認報價。",
+    kicker: "最新優惠",
+    heading: "特別優惠",
+    lede: "以下為已發布、可供申請的優惠。出發前由團隊確認報價。",
+    empty: "目前沒有已發布的特別優惠。歡迎向團隊查詢城市遊覽或包車司機服務。",
+    from: "起",
+    terms: "條款",
+    book: "申請此優惠",
+    descriptionHeading: "說明",
+    photos: "圖片",
+    showPhoto: "顯示圖片",
+    packageLabel: "套票",
+    choosePackage: "選擇套票",
+    choosePackageError: "請選擇套票。",
+    enquiryTitle: "特別優惠查詢",
+    enquiryProgress: "特別優惠查詢",
+    continue: "繼續申請 →",
+    close: "關閉特別優惠查詢",
+    heroEyebrow: "特別優惠 · 澳門",
+    heroTitle: "最新司機接送優惠",
+    heroLede: "選擇已發布的優惠，告訴我們接載地點，然後送出申請。出發前由團隊確認報價。",
+    browse: "查看最新優惠",
+    serviceValue: "車輛連司機",
+  },
+} as const;
+
+export function specialOfferUi(locale: Locale) {
+  return specialOfferCopy[locale];
+}

@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { localeFromPath } from "../../lib/i18n.ts";
+import { specialOfferUi } from "../../lib/special-offer-copy.ts";
 import { BookingForm, BookingProgress } from "./BookingForm.tsx";
 import { BookingIcon } from "./BookingIcons.tsx";
 import {
@@ -41,6 +43,14 @@ export function BookingSheet() {
     return null;
   }
 
+  const specialOffer = state.context.enquiryKind === "special_offer";
+  const offerCopy = specialOfferUi(localeFromPath(state.context.sourcePage));
+  const dialogTitle = specialOffer
+    ? offerCopy.enquiryTitle
+    : state.step === 2
+      ? "Booking request"
+      : "Request a chauffeur";
+
   function attemptClose() {
     if (isDirty(state.draft) && state.status !== "success") {
       setConfirmClose(true);
@@ -66,15 +76,17 @@ export function BookingSheet() {
               : "booking-card__header"
           }
         >
-          <h2 id={titleId} className={state.step === 2 ? "sr-only" : undefined}>
-            {state.step === 2 ? "Booking request" : "Request a chauffeur"}
+          <h2 id={titleId} className={state.step === 2 && !specialOffer ? "sr-only" : undefined}>
+            {dialogTitle}
           </h2>
-          {state.step === 2 && !confirmClose ? <BookingProgress step={state.step} /> : null}
+          {state.step === 2 && !confirmClose && !specialOffer ? (
+            <BookingProgress step={state.step} />
+          ) : null}
           <button
             type="button"
             className="booking-card__close"
             onClick={attemptClose}
-            aria-label="Close booking form"
+            aria-label={specialOffer ? offerCopy.close : "Close booking form"}
           >
             <BookingIcon name="close" size={20} />
           </button>
@@ -102,7 +114,10 @@ export function BookingSheet() {
               </button>
             </div>
           ) : (
-            <BookingForm progressInHeader />
+            <BookingForm
+              progressInHeader
+              enquiryKind={specialOffer ? "special_offer" : "standard"}
+            />
           )}
         </div>
       </div>

@@ -73,6 +73,8 @@ export const bookingCreateSchema = z
       .optional(),
     tourPackageTitle: z.string().trim().min(1).max(160).optional(),
     tourDurationHours: z.number().int().min(1).max(24).optional(),
+    offerId: z.string().uuid().optional(),
+    offerTitle: z.string().trim().min(1).max(160).optional(),
     locale: z.string().trim().min(2).max(16).default("en"),
     sourcePage: z.string().trim().min(1).max(200),
     sourceTrigger: z.string().trim().min(1).max(80),
@@ -102,6 +104,22 @@ export const bookingCreateSchema = z
         code: "custom",
         path: ["tourPackageId"],
         message: "Choose a tour package.",
+      });
+    }
+
+    if (value.offerId && !value.offerTitle) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["offerTitle"],
+        message: "Choose a published special offer.",
+      });
+    }
+
+    if (value.offerTitle && !value.offerId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["offerId"],
+        message: "Choose a published special offer.",
       });
     }
 
