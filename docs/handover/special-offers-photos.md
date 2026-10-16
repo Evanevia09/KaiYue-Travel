@@ -111,7 +111,19 @@ It did not change `BaseLayout.astro`, Home `index.astro`, Google Fonts, booking 
 
 - Home hero: WebP srcset 800/1200/1672 w (37/68/111 KB vs 259 KB JPEG), `fetchpriority=high`, preload, width/height 1672×941.
 - Header/footer logo: WebP 28 KB at 624×122 with the original PNG fallback, instead of two 134 KB 1500px PNGs. Footer logo is lazy.
-- English and Portuguese skip Noto Sans TC. Footer WeChat QR uses `loading="lazy"`.
+- English and Portuguese skip Noto Sans TC. Google Fonts CSS is `media=print` until load so it does not block the Home `h1`. Footer WeChat QR uses `loading="lazy"`.
+
+New preview: `https://949dbb5a-kaiyue-travel.scalingsmb.workers.dev`
+
+### Lighthouse mobile Home (three runs each, same CLI)
+
+| Target | Run 1 | Run 2 | Run 3 | Median | LCP |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Live `kaiyue-travel.scalingsmb.workers.dev` | 69 | 69 | 70 | 69 | 4.5–4.7 s |
+| Previous photo preview `bd89586f` | 57 | 57 | 57 | 57 | 6.2–6.4 s |
+| This follow-up `949dbb5a` | 86 | 87 | 77 | 86 | 2.0–3.2 s |
+
+All three new-preview runs are at or above the original 72. Best new-preview LCP 2.0 s (FCP 1.6 s). Hero transfer 37,635 B WebP vs 258,528 B JPEG. Logo transfer 28,755 B WebP vs 134,024 B PNG. Inter CSS 1,273 B vs the previous Inter+Noto sheet (~104 KB). `/special-offers` stayed 92, CLS 0. Home CLS 0.23 remains on some runs (pre-existing booking-widget shift).
 
 ### Migration `0006` vs live D1 `069aa442`
 
@@ -121,4 +133,4 @@ Already applied (`d1_migrations` id 6). Purely additive: extra `offer_photos` co
 
 - Access is still not configured. Preview login remains the disposable `admin-test@kaiyue.test` operator.
 - Client canvas resize needs a real browser; API tests upload already-small fixtures.
-- First Lighthouse pair above is from the Workers preview before the Home LCP follow-up. Live vs preview scores from the three-run check are recorded after the new preview deploys.
+- Preview TTFB is higher than live (~210–230 ms vs ~30 ms). Scores are from this environment’s Lighthouse CLI, not PageSpeed Insights.

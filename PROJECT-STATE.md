@@ -202,7 +202,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 - Merged staging WeChat QR (`3e6e310` / PR 9). `wrangler.jsonc` D1/R2 bindings unchanged.
 - Shared-file audit: the photo PR only added unused admin CSS and `/special-offers` `no-store`. Live Home HTML already had the same hero JPEG, PNG logo, and Inter+Noto fonts; live also already had the WeChat QR.
-- Home hero now serves WebP srcset (37/68/111 KB vs 259 KB JPEG) with preload and `fetchpriority=high`. Logo uses a 28 KB WebP with PNG fallback. EN/pt skip Noto Sans TC. Footer WeChat QR is lazy.
+- Home hero now serves WebP srcset (37/68/111 KB vs 259 KB JPEG) with preload and `fetchpriority=high`. Logo uses a 28 KB WebP with PNG fallback. EN/pt skip Noto Sans TC. Google Fonts CSS is non-blocking. Footer WeChat QR is lazy.
+- Lighthouse mobile Home, three runs: live 69/69/70, previous photo preview 57/57/57, this preview 86/87/77 (median 86, all ≥ 72). LCP 4.7 s live / 6.3 s old preview → 2.0–3.2 s. `/special-offers` 92. New preview `https://949dbb5a-kaiyue-travel.scalingsmb.workers.dev`.
 - Migration `0006` is applied on shared D1 `069aa442` and is additive (new columns with defaults + extra indexes). Safe for live main code. Do not merge to `main`.
 
 ### 2026-10-16 — Special Offers photos and dashboard speed (staging PR, not main)
