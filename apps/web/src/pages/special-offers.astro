@@ -5,6 +5,10 @@ import { localeFromPath, localePath } from "../lib/i18n.ts";
 import { listPublicOffers } from "../lib/server/offers/service.ts";
 import { env } from "cloudflare:workers";
 
+Astro.response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+Astro.response.headers.set("CDN-Cache-Control", "no-store");
+Astro.response.headers.set("Cloudflare-CDN-Cache-Control", "no-store");
+
 const locale = localeFromPath(Astro.url.pathname);
 const copy = {
   en: {

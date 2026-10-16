@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { isCompleteOffer, isOfferReady, offerWriteSchema, scaledOfferImageSize } from "./offer.ts";
+import {
+  isCompleteOffer,
+  isOfferReady,
+  OFFER_IMAGE_MAX_BYTES,
+  OFFER_ORIGINAL_MAX_BYTES,
+  offerWriteSchema,
+  scaledOfferImageSize,
+} from "./offer.ts";
 
 describe("offer validation", () => {
   it("accepts a complete write payload and drops empty optional fields", () => {
@@ -43,6 +50,11 @@ describe("offer validation", () => {
         photos: [{ isMain: false }],
       }),
     ).toBe(false);
+  });
+
+  it("keeps a 25 MB original ceiling on the client and 5 MB after resize and on the server", () => {
+    expect(OFFER_ORIGINAL_MAX_BYTES).toBe(25 * 1024 * 1024);
+    expect(OFFER_IMAGE_MAX_BYTES).toBe(5 * 1024 * 1024);
   });
 
   it("scales the long edge and leaves smaller images unchanged", () => {

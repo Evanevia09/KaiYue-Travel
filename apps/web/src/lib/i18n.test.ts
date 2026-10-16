@@ -51,6 +51,15 @@ describe("public locale routing", () => {
     expect(result).toContain(">Meio dia</a>");
   });
 
+  it("keeps 600-E in the zh-Hant footer address", () => {
+    const result = localizeHtml(
+      "<p>600-E Avenida do Dr. Rodrigo Rodrigues, First International Commercial Centre, 16/F, P16-07, Macau</p>",
+      "zh-Hant",
+    );
+    expect(result).toContain("600-E");
+    expect(result).toContain("澳門羅理基博士大馬路600-E號");
+  });
+
   it("localizes the WeChat QR placeholder label and alt text", () => {
     const markup =
       '<img alt="WeChat QR – coming soon"><span>WeChat QR – coming soon</span><figcaption>WeChat</figcaption>';

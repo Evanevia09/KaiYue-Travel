@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { optimizeOfferPhoto } from "../../lib/offer-image.ts";
-import { adminFetch } from "./api.ts";
+import { adminFetch, formatWhen } from "./api.ts";
 import {
   editorAfterWrite,
+  filesFromDataTransfer,
   offerSaveTarget,
+  takeInputFiles,
   withMainPhoto,
   withOfferStatus,
   withoutPhoto,
@@ -196,33 +198,28 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
     }
   }
 
-  async function uploadPhotos(files: FileList | null) {
-    if (!editing || !files?.length || busy) return;
+  async function uploadPhotos(files: File[]) {
+    if (!editing || files.length === 0 || busy) return;
     setBusy("photos");
     setError("");
     const offerId = editing.id;
     try {
       let latest = editing;
-      const list = [...files];
-      for (const [index, file] of list.entries()) {
-        setUpload({ index: index + 1, total: list.length, phase: "optimising", percent: 0 });
+      for (const [index, file] of files.entries()) {
+        setUpload({ index: index + 1, total: files.length, phase: "optimising", percent: 0 });
+        const optimized = await optimizeOfferPhoto(file);
         const data = new FormData();
-        try {
-          const optimized = await optimizeOfferPhoto(file);
-          data.append("photo", optimized.display.file, optimized.display.file.name);
-          data.append("thumbnail", optimized.thumbnail.file, optimized.thumbnail.file.name);
-          data.append("width", String(optimized.display.width));
-          data.append("height", String(optimized.display.height));
-        } catch {
-          data.append("photo", file);
-        }
-        setUpload({ index: index + 1, total: list.length, phase: "uploading", percent: 0 });
+        data.append("photo", optimized.display.file, optimized.display.file.name);
+        data.append("thumbnail", optimized.thumbnail.file, optimized.thumbnail.file.name);
+        data.append("width", String(optimized.display.width));
+        data.append("height", String(optimized.display.height));
+        setUpload({ index: index + 1, total: files.length, phase: "uploading", percent: 0 });
         latest = await uploadWithProgress(`/api/admin/offers/${offerId}/photos`, data, (percent) =>
-          setUpload({ index: index + 1, total: list.length, phase: "uploading", percent }),
+          setUpload({ index: index + 1, total: files.length, phase: "uploading", percent }),
         );
         applyOffer(latest);
       }
-      setNotice(list.length === 1 ? "Photo uploaded." : "Photos uploaded.");
+      setNotice(files.length === 1 ? "Photo uploaded." : "Photos uploaded.");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -396,7 +393,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                     <span className={`badge badge--${item.status}`}>{item.status}</span>
                   </td>
                   <td>{item.priceFrom == null ? "Hidden" : item.priceFrom}</td>
-                  <td>{new Date(item.updatedAt).toLocaleString("en-GB")}</td>
+                  <td>{formatWhen(item.updatedAt)}</td>
                   <td>
                     <button
                       type="button"
@@ -519,11 +516,22 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
             </button>
           </form>
           {editing && (
-            <div className="admin-offer-photos">
+            <div
+              className="admin-offer-photos"
+              onDragOver={(event) => {
+                event.preventDefault();
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (locked) return;
+                void uploadPhotos(filesFromDataTransfer(event.dataTransfer));
+              }}
+            >
               <h3>Photos</h3>
               <p className="muted">
-                JPEG, PNG, or WebP. Large photos are resized to 1600px and compressed before upload.
-                5 MB each after optimisation. Choose one main photo.
+                JPEG, PNG, or WebP. Phone photos up to 25 MB are resized to 1600px before upload.
+                The resized file must stay under 5 MB. Drop files here or choose them. Choose one
+                main photo.
               </p>
               <input
                 type="file"
@@ -531,9 +539,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                 multiple
                 disabled={locked}
                 onChange={(event) => {
-                  const selected = event.target.files;
-                  event.target.value = "";
-                  void uploadPhotos(selected);
+                  void uploadPhotos(takeInputFiles(event.currentTarget));
                 }}
               />
               <ul className="admin-offer-photo-list">

@@ -18,7 +18,7 @@ import { faqs, serviceGroups, site } from "../lib/site.ts";
     rel="preload"
     as="image"
     type="image/webp"
-    href="/images/illustrative/home-hero-family-v2-800.webp"
+    href="/images/illustrative/home-hero-family-v2-1200.webp"
     imagesrcset="/images/illustrative/home-hero-family-v2-800.webp 800w, /images/illustrative/home-hero-family-v2-1200.webp 1200w, /images/illustrative/home-hero-family-v2-1672.webp 1672w"
     imagesizes="100vw"
     fetchpriority="high"
@@ -48,13 +48,18 @@ import { faqs, serviceGroups, site } from "../lib/site.ts";
   <section class="section editorial-section" aria-labelledby="home-intro">
     <div class="wrap editorial-split">
       <div class="editorial-photo">
-        <img
-          src="/images/hero-home.jpg"
-          width="860"
-          height="400"
-          loading="lazy"
-          alt="Family arriving beside a private vehicle"
-        />
+        <picture>
+          <source type="image/webp" srcset="/images/hero-home.webp" />
+          <img
+            src="/images/hero-home.jpg"
+            width="860"
+            height="400"
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+            alt="Family arriving beside a private vehicle"
+          />
+        </picture>
       </div>
       <div class="editorial-copy">
         <p class="kicker">Travel on your terms</p>

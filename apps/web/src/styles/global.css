@@ -29,8 +29,9 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-12: 3rem;
-  --font-display: "Inter", "Noto Sans TC", system-ui, sans-serif;
-  --font-ui: "Inter", "Noto Sans TC", system-ui, sans-serif;
+  --font-display:
+    "Inter", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+  --font-ui: "Inter", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
   --max-width: 74rem;
   --header-height: 4.75rem;
 }
@@ -2973,6 +2974,14 @@ html[lang="zh-Hant"] astro-island[ssr] {
   margin-top: 1.25rem;
   padding-top: 1rem;
   border-top: 1px solid #dce2e5;
+}
+.admin-offer-photos input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: 1px dashed #c5ced3;
+  border-radius: 0.7rem;
+  background: #f7fafb;
 }
 .admin-offer-photo-list {
   display: grid;

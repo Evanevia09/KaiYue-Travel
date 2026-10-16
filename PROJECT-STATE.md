@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offers photos branch merged with staging WeChat QR; Home LCP/WebP follow-up; not merged to main)
+**Last updated:** 2026-10-16 (Special Offers photos QA blockers on staging PR; not merged to main)
 **Product-status evidence date:** 2026-10-16 for offers photo/cache/dashboard work and WeChat QR placeholder in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Special Offers staff dashboard remains on `staging`. This branch (`cursor/special-offers-photos-dashboard-d4d6`) adds client-side photo resize, thumbnail variants, immutable hashed photo URLs, `no-store` public offer pages, and faster `/admin` and `/admin/offers`. Staging now also includes the WeChat QR placeholder from PR 9. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the staging/preview photo upload and public-page freshness, dashboard timings, and Home Lighthouse. Do not merge to `main`. Do not change D1/R2 bindings.
+**Current objective:** Review the staging/preview photo upload (Chrome FileList + 25 MB originals), public-page freshness after delete, Home waste/fonts, and Home Lighthouse EN/zh-Hant. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -197,6 +197,17 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-16 — Browser QA blockers on the Special Offers photos branch (staging PR, not main)
+
+- Chrome admin upload copies `FileList` before clearing the input and accepts drag-and-drop. Playwright `setInputFiles` covers that path.
+- Client originals up to 25 MB; 5 MB applies after resize and on the Worker. Resize failure is an error, not an original-file upload.
+- Admin “Updated” timestamps use `Asia/Macau` `formatToParts` so SSR and Chrome hydration match.
+- Home preload matches the 1200.webp srcset candidate Lighthouse uses; below-fold `hero-home` and city-tour cards are lazy WebP; Noto Sans TC is no longer fetched (system CJK + Inter `display=swap`).
+- Offer/photo delete clears public list JSON/HTML (`CDN-Cache-Control: no-store`) and removes unique R2 display + thumbnail keys one by one.
+- zh-Hant footer address keeps `600-E`.
+- D1/R2 bindings in `wrangler.jsonc` unchanged. Do not merge to `main`.
+- Handover: `docs/handover/special-offers-photos.md`.
 
 ### 2026-10-16 — Home LCP follow-up on the Special Offers photos branch (staging PR, not main)
 

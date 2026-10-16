@@ -115,7 +115,7 @@ Returns non-sensitive form configuration such as approved service types and book
 | `GET/POST /api/admin/offers` and `/api/v1/admin/offers` | Staff special-offer list and create (draft) |
 | `GET/PATCH/DELETE /api/admin/offers/:id` | Offer detail, edit, delete (delete also removes stored photos) |
 | `POST /api/admin/offers/:id/publish` and `/unpublish` | Publish a complete offer, or return it to draft |
-| `POST /api/admin/offers/:id/photos` | JPEG/PNG/WebP upload, magic-byte checked, 5 MB max. Client resizes to 1600px and may send a 480px thumbnail. |
+| `POST /api/admin/offers/:id/photos` | JPEG/PNG/WebP upload, magic-byte checked, 5 MB max on the stored file. The admin UI accepts originals up to 25 MB, resizes them, and only then enforces 5 MB. |
 | `GET /api/v1/offers` | Public list of published, complete offers only |
 | `GET /api/v1/offers/:id/photos/:photoId/:hash` | Versioned display photo; `Cache-Control: public, max-age=31536000, immutable` |
 | `GET /api/v1/offers/:id/photos/:photoId/thumb/:hash` | Versioned thumbnail for cards and admin |

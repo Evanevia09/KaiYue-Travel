@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.64.1
+        version: 1.64.1
       '@types/node':
         specifier: ^24.5.2
         version: 24.13.5
@@ -31,7 +34,7 @@ importers:
     dependencies:
       '@astrojs/cloudflare':
         specifier: ^14.3.2
-        version: 14.3.2(@types/node@24.13.5)(astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.5)(yaml@2.9.1))(esbuild@0.28.2)(wrangler@4.132.0(@types/node@24.13.5))(yaml@2.9.1)
+        version: 14.3.2(@types/node@24.13.5)(astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(yaml@2.9.1))(esbuild@0.28.2)(wrangler@4.132.0(@types/node@24.13.5))(yaml@2.9.1)
       '@astrojs/react':
         specifier: ^6.0.5
         version: 6.0.5(@types/node@24.13.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(esbuild@0.28.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(yaml@2.9.1)
@@ -43,7 +46,7 @@ importers:
         version: link:../../packages/contracts
       astro:
         specifier: ^7.3.2
-        version: 7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.5)(yaml@2.9.1)
+        version: 7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(yaml@2.9.1)
       better-auth:
         specifier: ^1.7.5
         version: 1.7.5(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@3.2.7(@types/node@24.13.5)(lightningcss@1.33.0)(yaml@2.9.1))
@@ -1030,6 +1033,11 @@ packages:
 
   '@oxc-project/types@0.149.0':
     resolution: {integrity: sha512-Efcc+iF0j3Bf67YjEqIqWXbX5XddXoK/Mw4K1/JuXwRCZ8N16VR7iT23nlCc9XrveFVh/E5Rqs2StT0V8v9LdA==}
+
+  '@playwright/test@1.64.1':
+    resolution: {integrity: sha512-IaYGml/nSOiZWROfPtuIL7neuu9qDOZ3TNvNljUIrhDMxiGTgPjzj/g9p9RxpS2tSepPDRY+UwAaEeiKtUvIAg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   '@poppinss/colors@4.1.6':
     resolution: {integrity: sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==}
@@ -2144,6 +2152,16 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.64.1:
+    resolution: {integrity: sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   postal-mime@2.7.6:
     resolution: {integrity: sha512-UUlyE2KlxmvwMGq060onF/VWU3zD6dVW31FwokQ5v26jWd35fbs2MoTFzh+jXnPwAyV2MULMKXcBInGOl5TO6Q==}
 
@@ -2851,12 +2869,12 @@ snapshots:
       - prettier
       - prettier-plugin-astro
 
-  '@astrojs/cloudflare@14.3.2(@types/node@24.13.5)(astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.5)(yaml@2.9.1))(esbuild@0.28.2)(wrangler@4.132.0(@types/node@24.13.5))(yaml@2.9.1)':
+  '@astrojs/cloudflare@14.3.2(@types/node@24.13.5)(astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(yaml@2.9.1))(esbuild@0.28.2)(wrangler@4.132.0(@types/node@24.13.5))(yaml@2.9.1)':
     dependencies:
       '@astrojs/internal-helpers': 0.11.0
       '@astrojs/underscore-redirects': 1.0.4
       '@cloudflare/vite-plugin': 1.54.10(@types/node@24.13.5)(vite@8.3.0(@types/node@24.13.5)(esbuild@0.28.2)(yaml@2.9.1))(wrangler@4.132.0(@types/node@24.13.5))
-      astro: 7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.5)(yaml@2.9.1)
+      astro: 7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(yaml@2.9.1)
       piccolore: 0.1.3
       vite: 8.3.0(@types/node@24.13.5)(esbuild@0.28.2)(yaml@2.9.1)
       wrangler: 4.132.0(@types/node@24.13.5)
@@ -2897,9 +2915,9 @@ snapshots:
   '@astrojs/compiler-binding-linux-x64-musl@0.4.1':
     optional: true
 
-  '@astrojs/compiler-binding-wasm32-wasi@0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
+  '@astrojs/compiler-binding-wasm32-wasi@0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)':
     dependencies:
-      '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -2911,7 +2929,7 @@ snapshots:
   '@astrojs/compiler-binding-win32-x64-msvc@0.4.1':
     optional: true
 
-  '@astrojs/compiler-binding@0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
+  '@astrojs/compiler-binding@0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)':
     optionalDependencies:
       '@astrojs/compiler-binding-android-arm64': 0.4.1
       '@astrojs/compiler-binding-darwin-arm64': 0.4.1
@@ -2920,16 +2938,16 @@ snapshots:
       '@astrojs/compiler-binding-linux-arm64-musl': 0.4.1
       '@astrojs/compiler-binding-linux-x64-gnu': 0.4.1
       '@astrojs/compiler-binding-linux-x64-musl': 0.4.1
-      '@astrojs/compiler-binding-wasm32-wasi': 0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      '@astrojs/compiler-binding-wasm32-wasi': 0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)
       '@astrojs/compiler-binding-win32-arm64-msvc': 0.4.1
       '@astrojs/compiler-binding-win32-x64-msvc': 0.4.1
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  '@astrojs/compiler-rs@0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
+  '@astrojs/compiler-rs@0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)':
     dependencies:
-      '@astrojs/compiler-binding': 0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      '@astrojs/compiler-binding': 0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -3623,6 +3641,13 @@ snapshots:
       '@tybys/wasm-util': 0.10.4
     optional: true
 
+  '@napi-rs/wasm-runtime@1.2.4(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)':
+    dependencies:
+      '@emnapi/core': 1.11.1
+      '@emnapi/runtime': 1.11.3
+      '@tybys/wasm-util': 0.10.4
+    optional: true
+
   '@noble/ciphers@2.4.0': {}
 
   '@noble/hashes@2.4.0': {}
@@ -3632,6 +3657,10 @@ snapshots:
   '@oslojs/encoding@1.1.0': {}
 
   '@oxc-project/types@0.149.0': {}
+
+  '@playwright/test@1.64.1':
+    dependencies:
+      playwright: 1.64.1
 
   '@poppinss/colors@4.1.6':
     dependencies:
@@ -4030,9 +4059,9 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.5)(yaml@2.9.1):
+  astro@7.3.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.5)(yaml@2.9.1):
     dependencies:
-      '@astrojs/compiler-rs': 0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      '@astrojs/compiler-rs': 0.4.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)
       '@astrojs/internal-helpers': 0.11.0
       '@astrojs/markdown-satteri': 0.4.1
       '@astrojs/telemetry': 3.3.3
@@ -4709,6 +4738,12 @@ snapshots:
   picomatch@2.3.2: {}
 
   picomatch@4.0.7: {}
+
+  playwright-core@1.64.1: {}
+
+  playwright@1.64.1:
+    dependencies:
+      playwright-core: 1.64.1
 
   postal-mime@2.7.6: {}
 

@@ -7,6 +7,7 @@ export const OFFER_TITLE_MAX = 120;
 export const OFFER_DESCRIPTION_MAX = 2000;
 export const OFFER_TERMS_MAX = 4000;
 export const OFFER_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+export const OFFER_ORIGINAL_MAX_BYTES = 25 * 1024 * 1024;
 export const OFFER_IMAGE_MAX_EDGE = 1600;
 export const OFFER_THUMB_MAX_EDGE = 480;
 export const OFFER_IMAGE_CACHE_SECONDS = 31536000;

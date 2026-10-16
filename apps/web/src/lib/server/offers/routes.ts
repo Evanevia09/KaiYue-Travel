@@ -92,8 +92,13 @@ function photoResponse(
   });
   if (options.immutable && options.publicPhoto) {
     headers.set("cdn-cache-control", `public, max-age=${OFFER_IMAGE_CACHE_SECONDS}, immutable`);
+    headers.set(
+      "cloudflare-cdn-cache-control",
+      `public, max-age=${OFFER_IMAGE_CACHE_SECONDS}, immutable`,
+    );
   } else {
     headers.set("cdn-cache-control", "no-store");
+    headers.set("cloudflare-cdn-cache-control", "no-store");
   }
   if (options.version) {
     headers.set("etag", `"${options.version}"`);

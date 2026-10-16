@@ -3,6 +3,7 @@ import {
   OFFER_IMAGE_MAX_BYTES,
   OFFER_IMAGE_MAX_EDGE,
   OFFER_IMAGE_TYPES,
+  OFFER_ORIGINAL_MAX_BYTES,
   OFFER_THUMB_MAX_EDGE,
   scaledOfferImageSize,
   type OfferImageType,
@@ -98,25 +99,43 @@ export async function optimizeOfferPhoto(file: File): Promise<OptimizedOfferPhot
       fields: { photo: "Only JPEG, PNG, or WebP files are accepted." },
     });
   }
-  if (file.size > OFFER_IMAGE_MAX_BYTES) {
-    throw new AppError("VALIDATION_FAILED", "Each photo must be 5 MB or smaller.", {
-      fields: { photo: "Each photo must be 5 MB or smaller." },
+  if (file.size > OFFER_ORIGINAL_MAX_BYTES) {
+    throw new AppError("VALIDATION_FAILED", "Each original photo must be 25 MB or smaller.", {
+      fields: { photo: "Each original photo must be 25 MB or smaller." },
     });
   }
 
-  const bitmap = await createImageBitmap(file, {
-    imageOrientation: "from-image",
-  } as ImageBitmapOptions);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file, {
+      imageOrientation: "from-image",
+    } as ImageBitmapOptions);
+  } catch {
+    throw new AppError(
+      "VALIDATION_FAILED",
+      "Could not resize this photo. Try another JPEG, PNG, or WebP.",
+      { fields: { photo: "Could not resize this photo. Try another JPEG, PNG, or WebP." } },
+    );
+  }
   try {
     const stem = file.name.replace(/\.[^.]+$/, "") || "offer";
     const display = await encodeVariant(bitmap, OFFER_IMAGE_MAX_EDGE, 0.82, stem);
     const thumbnail = await encodeVariant(bitmap, OFFER_THUMB_MAX_EDGE, 0.72, `${stem}-thumb`);
     if (display.file.size > OFFER_IMAGE_MAX_BYTES || thumbnail.file.size > OFFER_IMAGE_MAX_BYTES) {
-      throw new AppError("VALIDATION_FAILED", "Each photo must be 5 MB or smaller.", {
-        fields: { photo: "Each photo must be 5 MB or smaller." },
-      });
+      throw new AppError(
+        "VALIDATION_FAILED",
+        "The resized photo is still over 5 MB. Try a simpler image.",
+        { fields: { photo: "The resized photo is still over 5 MB. Try a simpler image." } },
+      );
     }
     return { display, thumbnail };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      "VALIDATION_FAILED",
+      "Could not resize this photo. Try another JPEG, PNG, or WebP.",
+      { fields: { photo: "Could not resize this photo. Try another JPEG, PNG, or WebP." } },
+    );
   } finally {
     bitmap.close();
   }

@@ -75,9 +75,16 @@ export type AdminContact = {
 };
 
 export function formatWhen(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Macau",
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("day")}/${get("month")}/${get("year")}, ${get("hour")}:${get("minute")}`;
 }

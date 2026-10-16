@@ -13,7 +13,7 @@ Local first-account setup requires a one-time token and is disabled outside `ENV
 - **Calendar** — booking schedule.
 - **Contacts** — general/corporate inquiries.
 - **Drivers & vehicles** — staff-managed dispatch inventory and contact details.
-- **Special Offers** — draft/publish catalogue with photos. `/admin/offers`. Photos are resized in the browser before upload; the editor shows upload progress and applies main-photo, delete, and publish changes immediately, rolling back if the server rejects them. `/admin` and `/admin/offers` render their first payload on the server so the island does not wait on a second round trip.
+- **Special Offers** — draft/publish catalogue with photos. `/admin/offers`. Phone photos up to 25 MB are copied from the file input (or a drop) before the input is cleared, then resized in the browser. The stored file must stay under 5 MB; a resize failure is shown as an error and the original is not uploaded. The editor shows upload progress and applies main-photo, delete, and publish changes immediately, rolling back if the server rejects them. `/admin` and `/admin/offers` render their first payload on the server so the island does not wait on a second round trip. Updated timestamps use Asia/Macau so server HTML and hydration match.
 
 ## Dashboard
 

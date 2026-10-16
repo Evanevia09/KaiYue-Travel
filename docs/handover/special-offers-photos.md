@@ -12,7 +12,7 @@ This increment makes Special Offers photos smaller and cache-safe, and makes `/a
 
 ### Photo optimisation
 
-- The admin editor resizes on a canvas before upload: long edge 1600px for the display file, 480px for a thumbnail, WebP when the browser supports it, otherwise JPEG.
+- The admin editor copies the chosen `FileList` (and dropped files) before clearing the input, then resizes on a canvas: long edge 1600px for the display file, 480px for a thumbnail, WebP when the browser supports it, otherwise JPEG. Originals up to 25 MB are accepted on the client; the resized file must stay under 5 MB. If resizing fails, the UI shows an error and does not upload the original.
 - The Worker still checks magic bytes, MIME, and the 5 MB limit. Existing main-photo rules are unchanged: the first photo is main, staff can pick another, deleting the main photo promotes the next.
 - Public cards use `srcset` (480w / 1600w), `sizes`, `width`/`height`, `loading="lazy"` (first card eager), and a reserved `aspect-ratio` so the grid does not jump.
 
@@ -20,14 +20,14 @@ This increment makes Special Offers photos smaller and cache-safe, and makes `/a
 
 - Photo URLs are versioned with a content hash, for example `/api/v1/offers/:id/photos/:photoId/:hash` and `/thumb/:hash`.
 - Versioned public photos send `Cache-Control: public, max-age=31536000, immutable`. Admin/draft photos stay private. Unversioned legacy URLs send `no-store`.
-- `/special-offers`, `/pt/special-offers`, and `/zh-Hant/special-offers` send `Cache-Control: private, no-store` so publish, edit, and delete show up on the next request. `GET /api/v1/offers` already used `no-store`.
+- `/special-offers`, `/pt/special-offers`, and `/zh-Hant/special-offers` send `Cache-Control: private, no-store` plus Cloudflare CDN `no-store` so publish, edit, and delete show up on the next request. `GET /api/v1/offers` JSON uses the same headers. Offer and photo deletes remove unique R2 display and thumbnail keys one by one.
 
 ### Dashboard speed
 
 - `/admin` and `/admin/offers` render the first payload on the server. The React island does not wait for a second list/summary fetch when that payload is present.
 - Dashboard counts run as one D1 `batch()` instead of seven separate queries.
 - Public offer lists read published rows only, using `idx_offers_status_updated`.
-- Main-photo, photo delete, publish/unpublish, and offer delete are optimistic in the UI and roll back if the server rejects them. Upload shows optimise/upload progress. Double-click still no-ops while `busy` is set; Create draft still switches to PATCH on the saved id.
+- Main-photo, photo delete, publish/unpublish, and offer delete are optimistic in the UI and roll back if the server rejects them. Upload shows optimise/upload progress. Double-click still no-ops while `busy` is set; Create draft still switches to PATCH on the saved id. The Updated column is formatted in `Asia/Macau` with explicit 2-digit parts so Worker SSR and Chrome hydration match.
 
 ### Migration `0006_offer_photo_variants.sql`
 
@@ -128,6 +128,19 @@ All three new-preview runs are at or above the original 72. Best new-preview LCP
 ### Migration `0006` vs live D1 `069aa442`
 
 Already applied (`d1_migrations` id 6). Purely additive: extra `offer_photos` columns with defaults, plus `CREATE INDEX IF NOT EXISTS` on offers, offer_photos, and bookings. Main code does not select the new photo columns. Extra bookings indexes do not change query results. Safe for the live Worker that shares this D1. Do not merge this branch to `main`.
+
+## Browser QA blockers (2026-10-16)
+
+Fixes on the same staging PR after Chrome QA on `949dbb5a`. Do not merge to `main`.
+
+1. **Chrome file input.** `takeInputFiles` copies `Array.from(input.files)` before `input.value = ""`. Drag-and-drop uses `filesFromDataTransfer`. Playwright `setInputFiles` covers the copy-before-clear path; the preview UI test uploads a 4000px JPEG over 5 MB and waits for the progress bar.
+2. **Size limit.** Client originals up to 25 MB; 5 MB is enforced on the resized output. Resize/encode failure surfaces “Could not resize this photo…” and does not upload the original. Server stays at 5 MB.
+3. **Hydration.** `formatWhen` builds `dd/mm/yyyy, hh:mm` from `formatToParts` in `Asia/Macau`, so Worker SSR and Chrome match.
+4. **Home waste.** Hero preload `href` is the 1200.webp Lighthouse mobile actually selects from the srcset. Below-fold `hero-home` and city-tour card JPEGs are lazy WebP (`hero-home.webp` 89 KB vs 192 KB JPEG; city-tour 800.webp 51/68 KB vs 309 KB JPEG). Google Fonts no longer load Noto Sans TC (~1 MB of CJK chunks); zh-Hant uses PingFang TC / Microsoft JhengHei with Inter `display=swap`. That Noto cascade plus unused preload and eager below-fold JPEGs was what kept Home from reaching network idle.
+5. **Delete.** Public list JSON and `/special-offers` HTML send Cloudflare CDN `no-store`. R2 `deleteMany` removes unique display and thumbnail keys one by one. Tests assert the public list is empty and both object keys are gone.
+6. **zh-Hant footer.** Address translation keeps `600-E`.
+
+Preview re-measure and Lighthouse Home (3× EN and zh-Hant) are recorded after this commit’s Workers preview is live.
 
 ## Limits
 

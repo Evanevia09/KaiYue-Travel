@@ -44,8 +44,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
   const pagePath = stripLocale(context.url.pathname).replace(/\/$/, "") || "/";
   if (pagePath === "/special-offers") {
-    response.headers.set("cache-control", "private, no-store");
+    response.headers.set("cache-control", "private, no-store, no-cache, must-revalidate");
     response.headers.set("cdn-cache-control", "no-store");
+    response.headers.set("cloudflare-cdn-cache-control", "no-store");
   }
   const locale = localeFromPath(context.url.pathname);
   if (locale !== "en") {

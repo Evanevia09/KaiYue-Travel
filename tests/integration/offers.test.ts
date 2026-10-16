@@ -223,6 +223,21 @@ describe("special offers API", () => {
     const deleted = await admin(`/api/admin/offers/${id}`, { method: "DELETE" }, testEnv);
     expect(deleted.status).toBe(200);
     expect(await objects.get(objectKey)).toBeNull();
+    const publicAfterDelete = await handleApi(
+      new Request("http://localhost:4321/api/v1/offers"),
+      testEnv,
+    );
+    expect(publicAfterDelete.headers.get("cache-control")).toContain("no-store");
+    expect(publicAfterDelete.headers.get("cdn-cache-control")).toBe("no-store");
+    expect(publicAfterDelete.headers.get("cloudflare-cdn-cache-control")).toBe("no-store");
+    expect(((await publicAfterDelete.json()) as { items: unknown[] }).items).toEqual([]);
+    const gone = await handleApi(
+      new Request(
+        `http://localhost:4321/api/v1/offers/${id}/photos/${stored.id}/${stored.contentHash}`,
+      ),
+      testEnv,
+    );
+    expect(gone.status).toBe(404);
   });
 
   it("stores a thumbnail variant and serves it from a versioned URL", async () => {
@@ -255,6 +270,7 @@ describe("special offers API", () => {
       (await uploaded.json()) as {
         item: {
           photos: Array<{
+            id: string;
             objectKey: string;
             thumbObjectKey: string;
             width: number;
@@ -283,5 +299,14 @@ describe("special offers API", () => {
     expect(thumb.status).toBe(200);
     expect(thumb.headers.get("content-type")).toBe("image/jpeg");
     expect(thumb.headers.get("cache-control")).toContain("immutable");
+
+    const removed = await admin(
+      `/api/admin/offers/${id}/photos/${photo.id}`,
+      { method: "DELETE" },
+      testEnv,
+    );
+    expect(removed.status).toBe(200);
+    expect(await objects.get(photo.objectKey)).toBeNull();
+    expect(await objects.get(photo.thumbObjectKey)).toBeNull();
   });
 });

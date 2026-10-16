@@ -1,3 +1,14 @@
+/** Copy the live FileList before the input is reset; clearing value empties it. */
+export function takeInputFiles(input: { files: FileList | null; value: string }): File[] {
+  const files = Array.from(input.files ?? []);
+  input.value = "";
+  return files;
+}
+
+export function filesFromDataTransfer(data: DataTransfer | null): File[] {
+  return Array.from(data?.files ?? []);
+}
+
 export function offerSaveTarget(editingId: string | null) {
   if (editingId) {
     return { method: "PATCH" as const, path: `/api/admin/offers/${editingId}` };
