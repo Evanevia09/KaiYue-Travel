@@ -2,9 +2,11 @@
 export const prerender = false;
 import { DashboardPanel, type DashboardSummary } from "../../components/admin/DashboardPanel.tsx";
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import { adminLocaleFromCookies } from "../../lib/admin-i18n.ts";
 import { adminSummary } from "../../lib/server/admin.ts";
 import { env } from "cloudflare:workers";
 
+const locale = adminLocaleFromCookies(Astro.cookies);
 let summary: DashboardSummary | null = null;
 try {
   summary = await adminSummary(env);
@@ -13,6 +15,6 @@ try {
 }
 ---
 
-<AdminLayout title="Dashboard">
-  <DashboardPanel client:load initial={summary} />
+<AdminLayout titleKey="title.dashboard" locale={locale}>
+  <DashboardPanel client:load locale={locale} initial={summary} />
 </AdminLayout>

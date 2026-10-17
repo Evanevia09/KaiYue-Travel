@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 
-export function SetupForm() {
+export function SetupForm({ locale }: { locale: AdminLocale }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   if (done)
     return (
       <p role="status">
-        Account created. <a href="/login">Sign in to the dashboard</a>.
+        {t(locale, "setup.done")} <a href="/login">{t(locale, "setup.signIn")}</a>.
       </p>
     );
   return (
@@ -33,9 +34,7 @@ export function SetupForm() {
           .then(async (response) => {
             if (!response.ok)
               throw new Error(
-                response.status === 409
-                  ? "An account already exists. Sign in instead."
-                  : "Setup failed. Check your approved email, setup token, and password.",
+                response.status === 409 ? t(locale, "setup.exists") : t(locale, "setup.failed"),
               );
             setDone(true);
           })
@@ -44,15 +43,15 @@ export function SetupForm() {
       }}
     >
       <label className="field">
-        Name
+        {t(locale, "setup.name")}
         <input name="name" autoComplete="name" required />
       </label>
       <label className="field">
-        Approved email
+        {t(locale, "setup.email")}
         <input name="email" type="email" autoComplete="username" required />
       </label>
       <label className="field">
-        Password · at least 12 characters
+        {t(locale, "setup.password")}
         <input
           name="password"
           type="password"
@@ -62,7 +61,7 @@ export function SetupForm() {
         />
       </label>
       <label className="field">
-        One-time setup token
+        {t(locale, "setup.token")}
         <input name="setupToken" type="password" autoComplete="off" required />
       </label>
       {error && (
@@ -71,7 +70,7 @@ export function SetupForm() {
         </p>
       )}
       <button className="btn btn--primary" disabled={busy}>
-        {busy ? "Creating…" : "Create operator account"}
+        {busy ? t(locale, "setup.creating") : t(locale, "setup.submit")}
       </button>
     </form>
   );

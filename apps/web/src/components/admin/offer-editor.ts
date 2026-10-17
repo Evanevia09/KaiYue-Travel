@@ -59,15 +59,18 @@ export function offerStatusControl(
   busy: string | null,
   id: string,
   status: "draft" | "published",
-): { next: "published" | "draft"; label: string } {
+): {
+  next: "published" | "draft";
+  labelKey: "offers.publishing" | "offers.unpublishing" | "offers.publish" | "offers.unpublish";
+} {
   if (busy === `publish:${id}`) {
-    return { next: "published", label: "Publishing…" };
+    return { next: "published", labelKey: "offers.publishing" };
   }
   if (busy === `unpublish:${id}`) {
-    return { next: "draft", label: "Unpublishing…" };
+    return { next: "draft", labelKey: "offers.unpublishing" };
   }
   if (status === "published") {
-    return { next: "draft", label: "Unpublish" };
+    return { next: "draft", labelKey: "offers.unpublish" };
   }
-  return { next: "published", label: "Publish" };
+  return { next: "published", labelKey: "offers.publish" };
 }

@@ -2,10 +2,12 @@
 export const prerender = false;
 import { BookingsPanel } from "../../../components/admin/BookingsPanel.tsx";
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { adminLocaleFromCookies } from "../../../lib/admin-i18n.ts";
 
+const locale = adminLocaleFromCookies(Astro.cookies);
 const status = Astro.url.searchParams.get("status") ?? "";
 ---
 
-<AdminLayout title="Bookings">
-  <BookingsPanel client:load initialStatus={status} />
+<AdminLayout titleKey="title.bookings" locale={locale}>
+  <BookingsPanel client:load locale={locale} initialStatus={status} />
 </AdminLayout>

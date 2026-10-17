@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { authClient } from "./auth-client.ts";
 
-export function SignOutButton() {
+export function SignOutButton({ locale }: { locale: AdminLocale }) {
   const [busy, setBusy] = useState(false);
   return (
     <button
@@ -13,7 +14,7 @@ export function SignOutButton() {
         void authClient.signOut().finally(() => window.location.assign("/login"));
       }}
     >
-      {busy ? "Signing out…" : "Sign out"}
+      {busy ? t(locale, "signOut.busy") : t(locale, "signOut")}
     </button>
   );
 }

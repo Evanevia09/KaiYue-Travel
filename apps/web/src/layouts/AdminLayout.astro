@@ -1,58 +1,95 @@
 ---
 import "../styles/global.css";
+import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SignOutButton } from "../components/admin/SignOutButton.tsx";
+import {
+  ADMIN_LOCALE_COOKIE,
+  ADMIN_LOCALE_STORAGE_KEY,
+  adminLocaleFromCookies,
+  t,
+  type AdminLocale,
+  type AdminMessageKey,
+  type AdminVars,
+} from "../lib/admin-i18n.ts";
 
 type Props = {
-  title: string;
+  titleKey: AdminMessageKey;
+  titleVars?: AdminVars;
+  locale?: AdminLocale;
 };
 
-const { title } = Astro.props;
+const locale = Astro.props.locale ?? adminLocaleFromCookies(Astro.cookies);
+const title = t(locale, Astro.props.titleKey, Astro.props.titleVars);
 const path = Astro.url.pathname;
-const links = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/bookings", label: "Bookings" },
-  { href: "/admin/calendar", label: "Calendar" },
-  { href: "/admin/inventory", label: "Drivers & vehicles" },
-  { href: "/admin/contacts", label: "Contacts" },
-  { href: "/admin/offers", label: "Special Offers" },
+const links: Array<{ href: string; key: AdminMessageKey }> = [
+  { href: "/admin", key: "nav.dashboard" },
+  { href: "/admin/bookings", key: "nav.bookings" },
+  { href: "/admin/calendar", key: "nav.calendar" },
+  { href: "/admin/inventory", key: "nav.inventory" },
+  { href: "/admin/contacts", key: "nav.contacts" },
+  { href: "/admin/offers", key: "nav.offers" },
 ];
+const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/images/mark.svg" type="image/svg+xml" />
-    <title>{title} · Admin</title>
+    <title>{title} · {t(locale, "page.adminSuffix")}</title>
+    <script
+      is:inline
+      define:vars={{ cookieName: ADMIN_LOCALE_COOKIE, storageKey: ADMIN_LOCALE_STORAGE_KEY }}
+    >
+      (() => {
+        try {
+          const stored = localStorage.getItem(storageKey);
+          if (stored !== "en" && stored !== "zh-Hant") return;
+          const cookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(cookieName + "="))
+            ?.split("=")[1];
+          if (cookie === stored) return;
+          const secure = location.protocol === "https:" ? "; Secure" : "";
+          document.cookie = `${cookieName}=${stored}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+          location.reload();
+        } catch {
+          /* ignore */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div class="admin-shell">
       <aside class="admin-nav">
         <a class="admin-brand" href="/admin"
           ><span class="logo-mark" aria-hidden="true"></span><span
-            ><strong>Kai Yue</strong><small>Operations</small></span
+            ><strong>Kai Yue</strong><small>{t(locale, "brand.operations")}</small></span
           ></a
         >
-        <nav aria-label="Admin">
+        <nav aria-label={t(locale, "nav.aria")}>
           {
             links.map((link) => (
               <a href={link.href} aria-current={path === link.href ? "page" : undefined}>
-                {link.label}
+                {t(locale, link.key)}
               </a>
             ))
           }
         </nav>
-        <p class="draft-note admin-nav__secure">Protected operations area</p>
+        <p class="draft-note admin-nav__secure">{t(locale, "nav.secure")}</p>
       </aside>
       <div class="admin-main">
         <header class="admin-topbar">
-          <div><p class="admin-eyebrow">Operations workspace</p><h1>{title}</h1></div><div
+          <div><p class="admin-eyebrow">{t(locale, "topbar.eyebrow")}</p><h1>{title}</h1></div><div
             class="admin-topbar__actions"
           >
-            <a class="btn btn--secondary" href="/">View website</a><SignOutButton client:load />
+            <AdminLocaleSwitch client:load locale={locale} />
+            <a class="btn btn--secondary" href="/">{t(locale, "topbar.viewWebsite")}</a
+            ><SignOutButton client:load locale={locale} />
           </div>
         </header>
         <slot />

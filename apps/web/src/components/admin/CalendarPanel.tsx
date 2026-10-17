@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import {
+  adminDateLocale,
+  localizeCaughtError,
+  prefixedLabel,
+  t,
+  type AdminLocale,
+} from "../../lib/admin-i18n.ts";
 import { adminFetch, formatWhen, type AdminBooking } from "./api.ts";
 
 function dateKey(value: string | Date) {
@@ -20,7 +27,7 @@ function monthRange(anchor: Date) {
   };
 }
 
-export function CalendarPanel() {
+export function CalendarPanel({ locale }: { locale: AdminLocale }) {
   const [anchor, setAnchor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => new Date());
   const [items, setItems] = useState<AdminBooking[]>([]);
@@ -41,6 +48,7 @@ export function CalendarPanel() {
           if (cursor) query.set("cursor", cursor);
           const result: { items: AdminBooking[]; nextCursor: string | null } = await adminFetch(
             `/api/v1/admin/bookings?${query}`,
+            { locale },
           );
           found.push(...result.items);
           cursor = result.nextCursor;
@@ -48,7 +56,7 @@ export function CalendarPanel() {
         }
         if (live) setItems(found);
       } catch (err) {
-        if (live) setError((err as Error).message);
+        if (live) setError(localizeCaughtError(err, locale));
       } finally {
         if (live) setLoading(false);
       }
@@ -56,7 +64,7 @@ export function CalendarPanel() {
     return () => {
       live = false;
     };
-  }, [range]);
+  }, [range, locale]);
 
   const byDay = new Map<string, AdminBooking[]>();
   for (const item of items) {
@@ -69,12 +77,12 @@ export function CalendarPanel() {
     <div className="admin-calendar-page">
       <div className="admin-list-toolbar">
         <div>
-          <p className="admin-eyebrow">Schedule</p>
-          <h2>Booking calendar</h2>
-          <p className="muted">Pickup dates and times are shown in Macau time.</p>
+          <p className="admin-eyebrow">{t(locale, "cal.eyebrow")}</p>
+          <h2>{t(locale, "cal.heading")}</h2>
+          <p className="muted">{t(locale, "cal.lead")}</p>
         </div>
         <a className="btn btn--primary" href="/admin/bookings">
-          View all bookings
+          {t(locale, "cal.viewAll")}
         </a>
       </div>
       {error && (
@@ -85,7 +93,7 @@ export function CalendarPanel() {
       <div className="admin-calendar-layout">
         <section className="admin-card admin-calendar-card">
           <Calendar
-            locale="en-GB"
+            locale={adminDateLocale(locale)}
             view="month"
             minDetail="month"
             maxDetail="month"
@@ -110,26 +118,30 @@ export function CalendarPanel() {
           />
         </section>
         <aside className="admin-card admin-agenda">
-          <p className="admin-eyebrow">Daily agenda</p>
+          <p className="admin-eyebrow">{t(locale, "cal.agenda")}</p>
           <h2>
-            {selected.toLocaleDateString("en-GB", {
+            {selected.toLocaleDateString(adminDateLocale(locale), {
               day: "numeric",
               month: "long",
               year: "numeric",
             })}
           </h2>
           {loading ? (
-            <p>Loading bookings…</p>
+            <p>{t(locale, "cal.loading")}</p>
           ) : selectedItems.length === 0 ? (
-            <p className="muted">No pickups scheduled for this day.</p>
+            <p className="muted">{t(locale, "cal.empty")}</p>
           ) : (
             <div className="admin-agenda-list">
               {selectedItems.map((item) => (
                 <a key={item.reference} href={`/admin/bookings/${item.reference}`}>
-                  <span>{formatWhen(item.pickupAt)}</span>
+                  <span>{formatWhen(item.pickupAt, locale)}</span>
                   <strong>{item.pickupLocation}</strong>
                   <small>
-                    {item.reference} · {item.status} · {item.passengerCount} passengers
+                    {t(locale, "cal.itemMeta", {
+                      reference: item.reference,
+                      status: prefixedLabel(locale, "status", item.status),
+                      count: item.passengerCount,
+                    })}
                   </small>
                 </a>
               ))}

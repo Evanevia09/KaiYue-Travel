@@ -2,10 +2,12 @@
 export const prerender = false;
 import { ContactsPanel } from "../../../components/admin/ContactsPanel.tsx";
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { adminLocaleFromCookies } from "../../../lib/admin-i18n.ts";
 
+const locale = adminLocaleFromCookies(Astro.cookies);
 const status = Astro.url.searchParams.get("status") ?? "";
 ---
 
-<AdminLayout title="Contacts">
-  <ContactsPanel client:load initialStatus={status} />
+<AdminLayout titleKey="title.contacts" locale={locale}>
+  <ContactsPanel client:load locale={locale} initialStatus={status} />
 </AdminLayout>

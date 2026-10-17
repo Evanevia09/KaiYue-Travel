@@ -2,6 +2,11 @@
 export const prerender = false;
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import { InventoryPanel } from "../../components/admin/InventoryPanel.tsx";
+import { adminLocaleFromCookies } from "../../lib/admin-i18n.ts";
+
+const locale = adminLocaleFromCookies(Astro.cookies);
 ---
 
-<AdminLayout title="Drivers & vehicles"><InventoryPanel client:load /></AdminLayout>
+<AdminLayout titleKey="title.inventory" locale={locale}
+  ><InventoryPanel client:load locale={locale} /></AdminLayout
+>
