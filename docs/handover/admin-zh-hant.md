@@ -39,7 +39,14 @@ The password, `BETTER_AUTH_SECRET`, and any setup token are **not** in git, the 
 
 Automated: dictionary key-coverage, locale cookie/storage, API error mapping, date stamps, offer publish-label keys, and a scan that the listed admin surfaces no longer hard-code common English chrome. Typecheck, tests, and production build are required before calling this done.
 
-Preview: log in on the Workers commit/branch preview, open every admin page in 繁體中文, then switch back to English. Do not merge to `main`. Do not run `wrangler deploy`.
+Preview (2026-10-17):
+
+- PR: https://github.com/Evanevia09/KaiYue-Travel/pull/15
+- Commit preview: `https://04548945-kaiyue-travel.scalingsmb.workers.dev`
+- Branch preview: `https://cursor-admin-zh-hant-d1f1-kaiyue-travel.scalingsmb.workers.dev`
+- GitHub `check` and Workers Builds succeeded on `8cd2c44`.
+
+Logged in with the existing preview test operator. `/login` with `kaiyue-admin-locale=zh-Hant` renders `lang="zh-Hant"` and 登入／電郵／密碼／受保護工作區. Browser pass covered `/admin`, bookings list + detail, calendar, inventory, contacts, and offers (editor + delete dialog, cancelled without deleting). Switch persisted across reload. Switched back to English on dashboard, bookings, and offers. Production `/admin` and `/login` stayed 403. Do not merge to `main`. Do not run `wrangler deploy`.
 
 ## Cleanup
 

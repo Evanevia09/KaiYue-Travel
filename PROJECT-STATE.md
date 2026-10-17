@@ -177,6 +177,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Verification record
 
+2026-10-17 staff admin zh-Hant: local `pnpm test` 101/101, `pnpm typecheck` 0 errors, `pnpm build` completed. Preview commit `https://04548945-kaiyue-travel.scalingsmb.workers.dev` and branch `https://cursor-admin-zh-hant-d1f1-kaiyue-travel.scalingsmb.workers.dev`. Logged-in Chrome pass of login, dashboard, bookings list/detail, calendar, inventory, contacts, and offers editor/delete dialog in 繁體中文, then English. `/login` cookie `kaiyue-admin-locale=zh-Hant` HTML confirmed. Production host `/admin` and `/login` 403. Limits: browser-native constraint text stays in the browser language; staff-authored names/titles stay as entered; bilingual offer fields not added.
+
 2026-10-16 WeChat QR placeholder: shared `WeChatQr` component and `/images/wechat-qr.svg` added to the footer contact column and the contact Reach us section. Localized EN/pt/zh-Hant label and alt. Booking, admin, offers, `wrangler.jsonc`, and the database were not changed. Workers preview and GitHub CI checks passed; footer QR was widened so zh-Hant overlay copy fits.
 
 2026-10-03 workflow adoption: 46 local Markdown links resolved; targeted Prettier and `git diff --check` passed; independent read-only review found no actionable issue. Source/revision provenance, dirty-state preservation, and limits are in the [adoption record](docs/records/2026-10-03-codex-workflow-adoption.md). This is `task_verified` for documentation only; no browser, API, D1, CI, or deployed behavior was checked in this task.
@@ -206,6 +208,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Choice persists in the `kaiyue-admin-locale` cookie and localStorage. Default stays English. Astro reads the cookie so SSR titles, nav, and first payloads match hydration.
 - Status, service, inquiry, and API error text that surfaces in the admin UI is mapped client-side. Date/time stamps stay Asia/Macau; zh-Hant uses `yyyy年mm月dd日 hh:mm`.
 - No D1/R2 binding or schema change. Bilingual offer content for `/zh-Hant/special-offers` was skipped and recorded as a follow-up. Production admin 403 gate unchanged. Do not merge to `main`.
+- Preview verified 2026-10-17: PR https://github.com/Evanevia09/KaiYue-Travel/pull/15 ; commit `https://04548945-kaiyue-travel.scalingsmb.workers.dev` ; branch `https://cursor-admin-zh-hant-d1f1-kaiyue-travel.scalingsmb.workers.dev`. GitHub `check` and Workers Builds green on `8cd2c44`. Logged-in browser pass of `/login` and every `/admin` page in 繁體中文, then back to English. Cookie-forced `/login` HTML is `lang="zh-Hant"` with 登入／電郵／密碼. Production `/admin` and `/login` stayed 403.
 - Handover: `docs/handover/admin-zh-hant.md`.
 
 ### 2026-10-16 — Special Offer WhatsApp service label (staging PR, not main)
