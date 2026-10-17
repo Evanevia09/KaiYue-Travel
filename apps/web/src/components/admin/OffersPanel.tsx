@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { localizeCaughtError, prefixedLabel, t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { optimizeOfferPhoto } from "../../lib/offer-image.ts";
 import { adminFetch, formatWhen } from "./api.ts";
 import {
@@ -58,6 +59,7 @@ function photoSrc(offerId: string, photo: OfferPhoto): string {
 function uploadWithProgress(
   url: string,
   data: FormData,
+  locale: AdminLocale,
   onProgress: (percent: number) => void,
 ): Promise<AdminOffer> {
   return new Promise((resolve, reject) => {
@@ -72,23 +74,36 @@ function uploadWithProgress(
       try {
         const body = JSON.parse(xhr.responseText) as {
           item?: AdminOffer;
-          error?: { message?: string };
+          error?: { code?: string; message?: string };
         };
         if (xhr.status >= 200 && xhr.status < 300 && body.item) {
           resolve(body.item);
           return;
         }
-        reject(new Error(body.error?.message ?? "Photo upload failed."));
+        reject(
+          new Error(
+            localizeCaughtError(
+              body.error ?? { message: t(locale, "offers.uploadFailed") },
+              locale,
+            ),
+          ),
+        );
       } catch {
-        reject(new Error("Photo upload failed."));
+        reject(new Error(t(locale, "offers.uploadFailed")));
       }
     };
-    xhr.onerror = () => reject(new Error("Photo upload failed."));
+    xhr.onerror = () => reject(new Error(t(locale, "offers.uploadFailed")));
     xhr.send(data);
   });
 }
 
-export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer[] | null }) {
+export function OffersPanel({
+  locale,
+  initialItems = null,
+}: {
+  locale: AdminLocale;
+  initialItems?: AdminOffer[] | null;
+}) {
   const [items, setItems] = useState<AdminOffer[]>(initialItems ?? []);
   const [editing, setEditing] = useState<AdminOffer | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -105,7 +120,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
 
   async function load() {
     const seq = ++loadSeq.current;
-    const result = await adminFetch<{ items: AdminOffer[] }>("/api/admin/offers");
+    const result = await adminFetch<{ items: AdminOffer[] }>("/api/admin/offers", { locale });
     if (seq !== loadSeq.current) return;
     setItems(result.items);
     setLoading(false);
@@ -128,10 +143,10 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
       return;
     }
     void load().catch((err: Error) => {
-      setError(err.message);
+      setError(localizeCaughtError(err, locale));
       setLoading(false);
     });
-  }, [initialItems]);
+  }, [initialItems, locale]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -192,6 +207,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
       const saved = await adminFetch<{ item: AdminOffer }>(target.path, {
         method: target.method,
         body: JSON.stringify(body),
+        locale,
       });
       const item = editorAfterWrite(saved.item);
       applyOffer(item);
@@ -202,9 +218,9 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
         priceFrom: item.priceFrom == null ? "" : String(item.priceFrom),
         terms: item.terms ?? "",
       });
-      setNotice(editing ? "Offer updated." : "Draft offer created.");
+      setNotice(t(locale, editing ? "offers.updated" : "offers.created"));
     } catch (err) {
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setBusy(null);
     }
@@ -226,14 +242,18 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
         data.append("width", String(optimized.display.width));
         data.append("height", String(optimized.display.height));
         setUpload({ index: index + 1, total: files.length, phase: "uploading", percent: 0 });
-        latest = await uploadWithProgress(`/api/admin/offers/${offerId}/photos`, data, (percent) =>
-          setUpload({ index: index + 1, total: files.length, phase: "uploading", percent }),
+        latest = await uploadWithProgress(
+          `/api/admin/offers/${offerId}/photos`,
+          data,
+          locale,
+          (percent) =>
+            setUpload({ index: index + 1, total: files.length, phase: "uploading", percent }),
         );
         applyOffer(latest);
       }
-      setNotice(files.length === 1 ? "Photo uploaded." : "Photos uploaded.");
+      setNotice(t(locale, files.length === 1 ? "offers.photoUploaded" : "offers.photosUploaded"));
     } catch (err) {
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setBusy(null);
       setUpload(null);
@@ -249,12 +269,12 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
     try {
       const saved = await adminFetch<{ item: AdminOffer }>(
         `/api/admin/offers/${editing.id}/photos/${photoId}/main`,
-        { method: "POST", body: JSON.stringify({}) },
+        { method: "POST", body: JSON.stringify({}), locale },
       );
       applyOffer(saved.item);
     } catch (err) {
       applyOffer(snapshot);
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setBusy(null);
     }
@@ -269,12 +289,12 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
     try {
       const saved = await adminFetch<{ item: AdminOffer }>(
         `/api/admin/offers/${editing.id}/photos/${photoId}`,
-        { method: "DELETE" },
+        { method: "DELETE", locale },
       );
       applyOffer(saved.item);
     } catch (err) {
       applyOffer(snapshot);
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setBusy(null);
     }
@@ -292,13 +312,14 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
         {
           method: "POST",
           body: JSON.stringify({}),
+          locale,
         },
       );
       applyOffer(saved.item);
-      setNotice(next === "published" ? "Offer published." : "Offer unpublished.");
+      setNotice(t(locale, next === "published" ? "offers.published" : "offers.unpublished"));
     } catch (err) {
       if (current) applyOffer(current);
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setBusy(null);
     }
@@ -316,11 +337,11 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
       setEditing(null);
     }
     try {
-      await adminFetch(`/api/admin/offers/${id}`, { method: "DELETE" });
-      setNotice("Offer deleted.");
+      await adminFetch(`/api/admin/offers/${id}`, { method: "DELETE", locale });
+      setNotice(t(locale, "offers.deleted"));
     } catch (err) {
       setItems(snapshot);
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setBusy(null);
     }
@@ -332,15 +353,12 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
     <div className="admin-inventory" aria-busy={locked || loading}>
       <div className="admin-list-toolbar">
         <div>
-          <p className="admin-eyebrow">Catalogue</p>
-          <h2>Special Offers</h2>
-          <p className="muted">
-            Drafts stay private. Publish only when the title, description, and a main photo are
-            ready. Leave terms empty unless they are supplied.
-          </p>
+          <p className="admin-eyebrow">{t(locale, "offers.eyebrow")}</p>
+          <h2>{t(locale, "offers.heading")}</h2>
+          <p className="muted">{t(locale, "offers.lead")}</p>
         </div>
         <button type="button" className="btn btn--primary" onClick={openCreate} disabled={locked}>
-          + New offer
+          {t(locale, "offers.new")}
         </button>
       </div>
       {error && (
@@ -356,15 +374,19 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
       {busy && (
         <p role="status" className="admin-feedback">
           {upload
-            ? `${upload.phase === "optimising" ? "Optimising" : "Uploading"} photo ${upload.index} of ${upload.total}${
-                upload.phase === "uploading" ? ` (${upload.percent}%)` : "…"
-              }`
-            : `Working… ${
+            ? upload.phase === "optimising"
+              ? t(locale, "offers.optimising", { index: upload.index, total: upload.total })
+              : t(locale, "offers.uploading", {
+                  index: upload.index,
+                  total: upload.total,
+                  percent: upload.percent,
+                })
+            : `${t(locale, "offers.working")} ${
                 busy.startsWith("publish:")
-                  ? "Publishing this offer."
+                  ? t(locale, "offers.publishingStatus")
                   : busy.startsWith("unpublish:")
-                    ? "Unpublishing this offer."
-                    : "Please wait."
+                    ? t(locale, "offers.unpublishingStatus")
+                    : t(locale, "offers.wait")
               }`}
         </p>
       )}
@@ -375,7 +397,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={upload.phase === "uploading" ? upload.percent : 0}
-          aria-label="Photo upload progress"
+          aria-label={t(locale, "offers.uploadProgress")}
         >
           <span
             style={{
@@ -386,18 +408,18 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
       )}
       <section className="admin-card admin-table-card">
         {loading ? (
-          <p className="muted">Loading offers…</p>
+          <p className="muted">{t(locale, "offers.loading")}</p>
         ) : items.length === 0 ? (
-          <p className="muted">No offers yet. Create a draft to get started.</p>
+          <p className="muted">{t(locale, "offers.empty")}</p>
         ) : (
           <table className="admin-bookings-table">
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Price from</th>
-                <th>Updated</th>
-                <th>Actions</th>
+                <th>{t(locale, "offers.colTitle")}</th>
+                <th>{t(locale, "offers.colStatus")}</th>
+                <th>{t(locale, "offers.colPrice")}</th>
+                <th>{t(locale, "offers.colUpdated")}</th>
+                <th>{t(locale, "offers.colActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -407,13 +429,17 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                   <tr key={item.id}>
                     <td>
                       <strong>{item.title}</strong>
-                      <small>{item.complete ? "Ready to publish" : "Incomplete"}</small>
+                      <small>
+                        {item.complete ? t(locale, "offers.ready") : t(locale, "offers.incomplete")}
+                      </small>
                     </td>
                     <td>
-                      <span className={`badge badge--${item.status}`}>{item.status}</span>
+                      <span className={`badge badge--${item.status}`}>
+                        {prefixedLabel(locale, "status", item.status)}
+                      </span>
                     </td>
-                    <td>{item.priceFrom == null ? "Hidden" : item.priceFrom}</td>
-                    <td>{formatWhen(item.updatedAt)}</td>
+                    <td>{item.priceFrom == null ? t(locale, "offers.hidden") : item.priceFrom}</td>
+                    <td>{formatWhen(item.updatedAt, locale)}</td>
                     <td>
                       <button
                         type="button"
@@ -421,7 +447,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                         onClick={() => openEdit(item)}
                         disabled={locked}
                       >
-                        Edit
+                        {t(locale, "offers.edit")}
                       </button>{" "}
                       <button
                         type="button"
@@ -429,7 +455,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                         onClick={() => void setStatus(item.id, action.next)}
                         disabled={locked}
                       >
-                        {action.label}
+                        {t(locale, action.labelKey)}
                       </button>{" "}
                       <button
                         type="button"
@@ -437,7 +463,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                         onClick={() => setConfirmId(item.id)}
                         disabled={locked}
                       >
-                        Delete
+                        {t(locale, "offers.delete")}
                       </button>
                     </td>
                   </tr>
@@ -457,13 +483,17 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
         <section className="admin-editor-dialog__content">
           <div className="admin-card__heading">
             <div>
-              <p className="admin-eyebrow">{editing ? "Edit offer" : "New draft"}</p>
-              <h2 id="offer-editor-title">{editing ? editing.title : "Create special offer"}</h2>
+              <p className="admin-eyebrow">
+                {editing ? t(locale, "offers.editOffer") : t(locale, "offers.newDraft")}
+              </p>
+              <h2 id="offer-editor-title">
+                {editing ? editing.title : t(locale, "offers.create")}
+              </h2>
             </div>
             <button
               type="button"
               className="admin-editor-dialog__close"
-              aria-label="Close"
+              aria-label={t(locale, "offers.close")}
               onClick={() => dialogRef.current?.close()}
               disabled={locked}
             >
@@ -472,7 +502,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
           </div>
           <form className="admin-resource-form" onSubmit={(event) => void save(event)}>
             <label className="field field--full">
-              Title
+              {t(locale, "offers.title")}
               <input
                 value={form.title}
                 maxLength={120}
@@ -484,7 +514,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               />
             </label>
             <label className="field field--full">
-              Description
+              {t(locale, "offers.description")}
               <textarea
                 value={form.description}
                 maxLength={2000}
@@ -497,7 +527,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               />
             </label>
             <label className="field">
-              Price from (optional)
+              {t(locale, "offers.priceFrom")}
               <input
                 type="number"
                 min="0.01"
@@ -510,7 +540,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               />
             </label>
             <label className="field field--full">
-              Terms (optional — leave empty unless supplied)
+              {t(locale, "offers.terms")}
               <textarea
                 value={form.terms}
                 maxLength={4000}
@@ -522,7 +552,11 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               />
             </label>
             <button className="btn btn--primary" disabled={locked}>
-              {busy === "save" ? "Saving…" : editing ? "Save changes" : "Create draft"}
+              {busy === "save"
+                ? t(locale, "offers.saving")
+                : editing
+                  ? t(locale, "offers.save")
+                  : t(locale, "offers.createDraft")}
             </button>
           </form>
           {editing && (
@@ -537,12 +571,8 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                 void uploadPhotos(filesFromDataTransfer(event.dataTransfer));
               }}
             >
-              <h3>Photos</h3>
-              <p className="muted">
-                JPEG, PNG, or WebP. Phone photos up to 25 MB are resized to 1600px before upload.
-                The resized file must stay under 5 MB. Drop files here or choose them. Choose one
-                main photo.
-              </p>
+              <h3>{t(locale, "offers.photos")}</h3>
+              <p className="muted">{t(locale, "offers.photosHelp")}</p>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -570,14 +600,16 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
                         disabled={locked}
                         onChange={() => void setMain(photo.id)}
                       />{" "}
-                      Main photo
+                      {t(locale, "offers.mainPhoto")}
                     </label>
                     <button
                       type="button"
                       disabled={locked}
                       onClick={() => void removePhoto(photo.id)}
                     >
-                      {busy === `photo:${photo.id}` ? "Removing…" : "Remove"}
+                      {busy === `photo:${photo.id}`
+                        ? t(locale, "offers.removing")
+                        : t(locale, "offers.remove")}
                     </button>
                   </li>
                 ))}
@@ -594,8 +626,8 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
         onClose={() => setConfirmId(null)}
       >
         <section className="admin-editor-dialog__content">
-          <h2 id="offer-delete-title">Delete this offer?</h2>
-          <p>This removes the offer and its stored photos. This cannot be undone.</p>
+          <h2 id="offer-delete-title">{t(locale, "offers.deleteTitle")}</h2>
+          <p>{t(locale, "offers.deleteHelp")}</p>
           <div className="admin-topbar__actions">
             <button
               type="button"
@@ -603,7 +635,7 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               onClick={() => setConfirmId(null)}
               disabled={locked}
             >
-              Cancel
+              {t(locale, "offers.cancel")}
             </button>
             <button
               type="button"
@@ -611,7 +643,9 @@ export function OffersPanel({ initialItems = null }: { initialItems?: AdminOffer
               disabled={locked}
               onClick={() => confirmId && void remove(confirmId)}
             >
-              {busy?.startsWith("delete:") ? "Deleting…" : "Delete offer"}
+              {busy?.startsWith("delete:")
+                ? t(locale, "offers.deleting")
+                : t(locale, "offers.deleteOffer")}
             </button>
           </div>
         </section>

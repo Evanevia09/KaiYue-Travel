@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-16 (Special Offer WhatsApp service label + GBA copy + Special Offers pages on staging PR #13; not merged to main)
-**Product-status evidence date:** 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-17 (staff dashboard Traditional Chinese on staging PR; not merged to main)
+**Product-status evidence date:** 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** Draft PR #13 on `cursor/special-offers-enquiry-pages-e1be` into `staging` adds Special Offers hero/enquiry/pages and rewrites B2C copy so Kai Yue is a chauffeur service across Macau, Mainland China, and Hong Kong. City Tours stay Macau-only. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review draft PR #13 into `staging` (preview `https://cursor-special-offers-enquiry-pages-e1be-kaiyue-travel.scalingsmb.workers.dev`). Do not merge to `main`. Do not change D1/R2 bindings.
+**Overall status:** Draft PR on `cursor/admin-zh-hant-d1f1` into `staging` adds English / 繁體中文 for every staff-facing admin surface. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged (no migration). Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the admin zh-Hant draft PR into `staging`. Confirm the Workers preview in both languages. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -139,7 +139,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 ## Assumptions used by this scaffold
 
 - Business timezone `Asia/Macau`.
-- English-only UI.
+- Public site: English, Portuguese, and Traditional Chinese. Staff admin: English (default) or Traditional Chinese via a persisted switch.
 - 24-hour booking notice, configurable via `BOOKING_NOTICE_HOURS`.
 - Session storage may keep non-sensitive journey fields only.
 - Admin status changes do not email customers in Release 1.
@@ -157,6 +157,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | Scope expands into dispatch/CRM/payments prematurely         | Release 1 exclusions unchanged                                                                                                                               |
 
 ## Next recommended actions
+
+Admin zh-Hant next action (2026-10-17): review the staging PR preview. Log in with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Do not merge to `main`. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment).
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
@@ -197,6 +199,14 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-17 — Staff dashboard Traditional Chinese (staging PR, not main)
+
+- Evan requested full `zh-Hant` on the staff dashboard. `/login`, `/setup-admin`, and every `/admin` page now share English and Traditional Chinese dictionaries with a visible language switch.
+- Choice persists in the `kaiyue-admin-locale` cookie and localStorage. Default stays English. Astro reads the cookie so SSR titles, nav, and first payloads match hydration.
+- Status, service, inquiry, and API error text that surfaces in the admin UI is mapped client-side. Date/time stamps stay Asia/Macau; zh-Hant uses `yyyy年mm月dd日 hh:mm`.
+- No D1/R2 binding or schema change. Bilingual offer content for `/zh-Hant/special-offers` was skipped and recorded as a follow-up. Production admin 403 gate unchanged. Do not merge to `main`.
+- Handover: `docs/handover/admin-zh-hant.md`.
 
 ### 2026-10-16 — Special Offer WhatsApp service label (staging PR, not main)
 

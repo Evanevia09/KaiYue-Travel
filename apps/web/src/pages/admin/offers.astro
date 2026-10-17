@@ -2,9 +2,11 @@
 export const prerender = false;
 import { OffersPanel, type AdminOffer } from "../../components/admin/OffersPanel.tsx";
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import { adminLocaleFromCookies } from "../../lib/admin-i18n.ts";
 import { listAdminOffers } from "../../lib/server/offers/service.ts";
 import { env } from "cloudflare:workers";
 
+const locale = adminLocaleFromCookies(Astro.cookies);
 let items: AdminOffer[] | null = null;
 try {
   items = (await listAdminOffers(env)).items;
@@ -13,4 +15,6 @@ try {
 }
 ---
 
-<AdminLayout title="Special Offers"><OffersPanel client:load initialItems={items} /></AdminLayout>
+<AdminLayout titleKey="title.offers" locale={locale}
+  ><OffersPanel client:load locale={locale} initialItems={items} /></AdminLayout
+>

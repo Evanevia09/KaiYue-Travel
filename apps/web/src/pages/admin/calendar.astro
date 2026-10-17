@@ -2,8 +2,11 @@
 export const prerender = false;
 import { CalendarPanel } from "../../components/admin/CalendarPanel.tsx";
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import { adminLocaleFromCookies } from "../../lib/admin-i18n.ts";
+
+const locale = adminLocaleFromCookies(Astro.cookies);
 ---
 
-<AdminLayout title="Calendar">
-  <CalendarPanel client:load />
+<AdminLayout titleKey="title.calendar" locale={locale}>
+  <CalendarPanel client:load locale={locale} />
 </AdminLayout>

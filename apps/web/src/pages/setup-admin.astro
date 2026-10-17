@@ -1,18 +1,23 @@
 ---
 export const prerender = false;
 import { env } from "cloudflare:workers";
+import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SetupForm } from "../components/admin/SetupForm.tsx";
+import { adminLocaleFromCookies, t } from "../lib/admin-i18n.ts";
 import "../styles/global.css";
+
+const locale = adminLocaleFromCookies(Astro.cookies);
 if (env.ENVIRONMENT !== "development") {
-  return new Response("Operator setup is disabled.", {
+  return new Response(t(locale, "setup.disabled"), {
     status: 403,
     headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
   });
 }
+const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={htmlLang}>
   <head
     ><meta charset="utf-8" /><meta
       name="viewport"
@@ -22,18 +27,22 @@ if (env.ENVIRONMENT !== "development") {
       href="/favicon.ico"
       sizes="any"
     /><link rel="icon" href="/images/mark.svg" type="image/svg+xml" /><title>
-      Set up operator · Kai Yue
+      {t(locale, "title.setup")}
     </title></head
   ><body class="admin-login-page"
     ><main class="admin-login-card">
-      <a class="admin-login-brand" href="/">Kai Yue <span>Operations</span></a><p
-        class="admin-eyebrow"
-      >
-        Local development only
-      </p><h1>Set up operator</h1><p class="muted">
-        Create the first approved account using the setup token configured on the server. Setup
-        closes after the first account.
-      </p><SetupForm client:load /><p><a href="/login">Back to sign in</a></p>
+      <div class="admin-login-toolbar">
+        <a class="admin-login-brand" href="/"
+          >Kai Yue <span>{t(locale, "brand.operations")}</span></a
+        >
+        <AdminLocaleSwitch client:load locale={locale} />
+      </div><p class="admin-eyebrow">
+        {t(locale, "setup.eyebrow")}
+      </p><h1>{t(locale, "setup.heading")}</h1><p class="muted">
+        {t(locale, "setup.help")}
+      </p><SetupForm client:load locale={locale} /><p>
+        <a href="/login">{t(locale, "setup.back")}</a>
+      </p>
     </main></body
   >
 </html>
