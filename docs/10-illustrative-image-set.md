@@ -4,6 +4,16 @@
 
 ## Shared generation brief
 
+### Local plate-branding revision — 2026-10-22
+
+Evan requested Kai Yue branding inside visible front number plates across the exterior hero set, plus a Home hero vehicle revision to match the Alphard 40 Series appearance in the other service images. The built-in image generation tool used each existing scene as its edit target and `apps/web/public/images/kai-yue-travel-group-logo.png` as the brand reference. The Home edit also used the existing Airport Transfer hero as its vehicle reference. This request supersedes the earlier exclusion of branded display plates for these revised images.
+
+The edit targets are Home, Airport Transfer, Cross Border Rides, Local Transfers, Weddings, City Tours / Special Offers, About fleet, Corporate Solutions, Hotels & Resorts, Travel Agency, and the shared `hero-home.jpg` image used by Contact and other existing consumers. The Local Chauffeur interior is unchanged. Existing paths are retained; Home, City Tours, and shared-image WebP variants must match their revised JPEGs.
+
+Prompt specification: replace only the front number-plate area with a realistic black display plate bearing the reference multicolor K emblem and gold Kai Yue Travel Group wordmark, fitted to the plate perspective and scene lighting; remove previous numbers or gibberish; preserve Toyota badges, people, framing, background and lighting. For Home only, regenerate the black vehicle to match the reference Alphard 40 Series proportions, grille, headlights, bumper and factory wheels while retaining its position, angle, scale and closed doors. For About, apply the plate treatment to every visible vehicle while preserving foreground occlusion.
+
+These remain AI-generated illustrations. Small plate lettering is generated imagery and may vary from the supplied logo at close inspection. Local visual review is separate from owner acceptance or publication; no production release is included.
+
 - Use case: photorealistic-natural website photography, premium but believable Macau travel setting.
 - Vehicle body references: user-supplied `images (1).jpeg`, `images (2).jpeg`, `images (3).jpeg`, and `40alphard_b_sp_09.jpg`. Preserve the Alphard 40 Series tall, upright body, broad layered grille, narrow headlights, sculpted front bumper, and sliding-door profile.
 - Wheel exception: use ordinary factory-style Toyota Alphard alloy wheels, normal tire size, and normal ride height. Do not copy the modified wheels or lowered stance in the references.
