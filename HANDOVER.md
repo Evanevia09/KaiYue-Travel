@@ -2,6 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-10-30 — Promote staging to main
+
+- **Branch:** `cursor/promote-staging-to-main-3426` (staging `dbcdbb48` + merge `origin/main` `9157ea43`)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/17 into `main`
+- **Report:** `docs/handover/promote-staging-to-main.md`
+- **Change:** Resolve the staging/main divergence so live promote is mergeable. Keep staging admin zh-Hant + 包車接送 copy, and main hero-plate / header-logo / WhatsApp-icon visuals. Production admin/auth 403 gate and D1/R2 bindings unchanged.
+- **Conflict files:** `PROJECT-STATE.md` (manual); `global.css` auto-merged and keeps both sides.
+- **Do not:** run `wrangler deploy` (Workers Builds should deploy from `main` after merge); weaken `/admin` or `/api/auth` 403.
+
 ## 2026-10-30 — zh-Hant 接送 → 包車接送
 
 - **Branch:** `cursor/bao-che-jie-song-16fb`

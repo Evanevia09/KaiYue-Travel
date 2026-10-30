@@ -1,10 +1,15 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-30 (zh-Hant 接送 → 包車接送 wording on staging PR; not merged to main)
-**Product-status evidence date:** 2026-10-30 for Traditional Chinese private-car wording; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-30 (promote staging → main: admin zh-Hant + 包車接送 + main hero plate/header logo)
+**Product-status evidence date:** 2026-10-30 for Traditional Chinese private-car wording and staging→main conflict resolution; 2026-10-22 for hero plate branding and header logo/WhatsApp icon on main; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+
+**Local header revision, 2026-10-22 (now on the promote branch):** At Evan’s request, the General Enquiry WhatsApp icon uses green, and the shared header logo eases out above 8px scroll and returns at the top. Its reserved space prevents navigation movement; hidden link is inert. Reduced-motion users receive an immediate visibility change. Verified locally on Special Offers: green icon, logo hidden after scrolling and restored at top; focused Prettier check and Astro check passed (0 errors, 3 existing hints). Full responsive/regression and production build were not rerun. Evan accepted the header preview and authorized commit/push to `main`. No manual deployment or release verification is included; next action: verify the live header after Workers Builds deploys from `main`.
+
+**Local visual review, 2026-10-22 (now on the promote branch):** Evan authorized replacement of the exterior hero photos with Kai Yue branding inside visible front display plates and regeneration of the Home vehicle to match the other Alphard 40 Series illustrations. All 11 exterior hero sources and five existing WebP variants were updated on `main`, based on `743682430062badbe1b43fddab5710abb6b849c2`. Images were visually inspected, decoded, retained at their original dimensions, and checked against the actual bytes served by the local dev server. Home was also reviewed in the narrow in-app browser. This is asset-only local work; application flows, production build, and every page at every viewport were not retested. See `docs/10-illustrative-image-set.md` and exact prompt/source manifest `docs/records/2026-10-22-hero-plate-prompts.json`.
+
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** PR on `cursor/bao-che-jie-song-16fb` into `staging` upgrades Chinese UI 接送 to 包車接送. Staging D1 and R2 bindings are unchanged (no migration). Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the 包車接送 wording PR into `staging` on the zh-Hant public pages and admin service labels. Do not merge to `main`. Do not change D1/R2 bindings.
+**Overall status:** Evan approved promoting staging to main/live (2026-10-30, “ok promote to main”). `staging` (`dbcdbb48`) and `main` (`9157ea43`) had diverged. This promote merges `origin/main` into a staging-based branch and keeps both sides: staging admin zh-Hant + 包車接送 copy, and main hero-plate / header-logo / WhatsApp-icon visuals. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `wrangler.jsonc` D1/R2 bindings were already identical on both branches and were not edited. `user_accepted` and `released` are not established until the `main` merge and a live Workers Builds check.
+**Current objective:** Merge the conflict-resolved promote into `main` (PR 17) so Workers Builds can deploy live. Do not run `wrangler deploy`. Do not change D1/R2 bindings. Do not weaken the production admin/auth 403 gate.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -158,9 +163,9 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-包車接送 wording next action (2026-10-30): review `/zh-Hant` home, airport, and local-transfer pages plus admin service labels on this branch’s Workers preview. Confirm no bare 接送 remains in product UI. If any live D1 offer title/description still uses 接送, edit those staff-authored rows in admin (they are not in git). Do not merge to `main`.
+Promote next action (2026-10-30): merge PR 17 into `main` when GitHub `check` is green. Workers Builds should deploy live from `main`. After merge, verify the live header logo scroll + green WhatsApp icon, branded hero plates, `/zh-Hant` 包車接送 wording, and that production `/admin` and `/api/auth` still return 403. Do not run `wrangler deploy`. If any live D1 offer title/description still uses 接送, edit those staff-authored rows in admin (they are not in git).
 
-Admin zh-Hant next action (2026-10-17): review the staging PR preview. Log in with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Do not merge to `main`. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment).
+Admin zh-Hant follow-up (2026-10-17, now in the promote): after live deploy, log in only on a preview/staging host with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment). Do not use production `/admin` until Cloudflare Access is configured.
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
 
@@ -178,6 +183,8 @@ City Tour next action (2026-10-05): review the homepage package cards and each p
 Workflow resume action (2026-10-03): the owning agent should trial a bounded read-only task using the [adapter](docs/11-codex-workflow-adapter.md), return evidence to the Lab coordinator, and record actual acceptance and review evidence before changing shared policy. The user need not route routine work between chats.
 
 ## Verification record
+
+2026-10-30 staging→main promote conflict resolution: merged `origin/main` `9157ea43` into staging-based `cursor/promote-staging-to-main-3426` (`dbcdbb48` + #15 + #16). Manual conflict only in `PROJECT-STATE.md`. `global.css` auto-merge keeps admin locale-switch CSS and main logo-hide / WhatsApp `#25d366`. Hero plates, `header-menus.ts` logo scroll, and plate docs come from main. Admin zh-Hant and 包車接送 dictionaries come from staging. `admin-gate.ts`, middleware, and `wrangler.jsonc` have no diff versus either parent. Automated check results follow in this increment’s changelog once they finish. Not a live production verification; `released` is not established.
 
 2026-10-30 zh-Hant 包車接送 wording: repo product dictionaries, admin labels, WhatsApp/email service names, Special Offers zh-Hant chrome, and the 轉讓/轉賬 tidy path now say 包車接送. A unit scan asserts no remaining bare 接送 in those sources. `pnpm typecheck` 0 errors, `pnpm test` 102/102, `pnpm lint` clean, `pnpm build` completed. Built `/zh-Hant` home, airport, and local-transfer HTML contain 包車接送 and no bare 接送 (296 matches in dist). GitHub `check` and Workers Builds succeeded on `ff87fed` (PR 16). Preview `/zh-Hant` shows 包車接送 in the title, H1, and Point To Point labels. English and Portuguese were not changed. D1 offer rows were not edited. Historical handover tables may still quote the old 接送 labels.
 
@@ -206,20 +213,35 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Change log
 
-### 2026-10-30 — zh-Hant 接送 → 包車接送 (staging PR, not main)
+### 2026-10-30 — Promote staging to main (conflict resolution)
+
+- Changed: merged `origin/main` (`9157ea43`) into a staging-based promote branch so PR 17 can land cleanly. Staging-only work kept: staff admin zh-Hant (#15) and 包車接送 wording (#16). Main-only work kept: hero plate branding, header logo scroll hide, and green WhatsApp icon. `wrangler.jsonc` bindings and the production `/admin` + `/api/auth` 403 gate were not edited.
+- Decision/evidence: Evan, 2026-10-30 Asia/Macau chat — “ok promote to main”. Branches had diverged; merge preferred over rebase. Only `PROJECT-STATE.md` needed a manual conflict resolution. `global.css` auto-merged and retains both the admin locale-switch rules and the main header/WhatsApp rules.
+- Verified: conflict markers removed; both product intents present in the tree; admin-gate source unchanged from both parents. Automated lint/typecheck/test/build recorded in the promote handover after they run.
+- Not verified or follow-up: live Workers Builds on `main`; production Access; staff-authored D1 offer copy that may still say 接送. Do not run `wrangler deploy`.
+- Handover: `docs/handover/promote-staging-to-main.md`. Root log: `HANDOVER.md`.
+
+### 2026-10-30 — zh-Hant 接送 → 包車接送 (staging PR, now in the promote)
 
 - Changed: Traditional Chinese UI copy that used 接送 now uses 包車接送 on the public site, admin service labels, booking WhatsApp/email summaries, and Special Offers chrome. The i18n tidy path maps leftover 轉讓 / 轉賬 to 包車接送. Strings that already said 包車接送, and 包車 phrases that are not 接送, were left unchanged.
 - Decision/evidence: Evan, 2026-10-30 — Macau regulation requires clearly naming a private-car / chauffeur service, not a taxi-style transfer. Wording clarification only; no new marketing claims.
 - Verified: product-file search after a lookbehind replace; unit scan that dictionaries and `translateCopy` output contain no bare 接送; typecheck, tests, and production build in this increment.
-- Not verified or follow-up: live D1 staff-authored offer titles/descriptions; logged-in admin browser pass; production. Do not merge to `main`.
+- Not verified or follow-up: live D1 staff-authored offer titles/descriptions; logged-in admin browser pass on production. Evan later approved promoting this increment to `main`.
 - Handover: `docs/handover/bao-che-jie-song.md`. Root log: `HANDOVER.md`.
 
-### 2026-10-17 — Staff dashboard Traditional Chinese (staging PR, not main)
+### 2026-10-22 — Local hero plate branding and Home vehicle revision
+
+- Replaced 11 existing exterior hero JPEGs with built-in image-generation edits using the existing Kai Yue logo reference; the About fleet includes every visible front plate. The Home edit also used Airport Transfer as the Alphard 40 Series appearance reference. Local Chauffeur interior remains unchanged.
+- Refreshed Home WebP widths 800/1200/1672, City Tours 800 WebP, and shared `hero-home.webp`. Original dimensions and existing consuming paths retained.
+- Reviewed the images visually, verified file decoding and local HTTP responses with exact served-byte comparisons for all 16 image files, and inspected the Home browser preview. Asset-only scope; no application behavior changes or full regression suite. Generated fine lettering may vary from the source logo. Evan accepted the visual changes and requested commit/push to `main`; production deployment and release remain outside this task.
+- Source checkout: clean `main` at `743682430062badbe1b43fddab5710abb6b849c2` before this task; Evan authorized committing and pushing these task edits directly to `main`. The resulting commit is recorded in Git history; no deployment was requested.
+
+### 2026-10-17 — Staff dashboard Traditional Chinese (staging PR, now in the promote)
 
 - Evan requested full `zh-Hant` on the staff dashboard. `/login`, `/setup-admin`, and every `/admin` page now share English and Traditional Chinese dictionaries with a visible language switch.
 - Choice persists in the `kaiyue-admin-locale` cookie and localStorage. Default stays English. Astro reads the cookie so SSR titles, nav, and first payloads match hydration.
 - Status, service, inquiry, and API error text that surfaces in the admin UI is mapped client-side. Date/time stamps stay Asia/Macau; zh-Hant uses `yyyy年mm月dd日 hh:mm`.
-- No D1/R2 binding or schema change. Bilingual offer content for `/zh-Hant/special-offers` was skipped and recorded as a follow-up. Production admin 403 gate unchanged. Do not merge to `main`.
+- No D1/R2 binding or schema change. Bilingual offer content for `/zh-Hant/special-offers` was skipped and recorded as a follow-up. Production admin 403 gate unchanged.
 - Preview verified 2026-10-17: PR https://github.com/Evanevia09/KaiYue-Travel/pull/15 ; commit `https://04548945-kaiyue-travel.scalingsmb.workers.dev` ; branch `https://cursor-admin-zh-hant-d1f1-kaiyue-travel.scalingsmb.workers.dev`. GitHub `check` and Workers Builds green on `8cd2c44`. Logged-in browser pass of `/login` and every `/admin` page in 繁體中文, then back to English. Cookie-forced `/login` HTML is `lang="zh-Hant"` with 登入／電郵／密碼. Production `/admin` and `/login` stayed 403.
 - Handover: `docs/handover/admin-zh-hant.md`.
 

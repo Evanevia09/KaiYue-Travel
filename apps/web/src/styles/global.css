@@ -130,6 +130,26 @@ a {
   flex: 0 0 auto;
 }
 
+.site-header .logo {
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease,
+    visibility 240ms;
+}
+
+.site-header--scrolled .logo {
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header .logo {
+    transition: none;
+  }
+}
+
 .logo-image {
   display: block;
   width: clamp(8rem, 19vw, 13rem);
@@ -436,7 +456,7 @@ a {
   width: 1.55rem;
   height: 1.55rem;
   border-radius: 999px;
-  background: #111;
+  background: #25d366;
   color: white;
 }
 

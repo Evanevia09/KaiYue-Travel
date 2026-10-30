@@ -25,6 +25,16 @@ function initHeaderMenus(): void {
   const header = document.querySelector<HTMLElement>("header.site-header");
   if (!header) return;
 
+  const logo = header.querySelector<HTMLElement>(".logo");
+  const syncLogoVisibility = (): void => {
+    const hidden = window.scrollY > 8;
+    header.classList.toggle("site-header--scrolled", hidden);
+    if (logo) logo.inert = hidden;
+  };
+  window.addEventListener("scroll", syncLogoVisibility, { passive: true });
+  window.addEventListener("pageshow", syncLogoVisibility);
+  syncLogoVisibility();
+
   const desktopMenus = Array.from(
     header.querySelectorAll<HTMLDetailsElement>(DESKTOP_MENU_SELECTOR),
   );

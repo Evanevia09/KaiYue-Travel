@@ -36,6 +36,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 16. [Greater Bay Area chauffeur copy](handover/gba-chauffeur-copy.md)
 17. [Staff dashboard Traditional Chinese](handover/admin-zh-hant.md)
 18. [Traditional Chinese 包車接送 wording](handover/bao-che-jie-song.md)
+19. [Promote staging to main](handover/promote-staging-to-main.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
