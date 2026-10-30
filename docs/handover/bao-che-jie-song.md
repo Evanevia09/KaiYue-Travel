@@ -3,7 +3,7 @@
 **Date:** 2026-10-30  
 **Branch:** `cursor/bao-che-jie-song-16fb`  
 **Commit:** `2d0c94d6b5923df21dcbfcd52291131d624b0d46`  
-**PR target:** `staging` only. Do not merge to `main`.  
+**PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/16 into `staging` only. Do not merge to `main`.  
 **Database:** unchanged. No D1 migration. Staging D1 and R2 bindings were not edited.  
 **Owner request:** Evan (2026-10-30) — every Chinese UI phrase that says 接送 must say 包車接送 so the site clearly names a private-car / chauffeur service, not a taxi-style transfer.
 
