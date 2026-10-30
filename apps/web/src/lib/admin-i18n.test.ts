@@ -133,7 +133,7 @@ describe("admin error and label localization", () => {
 
   it("localizes status and service labels used in the dashboard", () => {
     expect(prefixedLabel("zh-Hant", "status", "enquiry")).toBe("查詢");
-    expect(prefixedLabel("zh-Hant", "service", "airport_transfer")).toBe("機場接送");
+    expect(prefixedLabel("zh-Hant", "service", "airport_transfer")).toBe("機場包車接送");
     expect(prefixedLabel("en", "service", "airport_transfer")).toBe("Airport transfer");
   });
 });
