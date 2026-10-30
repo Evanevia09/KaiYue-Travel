@@ -58,6 +58,12 @@ Do not run `wrangler deploy` unless Workers Builds fail and Evan asks for a manu
 
 ## Verification
 
-Recorded in this increment after local checks run: conflict markers gone; both product intents present; admin-gate file matches both parents. Automated lint, typecheck, tests, and production build are recorded in `PROJECT-STATE.md` once they complete.
+Local on `cursor/promote-staging-to-main-3426`:
+
+- Conflict markers gone. Merge-base with `origin/main` is `9157ea43`.
+- `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 102/102; `pnpm build` completed.
+- Production admin-gate test still forbids `/admin` and `/api/auth` on `kaiyue-travel.scalingsmb.workers.dev`.
+- Built `/zh-Hant` home, airport, and local-transfer HTML contain 包車接送.
+- `global.css` keeps `.admin-locale-switch`, `.site-header--scrolled`, and WhatsApp `#25d366`.
 
 Not verified here: live production after merge; Cloudflare Access; staff-authored D1 offer copy.
