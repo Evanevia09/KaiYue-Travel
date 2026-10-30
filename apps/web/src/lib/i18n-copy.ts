@@ -17,8 +17,8 @@ function tidy(value: string, locale: Exclude<Locale, "en">) {
       .replaceAll("啟裕旅遊", "凱悅旅遊")
       .replaceAll("明門", "名門")
       .replaceAll("一克出行", "一鍵遊")
-      .replaceAll("轉讓", "接送")
-      .replaceAll("轉賬", "接送")
+      .replaceAll("轉讓", "包車接送")
+      .replaceAll("轉賬", "包車接送")
       .replaceAll("雙板", "雙牌")
       .replaceAll("廬山", "中山")
       .replaceAll("中國大陸", "內地");

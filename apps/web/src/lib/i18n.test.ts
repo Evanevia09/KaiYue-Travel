@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { adminZhHant } from "./admin-i18n.ts";
+import { copyCoverage, translateCopy } from "./i18n-copy.ts";
 import { localizeHtml } from "./i18n-html.ts";
 import { localeFromPath, localePath, publicSourcePage, stripLocale } from "./i18n.ts";
+import { specialOfferCopy } from "./special-offer-copy.ts";
+import zhHant from "./translations/zh-Hant.json";
+import zhReviewed from "./translations/zh-Hant-reviewed.json";
+
+const BARE_TRANSFER_WORD = /(?<!包車)接送/;
+
+function bareTransferHits(label: string, values: Iterable<string>): string[] {
+  return [...values].flatMap((value) =>
+    BARE_TRANSFER_WORD.test(value) ? [`${label}: ${value}`] : [],
+  );
+}
 
 describe("public locale routing", () => {
   it("retains ordinary metadata localization when preservation is disabled", () => {
@@ -18,7 +31,7 @@ describe("public locale routing", () => {
     const zh = localizeHtml(markup, "zh-Hant");
     expect(pt).toContain(">O seu motorista privado de confiança na Grande Baía</h1>");
     expect(pt).toContain(">Viagens privadas com motorista</p>");
-    expect(zh).toContain(">大灣區可信賴的私人司機接送</h1>");
+    expect(zh).toContain(">大灣區可信賴的私人司機包車接送</h1>");
     expect(zh).toContain(">私人司機出行</p>");
   });
   it("preserves declared English package Markdown while localizing the surrounding page", () => {
@@ -91,5 +104,22 @@ describe("public locale routing", () => {
     expect(zh).toContain('alt="微信二維碼 – 即將推出"');
     expect(zh).toContain(">微信二維碼 – 即將推出</span>");
     expect(zh).toContain(">微信</figcaption>");
+  });
+
+  it("uses 包車接送 instead of bare 接送 in zh-Hant product copy", () => {
+    expect(bareTransferHits("reviewed", Object.values(zhReviewed))).toEqual([]);
+    expect(bareTransferHits("base", Object.values(zhHant))).toEqual([]);
+    expect(bareTransferHits("admin", Object.values(adminZhHant))).toEqual([]);
+    expect(bareTransferHits("offers", Object.values(specialOfferCopy["zh-Hant"]))).toEqual([]);
+    expect(translateCopy("Airport Transfer", "zh-Hant")).toBe("機場包車接送");
+    expect(translateCopy("Private airport transfer in Macau", "zh-Hant")).toBe(
+      "澳門機場私人包車接送",
+    );
+
+    const tidiedHits = copyCoverage("zh-Hant").flatMap((key) => {
+      const translated = translateCopy(key, "zh-Hant");
+      return BARE_TRANSFER_WORD.test(translated) ? [`${key} → ${translated}`] : [];
+    });
+    expect(tidiedHits).toEqual([]);
   });
 });

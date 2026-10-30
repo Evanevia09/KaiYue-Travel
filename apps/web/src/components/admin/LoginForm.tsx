@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { authClient } from "./auth-client.ts";
 
-export function LoginForm() {
+export function LoginForm({ locale }: { locale: AdminLocale }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
@@ -16,23 +17,21 @@ export function LoginForm() {
           .email({ email: String(form.get("email")), password: String(form.get("password")) })
           .then(({ error }) => {
             if (error) {
-              setError(
-                "Sign-in failed. Check your credentials or ask the administrator for access.",
-              );
+              setError(t(locale, "login.errorCredentials"));
               return;
             }
             window.location.assign("/admin");
           })
-          .catch(() => setError("Sign-in is unavailable. Please try again later."))
+          .catch(() => setError(t(locale, "login.errorUnavailable")))
           .finally(() => setBusy(false));
       }}
     >
       <label className="field">
-        Email
+        {t(locale, "login.email")}
         <input name="email" type="email" autoComplete="username" required />
       </label>
       <label className="field">
-        Password
+        {t(locale, "login.password")}
         <input name="password" type="password" autoComplete="current-password" required />
       </label>
       {error && (
@@ -41,7 +40,7 @@ export function LoginForm() {
         </p>
       )}
       <button className="btn btn--primary" disabled={busy}>
-        {busy ? "Signing in…" : "Sign in"}
+        {busy ? t(locale, "login.submitting") : t(locale, "login.submit")}
       </button>
     </form>
   );

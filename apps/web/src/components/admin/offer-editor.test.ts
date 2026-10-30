@@ -90,19 +90,19 @@ describe("offer editor save target", () => {
     expect(offerStatusBusyKey(id, "draft")).toBe("unpublish:offer-harbour");
     expect(offerStatusControl(`publish:${id}`, id, "published")).toEqual({
       next: "published",
-      label: "Publishing…",
+      labelKey: "offers.publishing",
     });
     expect(offerStatusControl(`unpublish:${id}`, id, "draft")).toEqual({
       next: "draft",
-      label: "Unpublishing…",
+      labelKey: "offers.unpublishing",
     });
     expect(offerStatusControl(null, id, "draft")).toEqual({
       next: "published",
-      label: "Publish",
+      labelKey: "offers.publish",
     });
     expect(offerStatusControl(null, id, "published")).toEqual({
       next: "draft",
-      label: "Unpublish",
+      labelKey: "offers.unpublish",
     });
   });
 });

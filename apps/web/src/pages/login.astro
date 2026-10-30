@@ -1,12 +1,22 @@
 ---
 export const prerender = false;
+import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { LoginForm } from "../components/admin/LoginForm.tsx";
 import { env } from "cloudflare:workers";
+import {
+  ADMIN_LOCALE_COOKIE,
+  ADMIN_LOCALE_STORAGE_KEY,
+  adminLocaleFromCookies,
+  t,
+} from "../lib/admin-i18n.ts";
 import "../styles/global.css";
+
+const locale = adminLocaleFromCookies(Astro.cookies);
+const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={htmlLang}>
   <head
     ><meta charset="utf-8" /><meta
       name="viewport"
@@ -16,21 +26,45 @@ import "../styles/global.css";
       href="/favicon.ico"
       sizes="any"
     /><link rel="icon" href="/images/mark.svg" type="image/svg+xml" /><title>
-      Admin sign in · Kai Yue
-    </title></head
+      {t(locale, "title.login")}
+    </title>
+    <script
+      is:inline
+      define:vars={{ cookieName: ADMIN_LOCALE_COOKIE, storageKey: ADMIN_LOCALE_STORAGE_KEY }}
+    >
+      (() => {
+        try {
+          const stored = localStorage.getItem(storageKey);
+          if (stored !== "en" && stored !== "zh-Hant") return;
+          const cookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(cookieName + "="))
+            ?.split("=")[1];
+          if (cookie === stored) return;
+          const secure = location.protocol === "https:" ? "; Secure" : "";
+          document.cookie = `${cookieName}=${stored}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+          location.reload();
+        } catch {
+          /* ignore */
+        }
+      })();
+    </script></head
   ><body class="admin-login-page"
     ><main class="admin-login-card">
-      <a class="admin-login-brand" href="/">Kai Yue <span>Operations</span></a><p
-        class="admin-eyebrow"
-      >
-        Protected workspace
-      </p><h1>Sign in</h1><p class="muted">
-        Preview test operators only. Production admin stays closed until Cloudflare Access is
-        configured.
-      </p><LoginForm client:load />{
+      <div class="admin-login-toolbar">
+        <a class="admin-login-brand" href="/"
+          >Kai Yue <span>{t(locale, "brand.operations")}</span></a
+        >
+        <AdminLocaleSwitch client:load locale={locale} />
+      </div><p class="admin-eyebrow">
+        {t(locale, "login.eyebrow")}
+      </p><h1>{t(locale, "login.heading")}</h1><p class="muted">
+        {t(locale, "login.help")}
+      </p><LoginForm client:load locale={locale} />{
         env.ENVIRONMENT === "development" && (
           <p class="admin-login-help">
-            First local setup? <a href="/setup-admin">Create the operator account</a>.
+            {t(locale, "login.setupHelp")} <a href="/setup-admin">{t(locale, "login.setupLink")}</a>
+            .
           </p>
         )
       }

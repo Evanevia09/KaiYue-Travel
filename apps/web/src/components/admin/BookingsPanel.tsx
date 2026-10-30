@@ -1,12 +1,13 @@
-import { SERVICE_LABELS } from "@kaiyue/contracts";
 import { useEffect, useState } from "react";
+import { localizeCaughtError, prefixedLabel, t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { adminFetch, formatWhen, type AdminBooking } from "./api.ts";
 
 type Props = {
+  locale: AdminLocale;
   initialStatus?: string;
 };
 
-export function BookingsPanel({ initialStatus = "" }: Props) {
+export function BookingsPanel({ locale, initialStatus = "" }: Props) {
   const [status, setStatus] = useState(initialStatus);
   const [items, setItems] = useState<AdminBooking[] | null>(null);
   const [page, setPage] = useState(0);
@@ -25,6 +26,7 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
     setItems(null);
     void adminFetch<{ items: AdminBooking[]; nextCursor: string | null; total: number }>(
       `/api/v1/admin/bookings?${query}`,
+      { locale },
     )
       .then((data) => {
         if (live) {
@@ -34,31 +36,31 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
           setError("");
         }
       })
-      .catch((err: Error) => setError(err.message));
+      .catch((err: Error) => setError(localizeCaughtError(err, locale)));
     return () => {
       live = false;
     };
-  }, [status, page, cursors]);
+  }, [status, page, cursors, locale]);
 
   return (
     <div>
       <div className="admin-list-toolbar">
         <div>
-          <p className="admin-eyebrow">Booking enquiries</p>
-          <h2>All requests</h2>
-          <p className="muted">Review journeys, assign resources and track progress.</p>
+          <p className="admin-eyebrow">{t(locale, "bookings.eyebrow")}</p>
+          <h2>{t(locale, "bookings.heading")}</h2>
+          <p className="muted">{t(locale, "bookings.lead")}</p>
         </div>
         <button
           type="button"
           className="btn btn--primary"
           onClick={() => setShowCreate((value) => !value)}
         >
-          {showCreate ? "Close form" : "+ Add booking"}
+          {showCreate ? t(locale, "bookings.closeForm") : t(locale, "bookings.add")}
         </button>
       </div>
       <div className="filters admin-filters">
         <label>
-          Status{" "}
+          {t(locale, "bookings.status")}{" "}
           <select
             value={status}
             onChange={(event) => {
@@ -67,15 +69,15 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
               setCursors([null]);
             }}
           >
-            <option value="">All</option>
-            <option value="enquiry">Enquiry</option>
-            <option value="assigned">Assigned</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="">{t(locale, "bookings.statusAll")}</option>
+            <option value="enquiry">{t(locale, "status.enquiry")}</option>
+            <option value="assigned">{t(locale, "status.assigned")}</option>
+            <option value="completed">{t(locale, "status.completed")}</option>
+            <option value="cancelled">{t(locale, "status.cancelled")}</option>
           </select>
         </label>
         <span className="admin-results-count">
-          {total} {total === 1 ? "booking" : "bookings"}
+          {t(locale, total === 1 ? "bookings.countOne" : "bookings.countMany", { count: total })}
         </span>
       </div>
       {showCreate ? (
@@ -89,6 +91,7 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
             void adminFetch<{ reference: string }>("/api/v1/admin/bookings", {
               method: "POST",
               headers: { "idempotency-key": crypto.randomUUID() },
+              locale,
               body: JSON.stringify({
                 serviceType: form.get("serviceType"),
                 pickupLocation: form.get("pickupLocation"),
@@ -108,46 +111,46 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
               .then((created) => {
                 window.location.href = `/admin/bookings/${created.reference}`;
               })
-              .catch((err: Error) => setError(err.message))
+              .catch((err: Error) => setError(localizeCaughtError(err, locale)))
               .finally(() => setSaving(false));
           }}
         >
           <div className="admin-card__heading">
             <div>
-              <span className="admin-kpi__label">Manual entry</span>
-              <h2>Add booking enquiry</h2>
+              <span className="admin-kpi__label">{t(locale, "bookings.manual")}</span>
+              <h2>{t(locale, "bookings.addHeading")}</h2>
             </div>
           </div>
           <div className="booking-fields">
             <label className="field">
-              Service
+              {t(locale, "bookings.service")}
               <select name="serviceType" defaultValue="point_to_point">
-                <option value="point_to_point">Point to point</option>
-                <option value="airport_transfer">Airport transfer</option>
+                <option value="point_to_point">{t(locale, "service.point_to_point")}</option>
+                <option value="airport_transfer">{t(locale, "service.airport_transfer")}</option>
               </select>
             </label>
             <label className="field">
-              Pickup date and time
+              {t(locale, "bookings.pickupAt")}
               <input name="pickupAt" type="datetime-local" required />
             </label>
             <label className="field">
-              Pickup location
+              {t(locale, "bookings.pickupLocation")}
               <input name="pickupLocation" required />
             </label>
             <label className="field">
-              Destination
+              {t(locale, "bookings.destination")}
               <input name="destination" required />
             </label>
             <label className="field">
-              Customer name
+              {t(locale, "bookings.customerName")}
               <input name="contactName" />
             </label>
             <label className="field">
-              Phone
+              {t(locale, "bookings.phone")}
               <input name="phone" />
             </label>
             <label className="field">
-              Passengers
+              {t(locale, "bookings.passengers")}
               <input
                 name="passengerCount"
                 type="number"
@@ -158,32 +161,32 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
               />
             </label>
             <label className="field field--full">
-              Remarks
+              {t(locale, "bookings.remarks")}
               <textarea name="message" required />
             </label>
           </div>
           <button className="btn btn--primary" disabled={saving}>
-            {saving ? "Saving…" : "Save booking"}
+            {saving ? t(locale, "bookings.saving") : t(locale, "bookings.save")}
           </button>
         </form>
       ) : null}
       {error ? <p role="alert">{error}</p> : null}
-      {items === null ? <p>Loading bookings…</p> : null}
-      {items?.length === 0 ? <p>No bookings match these filters.</p> : null}
+      {items === null ? <p>{t(locale, "bookings.loading")}</p> : null}
+      {items?.length === 0 ? <p>{t(locale, "bookings.empty")}</p> : null}
       {items && items.length > 0 ? (
         <div className="admin-card admin-table-card">
           <div className="table-wrap">
             <table className="admin-bookings-table">
               <thead>
                 <tr>
-                  <th>Booking</th>
-                  <th>Pickup</th>
-                  <th>Journey / service</th>
-                  <th>Customer</th>
-                  <th>Dispatch</th>
-                  <th>Status</th>
+                  <th>{t(locale, "bookings.colBooking")}</th>
+                  <th>{t(locale, "bookings.colPickup")}</th>
+                  <th>{t(locale, "bookings.colJourney")}</th>
+                  <th>{t(locale, "bookings.colCustomer")}</th>
+                  <th>{t(locale, "bookings.colDispatch")}</th>
+                  <th>{t(locale, "bookings.colStatus")}</th>
                   <th>
-                    <span className="sr-only">Open</span>
+                    <span className="sr-only">{t(locale, "bookings.open")}</span>
                   </th>
                 </tr>
               </thead>
@@ -196,43 +199,60 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
                       </a>
                     </td>
                     <td>
-                      <strong>{formatWhen(item.pickupAt)}</strong>
+                      <strong>{formatWhen(item.pickupAt, locale)}</strong>
                       <small>
-                        {item.passengerCount}{" "}
-                        {item.passengerCount === 1 ? "passenger" : "passengers"}
+                        {t(
+                          locale,
+                          item.passengerCount === 1
+                            ? "bookings.passengerOne"
+                            : "bookings.passengerMany",
+                          { count: item.passengerCount },
+                        )}
                       </small>
                     </td>
                     <td>
                       <strong>{item.pickupLocation}</strong>
-                      <small>→ {item.destination || item.offerTitle || "Hourly service"}</small>
+                      <small>
+                        →{" "}
+                        {item.destination || item.offerTitle || t(locale, "bookings.hourlyService")}
+                      </small>
                       <small>
                         {item.offerTitle
-                          ? `Special offer: ${item.offerTitle}`
-                          : (SERVICE_LABELS[item.serviceType as keyof typeof SERVICE_LABELS] ??
-                            item.serviceType)}
+                          ? t(locale, "bookings.specialOffer", { title: item.offerTitle })
+                          : prefixedLabel(locale, "service", item.serviceType)}
                       </small>
                     </td>
                     <td>
-                      <strong>{item.contactName || "Unnamed customer"}</strong>
-                      <small>{item.phone || item.email || item.communicationChannel}</small>
+                      <strong>{item.contactName || t(locale, "bookings.unnamed")}</strong>
+                      <small>
+                        {item.phone ||
+                          item.email ||
+                          prefixedLabel(locale, "channel", item.communicationChannel)}
+                      </small>
                     </td>
                     <td>
                       {item.driverId && item.vehicleId ? (
-                        <span className="admin-dispatch-ready">Driver + car assigned</span>
+                        <span className="admin-dispatch-ready">
+                          {t(locale, "bookings.driverAssigned")}
+                        </span>
                       ) : (
-                        <span className="admin-dispatch-pending">Not assigned</span>
+                        <span className="admin-dispatch-pending">
+                          {t(locale, "bookings.notAssigned")}
+                        </span>
                       )}
                     </td>
                     <td>
-                      <span className={`badge badge--${item.status}`}>{item.status}</span>
+                      <span className={`badge badge--${item.status}`}>
+                        {prefixedLabel(locale, "status", item.status)}
+                      </span>
                     </td>
                     <td>
                       <a
                         className="admin-row-link"
                         href={`/admin/bookings/${item.reference}`}
-                        aria-label={`Open ${item.reference}`}
+                        aria-label={t(locale, "bookings.openAria", { reference: item.reference })}
                       >
-                        View →
+                        {t(locale, "bookings.view")}
                       </a>
                     </td>
                   </tr>
@@ -242,7 +262,11 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
           </div>
           <div className="admin-pagination">
             <span>
-              Showing {page * 15 + 1}–{page * 15 + items.length} of {total}
+              {t(locale, "bookings.showing", {
+                from: page * 15 + 1,
+                to: page * 15 + items.length,
+                total,
+              })}
             </span>
             <div>
               <button
@@ -250,9 +274,9 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
                 disabled={page === 0}
                 onClick={() => setPage(page - 1)}
               >
-                Previous
+                {t(locale, "bookings.previous")}
               </button>
-              <span>Page {page + 1}</span>
+              <span>{t(locale, "bookings.page", { page: page + 1 })}</span>
               <button
                 className="btn btn--secondary"
                 disabled={!nextCursor}
@@ -263,7 +287,7 @@ export function BookingsPanel({ initialStatus = "" }: Props) {
                   }
                 }}
               >
-                Next
+                {t(locale, "bookings.next")}
               </button>
             </div>
           </div>

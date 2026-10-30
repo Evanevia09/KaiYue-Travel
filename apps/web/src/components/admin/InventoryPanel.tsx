@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { localizeCaughtError, t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { adminFetch, type AdminDriver, type AdminVehicle } from "./api.ts";
 
-export function InventoryPanel() {
+export function InventoryPanel({ locale }: { locale: AdminLocale }) {
   const [drivers, setDrivers] = useState<AdminDriver[]>([]);
   const [vehicles, setVehicles] = useState<AdminVehicle[]>([]);
   const [tab, setTab] = useState<"drivers" | "vehicles">("drivers");
@@ -14,15 +15,15 @@ export function InventoryPanel() {
 
   async function load() {
     const [driverResult, vehicleResult] = await Promise.all([
-      adminFetch<{ items: AdminDriver[] }>("/api/v1/admin/drivers"),
-      adminFetch<{ items: AdminVehicle[] }>("/api/v1/admin/vehicles"),
+      adminFetch<{ items: AdminDriver[] }>("/api/v1/admin/drivers", { locale }),
+      adminFetch<{ items: AdminVehicle[] }>("/api/v1/admin/vehicles", { locale }),
     ]);
     setDrivers(driverResult.items);
     setVehicles(vehicleResult.items);
   }
   useEffect(() => {
-    void load().catch((err: Error) => setError(err.message));
-  }, []);
+    void load().catch((err: Error) => setError(localizeCaughtError(err, locale)));
+  }, [locale]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -68,14 +69,14 @@ export function InventoryPanel() {
     try {
       await adminFetch(
         `/api/v1/admin/${isDriver ? "drivers" : "vehicles"}${editing ? `/${editing}` : ""}`,
-        { method: editing ? "PATCH" : "POST", body: JSON.stringify(body) },
+        { method: editing ? "PATCH" : "POST", body: JSON.stringify(body), locale },
       );
       await load();
       setModal(false);
       setEditing(null);
-      setNotice(`${isDriver ? "Driver" : "Vehicle"} saved.`);
+      setNotice(t(locale, isDriver ? "inv.driverSaved" : "inv.vehicleSaved"));
     } catch (err) {
-      setError((err as Error).message);
+      setError(localizeCaughtError(err, locale));
     } finally {
       setSaving(false);
     }
@@ -85,14 +86,12 @@ export function InventoryPanel() {
     <div className="admin-inventory">
       <div className="admin-list-toolbar">
         <div>
-          <p className="admin-eyebrow">Dispatch resources</p>
-          <h2>Drivers & vehicles</h2>
-          <p className="muted">
-            Manage contacts and availability. Nothing is assigned automatically.
-          </p>
+          <p className="admin-eyebrow">{t(locale, "inv.eyebrow")}</p>
+          <h2>{t(locale, "inv.heading")}</h2>
+          <p className="muted">{t(locale, "inv.lead")}</p>
         </div>
       </div>
-      <div className="admin-tabs" role="tablist" aria-label="Inventory type">
+      <div className="admin-tabs" role="tablist" aria-label={t(locale, "inv.tabAria")}>
         <button
           type="button"
           role="tab"
@@ -103,7 +102,7 @@ export function InventoryPanel() {
             setModal(false);
           }}
         >
-          Drivers <span>{drivers.length}</span>
+          {t(locale, "inv.drivers")} <span>{drivers.length}</span>
         </button>
         <button
           type="button"
@@ -115,7 +114,7 @@ export function InventoryPanel() {
             setModal(false);
           }}
         >
-          Vehicles <span>{vehicles.length}</span>
+          {t(locale, "inv.vehicles")} <span>{vehicles.length}</span>
         </button>
       </div>
       {error && (
@@ -131,9 +130,9 @@ export function InventoryPanel() {
       <div className="admin-inventory-grid admin-inventory-grid--single">
         <section className="admin-card">
           <div className="admin-card__heading">
-            <h2>{tab === "drivers" ? "Driver roster" : "Vehicle inventory"}</h2>
+            <h2>{tab === "drivers" ? t(locale, "inv.roster") : t(locale, "inv.fleet")}</h2>
             <button type="button" className="btn btn--primary" onClick={() => openEditor(null)}>
-              + Add {tab === "drivers" ? "driver" : "vehicle"}
+              {tab === "drivers" ? t(locale, "inv.addDriver") : t(locale, "inv.addVehicle")}
             </button>
           </div>
           <div className="admin-resource-list">
@@ -144,7 +143,7 @@ export function InventoryPanel() {
                     type="button"
                     className="admin-resource"
                     onClick={() => openEditor(item.id)}
-                    aria-label={`Edit driver ${item.name}`}
+                    aria-label={t(locale, "inv.editDriverAria", { name: item.name })}
                   >
                     <span>
                       <strong>{item.name}</strong>
@@ -154,7 +153,7 @@ export function InventoryPanel() {
                       </small>
                     </span>
                     <span className={item.active ? "admin-active" : "admin-inactive"}>
-                      {item.active ? "Active" : "Inactive"}
+                      {item.active ? t(locale, "inv.active") : t(locale, "inv.inactive")}
                     </span>
                   </button>
                 ))
@@ -164,26 +163,26 @@ export function InventoryPanel() {
                     type="button"
                     className="admin-resource"
                     onClick={() => openEditor(item.id)}
-                    aria-label={`Edit vehicle ${item.plateNumber}`}
+                    aria-label={t(locale, "inv.editVehicleAria", { plate: item.plateNumber })}
                   >
                     <span>
                       <strong>
                         {item.plateNumber} · {item.makeModel}
                       </strong>
                       <small>
-                        {item.passengerCapacity} passengers
+                        {t(locale, "inv.passengers", { count: item.passengerCapacity })}
                         {item.contactName ? ` · ${item.contactName}` : ""}
                         {item.contactPhone ? ` · ${item.contactPhone}` : ""}
                       </small>
                     </span>
                     <span className={item.active ? "admin-active" : "admin-inactive"}>
-                      {item.active ? "Active" : "Inactive"}
+                      {item.active ? t(locale, "inv.active") : t(locale, "inv.inactive")}
                     </span>
                   </button>
                 ))}
             {(tab === "drivers" ? drivers : vehicles).length === 0 && (
               <p className="muted">
-                No records yet. Add the first {tab === "drivers" ? "driver" : "vehicle"}.
+                {tab === "drivers" ? t(locale, "inv.emptyDriver") : t(locale, "inv.emptyVehicle")}
               </p>
             )}
           </div>
@@ -201,15 +200,23 @@ export function InventoryPanel() {
         <section className="admin-editor-dialog__content">
           <div className="admin-card__heading">
             <div>
-              <p className="admin-eyebrow">{editing ? "Edit record" : "New record"}</p>
+              <p className="admin-eyebrow">
+                {editing ? t(locale, "inv.editRecord") : t(locale, "inv.newRecord")}
+              </p>
               <h2 id="admin-editor-title">
-                {editing ? "Edit" : "Add"} {tab === "drivers" ? "driver" : "vehicle"}
+                {tab === "drivers"
+                  ? editing
+                    ? t(locale, "inv.editDriver")
+                    : t(locale, "inv.addDriverTitle")
+                  : editing
+                    ? t(locale, "inv.editVehicle")
+                    : t(locale, "inv.addVehicleTitle")}
               </h2>
             </div>
             <button
               type="button"
               className="admin-editor-dialog__close"
-              aria-label="Close"
+              aria-label={t(locale, "inv.close")}
               onClick={() => dialogRef.current?.close()}
             >
               ×
@@ -228,11 +235,11 @@ export function InventoryPanel() {
             {tab === "drivers" ? (
               <>
                 <label className="field">
-                  Name
+                  {t(locale, "inv.name")}
                   <input name="name" defaultValue={selectedDriver?.name ?? ""} required />
                 </label>
                 <label className="field">
-                  Phone
+                  {t(locale, "inv.phone")}
                   <input
                     name="phone"
                     type="tel"
@@ -241,14 +248,14 @@ export function InventoryPanel() {
                   />
                 </label>
                 <label className="field">
-                  Email
+                  {t(locale, "inv.email")}
                   <input name="email" type="email" defaultValue={selectedDriver?.email ?? ""} />
                 </label>
               </>
             ) : (
               <>
                 <label className="field">
-                  Plate number
+                  {t(locale, "inv.plate")}
                   <input
                     name="plateNumber"
                     defaultValue={selectedVehicle?.plateNumber ?? ""}
@@ -256,7 +263,7 @@ export function InventoryPanel() {
                   />
                 </label>
                 <label className="field">
-                  Make & model
+                  {t(locale, "inv.makeModel")}
                   <input
                     name="makeModel"
                     defaultValue={selectedVehicle?.makeModel ?? ""}
@@ -264,7 +271,7 @@ export function InventoryPanel() {
                   />
                 </label>
                 <label className="field">
-                  Passenger capacity
+                  {t(locale, "inv.capacity")}
                   <input
                     name="passengerCapacity"
                     type="number"
@@ -275,11 +282,11 @@ export function InventoryPanel() {
                   />
                 </label>
                 <label className="field">
-                  Owner / partner contact
+                  {t(locale, "inv.partner")}
                   <input name="contactName" defaultValue={selectedVehicle?.contactName ?? ""} />
                 </label>
                 <label className="field">
-                  Contact phone
+                  {t(locale, "inv.contactPhone")}
                   <input
                     name="contactPhone"
                     type="tel"
@@ -289,7 +296,7 @@ export function InventoryPanel() {
               </>
             )}
             <label className="field field--full">
-              Internal remarks
+              {t(locale, "inv.notes")}
               <textarea
                 name="notes"
                 defaultValue={
@@ -306,14 +313,16 @@ export function InventoryPanel() {
                   (tab === "drivers" ? selectedDriver?.active : selectedVehicle?.active) ?? true
                 }
               />{" "}
-              Available for assignment
+              {t(locale, "inv.available")}
             </label>
             <button className="btn btn--primary" disabled={saving}>
               {saving
-                ? "Saving…"
+                ? t(locale, "inv.saving")
                 : editing
-                  ? "Save changes"
-                  : `Add ${tab === "drivers" ? "driver" : "vehicle"}`}
+                  ? t(locale, "inv.save")
+                  : tab === "drivers"
+                    ? t(locale, "inv.addDriverBtn")
+                    : t(locale, "inv.addVehicleBtn")}
             </button>
           </form>
         </section>
