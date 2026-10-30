@@ -228,7 +228,7 @@ describe("POST /api/v1/bookings", () => {
 
   it.each([
     ["pt", "Pedido de reserva", "Serviço: Transfer do aeroporto", "Continue no WhatsApp"],
-    ["zh-Hant", "預約申請", "服務: 機場接送", "請透過 WhatsApp"],
+    ["zh-Hant", "預約申請", "服務: 機場包車接送", "請透過 WhatsApp"],
   ])(
     "localizes the %s WhatsApp request and confirmation",
     async (locale, heading, service, confirmation) => {

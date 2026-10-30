@@ -618,8 +618,8 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "status.draft": "草稿",
   "status.published": "已發布",
 
-  "service.airport_transfer": "機場接送",
-  "service.hotel_transfer": "酒店接送",
+  "service.airport_transfer": "機場包車接送",
+  "service.hotel_transfer": "酒店包車接送",
   "service.point_to_point": "點對點",
   "service.hourly_charter": "按小時包車",
   "service.city_tour": "市區遊",

@@ -61,7 +61,7 @@ export const specialOfferCopy = {
   },
   "zh-Hant": {
     title: "特別優惠",
-    description: "已發布的司機接送優惠，附車輛及司機。出發前由團隊確認報價。",
+    description: "已發布的司機包車接送優惠，附車輛及司機。出發前由團隊確認報價。",
     kicker: "最新優惠",
     heading: "特別優惠",
     lede: "以下為已發布、可供申請的優惠。出發前由團隊確認報價。",
@@ -80,7 +80,7 @@ export const specialOfferCopy = {
     continue: "繼續申請 →",
     close: "關閉特別優惠查詢",
     heroEyebrow: "特別優惠 · 大灣區",
-    heroTitle: "最新司機接送優惠",
+    heroTitle: "最新司機包車接送優惠",
     heroLede: "選擇已發布的優惠，告訴我們接載地點，然後送出申請。出發前由團隊確認報價。",
     browse: "查看最新優惠",
     serviceValue: "車輛連司機",

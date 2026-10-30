@@ -1,10 +1,10 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-17 (staff dashboard Traditional Chinese on staging PR; not merged to main)
-**Product-status evidence date:** 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-10-30 (zh-Hant 接送 → 包車接送 wording on staging PR; not merged to main)
+**Product-status evidence date:** 2026-10-30 for Traditional Chinese private-car wording; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
-**Overall status:** Draft PR on `cursor/admin-zh-hant-d1f1` into `staging` adds English / 繁體中文 for every staff-facing admin surface. Staging D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` and R2 `kaiyue-offers-staging` are unchanged (no migration). Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
-**Current objective:** Review the admin zh-Hant draft PR into `staging`. Confirm the Workers preview in both languages. Do not merge to `main`. Do not change D1/R2 bindings.
+**Overall status:** PR on `cursor/bao-che-jie-song-16fb` into `staging` upgrades Chinese UI 接送 to 包車接送. Staging D1 and R2 bindings are unchanged (no migration). Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `user_accepted` and `released` are not established.
+**Current objective:** Review the 包車接送 wording PR into `staging` on the zh-Hant public pages and admin service labels. Do not merge to `main`. Do not change D1/R2 bindings.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -158,6 +158,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+包車接送 wording next action (2026-10-30): review `/zh-Hant` home, airport, and local-transfer pages plus admin service labels on this branch’s Workers preview. Confirm no bare 接送 remains in product UI. If any live D1 offer title/description still uses 接送, edit those staff-authored rows in admin (they are not in git). Do not merge to `main`.
+
 Admin zh-Hant next action (2026-10-17): review the staging PR preview. Log in with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Do not merge to `main`. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment).
 
 WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
@@ -176,6 +178,8 @@ City Tour next action (2026-10-05): review the homepage package cards and each p
 Workflow resume action (2026-10-03): the owning agent should trial a bounded read-only task using the [adapter](docs/11-codex-workflow-adapter.md), return evidence to the Lab coordinator, and record actual acceptance and review evidence before changing shared policy. The user need not route routine work between chats.
 
 ## Verification record
+
+2026-10-30 zh-Hant 包車接送 wording: repo product dictionaries, admin labels, WhatsApp/email service names, Special Offers zh-Hant chrome, and the 轉讓/轉賬 tidy path now say 包車接送. A unit scan asserts no remaining bare 接送 in those sources. `pnpm typecheck` 0 errors, `pnpm test` 102/102, `pnpm lint` clean, `pnpm build` completed. Built `/zh-Hant` home, airport, and local-transfer HTML contain 包車接送 and no bare 接送 (296 matches in dist). GitHub `check` and Workers Builds succeeded on `ff87fed` (PR 16). Preview `/zh-Hant` shows 包車接送 in the title, H1, and Point To Point labels. English and Portuguese were not changed. D1 offer rows were not edited. Historical handover tables may still quote the old 接送 labels.
 
 2026-10-17 staff admin zh-Hant: local `pnpm test` 101/101, `pnpm typecheck` 0 errors, `pnpm build` completed. Preview commit `https://04548945-kaiyue-travel.scalingsmb.workers.dev` and branch `https://cursor-admin-zh-hant-d1f1-kaiyue-travel.scalingsmb.workers.dev`. Logged-in Chrome pass of login, dashboard, bookings list/detail, calendar, inventory, contacts, and offers editor/delete dialog in 繁體中文, then English. `/login` cookie `kaiyue-admin-locale=zh-Hant` HTML confirmed. Production host `/admin` and `/login` 403. Limits: browser-native constraint text stays in the browser language; staff-authored names/titles stay as entered; bilingual offer fields not added.
 
@@ -201,6 +205,14 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-10-30 — zh-Hant 接送 → 包車接送 (staging PR, not main)
+
+- Changed: Traditional Chinese UI copy that used 接送 now uses 包車接送 on the public site, admin service labels, booking WhatsApp/email summaries, and Special Offers chrome. The i18n tidy path maps leftover 轉讓 / 轉賬 to 包車接送. Strings that already said 包車接送, and 包車 phrases that are not 接送, were left unchanged.
+- Decision/evidence: Evan, 2026-10-30 — Macau regulation requires clearly naming a private-car / chauffeur service, not a taxi-style transfer. Wording clarification only; no new marketing claims.
+- Verified: product-file search after a lookbehind replace; unit scan that dictionaries and `translateCopy` output contain no bare 接送; typecheck, tests, and production build in this increment.
+- Not verified or follow-up: live D1 staff-authored offer titles/descriptions; logged-in admin browser pass; production. Do not merge to `main`.
+- Handover: `docs/handover/bao-che-jie-song.md`. Root log: `HANDOVER.md`.
 
 ### 2026-10-17 — Staff dashboard Traditional Chinese (staging PR, not main)
 

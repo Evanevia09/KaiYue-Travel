@@ -130,9 +130,9 @@ const whatsappServices: Record<Locale, Record<string, string>> = {
     custom: "Pedido personalizado",
   },
   "zh-Hant": {
-    airport_transfer: "機場接送",
-    hotel_transfer: "酒店接送",
-    point_to_point: "點對點接送",
+    airport_transfer: "機場包車接送",
+    hotel_transfer: "酒店包車接送",
+    point_to_point: "點對點包車接送",
     hourly_charter: "按小時包車",
     city_tour: "城市遊覽",
     sightseeing: "澳門市區遊",
