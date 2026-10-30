@@ -2,6 +2,7 @@
 
 **Date:** 2026-10-30  
 **Branch:** `cursor/bao-che-jie-song-16fb`  
+**Commit:** `2d0c94d6b5923df21dcbfcd52291131d624b0d46`  
 **PR target:** `staging` only. Do not merge to `main`.  
 **Database:** unchanged. No D1 migration. Staging D1 and R2 bindings were not edited.  
 **Owner request:** Evan (2026-10-30) — every Chinese UI phrase that says 接送 must say 包車接送 so the site clearly names a private-car / chauffeur service, not a taxi-style transfer.
@@ -29,6 +30,7 @@ This increment is a wording clarification only. English and Portuguese copy are 
 Expected Workers preview after push (pattern used by earlier staging PRs):
 
 - Branch: `https://cursor-bao-che-jie-song-16fb-kaiyue-travel.scalingsmb.workers.dev`
+- Commit: `https://2d0c94d6-kaiyue-travel.scalingsmb.workers.dev`
 
 Confirm the live preview URL on the PR once Workers Builds finishes. Check `/zh-Hant`, `/zh-Hant/services/airport-transfer`, `/zh-Hant/services/local-transfers`, and admin service labels in 繁體中文.
 

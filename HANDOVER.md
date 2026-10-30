@@ -5,6 +5,7 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 ## 2026-10-30 — zh-Hant 接送 → 包車接送
 
 - **Branch:** `cursor/bao-che-jie-song-16fb` (PR into `staging` only)
+- **Commit:** `2d0c94d6b5923df21dcbfcd52291131d624b0d46`
 - **Report:** `docs/handover/bao-che-jie-song.md`
 - **Change:** Traditional Chinese UI copy that said 接送 now says 包車接送 (private-car / chauffeur wording). English and Portuguese unchanged. No new marketing claims. No D1/R2 or production admin-gate change.
 - **Follow-up:** Staff-authored D1 offer titles/descriptions are not in git. Review live Chinese offer rows in admin if any still say 接送.
