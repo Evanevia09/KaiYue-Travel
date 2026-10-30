@@ -27,16 +27,16 @@ This increment is a wording clarification only. English and Portuguese copy are 
 
 ## Preview
 
-Expected Workers preview after push (pattern used by earlier staging PRs):
+Workers preview (2026-10-30):
 
-- Branch: `https://cursor-bao-che-jie-song-16fb-kaiyue-travel.scalingsmb.workers.dev`
-- Commit: `https://2d0c94d6-kaiyue-travel.scalingsmb.workers.dev`
+- Branch: https://cursor-bao-che-jie-song-16fb-kaiyue-travel.scalingsmb.workers.dev
+- GitHub `check` and Workers Builds succeeded on `ff87fed`.
 
-Confirm the live preview URL on the PR once Workers Builds finishes. Check `/zh-Hant`, `/zh-Hant/services/airport-transfer`, `/zh-Hant/services/local-transfers`, and admin service labels in 繁體中文.
+Fetched `/zh-Hant` on that preview: title and H1 are 大灣區私人司機包車接送 / 大灣區可信賴的私人司機包車接送; airport, cross-border, and local nav labels use 包車接送. Confirm airport and local-transfer pages plus admin service labels in 繁體中文 during review.
 
 ## Verification
 
-Automated: dictionary scan that no product zh-Hant string still has 接送 unless it is already 包車接送; typecheck; unit/integration tests; production build.
+Automated: dictionary scan that no product zh-Hant string still has 接送 unless it is already 包車接送; typecheck; unit/integration tests; production build. GitHub CI `check` green (run 41035797986).
 
 Not verified in this increment: live D1 offer copy; a logged-in admin browser pass; production.
 
