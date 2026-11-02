@@ -3,6 +3,7 @@
 **Date:** 2026-11-02  
 **Branch:** `cursor/macau-tour-guide-addon-2357`  
 **Commit:** `328148bba97fa0fbdf8d84ae7cfc33723e1d7509`  
+**PR:** [staging #19](https://github.com/Evanevia09/KaiYue-Travel/pull/19)  
 **Base:** `staging` `aeaf9d4bd2a38303c475fb3f6032e4417dc3222b` only. Do not merge to `main` or touch production.  
 **Decision:** Evan (2026-11-02, Asia/Macau) — guests can optionally request a professional Macau tour guide with City Tour packages. It is not included by default. Staff quote later from the enquiry. Macau only; do not invent a guide price.
 
@@ -44,4 +45,4 @@ Then on a Workers preview of this branch:
 
 ## Tip SHA
 
-`328148bba97fa0fbdf8d84ae7cfc33723e1d7509` on `cursor/macau-tour-guide-addon-2357` (from `staging` `aeaf9d4`). A follow-up commit on this branch only records this SHA and the staging PR link. See `PROJECT-STATE.md`.
+`328148bba97fa0fbdf8d84ae7cfc33723e1d7509` on `cursor/macau-tour-guide-addon-2357` (from `staging` `aeaf9d4`). Staging PR: https://github.com/Evanevia09/KaiYue-Travel/pull/19. See `PROJECT-STATE.md`.

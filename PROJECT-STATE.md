@@ -163,7 +163,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Tour-guide next action (2026-11-02): review the Workers preview of this staging PR. Check Home, City Tours catalogue, half-day/full-day pages, About portfolio cards, and booking step 2 (guide question on packages; luggage unchanged elsewhere). Confirm staff admin/email/WhatsApp show the preference. Apply `migrations/0008_booking_tour_guide.sql` to staging D1 only after review. Keep 包車接送 for transfer wording. Do not merge to `main`. Do not run `wrangler deploy`.
+Tour-guide next action (2026-11-02): review staging PR 19 (https://github.com/Evanevia09/KaiYue-Travel/pull/19) and its Workers preview. Check Home, City Tours catalogue, half-day/full-day pages, About portfolio cards, and booking step 2 (guide question on packages; luggage unchanged elsewhere). Confirm staff admin/email/WhatsApp show the preference. Apply `migrations/0008_booking_tour_guide.sql` to staging D1 only after review. Keep 包車接送 for transfer wording. Do not merge to `main`. Do not run `wrangler deploy`.
 
 Promote next action (2026-10-30): merge PR 17 into `main` when GitHub `check` is green. Workers Builds should deploy live from `main`. After merge, verify the live header logo scroll + green WhatsApp icon, branded hero plates, `/zh-Hant` 包車接送 wording, and that production `/admin` and `/api/auth` still return 403. Do not run `wrangler deploy`. If any live D1 offer title/description still uses 接送, edit those staff-authored rows in admin (they are not in git).
 
@@ -186,7 +186,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Verification record
 
-2026-11-02 optional Macau tour guide: additive `tour_guide_requested` on bookings; half-day/full-day step 2 asks yes/no and hides luggage; Home, City Tours, package pages, and About mention the optional Macau-only add-on with quote-later wording. No published guide price. Production admin/auth gates and wrangler bindings were not edited. Implementation SHA `328148bba97fa0fbdf8d84ae7cfc33723e1d7509` on `cursor/macau-tour-guide-addon-2357`.
+2026-11-02 optional Macau tour guide: additive `tour_guide_requested` on bookings; half-day/full-day step 2 asks yes/no and hides luggage; Home, City Tours, package pages, and About mention the optional Macau-only add-on with quote-later wording. No published guide price. Production admin/auth gates and wrangler bindings were not edited. Implementation SHA `328148bba97fa0fbdf8d84ae7cfc33723e1d7509` on `cursor/macau-tour-guide-addon-2357`. Staging PR 19.
 
 2026-10-30 staging→main promote conflict resolution: merged `origin/main` `9157ea43` into staging-based `cursor/promote-staging-to-main-3426` (`dbcdbb48` + #15 + #16). Manual conflict only in `PROJECT-STATE.md`. `global.css` auto-merge keeps admin locale-switch CSS and main logo-hide / WhatsApp `#25d366`. Hero plates, `header-menus.ts` logo scroll, and plate docs come from main. Admin zh-Hant and 包車接送 dictionaries come from staging. `admin-gate.ts`, middleware, and `wrangler.jsonc` have no diff versus either parent. Local `pnpm lint` clean, `pnpm typecheck` 0 errors (3 existing hints), `pnpm test` 102/102, `pnpm build` completed. Production admin-gate test still forbids `/admin` and `/api/auth` on the live host. Not a live production verification; `released` is not established.
 
