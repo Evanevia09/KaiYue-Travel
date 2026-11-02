@@ -1,13 +1,17 @@
 # Optional Macau tour guide — handover
 
 **Date:** 2026-11-02  
-**Branch:** `cursor/macau-tour-guide-addon-2357`  
-**Commit:** `328148bba97fa0fbdf8d84ae7cfc33723e1d7509`  
-**PR:** [staging #19](https://github.com/Evanevia09/KaiYue-Travel/pull/19)  
-**Base:** `staging` `aeaf9d4bd2a38303c475fb3f6032e4417dc3222b` only. Do not merge to `main` or touch production.  
+**Feature branch:** `cursor/macau-tour-guide-addon-2357`  
+**Staging merge:** `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (squash of [PR #19](https://github.com/Evanevia09/KaiYue-Travel/pull/19); Mika staging-only approval)  
+**Pre-merge implementation:** `328148bba97fa0fbdf8d84ae7cfc33723e1d7509`  
+**Base:** `staging` only. Do not merge to `main` or touch production.  
 **Decision:** Evan (2026-11-02, Asia/Macau) — guests can optionally request a professional Macau tour guide with City Tour packages. It is not included by default. Staff quote later from the enquiry. Macau only; do not invent a guide price.
 
-This increment adds public copy and a booking-step question for half-day (6h) and full-day (10h) packages. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed.
+This increment adds public copy and a booking-step question for half-day (6h) and full-day (10h) packages. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed. `main` and production remain untouched.
+
+## Staging D1
+
+`migrations/0008_booking_tour_guide.sql` is applied on **remote staging D1 only** (2026-11-02 11:41:12 UTC). Column `bookings.tour_guide_requested` (`INTEGER`) exists. `d1_migrations` has row `0008_booking_tour_guide.sql`. Do not re-apply. Do not apply this migration to production D1. Do not run `wrangler deploy`.
 
 ## What changed
 
@@ -16,18 +20,12 @@ This increment adds public copy and a booking-step question for half-day (6h) an
 - Half-day and full-day package pages / Markdown add the same wording. Shared terms no longer only say guiding is “separate”; they say it can be requested and quoted later. No published guide price.
 - About visitor/partner portfolio cards mention an optional professional Macau tour guide. No new partners or operational claims.
 - Booking widget step 2: half-day and full-day hide luggage and ask yes/no for a professional Macau tour guide. Other journeys keep luggage. Special Offer enquiries keep luggage.
-- Additive D1 column `tour_guide_requested` (`migrations/0008_booking_tour_guide.sql`). Preference is stored on the booking, in notes, in staff email, in the WhatsApp body, and on `/admin/bookings/:reference`.
+- Additive D1 column `tour_guide_requested`. Preference is stored on the booking, in notes, in staff email, in the WhatsApp body, and on `/admin/bookings/:reference`.
 - Traditional Chinese transfer wording remains 包車接送. Guide copy uses 導遊, not 接送.
 
 ## How to verify
 
-Apply the additive migration on the **staging** D1 only, after review. Do not run `wrangler deploy`. Do not apply this to production D1 from this branch.
-
-```sh
-npx wrangler d1 migrations apply kaiyue-travel-staging --remote --config wrangler.jsonc
-```
-
-Then on a Workers preview of this branch:
+On a Workers preview or staging host of `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (or later staging tip). Do not re-apply `0008`. Do not run `wrangler deploy`.
 
 1. Home (EN, `/pt`, `/zh-Hant`): City Tours intro mentions an optional professional Macau tour guide, not included by default, quoted later. Half-day and full-day cards show the optional-guide line. Transfer wording still uses 包車接送 on `/zh-Hant`.
 2. `/services/city-tours` and `/services/city-tours/half-day`, `/full-day`: catalogue and package copy mention the add-on. Special offer mentions it lightly. No fare or guide price is listed.
@@ -38,11 +36,11 @@ Then on a Workers preview of this branch:
 
 ## Limits
 
-- Live staging D1 apply, preview browser pass, and production remain unverified until a human runs the steps above.
+- Workers preview browser pass and production remain unverified.
 - Guide availability, price, and licensing are not published. Staff quote after review.
 - Special Offers (D1 / GBA listing) were not given a dedicated guide question.
 - `user_accepted` and `released` are not established.
 
 ## Tip SHA
 
-`328148bba97fa0fbdf8d84ae7cfc33723e1d7509` on `cursor/macau-tour-guide-addon-2357` (from `staging` `aeaf9d4`). Staging PR: https://github.com/Evanevia09/KaiYue-Travel/pull/19. See `PROJECT-STATE.md`.
+Staging squash-merge: `be4558287dd4dcc2176b93ff13c5f88c70fc3378`. See `PROJECT-STATE.md`.
