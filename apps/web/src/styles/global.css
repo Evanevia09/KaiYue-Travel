@@ -1948,8 +1948,51 @@ a {
   gap: 0.75rem;
 }
 
+.tour-guide-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.tour-guide-field legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.tour-guide-field > .muted {
+  margin: 0.4rem 0 0.65rem;
+}
+
+.tour-guide-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 0.9rem;
+  background: #f1f1f3;
+}
+
+.tour-guide-choice button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: #60646c;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tour-guide-choice button[aria-pressed="true"] {
+  background: var(--booking-green-gradient);
+  color: #000;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 8%);
+}
+
 @media (max-width: 420px) {
-  .luggage-fields {
+  .luggage-fields,
+  .tour-guide-choice {
     grid-template-columns: 1fr;
   }
 }

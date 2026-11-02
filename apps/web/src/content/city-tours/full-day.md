@@ -1,7 +1,7 @@
 ---
 title: Full day
-summary: Ten hours with a car and driver.
-description: Ten hours with a car and driver for a full day in Macau. Tell the team where you would like to go. The route and the fare are confirmed before travel.
+summary: Ten hours with a car and driver. A professional Macau tour guide can be added on request.
+description: Ten hours with a car and driver for a full day in Macau. Tell the team where you would like to go. A professional Macau tour guide is optional, not included by default, and quoted later. The route and the fare are confirmed before travel.
 image: /images/illustrative/city-tours-hero.jpg
 imageAlt: Illustrative scene of a private car during a full day in Macau.
 status: draft
@@ -23,12 +23,12 @@ gallery:
 translations:
   pt:
     title: Dia inteiro
-    summary: Dez horas com carro e motorista.
+    summary: Dez horas com carro e motorista. Pode pedir um guia turístico profissional em Macau.
     imageAlt: Cena ilustrativa de um carro privado durante um dia inteiro em Macau.
-    description: Dez horas com carro e motorista para um dia inteiro em Macau. Diga à equipa os locais que pretende visitar. O percurso e o preço são confirmados antes da viagem.
+    description: Dez horas com carro e motorista para um dia inteiro em Macau. Diga à equipa os locais que pretende visitar. Um guia turístico profissional em Macau é opcional, não está incluído por defeito e o valor é orçamentado mais tarde. O percurso e o preço são confirmados antes da viagem.
   zh-Hant:
     title: 全日遊
-    summary: 十小時，附車輛及司機。
+    summary: 十小時，附車輛及司機。可選擇加配澳門專業導遊。
     imageAlt: 示意圖片，呈現私人車輛陪同完成一整天的澳門行程。
-    description: 十小時私人出遊，附車輛及司機。請告訴團隊想去的地方。路線及票價於出發前確認。
+    description: 十小時私人出遊，附車輛及司機。請告訴團隊想去的地方。澳門專業導遊可選擇加配，預設不包含，稍後由團隊報價。路線及票價於出發前確認。
 ---

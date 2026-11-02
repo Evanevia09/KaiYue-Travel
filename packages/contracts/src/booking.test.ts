@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bookingCreateSchema, validatePickupNotice } from "./booking.ts";
+import { bookingCreateSchema, isMacauTourGuidePackage, validatePickupNotice } from "./booking.ts";
 
 const future = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 
@@ -52,6 +52,39 @@ describe("bookingCreateSchema", () => {
       validBooking({ serviceType: "hourly_charter", destination: "" }),
     );
     expect(result.success).toBe(false);
+  });
+
+  it("identifies half-day and full-day as Macau tour-guide packages", () => {
+    expect(isMacauTourGuidePackage("half-day")).toBe(true);
+    expect(isMacauTourGuidePackage("full-day")).toBe(true);
+    expect(isMacauTourGuidePackage("special-offer")).toBe(false);
+    expect(isMacauTourGuidePackage("heritage-walk")).toBe(false);
+    expect(isMacauTourGuidePackage(undefined)).toBe(false);
+  });
+
+  it("requires a tour-guide choice on half-day and full-day packages", () => {
+    expect(
+      bookingCreateSchema.safeParse(
+        validBooking({
+          serviceType: "city_tour",
+          destination: "",
+          tourPackageId: "half-day",
+          tourPackageTitle: "Half day",
+          tourDurationHours: 6,
+        }),
+      ).success,
+    ).toBe(false);
+    const parsed = bookingCreateSchema.parse(
+      validBooking({
+        serviceType: "city_tour",
+        destination: "",
+        tourPackageId: "full-day",
+        tourPackageTitle: "Full day",
+        tourDurationHours: 10,
+        tourGuideRequested: false,
+      }),
+    );
+    expect(parsed.tourGuideRequested).toBe(false);
   });
 
   it("accepts a city tour with a package and no destination or return", () => {

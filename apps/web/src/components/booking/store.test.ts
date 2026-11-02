@@ -5,5 +5,6 @@ describe("booking draft", () => {
   it("is clean when empty and dirty after journey input", () => {
     expect(isDirty(emptyDraft())).toBe(false);
     expect(isDirty({ ...emptyDraft(), pickupLocation: "Airport" })).toBe(true);
+    expect(isDirty({ ...emptyDraft(), tourGuideRequested: true })).toBe(true);
   });
 });

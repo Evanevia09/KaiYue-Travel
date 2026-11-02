@@ -4,6 +4,7 @@ import {
   canTransitionBooking,
   createBookingReference,
   getPublicConfig,
+  isMacauTourGuidePackage,
   validatePickupNotice,
   type BookingCreatePayload,
   type BookingStatus,
@@ -57,6 +58,7 @@ export type BookingRow = {
   vehicle_id: string | null;
   offer_id: string | null;
   offer_title: string | null;
+  tour_guide_requested: number | null;
 };
 
 function publicLocale(value: string): Locale {
@@ -78,6 +80,9 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     passengers: "Passengers",
     bigLuggage: "Big luggage",
     handCarry: "Hand carry",
+    tourGuide: "Professional tour guide",
+    tourGuideYes: "Requested",
+    tourGuideNo: "Not requested",
     phone: "WhatsApp number",
     message: "Message",
   },
@@ -95,6 +100,9 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     passengers: "Passageiros",
     bigLuggage: "Mala grande",
     handCarry: "Bagagem de mão",
+    tourGuide: "Guia turístico profissional",
+    tourGuideYes: "Pedido",
+    tourGuideNo: "Não pedido",
     phone: "Número de WhatsApp",
     message: "Mensagem",
   },
@@ -112,6 +120,9 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     passengers: "乘客人數",
     bigLuggage: "大件行李",
     handCarry: "手提行李",
+    tourGuide: "專業導遊",
+    tourGuideYes: "需要",
+    tourGuideNo: "不需要",
     phone: "WhatsApp 號碼",
     message: "備註",
   },
@@ -207,7 +218,35 @@ export function bookingToAdmin(row: BookingRow) {
     vehicleId: row.vehicle_id,
     offerId: row.offer_id ?? null,
     offerTitle: row.offer_title ?? null,
+    tourGuideRequested: tourGuideFromRow(row.tour_guide_requested),
   };
+}
+
+function tourGuideFromRow(value: number | null | undefined): boolean | null {
+  if (value == null) return null;
+  return value === 1;
+}
+
+function tourGuideStoredValue(value: boolean | undefined): number | null {
+  if (value == null) return null;
+  return value ? 1 : 0;
+}
+
+function forTourGuidePackage(payload: BookingCreatePayload): BookingCreatePayload {
+  if (!isMacauTourGuidePackage(payload.tourPackageId) || payload.offerId) {
+    return payload;
+  }
+  return {
+    ...payload,
+    luggageCount: undefined,
+    handCarryCount: undefined,
+  };
+}
+
+function tourGuideNote(payload: BookingCreatePayload): string | undefined {
+  if (payload.tourGuideRequested === true) return "Professional tour guide: requested.";
+  if (payload.tourGuideRequested === false) return "Professional tour guide: not requested.";
+  return undefined;
 }
 
 function bookingNotes(payload: BookingCreatePayload): string | null {
@@ -230,7 +269,7 @@ function bookingNotes(payload: BookingCreatePayload): string | null {
     .filter(Boolean)
     .join("\n");
   return (
-    [durationNote, packageNote, luggageNote || undefined, payload.notes]
+    [durationNote, packageNote, tourGuideNote(payload), luggageNote || undefined, payload.notes]
       .filter(Boolean)
       .join("\n\n") || null
   );
@@ -251,10 +290,10 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     env.DB,
     `INSERT INTO bookings (
       id, reference, status, service_type, pickup_location, destination, pickup_at, return_at,
-      passenger_count, luggage_count, vehicle_preference, communication_channel, contact_name, phone, phone_display,
+      passenger_count, luggage_count, tour_guide_requested, vehicle_preference, communication_channel, contact_name, phone, phone_display,
       email, company, message, notes, offer_id, offer_title, source_page, source_trigger, source_mode, locale, notification_state,
       created_at, updated_at
-    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
     id,
     reference,
     payload.serviceType,
@@ -264,6 +303,7 @@ async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promi
     payload.returnAt ?? null,
     payload.passengerCount,
     payload.luggageCount ?? null,
+    tourGuideStoredValue(payload.tourGuideRequested),
     payload.vehiclePreference ?? null,
     payload.communicationChannel,
     payload.contactName ?? null,
@@ -345,6 +385,8 @@ export async function createBooking(
     }
   }
 
+  parsed.data = forTourGuidePackage(parsed.data);
+
   const keyHash = await hashIdempotency(idempotencyKey);
   const requestHash = await hashRequest(parsed.data);
   const replay = await readIdempotency(env.DB, keyHash, requestHash);
@@ -397,6 +439,11 @@ export async function createBooking(
                 : []),
             { label: "Pickup time", value: parsed.data.pickupAt },
             { label: "Passengers", value: String(parsed.data.passengerCount) },
+            ...(parsed.data.tourGuideRequested === true
+              ? [{ label: "Professional tour guide", value: "Requested" }]
+              : parsed.data.tourGuideRequested === false
+                ? [{ label: "Professional tour guide", value: "Not requested" }]
+                : []),
             ...(parsed.data.luggageCount != null
               ? [{ label: "Big luggage", value: String(parsed.data.luggageCount) }]
               : []),
@@ -452,6 +499,11 @@ export async function createBooking(
           ]
         : []),
       `${label.passengers}: ${parsed.data.passengerCount}`,
+      ...(parsed.data.tourGuideRequested === true
+        ? [`${label.tourGuide}: ${label.tourGuideYes}`]
+        : parsed.data.tourGuideRequested === false
+          ? [`${label.tourGuide}: ${label.tourGuideNo}`]
+          : []),
       ...(parsed.data.luggageCount != null
         ? [`${label.bigLuggage}: ${parsed.data.luggageCount}`]
         : []),

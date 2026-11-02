@@ -3,6 +3,7 @@ import {
   destinationRequired,
   HOURLY_DURATION_MAX_HOURS,
   HOURLY_DURATION_MIN_HOURS,
+  isMacauTourGuidePackage,
   type ServiceType,
 } from "@kaiyue/contracts";
 import { useEffect, useRef, useSyncExternalStore } from "react";
@@ -55,6 +56,17 @@ const TRANSFER_TYPE: ServiceType = "airport_transfer";
 const HOURLY_TYPE: ServiceType = "hourly_charter";
 const CITY_TYPE: ServiceType = "city_tour";
 
+function asksForTourGuide(
+  draft: { serviceType: ServiceType; tourPackageId: string },
+  enquiryKind?: BookingEnquiryKind,
+): boolean {
+  return (
+    enquiryKind !== "special_offer" &&
+    draft.serviceType === CITY_TYPE &&
+    isMacauTourGuidePackage(draft.tourPackageId)
+  );
+}
+
 async function submitBooking(entry?: {
   sourcePage?: string;
   sourceTrigger?: string;
@@ -73,8 +85,15 @@ async function submitBooking(entry?: {
         ? undefined
         : fromLocalDateTimeValue(current.draft.returnAt),
     passengerCount: current.draft.passengerCount,
-    luggageCount: luggageValue(current.draft.luggageCount),
-    handCarryCount: luggageValue(current.draft.handCarryCount),
+    luggageCount: asksForTourGuide(current.draft, current.context.enquiryKind)
+      ? undefined
+      : luggageValue(current.draft.luggageCount),
+    handCarryCount: asksForTourGuide(current.draft, current.context.enquiryKind)
+      ? undefined
+      : luggageValue(current.draft.handCarryCount),
+    tourGuideRequested: asksForTourGuide(current.draft, current.context.enquiryKind)
+      ? (current.draft.tourGuideRequested ?? undefined)
+      : undefined,
     durationHours:
       current.draft.serviceType === HOURLY_TYPE ? current.draft.durationHours : undefined,
     tourPackageId:
@@ -209,6 +228,7 @@ export function BookingForm({
     enquiryKind === "special_offer" || state.context.enquiryKind === "special_offer";
   const hourly = !specialOffer && draft.serviceType === HOURLY_TYPE;
   const cityTour = specialOffer || draft.serviceType === CITY_TYPE;
+  const tourGuidePackage = asksForTourGuide(draft, specialOffer ? "special_offer" : enquiryKind);
   const locale = localeFromPath(
     typeof window === "undefined" ? (sourcePage ?? "/") : window.location.pathname,
   );
@@ -640,36 +660,65 @@ export function BookingForm({
                 </div>
               </div>
             )}
-            <div className="luggage-fields">
-              <div className="field">
-                <label htmlFor="bigLuggage">Big luggage</label>
-                <select
-                  id="bigLuggage"
-                  value={draft.luggageCount || "0"}
-                  onChange={(event) => updateDraft({ luggageCount: event.target.value })}
-                >
-                  {luggageOptions.map((count) => (
-                    <option key={count} value={String(count)}>
-                      {count}
-                    </option>
-                  ))}
-                </select>
+            {tourGuidePackage ? (
+              <fieldset className="tour-guide-field">
+                <legend>Would you like a professional Macau tour guide?</legend>
+                <p className="muted">
+                  Optional for this Macau package. Not included by default. The team will quote it
+                  later.
+                </p>
+                <div className="tour-guide-choice" role="radiogroup" aria-label="Tour guide">
+                  <button
+                    type="button"
+                    aria-pressed={draft.tourGuideRequested === true}
+                    onClick={() => updateDraft({ tourGuideRequested: true })}
+                  >
+                    Yes, please quote a guide
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={draft.tourGuideRequested === false}
+                    onClick={() => updateDraft({ tourGuideRequested: false })}
+                  >
+                    No, chauffeur only
+                  </button>
+                </div>
+                {fieldErrors.tourGuideRequested ? (
+                  <p className="field-error">{fieldErrors.tourGuideRequested}</p>
+                ) : null}
+              </fieldset>
+            ) : (
+              <div className="luggage-fields">
+                <div className="field">
+                  <label htmlFor="bigLuggage">Big luggage</label>
+                  <select
+                    id="bigLuggage"
+                    value={draft.luggageCount || "0"}
+                    onChange={(event) => updateDraft({ luggageCount: event.target.value })}
+                  >
+                    {luggageOptions.map((count) => (
+                      <option key={count} value={String(count)}>
+                        {count}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="handCarry">Hand carry</label>
+                  <select
+                    id="handCarry"
+                    value={draft.handCarryCount || "0"}
+                    onChange={(event) => updateDraft({ handCarryCount: event.target.value })}
+                  >
+                    {luggageOptions.map((count) => (
+                      <option key={count} value={String(count)}>
+                        {count}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="field">
-                <label htmlFor="handCarry">Hand carry</label>
-                <select
-                  id="handCarry"
-                  value={draft.handCarryCount || "0"}
-                  onChange={(event) => updateDraft({ handCarryCount: event.target.value })}
-                >
-                  {luggageOptions.map((count) => (
-                    <option key={count} value={String(count)}>
-                      {count}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            )}
             <div className="field field--full">
               <label htmlFor="message">Your Message (optional)</label>
               <textarea
@@ -677,7 +726,11 @@ export function BookingForm({
                 rows={4}
                 value={draft.message}
                 onChange={(event) => updateDraft({ message: event.target.value })}
-                placeholder="Add flight details, stops, luggage, or anything else we should know."
+                placeholder={
+                  tourGuidePackage
+                    ? "Add the places you would like to visit or anything else we should know."
+                    : "Add flight details, stops, luggage, or anything else we should know."
+                }
               />
               {fieldErrors.message ? <p className="field-error">{fieldErrors.message}</p> : null}
             </div>

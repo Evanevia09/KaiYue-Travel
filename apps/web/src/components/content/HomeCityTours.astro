@@ -1,4 +1,5 @@
 ---
+import { isMacauTourGuidePackage } from "@kaiyue/contracts";
 import { getCollection } from "astro:content";
 import { localeFromPath, localePath } from "../../lib/i18n.ts";
 
@@ -11,29 +12,33 @@ const copy = {
     kicker: "City tours",
     heading: "Three ways to see the city",
     intro:
-      "A special offer, a 6-hour half day, or a 10-hour full day. Each one includes a car and driver.",
+      "A special offer, a 6-hour half day, or a 10-hour full day. Each one includes a car and driver. You can optionally add a professional Macau tour guide — not included by default, and quoted later.",
     book: "Book now",
     car: "Car with driver",
     hours: "{hours} hours",
+    guide: "Optional Macau tour guide",
     fallback: "Package copy is currently available in English.",
   },
   pt: {
     kicker: "Passeios pela cidade",
     heading: "Três formas de ver a cidade",
     intro:
-      "Uma oferta especial, um meio dia de 6 horas ou um dia inteiro de 10 horas. Cada um inclui carro e motorista.",
+      "Uma oferta especial, um meio dia de 6 horas ou um dia inteiro de 10 horas. Cada um inclui carro e motorista. Pode acrescentar, se quiser, um guia turístico profissional em Macau — não está incluído por defeito e o valor é orçamentado mais tarde.",
     book: "Reservar agora",
     car: "Carro com motorista",
     hours: "{hours} horas",
+    guide: "Guia profissional em Macau (opcional)",
     fallback: "A descrição deste pacote está atualmente disponível em inglês.",
   },
   "zh-Hant": {
     kicker: "城市遊覽",
     heading: "三種城市遊覽",
-    intro: "可選特別優惠、六小時半日遊或十小時全日遊。每種均附車輛及司機。",
+    intro:
+      "可選特別優惠、六小時半日遊或十小時全日遊。每種均附車輛及司機。可選擇加配澳門專業導遊（預設不包含，稍後由團隊報價）。",
     book: "立即預約",
     car: "車輛連司機",
     hours: "{hours} 小時",
+    guide: "可選澳門專業導遊",
     fallback: "此套票介紹暫以英文提供。",
   },
 }[locale];
@@ -64,9 +69,14 @@ function cardSources(src: string) {
           {packages.map(({ id, data }) => {
             const translation = locale === "en" ? data : (data.translations?.[locale] ?? data);
             const contentLang = locale === "en" || data.translations?.[locale] ? locale : "en";
-            const fact = data.durationHours
-              ? `${copy.hours.replace("{hours}", String(data.durationHours))} · ${copy.car}`
-              : copy.car;
+            const fact = [
+              data.durationHours
+                ? `${copy.hours.replace("{hours}", String(data.durationHours))} · ${copy.car}`
+                : copy.car,
+              isMacauTourGuidePackage(id) ? copy.guide : undefined,
+            ]
+              .filter(Boolean)
+              .join(" · ");
             const href = localePath(`/services/city-tours/${id}`, locale);
             return (
               <article class="home-tour-card">

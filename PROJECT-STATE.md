@@ -1,7 +1,7 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-10-30 (promote staging → main: admin zh-Hant + 包車接送 + main hero plate/header logo)
-**Product-status evidence date:** 2026-10-30 for Traditional Chinese private-car wording and staging→main conflict resolution; 2026-10-22 for hero plate branding and header logo/WhatsApp icon on main; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
+**Last updated:** 2026-11-02 (optional professional Macau tour guide on City Tour packages)
+**Product-status evidence date:** 2026-11-02 for optional Macau tour-guide copy and half-day/full-day booking preference; 2026-10-30 for Traditional Chinese private-car wording and staging→main conflict resolution; 2026-10-22 for hero plate branding and header logo/WhatsApp icon on main; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 
 **Local header revision, 2026-10-22 (now on the promote branch):** At Evan’s request, the General Enquiry WhatsApp icon uses green, and the shared header logo eases out above 8px scroll and returns at the top. Its reserved space prevents navigation movement; hidden link is inert. Reduced-motion users receive an immediate visibility change. Verified locally on Special Offers: green icon, logo hidden after scrolling and restored at top; focused Prettier check and Astro check passed (0 errors, 3 existing hints). Full responsive/regression and production build were not rerun. Evan accepted the header preview and authorized commit/push to `main`. No manual deployment or release verification is included; next action: verify the live header after Workers Builds deploys from `main`.
 
@@ -9,7 +9,7 @@
 
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Evan approved promoting staging to main/live (2026-10-30, “ok promote to main”). `staging` (`dbcdbb48`) and `main` (`9157ea43`) had diverged. This promote merges `origin/main` into a staging-based branch and keeps both sides: staging admin zh-Hant + 包車接送 copy, and main hero-plate / header-logo / WhatsApp-icon visuals. Production `/admin` and `/api/auth` stay 403 until Cloudflare Access is configured. `wrangler.jsonc` D1/R2 bindings were already identical on both branches and were not edited. `user_accepted` and `released` are not established until the `main` merge and a live Workers Builds check.
-**Current objective:** Merge the conflict-resolved promote into `main` (PR 17) so Workers Builds can deploy live. Do not run `wrangler deploy`. Do not change D1/R2 bindings. Do not weaken the production admin/auth 403 gate.
+**Current objective:** Open and review the optional Macau tour-guide increment on `staging` only. Do not merge to `main`. Do not run `wrangler deploy`. Do not change D1/R2 bindings. Do not weaken the production admin/auth 403 gate. Do not publish a tour-guide price.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -163,6 +163,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+Tour-guide next action (2026-11-02): review the Workers preview of this staging PR. Check Home, City Tours catalogue, half-day/full-day pages, About portfolio cards, and booking step 2 (guide question on packages; luggage unchanged elsewhere). Confirm staff admin/email/WhatsApp show the preference. Apply `migrations/0008_booking_tour_guide.sql` to staging D1 only after review. Keep 包車接送 for transfer wording. Do not merge to `main`. Do not run `wrangler deploy`.
+
 Promote next action (2026-10-30): merge PR 17 into `main` when GitHub `check` is green. Workers Builds should deploy live from `main`. After merge, verify the live header logo scroll + green WhatsApp icon, branded hero plates, `/zh-Hant` 包車接送 wording, and that production `/admin` and `/api/auth` still return 403. Do not run `wrangler deploy`. If any live D1 offer title/description still uses 接送, edit those staff-authored rows in admin (they are not in git).
 
 Admin zh-Hant follow-up (2026-10-17, now in the promote): after live deploy, log in only on a preview/staging host with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment). Do not use production `/admin` until Cloudflare Access is configured.
@@ -183,6 +185,8 @@ City Tour next action (2026-10-05): review the homepage package cards and each p
 Workflow resume action (2026-10-03): the owning agent should trial a bounded read-only task using the [adapter](docs/11-codex-workflow-adapter.md), return evidence to the Lab coordinator, and record actual acceptance and review evidence before changing shared policy. The user need not route routine work between chats.
 
 ## Verification record
+
+2026-11-02 optional Macau tour guide: additive `tour_guide_requested` on bookings; half-day/full-day step 2 asks yes/no and hides luggage; Home, City Tours, package pages, and About mention the optional Macau-only add-on with quote-later wording. No published guide price. Production admin/auth gates and wrangler bindings were not edited.
 
 2026-10-30 staging→main promote conflict resolution: merged `origin/main` `9157ea43` into staging-based `cursor/promote-staging-to-main-3426` (`dbcdbb48` + #15 + #16). Manual conflict only in `PROJECT-STATE.md`. `global.css` auto-merge keeps admin locale-switch CSS and main logo-hide / WhatsApp `#25d366`. Hero plates, `header-menus.ts` logo scroll, and plate docs come from main. Admin zh-Hant and 包車接送 dictionaries come from staging. `admin-gate.ts`, middleware, and `wrangler.jsonc` have no diff versus either parent. Local `pnpm lint` clean, `pnpm typecheck` 0 errors (3 existing hints), `pnpm test` 102/102, `pnpm build` completed. Production admin-gate test still forbids `/admin` and `/api/auth` on the live host. Not a live production verification; `released` is not established.
 
@@ -792,6 +796,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: direct user request to show the dashboard with a temporary login. Cloudflare Access remains the preferred production gate; this does not authorize production provisioning.
 - Verified: local auth migration already applied; fresh sign-in returned 200, `/admin` and protected summary API returned 200, and the in-app browser displayed loaded dashboard KPIs and recent bookings. Full tests passed (39/39), strict typecheck and production build passed, and targeted formatting and `git diff --check` passed.
 - Not verified or follow-up: production Access policy and offboarding, remote D1 and Resend, physical-device admin UX. The local account record persists after its access cutoff until explicitly removed.
+
+### 2026-11-02 — Optional professional Macau tour guide
+
+- Changed: Home, City Tours catalogue, half-day/full-day package pages, Special Offer catalogue copy (light), and About visitor/partner portfolio cards mention an optional professional Macau tour guide. Booking step 2 for half-day and full-day hides luggage and collects yes/no. Additive `migrations/0008_booking_tour_guide.sql` (`tour_guide_requested`). Admin detail, notes, email, and WhatsApp show the preference. EN / pt / zh-Hant copy; 包車接送 transfer wording unchanged.
+- Decision/evidence: Evan, 2026-11-02 Asia/Macau. Macau-only, not included by default, quote later, no invented guide price. PR into `staging` only.
+- Verified: `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 108/108; `pnpm build` completed. Built Home, About, City Tours, half-day, and full-day HTML in EN/pt/zh-Hant contain the optional Macau tour-guide wording and no published guide price. Built `/zh-Hant` still uses 包車接送 for transfer labels. Local Chrome on `/services/city-tours/half-day`: step 2 shows the yes/no Macau tour-guide question and hides luggage; switching the same draft to Point to point restores Big luggage / Hand carry. `admin-gate`, middleware, and `wrangler.jsonc` were not edited. No wrangler deploy.
+- Not verified or follow-up: staging D1 migration apply, Workers preview browser pass, live production. `user_accepted` and `released` are not established.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 
