@@ -1,4 +1,5 @@
 ---
+import { isMacauTourGuidePackage } from "@kaiyue/contracts";
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { localeFromPath, localePath } from "../../lib/i18n.ts";
@@ -22,16 +23,17 @@ const copy = {
     kicker: "Your next city outing",
     heading: "Three ways to see the city",
     intro:
-      "Choose a special offer, a 6-hour half day, or a 10-hour full day. Each includes a car and driver.",
+      "Choose a special offer, a 6-hour half day, or a 10-hour full day. Each includes a car and driver. You can optionally add a professional Macau tour guide — not included by default, and quoted later.",
     draft: "Draft package",
     notice: "The team confirms the quote before travel. Fares are not listed on this page.",
     details: "View package",
     fallback: "Package copy is currently available in English.",
     image: "Illustrative image",
     empty: "Tour packages are being prepared. Please check back for the collection.",
+    guide: "Optional Macau tour guide",
     scope: "Private transport, with details agreed before travel",
     scopeText:
-      "Attraction admission and licensed guiding are separate from chauffeur transport. Any itinerary, quote, and arrangements require confirmation by the team.",
+      "Each package includes a car and driver. Guests can optionally request a professional Macau tour guide; it is not included by default and the team quotes it later. Attraction tickets remain separate. Any itinerary, quote, and arrangements require confirmation by the team.",
   },
   pt: {
     title: "Descubra Macau ao seu ritmo",
@@ -42,7 +44,7 @@ const copy = {
     kicker: "O seu próximo passeio pela cidade",
     heading: "Três formas de ver a cidade",
     intro:
-      "Escolha uma oferta especial, um meio dia de 6 horas ou um dia inteiro de 10 horas. Cada um inclui carro e motorista.",
+      "Escolha uma oferta especial, um meio dia de 6 horas ou um dia inteiro de 10 horas. Cada um inclui carro e motorista. Pode acrescentar, se quiser, um guia turístico profissional em Macau — não está incluído por defeito e o valor é orçamentado mais tarde.",
     draft: "Pacote em rascunho",
     notice:
       "A equipa confirma o orçamento antes da viagem. As tarifas não estão listadas nesta página.",
@@ -50,9 +52,10 @@ const copy = {
     fallback: "A descrição deste pacote está atualmente disponível em inglês.",
     image: "Imagem ilustrativa",
     empty: "Os pacotes de passeios estão em preparação. Volte para conhecer a coleção.",
+    guide: "Guia profissional em Macau (opcional)",
     scope: "Transporte privado, com detalhes acordados antes da viagem",
     scopeText:
-      "As entradas em atrações e os serviços de guia licenciado são separados do transporte com motorista. O itinerário, orçamento e condições precisam de confirmação pela equipa.",
+      "Cada pacote inclui carro e motorista. Pode pedir, se quiser, um guia turístico profissional em Macau; não está incluído por defeito e a equipa orçamenta mais tarde. As entradas nas atrações continuam à parte. O itinerário, orçamento e condições precisam de confirmação pela equipa.",
   },
   "zh-Hant": {
     title: "按自己的步調探索澳門",
@@ -62,16 +65,18 @@ const copy = {
     browse: "探索遊覽套票",
     kicker: "下一趟城市出遊",
     heading: "三種城市遊覽",
-    intro: "可選特別優惠、六小時半日遊或十小時全日遊。每種均附車輛及司機。",
+    intro:
+      "可選特別優惠、六小時半日遊或十小時全日遊。每種均附車輛及司機。可選擇加配澳門專業導遊（預設不包含，稍後由團隊報價）。",
     draft: "套票草稿",
     notice: "出發前由團隊確認報價。本頁不列出票價。",
     details: "查看套票",
     fallback: "此套票介紹暫以英文提供。",
     image: "示意圖片",
     empty: "遊覽套票正在準備中，歡迎稍後再瀏覽。",
+    guide: "可選澳門專業導遊",
     scope: "私人交通安排，出發前確認細節",
     scopeText:
-      "景點門票及持牌導遊服務與司機交通服務分開安排。行程、報價及相關安排須由團隊另行確認。",
+      "每項套票均附車輛及司機。可選擇申請澳門專業導遊；預設不包含，稍後由團隊報價。景點門票另行安排。行程、報價及相關安排須由團隊另行確認。",
   },
 }[locale];
 ---
@@ -133,6 +138,7 @@ const copy = {
                     <h3 id={`tour-${id}`} lang={contentLang} data-no-localize>
                       {translation.title}
                     </h3>
+                    {isMacauTourGuidePackage(id) && <p class="tour-card__guide">{copy.guide}</p>}
                     <p lang={contentLang} data-no-localize>
                       {translation.summary}
                     </p>
@@ -221,6 +227,14 @@ const copy = {
     margin: 0 0 0.75rem;
     font-size: 1.4rem;
     line-height: 1.25;
+  }
+  .tour-card__guide {
+    margin: -0.25rem 0 0.75rem;
+    color: var(--color-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .tour-card p {
     color: #555;

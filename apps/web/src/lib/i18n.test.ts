@@ -106,6 +106,20 @@ describe("public locale routing", () => {
     expect(zh).toContain(">微信</figcaption>");
   });
 
+  it("localizes optional Macau tour-guide copy without inventing a price", () => {
+    const markup =
+      "<p>Airport transfers, local rides, chauffeur hire, and weddings across Macau, Mainland China, and Hong Kong. City tours remain a Macau outing. Guests can optionally request a professional Macau tour guide; it is not included by default and is quoted later.</p><button>Yes, please quote a guide</button>";
+    const pt = localizeHtml(markup, "pt");
+    const zh = localizeHtml(markup, "zh-Hant");
+    expect(pt).toContain("guia turístico profissional em Macau");
+    expect(pt).not.toMatch(/MOP|HK\$|\$\d/);
+    expect(zh).toContain("澳門專業導遊");
+    expect(zh).toContain("預設不包含");
+    expect(zh).not.toMatch(BARE_TRANSFER_WORD);
+    expect(zh).not.toMatch(/MOP|HK\$|\$\d/);
+    expect(pt).toContain("Sim, peçam orçamento de um guia");
+  });
+
   it("uses 包車接送 instead of bare 接送 in zh-Hant product copy", () => {
     expect(bareTransferHits("reviewed", Object.values(zhReviewed))).toEqual([]);
     expect(bareTransferHits("base", Object.values(zhHant))).toEqual([]);

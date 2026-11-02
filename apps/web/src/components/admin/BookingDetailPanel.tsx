@@ -256,6 +256,15 @@ export function BookingDetailPanel({
                         : t(locale, "detail.specialOfferLine", { title: booking.offerTitle })}
                     </small>
                   ) : null}
+                  {booking.tourGuideRequested === true ? (
+                    <small>
+                      {t(locale, "detail.tourGuide")}: {t(locale, "detail.tourGuideRequested")}
+                    </small>
+                  ) : booking.tourGuideRequested === false ? (
+                    <small>
+                      {t(locale, "detail.tourGuide")}: {t(locale, "detail.tourGuideNotRequested")}
+                    </small>
+                  ) : null}
                   {booking.luggageCount != null || booking.handCarryCount != null ? (
                     <small>
                       {t(locale, "detail.luggage", {

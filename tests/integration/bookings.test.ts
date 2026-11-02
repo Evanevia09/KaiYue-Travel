@@ -429,6 +429,7 @@ describe("POST /api/v1/bookings", () => {
             tourPackageId: "half-day",
             tourPackageTitle: "Half day",
             tourDurationHours: 6,
+            tourGuideRequested: true,
             communicationChannel: "whatsapp",
             contactName: "",
             phone: "",
@@ -444,8 +445,111 @@ describe("POST /api/v1/bookings", () => {
     const text = decodeURIComponent(body.whatsappUrl);
     expect(text).toContain("Service: city tour");
     expect(text).toContain("Tour package: Half day");
+    expect(text).toContain("Professional tour guide: Requested");
     expect(text).not.toContain("Service: special offer");
     expect(text).not.toContain("Special offer:");
+    expect(text).not.toContain("Big luggage");
+  });
+
+  it("requires a tour-guide choice for half-day and full-day packages", async () => {
+    const env = createTestEnv();
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "city-tour-guide-required",
+        },
+        body: JSON.stringify(
+          bookingPayload({
+            serviceType: "city_tour",
+            destination: "",
+            tourPackageId: "full-day",
+            tourPackageTitle: "Full day",
+            tourDurationHours: 10,
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as { error: { fields?: Record<string, string> } };
+    expect(body.error.fields?.tourGuideRequested).toMatch(/tour guide/i);
+    const count = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(count?.count).toBe(0);
+  });
+
+  it("stores a half-day tour-guide preference and omits luggage", async () => {
+    const env = createTestEnv();
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "city-tour-guide-persist",
+        },
+        body: JSON.stringify(
+          bookingPayload({
+            serviceType: "city_tour",
+            destination: "",
+            tourPackageId: "half-day",
+            tourPackageTitle: "Half day",
+            tourDurationHours: 6,
+            tourGuideRequested: false,
+            luggageCount: 3,
+            handCarryCount: 2,
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const row = await env.DB.prepare(
+      "SELECT tour_guide_requested, luggage_count, notes FROM bookings",
+    ).first<{
+      tour_guide_requested: number | null;
+      luggage_count: number | null;
+      notes: string;
+    }>();
+    expect(row).toMatchObject({
+      tour_guide_requested: 0,
+      luggage_count: null,
+    });
+    expect(row?.notes).toContain("Professional tour guide: not requested.");
+    expect(row?.notes).not.toContain("Big luggage");
+    expect(row?.notes).not.toContain("Hand carry");
+  });
+
+  it("keeps luggage on a non-package journey and leaves tour-guide unset", async () => {
+    const env = createTestEnv();
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "transfer-luggage-persist",
+        },
+        body: JSON.stringify(bookingPayload({ luggageCount: 2, handCarryCount: 1 })),
+      }),
+      env,
+    );
+    expect(response.status).toBe(201);
+    const row = await env.DB.prepare(
+      "SELECT tour_guide_requested, luggage_count, notes FROM bookings",
+    ).first<{
+      tour_guide_requested: number | null;
+      luggage_count: number | null;
+      notes: string;
+    }>();
+    expect(row).toMatchObject({
+      tour_guide_requested: null,
+      luggage_count: 2,
+    });
+    expect(row?.notes).toContain("Big luggage: 2.");
+    expect(row?.notes).toContain("Hand carry: 1.");
+    expect(row?.notes).not.toContain("Professional tour guide");
   });
 
   it("rejects an enquiry for an unpublished special offer", async () => {

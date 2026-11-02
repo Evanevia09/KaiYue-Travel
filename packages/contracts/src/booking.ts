@@ -26,6 +26,13 @@ export type BookingSourceMode = (typeof BOOKING_SOURCE_MODES)[number];
 export const COMMUNICATION_CHANNELS = ["whatsapp", "email"] as const;
 export type CommunicationChannel = (typeof COMMUNICATION_CHANNELS)[number];
 
+export const MACAU_TOUR_GUIDE_PACKAGE_IDS = ["half-day", "full-day"] as const;
+export type MacauTourGuidePackageId = (typeof MACAU_TOUR_GUIDE_PACKAGE_IDS)[number];
+
+export function isMacauTourGuidePackage(tourPackageId: string | undefined | null): boolean {
+  return tourPackageId === "half-day" || tourPackageId === "full-day";
+}
+
 const optionalText = (max: number) =>
   z
     .string()
@@ -75,6 +82,7 @@ export const bookingCreateSchema = z
     tourDurationHours: z.number().int().min(1).max(24).optional(),
     offerId: z.string().uuid().optional(),
     offerTitle: z.string().trim().min(1).max(160).optional(),
+    tourGuideRequested: z.boolean().optional(),
     locale: z.string().trim().min(2).max(16).default("en"),
     sourcePage: z.string().trim().min(1).max(200),
     sourceTrigger: z.string().trim().min(1).max(80),
@@ -120,6 +128,18 @@ export const bookingCreateSchema = z
         code: "custom",
         path: ["offerId"],
         message: "Choose a published special offer.",
+      });
+    }
+
+    if (
+      isMacauTourGuidePackage(value.tourPackageId) &&
+      !value.offerId &&
+      value.tourGuideRequested == null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tourGuideRequested"],
+        message: "Choose whether you would like a professional Macau tour guide.",
       });
     }
 

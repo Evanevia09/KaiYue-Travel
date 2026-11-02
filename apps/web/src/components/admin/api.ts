@@ -52,6 +52,7 @@ export type AdminBooking = {
   vehicleId: string | null;
   offerId: string | null;
   offerTitle: string | null;
+  tourGuideRequested: boolean | null;
 };
 
 export type AdminDriver = {
