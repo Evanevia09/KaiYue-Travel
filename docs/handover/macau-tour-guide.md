@@ -1,10 +1,11 @@
 # Optional Macau tour guide — handover
 
-**Date:** 2026-11-02  
+**Date:** 2026-11-02 (staging); promote opened 2026-11-03  
 **Feature branch:** `cursor/macau-tour-guide-addon-2357`  
 **Staging merge:** `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (squash of [PR #19](https://github.com/Evanevia09/KaiYue-Travel/pull/19); Mika staging-only approval)  
+**Staging tip with docs:** `a66caec8e0f00afea79c821e1ac291f62679c978` ([PR #20](https://github.com/Evanevia09/KaiYue-Travel/pull/20))  
 **Pre-merge implementation:** `328148bba97fa0fbdf8d84ae7cfc33723e1d7509`  
-**Base:** `staging` only. Do not merge to `main` or touch production.  
+**Promote to main:** Evan (2026-11-03 Asia/Macau) — “can you make it live”. Promote branch `cursor/promote-tour-guide-main-71d8`. See `docs/handover/promote-tour-guide-to-main.md`. PM merges; this agent does not. `released` only after main merge + live verify.  
 **Decision:** Evan (2026-11-02, Asia/Macau) — guests can optionally request a professional Macau tour guide with City Tour packages. It is not included by default. Staff quote later from the enquiry. Macau only; do not invent a guide price.
 
 This increment adds public copy and a booking-step question for half-day (6h) and full-day (10h) packages. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed. `main` and production remain untouched.
