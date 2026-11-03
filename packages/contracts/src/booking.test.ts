@@ -155,8 +155,8 @@ describe("bookingCreateSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("allows WhatsApp with only a message", () => {
-    const parsed = bookingCreateSchema.parse(
+  it("requires a WhatsApp number before a WhatsApp request can continue", () => {
+    const missing = bookingCreateSchema.safeParse(
       validBooking({
         communicationChannel: "whatsapp",
         contactName: "",
@@ -164,8 +164,27 @@ describe("bookingCreateSchema", () => {
         email: "",
       }),
     );
+    expect(missing.success).toBe(false);
+    if (!missing.success) {
+      expect(missing.error.issues.some((issue) => issue.path.join(".") === "phone")).toBe(true);
+    }
+    const parsed = bookingCreateSchema.parse(
+      validBooking({
+        communicationChannel: "whatsapp",
+        contactName: "",
+        phone: "+853 6234 5678",
+        email: "",
+      }),
+    );
     expect(parsed.communicationChannel).toBe("whatsapp");
+    expect(parsed.phone).toBe("+85362345678");
     expect(parsed.contactName).toBeUndefined();
+  });
+
+  it("keeps Email phone optional while still requiring a valid number when supplied", () => {
+    const parsed = bookingCreateSchema.parse(validBooking({ phone: "" }));
+    expect(parsed.phone).toBeUndefined();
+    expect(bookingCreateSchema.safeParse(validBooking({ phone: "123" })).success).toBe(false);
   });
 
   it("requires name and email for the email channel", () => {

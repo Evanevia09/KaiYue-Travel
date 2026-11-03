@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { adminZhHant } from "./admin-i18n.ts";
 import { copyCoverage, translateCopy } from "./i18n-copy.ts";
 import { localizeHtml } from "./i18n-html.ts";
-import { localeFromPath, localePath, publicSourcePage, stripLocale } from "./i18n.ts";
+import { localeFromPath, localeNames, localePath, publicSourcePage, stripLocale } from "./i18n.ts";
 import { specialOfferCopy } from "./special-offer-copy.ts";
 import zhHant from "./translations/zh-Hant.json";
 import zhReviewed from "./translations/zh-Hant-reviewed.json";
@@ -51,6 +51,34 @@ describe("public locale routing", () => {
     expect(localePath("/", "pt")).toBe("/pt");
     expect(publicSourcePage("/pt/about", "/about")).toBe("/pt/about");
     expect(publicSourcePage("/about", "/about")).toBe("/about");
+  });
+
+  it("keeps language-switcher labels as language names in every locale", () => {
+    const markup = `<ul class="lang-switch__menu" data-no-localize>
+      <li><a href="/about" hreflang="en" lang="en">English</a></li>
+      <li><a href="/pt/about" hreflang="pt-PT" lang="pt-PT">Português</a></li>
+      <li><a href="/zh-Hant/about" hreflang="zh-Hant" lang="zh-Hant">繁體中文</a></li>
+    </ul>`;
+    const countryOrEntity = /聯合國|葡萄牙|United Nations|\bPortugal\b/;
+    expect(localeNames).toEqual({
+      en: "English",
+      pt: "Português",
+      "zh-Hant": "繁體中文",
+    });
+    for (const locale of ["pt", "zh-Hant"] as const) {
+      const html = localizeHtml(markup, locale);
+      expect(html, locale).not.toMatch(countryOrEntity);
+      expect(html).toContain(">English</a>");
+      expect(html).toContain(">Português</a>");
+      expect(html).toContain(">繁體中文</a>");
+      expect(html).toContain('href="/about"');
+      expect(html).toContain('href="/pt/about"');
+      expect(html).toContain('href="/zh-Hant/about"');
+      expect(translateCopy("English", locale)).not.toMatch(countryOrEntity);
+      expect(translateCopy("Português", locale)).not.toMatch(countryOrEntity);
+      expect(translateCopy("English", locale)).not.toBe("聯合國");
+      expect(translateCopy("Português", locale)).not.toBe("葡萄牙");
+    }
   });
 
   it("translates public copy and links without changing a React island before hydration", () => {

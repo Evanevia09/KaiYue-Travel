@@ -5,9 +5,15 @@ import {
   formatCompactDateTime,
   formatFieldDateTime,
   formatFooterDate,
+  formatTimeOrPlaceholder,
+  HOURS_24,
+  isTimeDraftComplete,
   monthGrid,
+  nextWheelValue,
   parseLocalDateTime,
   roundMinutes,
+  splitTime,
+  TIME_PLACEHOLDER,
   toHours24,
 } from "./datetime.ts";
 
@@ -37,5 +43,18 @@ describe("booking datetime helpers", () => {
     expect(toHours24(12, "AM")).toBe(0);
     expect(roundMinutes(47)).toBe(45);
     expect(applyTime("2026-09-23T12:00", 14, 45)).toBe("2026-09-23T14:45");
+  });
+
+  it("starts a time draft blank so the visitor must choose hour and minute", () => {
+    const blank = splitTime(undefined);
+    expect(blank.hours24).toBeUndefined();
+    expect(blank.minutes).toBeUndefined();
+    expect(isTimeDraftComplete(blank)).toBe(false);
+    expect(formatTimeOrPlaceholder(null, false)).toBe(TIME_PLACEHOLDER);
+    expect(TIME_PLACEHOLDER).toBe("--:--");
+    expect(isTimeDraftComplete(splitTime("2026-09-23T14:45"))).toBe(true);
+    expect(nextWheelValue(HOURS_24, undefined, 1)).toBe(0);
+    expect(nextWheelValue(HOURS_24, undefined, -1)).toBe(23);
+    expect(nextWheelValue(HOURS_24, 0, 1)).toBe(1);
   });
 });

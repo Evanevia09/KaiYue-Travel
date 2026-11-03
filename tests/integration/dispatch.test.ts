@@ -21,6 +21,7 @@ async function booking(env: ReturnType<typeof createTestEnv>, pickupAt: string) 
         pickupAt,
         passengerCount: 3,
         communicationChannel: "whatsapp",
+        phone: "+853 6234 5678",
         message: "Test",
         privacyAccepted: true,
         sourcePage: "/",

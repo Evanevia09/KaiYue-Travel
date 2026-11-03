@@ -1696,12 +1696,17 @@ a {
   gap: 0.25rem;
   align-items: center;
   justify-items: center;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .dtp-wheel {
   display: grid;
   justify-items: center;
   gap: 0.05rem;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .dtp-wheel__nav,
@@ -1729,6 +1734,12 @@ a {
   background: var(--booking-green-gradient);
   color: #000;
   font-weight: 700;
+}
+
+.dtp-wheel__value.is-selected.is-placeholder,
+.dtp-time-toggle.is-placeholder {
+  background: #f3eee6;
+  color: #8b8680;
 }
 
 .dtp-time__save {
@@ -1770,6 +1781,10 @@ a {
 }
 
 @media (max-width: 879px) {
+  .dtp-popover.dtp-popover--time {
+    overflow: hidden;
+  }
+
   .dtp:not(.dtp--roundtrip) {
     flex-direction: column;
     align-items: stretch;
@@ -3961,6 +3976,10 @@ td {
     min-height: 40px;
     max-width: 44px;
     font-size: 0.9rem;
+  }
+
+  .dtp-popover.dtp-popover--time {
+    overflow: hidden;
   }
 
   .dtp-popover--time .dtp-popover__calendar {
