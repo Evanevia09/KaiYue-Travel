@@ -1,4 +1,5 @@
 ---
+import { isMacauTourGuidePackage } from "@kaiyue/contracts";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { CollectionEntry } from "astro:content";
@@ -107,10 +108,11 @@ const copy = {
     photos: "Photos",
     priceNote: "The team confirms the amount before travel.",
     showPhoto: "Show photo",
+    guide: "Optional Macau tour guide",
     sharedTerms: [
       "A request on this page is not a confirmed booking. The team confirms availability and the fare first.",
       "Please request at least 24 hours ahead. Same-day requests may be reviewed and are not guaranteed.",
-      "The service is a car with a driver for the time agreed. Attraction tickets and a licensed guide are separate.",
+      "The service is a car with a driver for the time agreed. Attraction tickets are separate. A professional Macau tour guide can be added on request; it is not included by default and is quoted later.",
       "Places to stop can be discussed. How many fit depends on travel time and time spent at each place.",
       "More time can be discussed with the team. This page does not list an extra-hour rate.",
     ],
@@ -128,10 +130,11 @@ const copy = {
     photos: "Fotos",
     priceNote: "A equipa confirma o valor antes da viagem.",
     showPhoto: "Mostrar foto",
+    guide: "Guia profissional em Macau (opcional)",
     sharedTerms: [
       "Um pedido nesta página não é uma reserva confirmada. A equipa confirma primeiro a disponibilidade e o preço.",
       "Peça com pelo menos 24 horas de antecedência. Os pedidos para o próprio dia podem ser analisados, mas não são garantidos.",
-      "O serviço é um carro com motorista pelo tempo acordado. As entradas em atrações e um guia licenciado são separados.",
+      "O serviço é um carro com motorista pelo tempo acordado. As entradas nas atrações são à parte. Pode pedir um guia turístico profissional em Macau; não está incluído por defeito e o valor é orçamentado mais tarde.",
       "Os locais de paragem podem ser combinados. O número depende do tempo de viagem e do tempo em cada lugar.",
       "Tempo adicional pode ser combinado com a equipa. Esta página não indica uma tarifa por hora extra.",
     ],
@@ -148,18 +151,24 @@ const copy = {
     photos: "圖片",
     priceNote: "出發前由團隊確認金額。",
     showPhoto: "顯示圖片",
+    guide: "可選澳門專業導遊",
     sharedTerms: [
       "本頁申請並非已確認的預約。團隊會先確認是否可以安排及票價。",
       "請至少提前 24 小時提出申請。當天申請或可受理，但不保證可以安排。",
-      "服務為約定時間內的車輛及司機。景點門票及持牌導遊另行安排。",
+      "服務為約定時間內的車輛及司機。景點門票另行安排。可選擇加配澳門專業導遊；預設不包含，稍後由團隊報價。",
       "停留地點可以商量。能去幾處取決於車程及每處停留的時間。",
       "如需加時，可與團隊商量。本頁不列出逾時收費。",
     ],
   },
 }[locale];
-const fact = data.durationHours
-  ? `${data.durationHours} ${copy.hours} · ${copy.serviceValue}`
-  : copy.serviceValue;
+const fact = [
+  data.durationHours
+    ? `${data.durationHours} ${copy.hours} · ${copy.serviceValue}`
+    : copy.serviceValue,
+  isMacauTourGuidePackage(entry.id) ? copy.guide : undefined,
+]
+  .filter(Boolean)
+  .join(" · ");
 const descriptionLang = translation.description || locale === "en" ? contentLang : "en";
 const showLanguageNote = locale !== "en" && !translation.description;
 ---

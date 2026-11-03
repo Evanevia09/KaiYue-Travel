@@ -28,6 +28,7 @@ export type BookingDraft = {
   durationHours: number;
   luggageCount: string;
   handCarryCount: string;
+  tourGuideRequested: boolean | null;
   vehiclePreference: BookingCreateInput["vehiclePreference"] | "";
   communicationChannel: CommunicationChannel;
   contactName: string;
@@ -77,6 +78,7 @@ export const emptyDraft = (serviceType: ServiceType = "airport_transfer"): Booki
   durationHours: 2,
   luggageCount: "0",
   handCarryCount: "0",
+  tourGuideRequested: null,
   vehiclePreference: "",
   communicationChannel: "whatsapp",
   contactName: "",
@@ -146,6 +148,7 @@ function persistJourney(draft: BookingDraft): void {
       durationHours: draft.durationHours,
       luggageCount: draft.luggageCount,
       handCarryCount: draft.handCarryCount,
+      tourGuideRequested: draft.tourGuideRequested,
       vehiclePreference: draft.vehiclePreference,
       tourPackageId: draft.tourPackageId,
       tourPackageTitle: draft.tourPackageTitle,
@@ -183,7 +186,8 @@ export function isDirty(draft: BookingDraft): boolean {
     draft.contactName !== empty.contactName ||
     draft.phone !== empty.phone ||
     draft.message !== empty.message ||
-    draft.tourPackageId !== empty.tourPackageId
+    draft.tourPackageId !== empty.tourPackageId ||
+    draft.tourGuideRequested !== empty.tourGuideRequested
   );
 }
 

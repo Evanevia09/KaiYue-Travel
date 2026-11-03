@@ -27,6 +27,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `message` | Optional customer message, length-limited plain text; store an empty string when omitted |
 | `notes` | Optional booking metadata. Hourly charter duration is stored here as `Duration: N hours.` until a dedicated column exists. |
 | `offer_id`, `offer_title` | Optional published special-offer identity. Additive columns from `migrations/0007_booking_offer.sql`. Shown in `/admin/bookings`. |
+| `tour_guide_requested` | Optional 1/0/NULL from `migrations/0008_booking_tour_guide.sql`. Set on half-day and full-day Macau city-tour packages when the guest answers the professional tour-guide question. NULL on other journeys. No published guide price. |
 | `source_page`, `source_trigger` | Attribution without sensitive content |
 | `locale` | Submitted locale |
 | `notification_state` | e.g. `pending`, `sent`, `partial`, `failed` |
