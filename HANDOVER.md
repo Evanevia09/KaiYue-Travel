@@ -2,13 +2,40 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-03 — Promote booking UX to main (in progress)
+
+- **Branch:** `cursor/promote-booking-ux-to-main-25d7` (staging `3fb823629c1412007af40f40b32a4183b739e08b` + merge `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218`)
+- **PR:** to be opened into `main` from this promote branch (number recorded after open)
+- **Report:** `docs/handover/booking-time-whatsapp-lang.md` and `docs/handover/promote-staging-to-main.md`
+- **Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau
+- **Change:** Promote staging booking UX (PR #23: mobile time picker + required WhatsApp + language names) to live. Keep released tour-guide (#21/#22) and 包車接送 (#17). Staging alias already QA PASS. Live browser QA still pending after merge. Do not mark booking UX `released` until that live verify.
+- **Do not:** merge from this task; run `wrangler deploy`; weaken production `/admin` or `/login` 403; touch Cloudflare Access.
+
 ## 2026-11-03 — Booking time picker, required WhatsApp, language labels
 
 - **Branch:** `cursor/booking-time-whatsapp-lang-d8c6`
-- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23 (staging only)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23 (squash-merged to `staging` as `3fb823629c1412007af40f40b32a4183b739e08b`)
 - **Report:** `docs/handover/booking-time-whatsapp-lang.md`
 - **Change:** Mobile time wheels keep touch scroll inside the hour/minute columns; time starts blank (`--:--`) and must be chosen; WhatsApp number is required on client and server; language switcher shows English / Português / 繁體中文, not 聯合國 / 葡萄牙.
-- **Do not:** merge to `main`; run `wrangler deploy`; weaken production `/admin` or `/api/auth` 403.
+- **Do not:** run `wrangler deploy`; weaken production `/admin` or `/api/auth` 403.
+
+## 2026-11-03 — Tour-guide live verify (`released`)
+
+- **Live SHA:** `7c9ca1d5a308f810a485dcc8edc852aa90a128cb` (PR #21 squash-merge to `main`)
+- **Host:** https://kaiyue-travel.scalingsmb.workers.dev
+- **Report:** `docs/handover/promote-tour-guide-to-main.md`
+- **Change:** Docs-only record. Workers Builds succeeded on `7c9ca1d`. PM browser QA **PASS**: Home/City Tours/half-day optional guide wording; half-day step 2 Yes/No hides luggage; point-to-point restores luggage; zh-Hant 包車接送 and 導遊; production `/admin` and `/login` still 403 JSON; home console 0 red errors.
+- **D1:** Shared `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`). Migration `0008` already applied 2026-11-02 — not re-applied.
+- **Do not:** run `wrangler deploy` from an agent; weaken `/admin` or `/login` 403; invent a guide price; re-apply `0008`.
+
+## 2026-11-03 — Promote optional Macau tour guide to main
+
+- **Branch:** `cursor/promote-tour-guide-main-71d8` (staging `a66caec8` + merge `origin/main` `9521609`)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/21 into `main` (squash-merged as `7c9ca1d5a308f810a485dcc8edc852aa90a128cb`)
+- **Report:** `docs/handover/promote-tour-guide-to-main.md`
+- **Change:** Promote staging tour-guide PRs #19 (`be455828`) and #20 (`a66caec8`) to live. Merge of `origin/main` had no file conflicts. Production admin/auth 403 gate and D1/R2 bindings unchanged.
+- **D1:** Shared `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`). Migration `0008` already applied 2026-11-02 — do not re-apply.
+- **Do not:** run `wrangler deploy` from an agent; weaken `/admin` or `/login` 403; invent a guide price.
 
 ## 2026-10-30 — Promote staging to main
 

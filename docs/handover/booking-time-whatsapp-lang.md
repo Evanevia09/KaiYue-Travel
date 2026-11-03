@@ -1,11 +1,25 @@
 # Booking time picker, required WhatsApp, language labels — handover
 
 **Date:** 2026-11-03  
-**Base:** `staging` only. Do not merge to `main` or touch production.  
-**PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23  
+**Staging PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23  
+**Staging tip:** `3fb823629c1412007af40f40b32a4183b739e08b`  
 **Decision:** Evan (2026-11-03, Asia/Macau) — fix the mobile booking time wheels so touch scroll stays inside the hour/minute columns; start time blank (`--:--`) and require an explicit choice; make the WhatsApp number required; show language names in the public language switcher, not country/entity names.
 
-This increment stays on a staging PR. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed. `main` and production remain untouched. Traditional Chinese transfer wording stays 包車接送. Half-day/full-day Macau tour-guide Yes/No is unchanged.
+This increment was implemented on a staging PR. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed. Traditional Chinese transfer wording stays 包車接送. Half-day/full-day Macau tour-guide Yes/No stays as already released on live.
+
+## Promote in progress (2026-11-03)
+
+**Status:** promote-in-progress. Do **not** mark booking UX `released` until after `main` merge and live browser QA.  
+**Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
+**Promote branch:** `cursor/promote-booking-ux-to-main-25d7`  
+**PR into `main`:** to be recorded after the promote PR is opened  
+**Head vs base:** staging tip `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23) merged with `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218`  
+**Staging QA:** already **PASS** on the staging alias.  
+**Live browser QA:** still pending after merge. That is a follow-up.
+
+This promote keeps live tour-guide (#21/#22) and 包車接送 (#17) and adds the booking UX from staging. No `wrangler deploy` from this task. Production `/admin` and `/login` stay 403 until Cloudflare Access is configured.
+
+See also `docs/handover/promote-staging-to-main.md`.
 
 ## What changed
 
