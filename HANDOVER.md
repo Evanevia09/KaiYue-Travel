@@ -5,7 +5,7 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 ## 2026-11-03 — Booking time picker, required WhatsApp, language labels
 
 - **Branch:** `cursor/booking-time-whatsapp-lang-d8c6`
-- **PR:** staging only
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23 (staging only)
 - **Report:** `docs/handover/booking-time-whatsapp-lang.md`
 - **Change:** Mobile time wheels keep touch scroll inside the hour/minute columns; time starts blank (`--:--`) and must be chosen; WhatsApp number is required on client and server; language switcher shows English / Português / 繁體中文, not 聯合國 / 葡萄牙.
 - **Do not:** merge to `main`; run `wrangler deploy`; weaken production `/admin` or `/api/auth` 403.

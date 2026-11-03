@@ -163,7 +163,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Booking UX next action (2026-11-03): review the staging PR on a mobile viewport. Confirm `--:--` blank time, required explicit hour/minute, wheel scroll does not move the page, WhatsApp number required in EN/pt/zh-Hant, and the language menu shows English / Português / 繁體中文. Keep 包車接送 and the half-day/full-day tour-guide Yes/No. Do not merge to `main`. Do not run `wrangler deploy`. `user_accepted` and `released` are not established.
+Booking UX next action (2026-11-03): review staging PR https://github.com/Evanevia09/KaiYue-Travel/pull/23 on a mobile viewport. Confirm `--:--` blank time, required explicit hour/minute, wheel scroll does not move the page, WhatsApp number required in EN/pt/zh-Hant, and the language menu shows English / Português / 繁體中文. Keep 包車接送 and the half-day/full-day tour-guide Yes/No. Do not merge to `main`. Do not run `wrangler deploy`. `user_accepted` and `released` are not established.
 
 Tour-guide next action (2026-11-02): PR 19 is squash-merged to `staging` as `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (Mika staging-only approval). Remote staging D1 `0008_booking_tour_guide.sql` is applied (`bookings.tour_guide_requested` INTEGER; `d1_migrations` row at 2026-11-02 11:41:12 UTC). Do not re-apply. Do not apply to production D1. Review the staging/Workers preview: Home, City Tours catalogue, half-day/full-day pages, About portfolio cards, and booking step 2 (guide question on packages; luggage unchanged elsewhere). Confirm staff admin/email/WhatsApp show the preference. Keep 包車接送 for transfer wording. Do not merge to `main`. Do not run `wrangler deploy`. `user_accepted` and `released` are not established.
 

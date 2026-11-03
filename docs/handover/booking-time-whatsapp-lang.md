@@ -2,6 +2,7 @@
 
 **Date:** 2026-11-03  
 **Base:** `staging` only. Do not merge to `main` or touch production.  
+**PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23  
 **Decision:** Evan (2026-11-03, Asia/Macau) — fix the mobile booking time wheels so touch scroll stays inside the hour/minute columns; start time blank (`--:--`) and require an explicit choice; make the WhatsApp number required; show language names in the public language switcher, not country/entity names.
 
 This increment stays on a staging PR. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed. `main` and production remain untouched. Traditional Chinese transfer wording stays 包車接送. Half-day/full-day Macau tour-guide Yes/No is unchanged.
