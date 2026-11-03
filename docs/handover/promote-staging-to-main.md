@@ -1,15 +1,38 @@
 # Promote staging to main — handover
 
-## 2026-11-03 — Booking UX promote (in progress)
+## Released (2026-11-03) — Booking UX
 
-**Status:** promote-in-progress. Do **not** mark booking UX `released` until after `main` merge and live browser QA.  
+**Status:** `released` — established after this live verify.  
+**Live SHA:** `870c536fe4b05e0028e166997e367259c54ce100`  
+**PR:** [#24](https://github.com/Evanevia09/KaiYue-Travel/pull/24) squash-merged to `main`  
+**Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
+**Live host:** https://kaiyue-travel.scalingsmb.workers.dev
+
+Public-safe facts after promote:
+
+- Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.
+- PR #24 squash-merged to `main` as `870c536fe4b05e0028e166997e367259c54ce100` (head was `b3ff757555bfaeaae285d6c4bd7cfb81c1247240` on `cursor/promote-booking-ux-to-main-25d7`; base had been `96390fa27faefd6d1c1cc4435e74ff344b0ad218`).
+- Workers Builds on `main` SUCCESS for that SHA. Live https://kaiyue-travel.scalingsmb.workers.dev published.
+- Live browser QA **PASS** (390×844): language switcher English / Português / 繁體中文 (no 聯合國 / 葡萄牙); time picker blank `--:--` + Save disabled until hour+minute; WhatsApp required on WhatsApp tab; email phone optional; console clean.
+- Production `/admin` and `/login` still return 403 JSON gate `Admin access is not configured` (requestId gate).
+- Shared D1 `0008` was already applied 2026-11-02 — not re-applied. Staging tip that was promoted: `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23).
+- No `wrangler deploy` from agents.
+
+Do not re-apply `0008`. Do not weaken production admin gates. Do not run `wrangler deploy` from an agent.
+
+---
+
+## 2026-11-03 — Booking UX promote (pre-merge)
+
+**Status:** promote completed. `released` established after the live verify recorded above.  
 **Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
 **Promote branch:** `cursor/promote-booking-ux-to-main-25d7`  
-**PR into `main`:** https://github.com/Evanevia09/KaiYue-Travel/pull/24  
+**PR into `main`:** https://github.com/Evanevia09/KaiYue-Travel/pull/24 (squash-merged as `870c536fe4b05e0028e166997e367259c54ce100`)  
 **Staging tip:** `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23 squash-merge)  
 **Main tip merged in:** `96390fa27faefd6d1c1cc4435e74ff344b0ad218`  
+**Promote-branch tip before squash:** `b3ff757555bfaeaae285d6c4bd7cfb81c1247240`  
 **Staging QA:** already **PASS**.  
-**Live browser QA:** still pending after merge.
+**Live browser QA:** **PASS** (390×844) as listed in **Released**.
 
 What this promote includes:
 

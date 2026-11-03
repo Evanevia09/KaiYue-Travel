@@ -2,14 +2,23 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## 2026-11-03 — Promote booking UX to main (in progress)
+## 2026-11-03 — Booking UX live verify (`released`)
+
+- **Live SHA:** `870c536fe4b05e0028e166997e367259c54ce100` (PR #24 squash-merge to `main`)
+- **Host:** https://kaiyue-travel.scalingsmb.workers.dev
+- **Report:** `docs/handover/booking-time-whatsapp-lang.md` and `docs/handover/promote-staging-to-main.md`
+- **Change:** Docs-only record. Workers Builds succeeded on `870c536`. Live browser QA **PASS** (390×844): language switcher English / Português / 繁體中文 (no 聯合國 / 葡萄牙); time picker blank `--:--` + Save disabled until hour+minute; WhatsApp required on WhatsApp tab; email phone optional; console clean. Production `/admin` and `/login` still 403 JSON gate `Admin access is not configured`.
+- **D1:** Shared `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`). Migration `0008` already applied 2026-11-02 — not re-applied.
+- **Do not:** run `wrangler deploy` from an agent; weaken `/admin` or `/login` 403; re-apply `0008`.
+
+## 2026-11-03 — Promote booking UX to main
 
 - **Branch:** `cursor/promote-booking-ux-to-main-25d7` (staging `3fb823629c1412007af40f40b32a4183b739e08b` + merge `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218`)
-- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/24 into `main`
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/24 into `main` (squash-merged as `870c536fe4b05e0028e166997e367259c54ce100`)
 - **Report:** `docs/handover/booking-time-whatsapp-lang.md` and `docs/handover/promote-staging-to-main.md`
 - **Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau
-- **Change:** Promote staging booking UX (PR #23: mobile time picker + required WhatsApp + language names) to live. Keep released tour-guide (#21/#22) and 包車接送 (#17). Staging alias already QA PASS. Live browser QA still pending after merge. Do not mark booking UX `released` until that live verify.
-- **Do not:** merge from this task; run `wrangler deploy`; weaken production `/admin` or `/login` 403; touch Cloudflare Access.
+- **Change:** Promote staging booking UX (PR #23: mobile time picker + required WhatsApp + language names) to live. Keep released tour-guide (#21/#22) and 包車接送 (#17). Staging alias already QA PASS. Live verify and `released` are recorded in the 2026-11-03 live-verify entry above.
+- **Do not:** run `wrangler deploy` from an agent; weaken production `/admin` or `/login` 403; touch Cloudflare Access.
 
 ## 2026-11-03 — Booking time picker, required WhatsApp, language labels
 
