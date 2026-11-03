@@ -189,6 +189,28 @@ describe("POST /api/v1/bookings", () => {
     });
   });
 
+  it("rejects a WhatsApp enquiry without a WhatsApp number", async () => {
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const response = await handleApi(
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json", "idempotency-key": "whatsapp-no-phone" },
+        body: JSON.stringify(
+          bookingPayload({
+            communicationChannel: "whatsapp",
+            contactName: "",
+            phone: "",
+            email: "",
+          }),
+        ),
+      }),
+      env,
+    );
+    expect(response.status).toBe(422);
+    const body = (await response.json()) as { error?: { fields?: Record<string, string> } };
+    expect(body.error?.fields?.phone).toBeTruthy();
+  });
+
   it("persists a WhatsApp enquiry and returns a formatted deep link", async () => {
     const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
     const response = await handleApi(
@@ -243,7 +265,7 @@ describe("POST /api/v1/bookings", () => {
               sourcePage: `/${locale}/services/airport-transfer`,
               communicationChannel: "whatsapp",
               contactName: "",
-              phone: "",
+              phone: "+853 6234 5678",
               email: "",
             }),
           ),
@@ -268,7 +290,7 @@ describe("POST /api/v1/bookings", () => {
           bookingPayload({
             communicationChannel: "whatsapp",
             contactName: "",
-            phone: "",
+            phone: "+853 6234 5678",
             email: "",
             message: "",
           }),
@@ -279,7 +301,7 @@ describe("POST /api/v1/bookings", () => {
     expect(response.status).toBe(201);
     const body = (await response.json()) as { whatsappUrl: string };
     expect(decodeURIComponent(body.whatsappUrl)).not.toContain("Message:");
-    expect(decodeURIComponent(body.whatsappUrl)).not.toContain("WhatsApp number:");
+    expect(decodeURIComponent(body.whatsappUrl)).toContain("WhatsApp number: +853 6234 5678");
     const row = await env.DB.prepare("SELECT message FROM bookings").first<{ message: string }>();
     expect(row?.message).toBe("");
   });
@@ -355,7 +377,7 @@ describe("POST /api/v1/bookings", () => {
             offerTitle: "[Sample] Harbour lights",
             communicationChannel: "whatsapp",
             contactName: "",
-            phone: "",
+            phone: "+853 6234 5678",
             email: "",
             sourcePage: "/special-offers",
           }),
@@ -398,7 +420,7 @@ describe("POST /api/v1/bookings", () => {
             offerTitle: "[Sample] Harbour lights",
             communicationChannel: "whatsapp",
             contactName: "",
-            phone: "",
+            phone: "+853 6234 5678",
             email: "",
           }),
         ),
@@ -432,7 +454,7 @@ describe("POST /api/v1/bookings", () => {
             tourGuideRequested: true,
             communicationChannel: "whatsapp",
             contactName: "",
-            phone: "",
+            phone: "+853 6234 5678",
             email: "",
             sourcePage: "/services/city-tours/half-day",
           }),

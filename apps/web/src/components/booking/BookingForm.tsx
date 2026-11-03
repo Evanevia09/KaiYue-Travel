@@ -611,13 +611,14 @@ export function BookingForm({
             </p>
             {draft.communicationChannel === "whatsapp" ? (
               <div className="field field--full">
-                <label htmlFor="phone">Your WhatsApp Number (optional)</label>
+                <label htmlFor="phone">Your WhatsApp Number *</label>
                 <input
                   id="phone"
                   type="tel"
                   value={draft.phone}
                   onChange={(event) => updateDraft({ phone: event.target.value })}
                   autoComplete="tel"
+                  aria-required="true"
                   placeholder="Include country code, e.g. +853 6234 5678"
                 />
                 {fieldErrors.phone ? <p className="field-error">{fieldErrors.phone}</p> : null}

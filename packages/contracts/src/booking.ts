@@ -188,6 +188,14 @@ export const bookingCreateSchema = z
       });
     }
 
+    if (value.communicationChannel === "whatsapp" && !value.phone) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["phone"],
+        message: "Enter your WhatsApp number.",
+      });
+    }
+
     if (value.phone) {
       const phone = normalizePhone(value.phone);
       if (!isPlausiblePhone(phone)) {

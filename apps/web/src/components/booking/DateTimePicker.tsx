@@ -5,23 +5,28 @@ import {
   HOURS_24,
   MINUTE_OPTIONS,
   WEEKDAYS,
+  WHEEL_BLANK_LABEL,
   addMonths,
   applyTime,
+  blankTimeDraft,
   combineDateAndTime,
   displayLocale,
   formatCompactDateTime,
   formatFieldDateTime,
   formatFooterDate,
   formatMonthTitle,
-  formatTime24,
+  formatTimeOrPlaceholder,
   isBeforeDay,
   isPastDay,
   isSameDay,
+  isTimeDraftComplete,
   monthGrid,
+  nextWheelValue,
   parseLocalDateTime,
   splitTime,
   startOfMonth,
-  type DayPeriod,
+  wheelWindow,
+  type TimeDraft,
 } from "./datetime.ts";
 
 type Leg = "pickup" | "return";
@@ -36,19 +41,6 @@ type Props = {
   onReturnChange: (value: string) => void;
 };
 
-type TimeDraft = {
-  hours12: number;
-  hours24: number;
-  minutes: number;
-  period: DayPeriod;
-};
-
-function nextWheelValue<T>(values: readonly T[], current: T, delta: number): T {
-  const index = values.indexOf(current);
-  const from = index === -1 ? 0 : index;
-  return values[(from + delta + values.length) % values.length] as T;
-}
-
 function TimeWheel<T extends number>({
   label,
   values,
@@ -58,13 +50,75 @@ function TimeWheel<T extends number>({
 }: {
   label: string;
   values: readonly T[];
-  value: T;
+  value: T | undefined;
   format: (item: T) => string;
   onChange: (value: T) => void;
 }) {
-  const window = [-2, -1, 0, 1, 2].map((offset) => nextWheelValue(values, value, offset));
+  const rootRef = useRef<HTMLDivElement>(null);
+  const valueRef = useRef(value);
+  const onChangeRef = useRef(onChange);
+  valueRef.current = value;
+  onChangeRef.current = onChange;
+  const windowItems = wheelWindow(values, value);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) {
+      return;
+    }
+    let startY = 0;
+    let moved = false;
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const delta = event.deltaY === 0 ? 0 : event.deltaY > 0 ? 1 : -1;
+      if (delta !== 0) {
+        onChangeRef.current(nextWheelValue(values, valueRef.current, delta));
+      }
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      startY = event.touches[0]?.clientY ?? 0;
+      moved = false;
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      moved = true;
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      if (!moved) {
+        return;
+      }
+      const endY = event.changedTouches[0]?.clientY ?? startY;
+      const deltaY = startY - endY;
+      if (Math.abs(deltaY) < 12) {
+        return;
+      }
+      onChangeRef.current(nextWheelValue(values, valueRef.current, deltaY > 0 ? 1 : -1));
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch" || event.pointerType === "pen") {
+        el.setPointerCapture(event.pointerId);
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [values]);
+
   return (
-    <div className="dtp-wheel" role="group" aria-label={label}>
+    <div className="dtp-wheel" role="listbox" aria-label={label} ref={rootRef}>
       <button
         type="button"
         className="dtp-wheel__nav"
@@ -73,17 +127,34 @@ function TimeWheel<T extends number>({
       >
         <BookingIcon name="chevronUp" size={16} />
       </button>
-      {window.map((item, index) => (
-        <button
-          key={`${item}-${index}`}
-          type="button"
-          className={index === 2 ? "dtp-wheel__value is-selected" : "dtp-wheel__value"}
-          aria-current={index === 2 ? "true" : undefined}
-          onClick={() => onChange(item)}
-        >
-          {format(item)}
-        </button>
-      ))}
+      {windowItems.map((item, index) => {
+        const selected = index === 2;
+        const blank = item === undefined;
+        return (
+          <button
+            key={`${item ?? "blank"}-${index}`}
+            type="button"
+            role="option"
+            className={
+              selected
+                ? blank
+                  ? "dtp-wheel__value is-selected is-placeholder"
+                  : "dtp-wheel__value is-selected"
+                : "dtp-wheel__value"
+            }
+            aria-current={selected ? "true" : undefined}
+            aria-selected={selected}
+            disabled={blank}
+            onClick={() => {
+              if (item !== undefined) {
+                onChange(item);
+              }
+            }}
+          >
+            {blank ? WHEEL_BLANK_LABEL : format(item)}
+          </button>
+        );
+      })}
       <button
         type="button"
         className="dtp-wheel__nav"
@@ -139,7 +210,7 @@ function TimePanel({
         <TimeWheel
           label="Hour"
           values={HOURS_24}
-          value={draft.hours24 as (typeof HOURS_24)[number]}
+          value={draft.hours24}
           format={(item) => String(item).padStart(2, "0")}
           onChange={(hours24) =>
             onDraft({
@@ -153,7 +224,7 @@ function TimePanel({
         <TimeWheel
           label="Minute"
           values={MINUTE_OPTIONS}
-          value={draft.minutes as (typeof MINUTE_OPTIONS)[number]}
+          value={draft.minutes}
           format={(item) => String(item).padStart(2, "0")}
           onChange={(minutes) => onDraft({ ...draft, minutes })}
         />
@@ -278,13 +349,19 @@ function FooterLeg({
         <span className="dtp-leg__label">{legend.replace(" date", " time")}</span>
         <button
           type="button"
-          className={timeOpen ? "dtp-time-toggle is-open" : "dtp-time-toggle"}
+          className={
+            timeOpen
+              ? "dtp-time-toggle is-open"
+              : timeSelected
+                ? "dtp-time-toggle"
+                : "dtp-time-toggle is-placeholder"
+          }
           disabled={!value}
           aria-expanded={timeOpen}
           aria-haspopup="dialog"
           onClick={onTime}
         >
-          {date && timeSelected ? formatTime24(date) : "Select time"}
+          {formatTimeOrPlaceholder(date, timeSelected)}
           <BookingIcon name="chevronDown" size={14} />
         </button>
       </div>
@@ -308,7 +385,6 @@ export function DateTimePicker({
   const [returnEnabled, setReturnEnabled] = useState(Boolean(returnAt));
   const [activeLeg, setActiveLeg] = useState<Leg>("pickup");
   const [timeTarget, setTimeTarget] = useState<Leg | null>(null);
-  const [timeTouched, setTimeTouched] = useState(false);
   const [viewMonth, setViewMonth] = useState(() =>
     startOfMonth(parseLocalDateTime(pickupAt) ?? new Date()),
   );
@@ -338,6 +414,19 @@ export function DateTimePicker({
       setReturnEnabled(true);
     }
   }, [allowReturn, returnAt]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.classList.add("dtp-open");
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.classList.remove("dtp-open");
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   function placePopover() {
     const trigger = triggerRef.current;
@@ -442,8 +531,7 @@ export function DateTimePicker({
         setReturnTimeSelected(false);
       }
       setActiveLeg("pickup");
-      setTimeDraft(splitTime(undefined));
-      setTimeTouched(false);
+      setTimeDraft(blankTimeDraft());
       setTimeTarget("pickup");
       return;
     }
@@ -454,8 +542,7 @@ export function DateTimePicker({
     setReturnTimeSelected(false);
     onReturnChange("");
     setActiveLeg("return");
-    setTimeDraft(splitTime(undefined));
-    setTimeTouched(false);
+    setTimeDraft(blankTimeDraft());
     setTimeTarget("return");
   }
 
@@ -464,18 +551,18 @@ export function DateTimePicker({
     if (!source) {
       return;
     }
-    setTimeDraft(splitTime(source));
-    setTimeTouched(leg === "return" ? returnTimeSelected : pickupTimeSelected);
+    const selected = leg === "return" ? returnTimeSelected : pickupTimeSelected;
+    setTimeDraft(selected ? splitTime(source) : blankTimeDraft());
     setTimeTarget((current) => (current === leg ? null : leg));
     setActiveLeg(leg);
   }
 
   function saveTime() {
-    if (!timeTarget) {
+    if (!timeTarget || !isTimeDraftComplete(timeDraft)) {
       return;
     }
     const source = timeTarget === "return" ? pendingReturnAt : pendingPickupAt;
-    if (!source || !timeTouched) {
+    if (!source) {
       return;
     }
     const next = applyTime(source, timeDraft.hours24, timeDraft.minutes);
@@ -750,17 +837,14 @@ export function DateTimePicker({
                   <TimePanel
                     title={timeTarget === "return" ? "Return Time" : "Pickup Time"}
                     draft={timeDraft}
-                    onDraft={(draft) => {
-                      setTimeDraft(draft);
-                      setTimeTouched(true);
-                    }}
+                    onDraft={setTimeDraft}
                     onSave={saveTime}
                     onBack={() => setTimeTarget(null)}
                     onClose={() => {
                       setTimeTarget(null);
                       setOpen(false);
                     }}
-                    canSave={timeTouched}
+                    canSave={isTimeDraftComplete(timeDraft)}
                   />
                 ) : null}
               </div>

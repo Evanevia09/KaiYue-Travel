@@ -471,6 +471,8 @@
   "Your Message (optional)": "Sua mensagem (opcional)",
   "Your Name *": "Seu nome *",
   "Your WhatsApp Number (optional)": "Seu número WhatsApp (opcional)",
+  "Your WhatsApp Number *": "O seu número de WhatsApp *",
+  "Enter your WhatsApp number.": "Introduza o seu número de WhatsApp.",
   "alert": "alerta",
   "alertdialog": "alertadialog",
   "application/json": "aplicação/json",
