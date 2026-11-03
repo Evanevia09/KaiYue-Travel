@@ -5,7 +5,7 @@
 **Staging merge:** `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (squash of [PR #19](https://github.com/Evanevia09/KaiYue-Travel/pull/19); Mika staging-only approval)  
 **Staging tip with docs:** `a66caec8e0f00afea79c821e1ac291f62679c978` ([PR #20](https://github.com/Evanevia09/KaiYue-Travel/pull/20))  
 **Pre-merge implementation:** `328148bba97fa0fbdf8d84ae7cfc33723e1d7509`  
-**Promote to main:** Evan (2026-11-03 Asia/Macau) — “can you make it live”. Promote branch `cursor/promote-tour-guide-main-71d8`. See `docs/handover/promote-tour-guide-to-main.md`. PM merges; this agent does not. `released` only after main merge + live verify.  
+**Promote to main:** Evan (2026-11-03 Asia/Macau) — “can you make it live”. Promote branch `cursor/promote-tour-guide-main-71d8`. See `docs/handover/promote-tour-guide-to-main.md`. Live verify later recorded `released` after [PR #21](https://github.com/Evanevia09/KaiYue-Travel/pull/21) squash-merge `7c9ca1d5a308f810a485dcc8edc852aa90a128cb` and [PR #22](https://github.com/Evanevia09/KaiYue-Travel/pull/22) released docs.
 **Decision:** Evan (2026-11-02, Asia/Macau) — guests can optionally request a professional Macau tour guide with City Tour packages. It is not included by default. Staff quote later from the enquiry. Macau only; do not invent a guide price.
 
 This increment adds public copy and a booking-step question for half-day (6h) and full-day (10h) packages. Production `/admin` and `/login` 403 gates, D1/R2 bindings, and `wrangler deploy` were not changed. `main` and production remain untouched.
@@ -37,10 +37,9 @@ On a Workers preview or staging host of `be4558287dd4dcc2176b93ff13c5f88c70fc337
 
 ## Limits
 
-- Workers preview browser pass and production remain unverified.
 - Guide availability, price, and licensing are not published. Staff quote after review.
 - Special Offers (D1 / GBA listing) were not given a dedicated guide question.
-- `user_accepted` and `released` are not established.
+- Live tour-guide `released` is recorded in `docs/handover/promote-tour-guide-to-main.md` after PR #21 / #22. This file remains the product handover for the increment.
 
 ## Tip SHA
 

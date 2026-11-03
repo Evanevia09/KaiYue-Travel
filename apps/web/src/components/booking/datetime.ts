@@ -8,15 +8,56 @@ export const HOURS_24 = [
 ] as const;
 export const DEFAULT_HOUR = 12;
 export const DEFAULT_MINUTE = 0;
+export const TIME_PLACEHOLDER = "--:--";
+export const WHEEL_BLANK_LABEL = "--";
+
+export type HourCycle = "12" | "24";
+export type DayPeriod = "AM" | "PM";
+
+export type TimeDraft = {
+  hours12?: number;
+  hours24?: number;
+  minutes?: number;
+  period?: DayPeriod;
+};
+
+export function blankTimeDraft(): TimeDraft {
+  return {};
+}
+
+export function isTimeDraftComplete(
+  draft: TimeDraft,
+): draft is TimeDraft & { hours24: number; minutes: number } {
+  return draft.hours24 != null && draft.minutes != null;
+}
+
+export function formatTimeOrPlaceholder(date: Date | null, selected: boolean): string {
+  return date && selected ? formatTime24(date) : TIME_PLACEHOLDER;
+}
+
+export function nextWheelValue<T>(values: readonly T[], current: T | undefined, delta: number): T {
+  if (values.length === 0) {
+    throw new Error("nextWheelValue requires values");
+  }
+  if (current === undefined || !values.includes(current)) {
+    return (delta < 0 ? values[values.length - 1] : values[0]) as T;
+  }
+  const index = values.indexOf(current);
+  return values[(index + delta + values.length) % values.length] as T;
+}
+
+export function wheelWindow<T>(values: readonly T[], value: T | undefined): Array<T | undefined> {
+  if (value === undefined || !values.includes(value)) {
+    return [values[values.length - 2], values[values.length - 1], undefined, values[0], values[1]];
+  }
+  return [-2, -1, 0, 1, 2].map((offset) => nextWheelValue(values, value, offset));
+}
 
 export function displayLocale(): string {
   if (typeof document === "undefined") return "en-US";
   const lang = document.documentElement.lang;
   return lang === "pt-PT" || lang === "zh-Hant" ? lang : "en-US";
 }
-
-export type HourCycle = "12" | "24";
-export type DayPeriod = "AM" | "PM";
 
 function pad(value: number): string {
   return String(value).padStart(2, "0");
@@ -178,15 +219,13 @@ export function applyTime(dateValue: string, hours24: number, minutes: number): 
   );
 }
 
-export function splitTime(value: string | undefined): {
-  hours24: number;
-  hours12: number;
-  minutes: number;
-  period: DayPeriod;
-} {
+export function splitTime(value: string | undefined): TimeDraft {
   const date = value ? parseLocalDateTime(value) : null;
-  const hours24 = date?.getHours() ?? DEFAULT_HOUR;
-  const minutes = roundMinutes(date?.getMinutes() ?? DEFAULT_MINUTE);
+  if (!date) {
+    return blankTimeDraft();
+  }
+  const hours24 = date.getHours();
+  const minutes = roundMinutes(date.getMinutes());
   const period: DayPeriod = hours24 >= 12 ? "PM" : "AM";
   return {
     hours24,

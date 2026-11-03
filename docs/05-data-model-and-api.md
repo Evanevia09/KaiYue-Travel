@@ -86,7 +86,7 @@ Indexes: `(status, created_at)` and `created_at`.
 
 Creates a booking request. Returns `201` with `reference`, `status: "enquiry"`, `receivedAt`, and safe next-step text. WhatsApp submissions also receive a prefilled `whatsappUrl`; Email submissions trigger the configured Resend staff notification after persistence. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure. Hourly charter requires `durationHours` (2–12); the Worker prepends `Duration: N hours.` to stored notes.
 
-WhatsApp's optional “Your WhatsApp Number” and Email's optional phone share the `phone` payload and stored `phone`/`phone_display` columns. A supplied WhatsApp number appears in the prepared deep-link message; an empty one is omitted.
+WhatsApp's required “Your WhatsApp Number” and Email's optional phone share the `phone` payload and stored `phone`/`phone_display` columns. The WhatsApp number is required on that channel and appears in the prepared deep-link message.
 
 ### `POST /api/v1/contacts`
 

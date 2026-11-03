@@ -1,5 +1,36 @@
 # Promote staging to main — handover
 
+## 2026-11-03 — Booking UX promote (in progress)
+
+**Status:** promote-in-progress. Do **not** mark booking UX `released` until after `main` merge and live browser QA.  
+**Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
+**Promote branch:** `cursor/promote-booking-ux-to-main-25d7`  
+**PR into `main`:** https://github.com/Evanevia09/KaiYue-Travel/pull/24  
+**Staging tip:** `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23 squash-merge)  
+**Main tip merged in:** `96390fa27faefd6d1c1cc4435e74ff344b0ad218`  
+**Staging QA:** already **PASS**.  
+**Live browser QA:** still pending after merge.
+
+What this promote includes:
+
+- From `staging` (kept): mobile time picker (wheel scroll contained; blank `--:--` until both hour/minute chosen), WhatsApp required on WhatsApp channel, language switcher shows English / Português / 繁體中文 (PR #23).
+- From `main` (kept): released optional Macau tour-guide (#21 live, #22 released docs) and 包車接送 (#17).
+
+Unchanged on purpose:
+
+- No `wrangler deploy` from this task.
+- Production `/admin` and `/login` stay 403 until Cloudflare Access is configured.
+- Shared D1 `0008` already applied 2026-11-02 — not re-applied.
+- `wrangler.jsonc` D1/R2 bindings were not edited.
+
+Conflict files (manual, docs only): `HANDOVER.md`, `PROJECT-STATE.md`, `docs/06-booking-widget.md`, `docs/README.md`, `docs/handover/macau-tour-guide.md`. Product files auto-merged.
+
+Feature report: `docs/handover/booking-time-whatsapp-lang.md`.
+
+---
+
+## 2026-10-30 — Admin zh-Hant + 包車接送 (PR #17)
+
 **Date:** 2026-10-30  
 **Branch:** `cursor/promote-staging-to-main-3426` (based on `staging` `dbcdbb48`, merged `origin/main` `9157ea43`)  
 **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/17 into `main`  

@@ -192,7 +192,7 @@ function isSectionCurrent(item: (typeof nav)[number]) {
               </svg>
               {locale === "en" ? "EN" : locale === "pt" ? "PT" : "繁"}
             </summary>
-            <ul class="lang-switch__menu">
+            <ul class="lang-switch__menu" data-no-localize>
               <li>
                 <a
                   href={localePath(path, "en")}

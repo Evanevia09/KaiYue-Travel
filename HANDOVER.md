@@ -2,6 +2,23 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-03 — Promote booking UX to main (in progress)
+
+- **Branch:** `cursor/promote-booking-ux-to-main-25d7` (staging `3fb823629c1412007af40f40b32a4183b739e08b` + merge `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218`)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/24 into `main`
+- **Report:** `docs/handover/booking-time-whatsapp-lang.md` and `docs/handover/promote-staging-to-main.md`
+- **Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau
+- **Change:** Promote staging booking UX (PR #23: mobile time picker + required WhatsApp + language names) to live. Keep released tour-guide (#21/#22) and 包車接送 (#17). Staging alias already QA PASS. Live browser QA still pending after merge. Do not mark booking UX `released` until that live verify.
+- **Do not:** merge from this task; run `wrangler deploy`; weaken production `/admin` or `/login` 403; touch Cloudflare Access.
+
+## 2026-11-03 — Booking time picker, required WhatsApp, language labels
+
+- **Branch:** `cursor/booking-time-whatsapp-lang-d8c6`
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/23 (squash-merged to `staging` as `3fb823629c1412007af40f40b32a4183b739e08b`)
+- **Report:** `docs/handover/booking-time-whatsapp-lang.md`
+- **Change:** Mobile time wheels keep touch scroll inside the hour/minute columns; time starts blank (`--:--`) and must be chosen; WhatsApp number is required on client and server; language switcher shows English / Português / 繁體中文, not 聯合國 / 葡萄牙.
+- **Do not:** run `wrangler deploy`; weaken production `/admin` or `/api/auth` 403.
+
 ## 2026-11-03 — Tour-guide live verify (`released`)
 
 - **Live SHA:** `7c9ca1d5a308f810a485dcc8edc852aa90a128cb` (PR #21 squash-merge to `main`)
