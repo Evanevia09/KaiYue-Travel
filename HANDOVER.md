@@ -5,7 +5,7 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 ## 2026-11-03 — Promote optional Macau tour guide to main
 
 - **Branch:** `cursor/promote-tour-guide-main-71d8` (staging `a66caec8` + merge `origin/main` `9521609`)
-- **PR:** into `main` (PM merges; this agent does not)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/21 into `main` (PM merges; this agent does not)
 - **Report:** `docs/handover/promote-tour-guide-to-main.md`
 - **Change:** Promote staging tour-guide PRs #19 (`be455828`) and #20 (`a66caec8`) to live. Merge of `origin/main` had no file conflicts. Production admin/auth 403 gate and D1/R2 bindings unchanged.
 - **D1:** Shared `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`). Migration `0008` already applied 2026-11-02 — do not re-apply.

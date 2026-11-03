@@ -2,7 +2,8 @@
 
 **Date:** 2026-11-03  
 **Branch:** `cursor/promote-tour-guide-main-71d8` (based on `staging` `a66caec8e0f00afea79c821e1ac291f62679c978`, merged `origin/main` `952160998a5e658173712194c7e47b2032279978`)  
-**PR:** into `main` (see GitHub; do not merge from this agent)  
+**Tip:** `d7abff8e240834d60ad560eb8b871d709edc299c`  
+**PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/21 into `main` (PM merges; this agent does not)  
 **Owner request:** Evan (2026-11-03 Asia/Macau) — “can you make it live”.
 
 This increment makes the optional Macau tour-guide work mergeable to production. It does not invent a guide price, change production admin gates, or apply D1 migrations.
