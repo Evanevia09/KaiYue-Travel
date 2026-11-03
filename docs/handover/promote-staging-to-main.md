@@ -5,7 +5,7 @@
 **Status:** promote-in-progress. Do **not** mark booking UX `released` until after `main` merge and live browser QA.  
 **Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
 **Promote branch:** `cursor/promote-booking-ux-to-main-25d7`  
-**PR into `main`:** to be recorded after the promote PR is opened  
+**PR into `main`:** https://github.com/Evanevia09/KaiYue-Travel/pull/24  
 **Staging tip:** `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23 squash-merge)  
 **Main tip merged in:** `96390fa27faefd6d1c1cc4435e74ff344b0ad218`  
 **Staging QA:** already **PASS**.  

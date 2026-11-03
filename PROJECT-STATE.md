@@ -163,7 +163,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Booking UX promote (2026-11-03, in progress): Evan asked push live ~8:28 PM Asia/Macau. Staging tip `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23) already QA PASS. Promote branch `cursor/promote-booking-ux-to-main-25d7` merges `origin/main` `96390fa2` so live keeps released tour-guide + 包車接送 and gains the booking UX. After a human merges, live browser QA is still pending — do not mark booking UX `released` until that verify. Do not run `wrangler deploy`. Production `/admin` and `/login` stay 403 until Access.
+Booking UX promote (2026-11-03, in progress): Evan asked push live ~8:28 PM Asia/Macau. Staging tip `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23) already QA PASS. Promote PR https://github.com/Evanevia09/KaiYue-Travel/pull/24 from `cursor/promote-booking-ux-to-main-25d7` merges `origin/main` `96390fa2` so live keeps released tour-guide + 包車接送 and gains the booking UX. After a human merges, live browser QA is still pending — do not mark booking UX `released` until that verify. Do not run `wrangler deploy`. Production `/admin` and `/login` stay 403 until Access.
 
 Tour-guide live record (2026-11-03): `released` after PM browser QA on https://kaiyue-travel.scalingsmb.workers.dev (`7c9ca1d5a308f810a485dcc8edc852aa90a128cb`, PR #21). Do not re-apply `0008_booking_tour_guide.sql` (already on shared D1 `kaiyue-travel-staging` `069aa442-30c9-4454-ab3a-26eb372b3a1f` since 2026-11-02). Do not run `wrangler deploy` from an agent. Do not weaken production `/admin` or `/login` 403. Do not publish a tour-guide price. Cloudflare Access for production admin remains unconfigured.
 
@@ -190,7 +190,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Verification record
 
-2026-11-03 booking UX promote to main (in progress): Evan asked push live ~8:28 PM Asia/Macau. Staging tip `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23) QA PASS. Merged `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218` into staging-based `cursor/promote-booking-ux-to-main-25d7` so live keeps released tour-guide (#21/#22) + 包車接送 (#17) and gains the booking UX. Manual conflicts were docs-only. No `wrangler deploy`. Booking UX `released` is not established until after `main` merge and live browser QA.
+2026-11-03 booking UX promote to main (in progress): Evan asked push live ~8:28 PM Asia/Macau. Staging tip `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23) QA PASS. Promote PR https://github.com/Evanevia09/KaiYue-Travel/pull/24. Merged `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218` into staging-based `cursor/promote-booking-ux-to-main-25d7` so live keeps released tour-guide (#21/#22) + 包車接送 (#17) and gains the booking UX. Manual conflicts were docs-only. No `wrangler deploy`. Booking UX `released` is not established until after `main` merge and live browser QA.
 
 2026-11-03 booking time / WhatsApp / language labels: squash-merged to `staging` as `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23). Time wheels contain touch/wheel scroll; time starts blank (`--:--`); WhatsApp number is required on the shared schema; language menu keeps English / Português / 繁體中文. Tour-guide Yes/No and 包車接送 unchanged. Production admin 403 and `wrangler deploy` untouched. Staging alias QA PASS. Live `released` is not established.
 

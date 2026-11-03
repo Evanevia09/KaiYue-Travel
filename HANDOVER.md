@@ -5,7 +5,7 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 ## 2026-11-03 — Promote booking UX to main (in progress)
 
 - **Branch:** `cursor/promote-booking-ux-to-main-25d7` (staging `3fb823629c1412007af40f40b32a4183b739e08b` + merge `origin/main` `96390fa27faefd6d1c1cc4435e74ff344b0ad218`)
-- **PR:** to be opened into `main` from this promote branch (number recorded after open)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/24 into `main`
 - **Report:** `docs/handover/booking-time-whatsapp-lang.md` and `docs/handover/promote-staging-to-main.md`
 - **Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau
 - **Change:** Promote staging booking UX (PR #23: mobile time picker + required WhatsApp + language names) to live. Keep released tour-guide (#21/#22) and 包車接送 (#17). Staging alias already QA PASS. Live browser QA still pending after merge. Do not mark booking UX `released` until that live verify.
