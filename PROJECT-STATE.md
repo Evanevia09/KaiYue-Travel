@@ -188,7 +188,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Verification record
 
-2026-11-03 booking time / WhatsApp / language labels: staging-only increment. Time wheels contain touch/wheel scroll; time starts blank (`--:--`); WhatsApp number is required on the shared schema; language menu keeps English / Português / 繁體中文. Tour-guide Yes/No and 包車接送 unchanged. Production admin 403 and `wrangler deploy` untouched. `user_accepted` and `released` are not established.
+2026-11-03 booking time / WhatsApp / language labels: staging-only increment on PR https://github.com/Evanevia09/KaiYue-Travel/pull/23. Time wheels contain touch/wheel scroll; time starts blank (`--:--`); WhatsApp number is required on the shared schema; language menu keeps English / Português / 繁體中文. Tour-guide Yes/No and 包車接送 unchanged. Production admin 403 and `wrangler deploy` untouched. `user_accepted` and `released` are not established.
 
 2026-11-02 optional Macau tour guide: squash-merged to `staging` as `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (PR 19; Mika staging-only approval). Remote staging D1 `0008` applied 2026-11-02 11:41:12 UTC (`bookings.tour_guide_requested` INTEGER; `d1_migrations` row recorded). Additive `tour_guide_requested` on bookings; half-day/full-day step 2 asks yes/no and hides luggage; Home, City Tours, package pages, and About mention the optional Macau-only add-on with quote-later wording. No published guide price. Production/`main` untouched. No wrangler deploy. `user_accepted` and `released` are not established.
 
@@ -221,7 +221,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Change log
 
-### 2026-11-03 — Mobile time picker, required WhatsApp, language names (staging PR)
+### 2026-11-03 — Mobile time picker, required WhatsApp, language names (staging PR 23)
 
 - Changed: booking `TimeWheel` now contains touch/wheel gestures so hour and minute lists do not scroll the page; time starts blank (`--:--`) until both values are chosen; WhatsApp number is required in the shared client/server schema; public language-switcher labels stay language names and no longer use the zh-Hant 聯合國 / 葡萄牙 mappings.
 - Decision/evidence: Evan, 2026-11-03 Asia/Macau — mobile time-column scroll, blank default time, required WhatsApp, and screenshot of the zh-Hant language menu.
