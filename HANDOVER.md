@@ -2,14 +2,23 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-03 — Tour-guide live verify (`released`)
+
+- **Live SHA:** `7c9ca1d5a308f810a485dcc8edc852aa90a128cb` (PR #21 squash-merge to `main`)
+- **Host:** https://kaiyue-travel.scalingsmb.workers.dev
+- **Report:** `docs/handover/promote-tour-guide-to-main.md`
+- **Change:** Docs-only record. Workers Builds succeeded on `7c9ca1d`. PM browser QA **PASS**: Home/City Tours/half-day optional guide wording; half-day step 2 Yes/No hides luggage; point-to-point restores luggage; zh-Hant 包車接送 and 導遊; production `/admin` and `/login` still 403 JSON; home console 0 red errors.
+- **D1:** Shared `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`). Migration `0008` already applied 2026-11-02 — not re-applied.
+- **Do not:** run `wrangler deploy` from an agent; weaken `/admin` or `/login` 403; invent a guide price; re-apply `0008`.
+
 ## 2026-11-03 — Promote optional Macau tour guide to main
 
 - **Branch:** `cursor/promote-tour-guide-main-71d8` (staging `a66caec8` + merge `origin/main` `9521609`)
-- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/21 into `main` (PM merges; this agent does not)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/21 into `main` (squash-merged as `7c9ca1d5a308f810a485dcc8edc852aa90a128cb`)
 - **Report:** `docs/handover/promote-tour-guide-to-main.md`
 - **Change:** Promote staging tour-guide PRs #19 (`be455828`) and #20 (`a66caec8`) to live. Merge of `origin/main` had no file conflicts. Production admin/auth 403 gate and D1/R2 bindings unchanged.
 - **D1:** Shared `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`). Migration `0008` already applied 2026-11-02 — do not re-apply.
-- **Do not:** run `wrangler deploy` (Workers Builds should deploy from `main` after merge); weaken `/admin` or `/login` 403; invent a guide price.
+- **Do not:** run `wrangler deploy` from an agent; weaken `/admin` or `/login` 403; invent a guide price.
 
 ## 2026-10-30 — Promote staging to main
 
