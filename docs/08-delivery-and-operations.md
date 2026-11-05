@@ -100,3 +100,15 @@ Scrub request bodies and query strings. Do not log names, contact details, full 
 - Privacy request and approved retention/deletion procedure.
 
 
+
+## Staging account migration
+
+The 2026-11-05 migration targets the separate Kai Yue Cloudflare account. Use the reviewed staging revision and an account-specific Worker and storage configuration. The current `main` and `staging` root configs share the legacy D1 and R2 identifiers, and the live Workers deployment is documented as using that D1. Treat both legacy stores as potentially containing live data.
+
+1. In an authenticated session, verify both account names and IDs, the legacy Worker's deployment revision, routes, bindings, Workers Builds settings, and runtime secret names. Confirm the target workers.dev subdomain, existing resources, and Zero Trust availability. Keep the legacy Worker and build connection serving during verification.
+2. Provision a fresh D1 and private R2 in the target account within the approved plan. Apply migrations `0001`–`0008` to the new database and verify the migration list. Start with synthetic fixtures. Any transfer of legacy rows or offer objects requires review of the exact data subset, permissions, and destination. Offer images referenced by D1 need corresponding R2 keys and metadata.
+3. Update a staging-only deployment configuration with the verified Worker name, target D1 ID, R2 bucket, and target URL. Build from the repository root and set `PUBLIC_SITE_URL` at build time for Astro as well as in runtime configuration. Verify the generated Worker entry and assets paths. Keep admin fail-closed until the target Access application, team domain, audience and approved principals are reviewed and verified. Leave Resend unconfigured for synthetic verification, then use separate staging credentials and approved test recipients if delivery testing is needed.
+4. Use Workers Builds with `staging` as the deployment branch for this staging Worker. Keep other branch builds disabled initially, especially `main`. Verify repository access, root directory, build and deployment commands, and runtime bindings before enabling the trigger. The fetched checkout has Wrangler 4.132.0 locally. If using the current Worker Previews workflow later, verify the lockfile version meets Cloudflare's 4.135.0 minimum and configure preview-specific resources.
+5. Verify the deployed revision and staging URL, localized public routes, canonical metadata, booking and contact persistence and replay behavior with synthetic submissions, R2 image behavior, and admin denial. After Access review, verify an approved identity can sign in and an unapproved identity is denied. Switch staging review links after these checks. Keep the legacy service available and handle retirement separately because it serves the published site.
+
+Cloudflare references include [D1 import and export](https://developers.cloudflare.com/d1/best-practices/import-export-data/), [Workers Builds branch settings](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/), and [Worker Previews](https://developers.cloudflare.com/workers/previews/).
