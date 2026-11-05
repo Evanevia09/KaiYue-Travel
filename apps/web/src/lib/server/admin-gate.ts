@@ -5,7 +5,10 @@ const LIVE_ADMIN_PATHS = ["/admin", "/api/admin", "/api/v1/admin"];
 
 export const ACCESS_ADMIN_HOST = "admin.kaiyuemacau.com";
 
-export const PRODUCTION_HOSTS = ["kaiyue-travel.scalingsmb.workers.dev"];
+export const PRODUCTION_HOSTS = [
+  "kaiyue-travel.scalingsmb.workers.dev",
+  "kaiyue-travel-staging.kai-yue.workers.dev",
+];
 
 export function requestHost(request: Request): string {
   return new URL(request.url).hostname.toLowerCase();
