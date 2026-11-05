@@ -1,14 +1,9 @@
 import { AppError } from "@kaiyue/contracts";
 import type { AppEnv } from "./env.ts";
 
-const LIVE_ADMIN_PATHS = [
-  "/admin",
-  "/login",
-  "/setup-admin",
-  "/api/admin",
-  "/api/v1/admin",
-  "/api/auth",
-];
+const LIVE_ADMIN_PATHS = ["/admin", "/api/admin", "/api/v1/admin"];
+
+export const ACCESS_ADMIN_HOST = "admin.kaiyuemacau.com";
 
 export const PRODUCTION_HOSTS = ["kaiyue-travel.scalingsmb.workers.dev"];
 
@@ -34,7 +29,7 @@ export function isPreviewRuntime(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
   request?: Request,
 ): boolean {
-  if (request && isProductionHost(request)) {
+  if (request && (isProductionHost(request) || requestHost(request) === ACCESS_ADMIN_HOST)) {
     return false;
   }
   if ((env.ENVIRONMENT ?? "").trim().toLowerCase() === "preview") {
@@ -52,8 +47,9 @@ export function accessConfigured(env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCES
 }
 
 export function isProtectedAdminPath(pathname: string): boolean {
-  return LIVE_ADMIN_PATHS.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  return (
+    passwordAdminPath(pathname) ||
+    LIVE_ADMIN_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
   );
 }
 
@@ -61,15 +57,30 @@ export function passwordAdminAllowed(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
   request: Request,
 ): boolean {
+  if (requestHost(request) === ACCESS_ADMIN_HOST) {
+    return false;
+  }
   if (isLocalRuntime(env)) {
     return true;
   }
   return isPreviewRuntime(env, request);
 }
 
+function passwordAdminPath(pathname: string): boolean {
+  return ["/login", "/setup-admin", "/api/auth"].some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: Request): void {
   if (!isProtectedAdminPath(pathname)) {
     return;
+  }
+  if (requestHost(request) === ACCESS_ADMIN_HOST) {
+    if (accessConfigured(env) && !passwordAdminPath(pathname)) {
+      return;
+    }
+    throw new AppError("FORBIDDEN", "Admin access is not configured.");
   }
   if (isLocalRuntime(env)) {
     return;

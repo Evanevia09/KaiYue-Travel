@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ACCESS_ADMIN_HOST } from "../lib/server/admin-gate.ts";
 import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SignOutButton } from "../components/admin/SignOutButton.tsx";
 import {
@@ -21,6 +22,7 @@ type Props = {
 const locale = Astro.props.locale ?? adminLocaleFromCookies(Astro.cookies);
 const title = t(locale, Astro.props.titleKey, Astro.props.titleVars);
 const path = Astro.url.pathname;
+const usesAccess = Astro.url.hostname === ACCESS_ADMIN_HOST;
 const links: Array<{ href: string; key: AdminMessageKey }> = [
   { href: "/admin", key: "nav.dashboard" },
   { href: "/admin/bookings", key: "nav.bookings" },
@@ -88,8 +90,18 @@ const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
             class="admin-topbar__actions"
           >
             <AdminLocaleSwitch client:load locale={locale} />
-            <a class="btn btn--secondary" href="/">{t(locale, "topbar.viewWebsite")}</a
-            ><SignOutButton client:load locale={locale} />
+            <a class="btn btn--secondary" href={usesAccess ? "https://kaiyuemacau.com/" : "/"}
+              >{t(locale, "topbar.viewWebsite")}</a
+            >
+            {
+              usesAccess ? (
+                <a class="btn btn--secondary" href="/cdn-cgi/access/logout">
+                  {t(locale, "signOut")}
+                </a>
+              ) : (
+                <SignOutButton client:load locale={locale} />
+              )
+            }
           </div>
         </header>
         <slot />
