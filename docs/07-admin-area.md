@@ -2,11 +2,19 @@
 
 ## Goal and access
 
-The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*`. The current local development alternative uses Better Auth email/password sessions in D1, with an explicit `ADMIN_EMAILS` allowlist. Admin UI pages and API handlers both require a valid identity. Production access policy and operator provisioning still require owner review.
+The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*` and for `admin.kaiyuemacau.com`. Admin UI pages and API handlers both require a valid identity.
+
+Temporary Better Auth email/password sessions are an explicit, time-bounded alternative:
+
+- Allowlist `ADMIN_EMAILS` and a future `TEMP_ADMIN_EXPIRES_AT` are both required outside local development.
+- Signup/`/setup-admin` stay local-development only. `DEV_ADMIN_BYPASS` is ignored outside `ENVIRONMENT=development`.
+- Staging (`kaiyue-travel-staging.kai-yue.workers.dev`) may use this path for testing.
+- Production public hosts stay fail-closed unless those two vars are set and Access is not configured. Setting Cloudflare Access vars disables password admin so the site can return to Access without a code change.
+- `admin.kaiyuemacau.com` never accepts password login.
 
 Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up.
 
-Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. `TEMP_ADMIN_EXPIRES_AT` can close temporary local dashboard access at a fixed timestamp without deleting records or changing the secret. This does not provision a production operator or replace Cloudflare Access.
+Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. Expiry closes temporary password access without deleting records or rotating `BETTER_AUTH_SECRET`. This does not replace Cloudflare Access.
 
 ## Navigation
 

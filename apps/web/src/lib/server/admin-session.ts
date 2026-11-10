@@ -1,6 +1,9 @@
 import { AppError } from "@kaiyue/contracts";
 import { betterAuth } from "better-auth";
+import { isLocalAdminSurface, isLocalRuntime } from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
+
+export const MIN_ADMIN_PASSWORD_LENGTH = 16;
 
 export function allowedAdminEmails(env: AppEnv): Set<string> {
   return new Set(
@@ -22,18 +25,32 @@ export function createAdminSessionAuth(env: AppEnv, allowSignup = false, request
   if (configured) {
     trustedOrigins.add(new URL(configured).origin);
   }
+  const local = request ? isLocalAdminSurface(env, request) : isLocalRuntime(env);
   return betterAuth({
     database: env.DB,
     secret,
     baseURL,
     trustedOrigins: [...trustedOrigins],
-    emailAndPassword: { enabled: true, disableSignUp: !allowSignup, minPasswordLength: 12 },
+    emailAndPassword: {
+      enabled: true,
+      disableSignUp: !allowSignup,
+      minPasswordLength: MIN_ADMIN_PASSWORD_LENGTH,
+    },
     session: {
       expiresIn: 60 * 60 * 8,
       updateAge: 60 * 60,
       // Preview admin POSTs were spending most of their 5 s on sequential Better Auth
       // D1 session reads. A short signed cookie cache skips those round trips.
       cookieCache: { enabled: true, maxAge: 60 },
+    },
+    advanced: {
+      useSecureCookies: !local,
+      defaultCookieAttributes: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: !local,
+        path: "/",
+      },
     },
   });
 }

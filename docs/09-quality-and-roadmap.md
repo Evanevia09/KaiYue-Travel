@@ -31,7 +31,7 @@ Proposed launch budgets, measured on representative mobile conditions:
 - Same-origin APIs, restrictive CORS, secure headers/CSP, HTTPS, and no secrets in browser code.
 - Rate limiting and anti-automation tuned for public forms; do not rely on a CAPTCHA alone.
 - Idempotency prevents duplicate submission effects.
-- Cloudflare Access plus API-side token/claim verification for every admin route.
+- Cloudflare Access plus API-side token/claim verification for every admin route. Temporary password admin is allowlist- and expiry-gated and does not replace Access.
 - Least-privilege bindings, recipient lists, repository permissions, and staff access.
 - Dependency/update scanning and secret scanning in GitHub; pin the lockfile.
 - Collect only required personal data; approve purpose, retention, access, deletion, and incident processes before launch.

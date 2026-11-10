@@ -17,6 +17,18 @@ export function LoginForm({ locale }: { locale: AdminLocale }) {
           .email({ email: String(form.get("email")), password: String(form.get("password")) })
           .then(({ error }) => {
             if (error) {
+              if (error.status === 429) {
+                setError(t(locale, "login.errorRateLimited"));
+                return;
+              }
+              if (error.message?.toLowerCase().includes("expired")) {
+                setError(t(locale, "login.errorExpired"));
+                return;
+              }
+              if (error.status === 403) {
+                setError(t(locale, "login.errorUnavailable"));
+                return;
+              }
               setError(t(locale, "login.errorCredentials"));
               return;
             }
@@ -32,7 +44,13 @@ export function LoginForm({ locale }: { locale: AdminLocale }) {
       </label>
       <label className="field">
         {t(locale, "login.password")}
-        <input name="password" type="password" autoComplete="current-password" required />
+        <input
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          minLength={16}
+          required
+        />
       </label>
       {error && (
         <p role="alert" className="admin-feedback admin-feedback--error">

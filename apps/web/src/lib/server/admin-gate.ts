@@ -1,23 +1,39 @@
 import { AppError } from "@kaiyue/contracts";
 import type { AppEnv } from "./env.ts";
 
-const LIVE_ADMIN_PATHS = [
-  "/admin",
-  "/login",
-  "/setup-admin",
-  "/api/admin",
-  "/api/v1/admin",
-  "/api/auth",
-];
+const LIVE_ADMIN_PATHS = ["/admin", "/api/admin", "/api/v1/admin"];
+const PASSWORD_ADMIN_PATHS = ["/login", "/setup-admin", "/api/auth"];
 
-export const PRODUCTION_HOSTS = ["kaiyue-travel.scalingsmb.workers.dev"];
+export const ACCESS_ADMIN_HOST = "admin.kaiyuemacau.com";
+export const CANONICAL_PUBLIC_ORIGIN = "https://kaiyuemacau.com";
+
+/**
+ * Public production hostnames. Password admin is fail-closed here unless
+ * Access is unset and a future TEMP_ADMIN_EXPIRES_AT + ADMIN_EMAILS pair is
+ * explicitly configured. The staging workers.dev host must not appear here.
+ */
+export const PRODUCTION_HOSTS = [
+  "kaiyuemacau.com",
+  "www.kaiyuemacau.com",
+  "kaiyue-travel.scalingsmb.workers.dev",
+] as const;
+
+export const STAGING_HOSTS = ["kaiyue-travel-staging.kai-yue.workers.dev"] as const;
 
 export function requestHost(request: Request): string {
   return new URL(request.url).hostname.toLowerCase();
 }
 
+export function isAccessAdminHost(request: Request): boolean {
+  return requestHost(request) === ACCESS_ADMIN_HOST;
+}
+
 export function isProductionHost(request: Request): boolean {
-  return PRODUCTION_HOSTS.includes(requestHost(request));
+  return (PRODUCTION_HOSTS as readonly string[]).includes(requestHost(request));
+}
+
+export function isStagingHost(request: Request): boolean {
+  return (STAGING_HOSTS as readonly string[]).includes(requestHost(request));
 }
 
 export function isLocalRuntime(env: Pick<AppEnv, "ENVIRONMENT" | "ENV">): boolean {
@@ -34,52 +50,117 @@ export function isPreviewRuntime(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
   request?: Request,
 ): boolean {
-  if (request && isProductionHost(request)) {
+  if (request && (isProductionHost(request) || isAccessAdminHost(request))) {
     return false;
   }
   if ((env.ENVIRONMENT ?? "").trim().toLowerCase() === "preview") {
     return true;
   }
+  if (request && isStagingHost(request)) {
+    return true;
+  }
+  if ((env.ENVIRONMENT ?? "").trim().toLowerCase() === "production") {
+    return false;
+  }
   if (!request) {
     return false;
   }
   const host = requestHost(request);
-  return host.endsWith(".workers.dev") && !PRODUCTION_HOSTS.includes(host);
+  return host.endsWith(".workers.dev") && !(PRODUCTION_HOSTS as readonly string[]).includes(host);
+}
+
+export function isLocalAdminSurface(
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+  request: Request,
+): boolean {
+  if (isProductionHost(request) || isAccessAdminHost(request) || isStagingHost(request)) {
+    return false;
+  }
+  return isLocalRuntime(env);
 }
 
 export function accessConfigured(env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">): boolean {
   return Boolean(env.ACCESS_TEAM_DOMAIN?.trim() && env.ACCESS_AUD?.trim());
 }
 
-export function isProtectedAdminPath(pathname: string): boolean {
-  return LIVE_ADMIN_PATHS.some(
+export function passwordAdminPath(pathname: string): boolean {
+  return PASSWORD_ADMIN_PATHS.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }
 
+export function isProtectedAdminPath(pathname: string): boolean {
+  return (
+    passwordAdminPath(pathname) ||
+    LIVE_ADMIN_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+  );
+}
+
+export function temporaryPasswordConfigured(
+  env: Pick<AppEnv, "ADMIN_EMAILS" | "TEMP_ADMIN_EXPIRES_AT">,
+): boolean {
+  const hasAllowlist = (env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim())
+    .some(Boolean);
+  if (!hasAllowlist) {
+    return false;
+  }
+  const raw = env.TEMP_ADMIN_EXPIRES_AT?.trim();
+  if (!raw) {
+    return false;
+  }
+  const expiresAt = Date.parse(raw);
+  return Number.isFinite(expiresAt) && Date.now() < expiresAt;
+}
+
 export function passwordAdminAllowed(
-  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+  env: Pick<
+    AppEnv,
+    | "ENVIRONMENT"
+    | "ENV"
+    | "ADMIN_EMAILS"
+    | "TEMP_ADMIN_EXPIRES_AT"
+    | "ACCESS_TEAM_DOMAIN"
+    | "ACCESS_AUD"
+  >,
   request: Request,
 ): boolean {
-  if (isLocalRuntime(env)) {
+  if (isAccessAdminHost(request)) {
+    return false;
+  }
+  if (isProductionHost(request)) {
+    return !accessConfigured(env) && temporaryPasswordConfigured(env);
+  }
+  if (isLocalAdminSurface(env, request)) {
     return true;
   }
-  return isPreviewRuntime(env, request);
+  if (!temporaryPasswordConfigured(env)) {
+    return false;
+  }
+  return isPreviewRuntime(env, request) || isStagingHost(request);
 }
 
 export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: Request): void {
   if (!isProtectedAdminPath(pathname)) {
     return;
   }
-  if (isLocalRuntime(env)) {
-    return;
-  }
-  if (isProductionHost(request) || !isPreviewRuntime(env, request)) {
+  if (isAccessAdminHost(request)) {
+    if (accessConfigured(env) && !passwordAdminPath(pathname)) {
+      return;
+    }
     throw new AppError("FORBIDDEN", "Admin access is not configured.");
   }
-  if (pathname === "/setup-admin") {
-    throw new AppError("FORBIDDEN", "Operator setup is disabled on preview.");
+  if (isLocalAdminSurface(env, request)) {
+    return;
   }
+  if (passwordAdminAllowed(env, request)) {
+    if (pathname === "/setup-admin") {
+      throw new AppError("FORBIDDEN", "Operator setup is disabled.");
+    }
+    return;
+  }
+  throw new AppError("FORBIDDEN", "Admin access is not configured.");
 }
 
 export function forbiddenResponse(message = "Admin access is not configured."): Response {
