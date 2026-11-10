@@ -54,7 +54,7 @@ Every HTML-referenced `/_astro/*` file is the same set on production, www, and s
 
 No live-only public JS/CSS. No content-diff public islands. Sampled `/images` on earlier routes still MATCH git `apps/web/public`.
 
-Admin-only dist islands are **not** on live public HTML. `LoginForm.DI7HqLqN.js` 404s on production (expected: `/login` is 403 today; this branch changes that module). `api._aekQyCR.js` (admin fetch helper) 404s on production.
+Admin-only dist islands are **not** on live public HTML. `LoginForm.DI7HqLqN.js` 404s on production (expected: `/login` is 403 today; this branch changes that module). `api._aekQyCR.js` (admin fetch helper) 404s on production **and staging**. `keep_assets:true` will **not** install those hashes. Staging PUT of `68f751b` must upload 14 new `/_astro` files first (list in `artifacts/kaiyue-staging-worker-68f751b.zip` → `FINAL-REPORT.md` / `new-assets-required/NEW_ASSETS.json`).
 
 ### Server `entry.js` module boundaries vs this build
 
@@ -78,9 +78,11 @@ Unexplained public client/server behaviour: **none identified**. Full compiled W
 
 ## GitHub Actions / Workers Builds (2026-11-10)
 
-PR CI run [`42858489938`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42858489938) on `fce3a66`: **success**, 2026-11-10 16:49–16:50 UTC (00:49–00:50 Asia/Macau). Job `check`: typecheck 0 errors, **131/131** tests, lint, build. No retry or `workflow_dispatch` needed. Later heads will queue a new `pull_request` synchronize run; do not dispatch from this agent.
+PR CI run [`42858489938`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42858489938) on `fce3a66`: **success**, 2026-11-10 16:49–16:50 UTC (00:49–00:50 Asia/Macau). Job `check`: typecheck 0 errors, **131/131** tests, lint, build.
 
-Cloudflare **Workers Builds: kaiyue-travel** auto-ran on this PR and **failed closed** (`c78b97ba-0566-48c9-a6db-d892dc6c6670`). That path is a **production** version upload. **Do not retry.** Production Worker version is unchanged. Any later upload is `--env staging` only after PM approval.
+PR CI run [`42860835220`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42860835220) on `68f751b`: **failure** at lint. Prettier `--check` rejected generated `artifacts/kaiyue-provision-admin-local/provision-admin.mjs` and `artifacts/parity-nov5/manifest.json`; typecheck/test/build were skipped. Fix: precise `.prettierignore` for those generated dumps and `artifacts/*.zip` only (source under `scripts/` remains checked). Provisioner zip bytes/behaviour were **not** changed; PM already started that independently reviewed server.
+
+Cloudflare **Workers Builds: kaiyue-travel** auto-ran on this PR and **failed closed** (`c78b97ba-0566-48c9-a6db-d892dc6c6670`). That path is a **production** version upload. **Do not retry.** Production Worker version is unchanged. Staging trial of `68f751b` is authorized by independent review. Production temporary-login capability is already approved (t73/t74) for configuration after staging persists.
 
 ## Verification (this increment)
 
