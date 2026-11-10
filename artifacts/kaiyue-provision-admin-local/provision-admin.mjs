@@ -225,7 +225,12 @@ function createProvisionServer({ hashPassword: hashPassword2, port: port2 = 8789
         body = await readLimitedBody(request, MAX_BODY_BYTES);
       } catch (error) {
         if (error && error.code === "PAYLOAD_TOO_LARGE") {
-          send(response, 413, { "content-type": "text/plain; charset=utf-8" }, "Payload too large.");
+          send(
+            response,
+            413,
+            { "content-type": "text/plain; charset=utf-8" },
+            "Payload too large."
+          );
           request.destroy();
           return;
         }
