@@ -38,10 +38,6 @@ async function hashPassword(password) {
 // node_modules/.pnpm/better-auth@1.7.5_react-dom@19.3.0_react@19.3.0__react@19.3.0_vitest@3.2.7_@types+node@_bba388395da60206e269ea0f34243af6/node_modules/better-auth/dist/crypto/password.mjs
 var hashPassword$1 = hashPassword;
 
-// scripts/lib/provision-admin-server.mjs
-import { randomBytes as randomBytes2 } from "node:crypto";
-import http from "node:http";
-
 // scripts/lib/admin-seed-sql.mjs
 function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
@@ -90,18 +86,59 @@ WHERE NOT EXISTS (
 `;
 }
 
-// scripts/lib/provision-admin-server.mjs
+// scripts/lib/provision-admin-from-env.mjs
 var MIN_PASSWORD = 16;
+function readSeedEnv(env = process.env) {
+  return {
+    email: env.ADMIN_SEED_EMAIL?.trim().toLowerCase() ?? "",
+    password: env.ADMIN_SEED_PASSWORD ?? "",
+    name: env.ADMIN_SEED_NAME?.trim() || "Temporary staff operator",
+    userId: env.ADMIN_SEED_USER_ID?.trim() || crypto.randomUUID(),
+    accountId: env.ADMIN_SEED_ACCOUNT_ID?.trim() || crypto.randomUUID()
+  };
+}
+function seedEnvPresent(env = process.env) {
+  return Boolean(env.ADMIN_SEED_EMAIL && env.ADMIN_SEED_PASSWORD);
+}
+async function sqlFromSeedEnv({
+  hashPassword: hashPassword2,
+  env = process.env,
+  now = (/* @__PURE__ */ new Date()).toISOString()
+}) {
+  const seed = readSeedEnv(env);
+  if (!seed.email) {
+    throw Object.assign(new Error("Set ADMIN_SEED_EMAIL."), { code: "MISSING_EMAIL" });
+  }
+  if (seed.password.length < MIN_PASSWORD) {
+    throw Object.assign(new Error("ADMIN_SEED_PASSWORD must be at least 16 characters."), {
+      code: "PASSWORD_TOO_SHORT"
+    });
+  }
+  const passwordHash = await hashPassword2(seed.password);
+  return buildAdminCredentialSql({
+    email: seed.email,
+    name: seed.name,
+    passwordHash,
+    now,
+    userId: seed.userId,
+    accountId: seed.accountId
+  });
+}
+
+// scripts/lib/provision-admin-server.mjs
+import { randomBytes as randomBytes2 } from "node:crypto";
+import http from "node:http";
+var MIN_PASSWORD2 = 16;
 var MAX_BODY_BYTES = 8192;
 var CSRF_COOKIE = "kaiyue_provision_csrf";
 function loopbackAddress(address) {
   return address === "127.0.0.1" || address === "::1" || address === ":ffff:127.0.0.1";
 }
-function allowedHosts(port2) {
-  return /* @__PURE__ */ new Set([`127.0.0.1:${port2}`, `localhost:${port2}`]);
+function allowedHosts(port) {
+  return /* @__PURE__ */ new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
 }
-function allowedOrigins(port2) {
-  return /* @__PURE__ */ new Set([`http://127.0.0.1:${port2}`, `http://localhost:${port2}`]);
+function allowedOrigins(port) {
+  return /* @__PURE__ */ new Set([`http://127.0.0.1:${port}`, `http://localhost:${port}`]);
 }
 function securityHeaders(extra = {}) {
   return {
@@ -183,18 +220,18 @@ function send(response, status, headers, body) {
   response.writeHead(status, { ...securityHeaders(), ...headers });
   response.end(body);
 }
-function createProvisionServer({ hashPassword: hashPassword2, port: port2 = 8789, host = "127.0.0.1" }) {
+function createProvisionServer({ hashPassword: hashPassword2, port = 8789, host = "127.0.0.1" }) {
   if (host !== "127.0.0.1") {
     throw new Error("Provision server must bind 127.0.0.1.");
   }
-  const server2 = http.createServer(async (request, response) => {
+  const server = http.createServer(async (request, response) => {
     const remote = request.socket.remoteAddress ?? "";
     if (!loopbackAddress(remote)) {
       send(response, 403, { "content-type": "text/plain; charset=utf-8" }, "Loopback only.");
       return;
     }
-    const address = server2.address();
-    const boundPort = typeof address === "object" && address ? address.port : port2;
+    const address = server.address();
+    const boundPort = typeof address === "object" && address ? address.port : port;
     const hostHeader = (request.headers.host ?? "").toLowerCase();
     if (!allowedHosts(boundPort).has(hostHeader)) {
       send(response, 403, { "content-type": "text/plain; charset=utf-8" }, "Invalid Host.");
@@ -243,7 +280,7 @@ function createProvisionServer({ hashPassword: hashPassword2, port: port2 = 8789
         send(response, 403, { "content-type": "text/plain; charset=utf-8" }, "Invalid CSRF token.");
         return;
       }
-      if (!form.email || form.password.length < MIN_PASSWORD) {
+      if (!form.email || form.password.length < MIN_PASSWORD2) {
         send(
           response,
           400,
@@ -278,27 +315,44 @@ function createProvisionServer({ hashPassword: hashPassword2, port: port2 = 8789
     }
     send(response, 404, { "content-type": "text/plain; charset=utf-8" }, "Not found.");
   });
-  return server2;
+  return server;
 }
-function listenProvisionServer(server2, { port: port2 = 8789, host = "127.0.0.1" } = {}) {
+function listenProvisionServer(server, { port = 8789, host = "127.0.0.1" } = {}) {
   return new Promise((resolve, reject) => {
-    server2.once("error", reject);
-    server2.listen(port2, host, () => {
-      const address = server2.address();
-      const boundPort = typeof address === "object" && address ? address.port : port2;
+    server.once("error", reject);
+    server.listen(port, host, () => {
+      const address = server.address();
+      const boundPort = typeof address === "object" && address ? address.port : port;
       resolve({ host, port: boundPort });
     });
   });
 }
 
 // scripts/provision-admin-local.mjs
-var HOST = "127.0.0.1";
-var PORT = Number(process.env.ADMIN_PROVISION_PORT || 8789);
-var server = createProvisionServer({ hashPassword: hashPassword$1, port: PORT, host: HOST });
-var { port } = await listenProvisionServer(server, { port: PORT, host: HOST });
-process.stdout.write(
-  `Loopback admin hash form: http://${HOST}:${port}/
+if (seedEnvPresent()) {
+  try {
+    const sql = await sqlFromSeedEnv({ hashPassword: hashPassword$1 });
+    process.stdout.write(sql);
+  } catch (error) {
+    const code = error && error.code;
+    if (code === "MISSING_EMAIL" || code === "PASSWORD_TOO_SHORT") {
+      process.stderr.write(`${error.message}
+`);
+      process.exit(1);
+    }
+    process.stderr.write("Hash failed.\n");
+    process.exit(1);
+  }
+} else {
+  const HOST = "127.0.0.1";
+  const PORT = Number(process.env.ADMIN_PROVISION_PORT || 8789);
+  const server = createProvisionServer({ hashPassword: hashPassword$1, port: PORT, host: HOST });
+  const { port } = await listenProvisionServer(server, { port: PORT, host: HOST });
+  process.stdout.write(
+    `Loopback admin hash form: http://${HOST}:${port}/
 Fill from the vault browser extension. SQL downloads; nothing is logged.
+Or set ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD in this process to hash without a listener.
 Stop with Ctrl+C.
 `
-);
+  );
+}

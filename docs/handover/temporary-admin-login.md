@@ -35,7 +35,7 @@ Vault can generate a password and fill a browser password field. It cannot shell
 Viable path (no public signup, no development mode on a public host):
 
 1. Generate a password (≥16) in the vault. Do not paste it into chat, git, CI logs, or screenshots.
-2. On a trusted machine **without a repo checkout**, copy `artifacts/kaiyue-provision-admin-local.zip` (also `/opt/cursor/artifacts/kaiyue-provision-admin-local.zip`). `unzip` and `node provision-admin.mjs`. With a checkout, `node scripts/provision-admin-local.mjs` is the same server. Open `http://127.0.0.1:8789/`. The listener binds `127.0.0.1` only (Host/Origin allowlist, CSRF cookie, CSP/`X-Frame-Options`, 8 KiB body cap). Hasher is bundled Better Auth 1.7.5 `password.node.mjs` scrypt (N=16384 r=16 p=1 dkLen=64) — the same export the Worker uses. No secrets and no generated passwords in the zip. **PM already started this independently reviewed server; do not rebuild or reformat that zip.** `.prettierignore` skips the generated dump so CI cannot rewrite it.
+2. Hash without exposing a listener when `ADMIN_SEED_EMAIL` and `ADMIN_SEED_PASSWORD` are already in the PM process environment (vault cannot shell-export; a masked Cursor secret request may populate the env). Standalone zip: `ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… node provision-admin.mjs > seed-admin.sql`. With a checkout, the same env on `node scripts/provision-admin-local.mjs` or `node scripts/seed-preview-test-admin.mjs`. **Do not tunnel, proxy, or change the browser to reach 127.0.0.1.** Default `node provision-admin.mjs` with those env vars unset still binds 127.0.0.1 only. Hasher is Better Auth 1.7.5 scrypt. Nothing logs the password. **This rebuilds the standalone zip** so env hashing works without HTTP; previous zip bytes are superseded. `.prettierignore` still skips the generated dump.
 3. Fill email + password from the vault browser extension. Submit. The page hashes locally and downloads SQL. The process does not log the password.
 4. Confirm the SQL file has no raw password (hash only) and uses `WHERE NOT EXISTS` on email (safe to re-apply).
 5. Apply that SQL to the **intended** D1 only:
@@ -49,26 +49,15 @@ After Access is live: let `TEMP_ADMIN_EXPIRES_AT` pass or delete that var, delet
 
 Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00`. Do not rotate those in this increment. Production password **capability is approved** (user t73/t74) but stays fail-closed until PM deliberately sets production `ADMIN_EMAILS` + future `TEMP_ADMIN_EXPIRES_AT` after staging verification. Do not treat that as missing authorization of the feature.
 
-## Staging Worker package (box copy)
+## Staging Worker package (box copy) — additive upload blocked
 
-`artifacts/kaiyue-staging-worker-68f751b.zip` (also `/opt/cursor/artifacts/kaiyue-staging-worker-68f751b.zip`). Built at `68f751be9e79171198020e7a157f295bff5db1ee` with wrangler `--dry-run --env staging` (no network).
+`artifacts/kaiyue-staging-worker-68f751b.zip` still holds `entry.js` (`main_module` exact name, MIME `application/javascript+module`, sha256 `28cb9f0a561d79732c4922ddd50489a19134c501b1b0134e52ad75585195cca7`) built at `68f751be9e79171198020e7a157f295bff5db1ee`.
 
-- **main_module exact name:** `entry.js`
-- MIME: `application/javascript+module`
-- `entry.js` sha256: `28cb9f0a561d79732c4922ddd50489a19134c501b1b0134e52ad75585195cca7` (4185645 bytes)
-- Report inside the zip: `FINAL-REPORT.md`
+**Do not** PUT that zip with `keep_assets:true` **and** a 14-file `assets.jwt`. Official Upload Worker metadata: an explicit `assets` upload takes precedence over `keep_assets` (not a union) and would drop unpublished public files absent from that 14-file ledger. See `docs/records/2026-11-10-staging-asset-add-blocker.md`.
 
-`keep_assets:true` **does not install new hashed files**. 17 public `/_astro` islands byte-match live and can be kept. **14 files 404 on live staging and production** and must be uploaded first, including:
+Live unmatched `/_astro/LoginForm.DI7HqLqN.js` and `api._aekQyCR.js` return cached `404.html` **without** Worker middleware headers, so extra Worker text modules cannot serve them unless routing is changed. `run_worker_first` for only those 14 paths is an official wrangler field, but applying `assets.config` without a complete-manifest jwt is not a documented additive keep_assets behaviour (community repro: routing stays `serve_directly`).
 
-- `/_astro/LoginForm.DI7HqLqN.js` (login island)
-- `/_astro/AdminLocaleSwitch.AW9mvxVt.js`
-- `/_astro/admin-i18n.BqNzmZPb.js`
-- `/_astro/api._aekQyCR.js` (admin fetch helper; 404 on live today)
-- remaining admin panels / `SignOutButton` / `SetupForm` listed in `new-assets-required/NEW_ASSETS.json`
-
-Login graph reuse of live files: `auth-client.B2D_TZZE.js`, `react.Bi21MRdE.js`, `jsx-runtime.myd_k2E3.js` already MATCH. Do not upload rebuilt HTML.
-
-Safe sequence for the sanctioned connector (not this agent): assets-upload-session for those 14 → `workers/assets/upload?base64=true` → PUT script with `keep_assets:true` **and** `assets.jwt`, `keep_bindings:["secret_text"]`. PUT deploys immediately. Do not `wrangler deploy` / `versions upload` from an agent. Do not retry production Workers Builds.
+No extra buckets, tunnels, or HTML rebuild. Independent review / staging approval still required before any Cloudflare mutation. Do not `wrangler deploy` / `versions upload` from an agent. Do not retry production Workers Builds.
 
 ## Authorized staging upload (PM only)
 

@@ -2,6 +2,7 @@ import http from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
+import { sqlFromSeedEnv } from "../../scripts/lib/provision-admin-from-env.mjs";
 import {
   CSRF_COOKIE,
   MAX_BODY_BYTES,
@@ -202,5 +203,57 @@ describe("loopback provision server", () => {
       process.stdout.write = originalWrite;
       process.stderr.write = originalError;
     }
+  });
+});
+
+describe("provision hash from env (no listener)", () => {
+  it("emits SQL from ADMIN_SEED_* without logging the password", async () => {
+    logs.length = 0;
+    process.stdout.write = ((chunk: unknown, ...rest: unknown[]) => {
+      capture(chunk);
+      return originalWrite(chunk as never, ...(rest as never[]));
+    }) as typeof process.stdout.write;
+    process.stderr.write = ((chunk: unknown, ...rest: unknown[]) => {
+      capture(chunk);
+      return originalError(chunk as never, ...(rest as never[]));
+    }) as typeof process.stderr.write;
+    try {
+      const crypto = await import(betterAuthCrypto);
+      verifyPassword = crypto.verifyPassword;
+      const sql = await sqlFromSeedEnv({
+        hashPassword: crypto.hashPassword,
+        env: {
+          ADMIN_SEED_EMAIL: email,
+          ADMIN_SEED_PASSWORD: password,
+          ADMIN_SEED_NAME: "Op",
+          ADMIN_SEED_USER_ID: "user-from-env",
+          ADMIN_SEED_ACCOUNT_ID: "account-from-env",
+        },
+        now: "2026-11-10T00:00:00.000Z",
+      });
+      expect(sql).toContain(email);
+      expect(sql).toContain("user-from-env");
+      expect(sql).not.toContain(password);
+      const hash = sql.match(/'([0-9a-f]+:[0-9a-f]+)'/)?.[1];
+      expect(hash).toBeTruthy();
+      expect(await verifyPassword({ hash: hash!, password })).toBe(true);
+      expect(logs.join("")).not.toContain(password);
+    } finally {
+      process.stdout.write = originalWrite;
+      process.stderr.write = originalError;
+    }
+  });
+
+  it("rejects a short password without including it in the error", async () => {
+    const crypto = await import(betterAuthCrypto);
+    await expect(
+      sqlFromSeedEnv({
+        hashPassword: crypto.hashPassword,
+        env: {
+          ADMIN_SEED_EMAIL: email,
+          ADMIN_SEED_PASSWORD: "too-short",
+        },
+      }),
+    ).rejects.toMatchObject({ code: "PASSWORD_TOO_SHORT" });
   });
 });

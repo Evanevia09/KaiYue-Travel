@@ -40,7 +40,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 20. [Optional Macau tour guide](handover/macau-tour-guide.md)
 21. [Promote optional Macau tour guide to main](handover/promote-tour-guide-to-main.md)
 22. [Booking time picker, required WhatsApp, language labels](handover/booking-time-whatsapp-lang.md)
-23. [Temporary allowlisted admin login](handover/temporary-admin-login.md)
+23. [Temporary allowlisted admin login](handover/temporary-admin-login.md) — additive asset upload is [blocked](records/2026-11-10-staging-asset-add-blocker.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
