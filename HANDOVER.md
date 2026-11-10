@@ -6,6 +6,8 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 - **task_id:** `kai-yue-temporary-admin-login-20261110`
 - **Branch:** `cursor/temporary-admin-login-763f` targeting `staging` (not merged)
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/26
+- **Commit:** `36f7ed3dfb76d6bf87755c443169cd2b33c46795`
 - **Report:** `docs/handover/temporary-admin-login.md`
 - **Change:** Reconstruct unpublished Access-host admin gate from compiled Worker evidence; stop treating the staging workers.dev host as a production host; enable explicit allowlisted Better Auth password login with expiry. Production public `/login` stays fail-closed until those vars are set. Signup and `DEV_ADMIN_BYPASS` stay local-only.
 - **D1/R2 in git config:** production `06cf879d-8fea-4088-8881-7d382e1b8c11` / `kaiyue-offers-production`; staging `043cd0ff-a1e6-4b5e-98c1-968c286e0c70` / `kaiyue-offers-staging`. Do not bind `069aa442…`.
