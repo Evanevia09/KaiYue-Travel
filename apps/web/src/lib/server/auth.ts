@@ -2,6 +2,7 @@ import { AppError } from "@kaiyue/contracts";
 import { verifyAccessJwt } from "./access-jwt.ts";
 import {
   accessConfigured,
+  accessTakesOver,
   isAccessAdminHost,
   isLocalAdminSurface,
   isProductionHost,
@@ -16,20 +17,18 @@ export type AdminIdentity = {
 };
 
 export async function requireAdmin(request: Request, env: AppEnv): Promise<AdminIdentity> {
-  const accessHost = isAccessAdminHost(request);
-  const productionHost = isProductionHost(request);
-  if (accessHost || (productionHost && accessConfigured(env))) {
+  if (accessTakesOver(env, request)) {
     if (!accessConfigured(env)) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    const productionToken = request.headers.get("cf-access-jwt-assertion");
-    if (!productionToken) {
+    const accessToken = request.headers.get("cf-access-jwt-assertion");
+    if (!accessToken) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    return verifyAccessJwt(productionToken, env);
+    return verifyAccessJwt(accessToken, env);
   }
 
-  if (productionHost && !passwordAdminAllowed(env, request)) {
+  if (isProductionHost(request) && !passwordAdminAllowed(env, request)) {
     throw new AppError("FORBIDDEN", "Admin access is not configured.");
   }
 

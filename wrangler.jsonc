@@ -2,21 +2,23 @@
   // Workers Builds for this repository run from the repo root.
   // Keep the Cloudflare dashboard root directory at the repository root.
   //
-  // Top-level config is the production Worker `kaiyue-travel`.
-  // Staging Worker `kaiyue-travel-staging` is `env.staging`.
-  // `wrangler preview` uses the `previews` block and does not inherit
-  // top-level D1/R2.
+  // Live uploads MUST pass `--env staging` or `--env production` (or set
+  // CLOUDFLARE_ENV to the same value). Top-level config is intentionally not a
+  // live Worker: Workers Builds for `kaiyue-travel` without `--env` previously
+  // targeted production. Run `node scripts/require-wrangler-env.mjs --env <name>`
+  // before `wrangler versions upload`. Do not `wrangler deploy` from an agent.
+  //
+  // `wrangler preview` uses the `previews` block. That block uses isolated
+  // placeholder D1/R2 IDs and must not bind live staging or production data.
   //
   // Do not use D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` — that database is
-  // not in the current Kai Yue account. Do not `wrangler deploy` from an agent.
-  // Authorized operators must pass `--env staging` (or CLOUDFLARE_ENV=staging)
-  // when uploading the staging Worker so production D1/R2 are not bound there.
+  // not in the current Kai Yue account.
   //
   // Staging ADMIN_EMAILS / TEMP_ADMIN_EXPIRES_AT match the already-configured
   // Worker vars and must not be changed by this increment. Production omits
   // both so live stays fail-closed until a separately authorized promotion.
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "kaiyue-travel",
+  "name": "kaiyue-travel-env-required",
   "main": "./apps/web/dist/server/entry.mjs",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -27,20 +29,20 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "kaiyue-travel-production",
-      "database_id": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+      "database_name": "kaiyue-travel-unspecified-local",
+      "database_id": "00000000-0000-4000-8000-000000000001",
       "migrations_dir": "./migrations",
     },
   ],
   "r2_buckets": [
     {
       "binding": "OFFERS_BUCKET",
-      "bucket_name": "kaiyue-offers-production",
+      "bucket_name": "kaiyue-offers-unspecified-local",
     },
   ],
   "vars": {
-    "ENVIRONMENT": "production",
-    "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
+    "ENVIRONMENT": "unspecified",
+    "PUBLIC_SITE_URL": "http://127.0.0.1:8787",
     "BUSINESS_TIMEZONE": "Asia/Macau",
     "BOOKING_NOTICE_HOURS": "24",
     "WHATSAPP_NUMBER": "+85328338882",
@@ -78,32 +80,57 @@
         "TEMP_ADMIN_EXPIRES_AT": "2026-11-24T15:59:59+08:00",
       },
     },
+    "production": {
+      "name": "kaiyue-travel",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "kaiyue-travel-production",
+          "database_id": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+          "migrations_dir": "./migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "OFFERS_BUCKET",
+          "bucket_name": "kaiyue-offers-production",
+        },
+      ],
+      "vars": {
+        "ENVIRONMENT": "production",
+        "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
+        "BUSINESS_TIMEZONE": "Asia/Macau",
+        "BOOKING_NOTICE_HOURS": "24",
+        "WHATSAPP_NUMBER": "+85328338882",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": "",
+        "DEV_ADMIN_BYPASS": "false",
+      },
+    },
   },
   "previews": {
     "vars": {
       "ENVIRONMENT": "preview",
-      "PUBLIC_SITE_URL": "https://kaiyue-travel-staging.kai-yue.workers.dev",
+      "PUBLIC_SITE_URL": "http://127.0.0.1:8787",
       "BUSINESS_TIMEZONE": "Asia/Macau",
       "BOOKING_NOTICE_HOURS": "24",
       "WHATSAPP_NUMBER": "+85328338882",
       "ACCESS_TEAM_DOMAIN": "",
       "ACCESS_AUD": "",
       "DEV_ADMIN_BYPASS": "false",
-      "ADMIN_EMAILS": "daniel@kaiyuemacau.com",
-      "TEMP_ADMIN_EXPIRES_AT": "2026-11-24T15:59:59+08:00",
     },
     "d1_databases": [
       {
         "binding": "DB",
-        "database_name": "kaiyue-travel-staging",
-        "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+        "database_name": "kaiyue-travel-preview-local",
+        "database_id": "00000000-0000-4000-8000-000000000002",
         "migrations_dir": "./migrations",
       },
     ],
     "r2_buckets": [
       {
         "binding": "OFFERS_BUCKET",
-        "bucket_name": "kaiyue-offers-staging",
+        "bucket_name": "kaiyue-offers-preview-local",
       },
     ],
   },

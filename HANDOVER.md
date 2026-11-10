@@ -7,11 +7,11 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **task_id:** `kai-yue-temporary-admin-login-20261110`
 - **Branch:** `cursor/temporary-admin-login-763f` targeting `staging` (not merged)
 - **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/26
-- **Commit:** `36f7ed3dfb76d6bf87755c443169cd2b33c46795`
+- **Commit:** see PR #26 head after the staging merge and review fixes
 - **Report:** `docs/handover/temporary-admin-login.md`
-- **Change:** Reconstruct unpublished Access-host admin gate from compiled Worker evidence; stop treating the staging workers.dev host as a production host; enable explicit allowlisted Better Auth password login with expiry. Production public `/login` stays fail-closed until those vars are set. Signup and `DEV_ADMIN_BYPASS` stay local-only.
-- **D1/R2 in git config:** production `06cf879d-8fea-4088-8881-7d382e1b8c11` / `kaiyue-offers-production`; staging `043cd0ff-a1e6-4b5e-98c1-968c286e0c70` / `kaiyue-offers-staging`. Do not bind `069aa442…`.
-- **Do not:** merge or deploy from an agent; `wrangler deploy`; mutate live staging allowlist/expiry; print a password or secret; claim `released`.
+- **Change:** Reconstruct unpublished Access-host admin gate; stop treating the staging workers.dev host as production; explicit allowlisted password login with expiry. Review follow-up: loopback-only signup; Access disables password globally; email-idempotent seed; loopback vault-fill provisioning; wrangler `--env` required (`env.staging` / `env.production`). Merged `staging` `3fb82362` (no rebase/force).
+- **D1/R2 in git config:** production `06cf879d-8fea-4088-8881-7d382e1b8c11` / `kaiyue-offers-production` under `env.production`; staging `043cd0ff-a1e6-4b5e-98c1-968c286e0c70` / `kaiyue-offers-staging` under `env.staging`. Top-level is not a live Worker. Do not bind `069aa442…`.
+- **Do not:** merge or deploy from an agent; `wrangler deploy`; retry production Workers Builds; mutate live staging allowlist/expiry; print a password or secret; claim `released`.
 
 ## 2026-11-03 — Booking UX live verify (`released`)
 

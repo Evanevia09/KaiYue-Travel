@@ -1,11 +1,18 @@
 /**
- * One-off operator seeder. Reads secrets from the environment only.
- * Never prints the password or Better Auth secret. Writes SQL to stdout.
+ * One-off operator seeder. Writes SQL to stdout. Never prints the password.
+ *
+ * hashPassword (scrypt) does not use BETTER_AUTH_SECRET. Do not export a
+ * dummy signing secret to run this script. BETTER_AUTH_SECRET remains a
+ * Worker secret for session cookies and is already on staging.
+ *
+ * Vault-generated passwords cannot be shell-exported. Prefer
+ * `node scripts/provision-admin-local.mjs` (127.0.0.1 form + vault fill).
+ * ADMIN_SEED_PASSWORD is accepted only when the operator already holds it
+ * in a process environment they control; it is not a vault export path.
  *
  * Required env:
  *   ADMIN_SEED_EMAIL
- *   ADMIN_SEED_PASSWORD (>=16)
- *   BETTER_AUTH_SECRET (>=32)
+ *   ADMIN_SEED_PASSWORD (>=16) — not from vault shell export
  *
  * Optional env:
  *   ADMIN_SEED_NAME
@@ -17,6 +24,7 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { buildAdminCredentialSql } from "./lib/admin-seed-sql.mjs";
 
 const betterAuthCrypto = pathToFileURL(
   join(
@@ -28,33 +36,31 @@ const { hashPassword } = await import(betterAuthCrypto);
 
 const email = process.env.ADMIN_SEED_EMAIL?.trim().toLowerCase();
 const password = process.env.ADMIN_SEED_PASSWORD;
-const secret = process.env.BETTER_AUTH_SECRET;
 const name = process.env.ADMIN_SEED_NAME?.trim() || "Temporary staff operator";
 const userId = process.env.ADMIN_SEED_USER_ID?.trim() || crypto.randomUUID();
 const accountRowId = process.env.ADMIN_SEED_ACCOUNT_ID?.trim() || crypto.randomUUID();
 
-if (!email || !password || !secret || secret.length < 32 || password.length < 16) {
-  console.error("Set ADMIN_SEED_EMAIL, ADMIN_SEED_PASSWORD (>=16) and BETTER_AUTH_SECRET (>=32).");
+if (!email) {
+  console.error("Set ADMIN_SEED_EMAIL.");
+  process.exit(1);
+}
+
+if (!password || password.length < 16) {
+  console.error(
+    "Vault passwords cannot be shell-exported. On a trusted loopback machine run:\n  node scripts/provision-admin-local.mjs\nand fill the form from the vault browser extension.\nIf you already hold a password in this process, set ADMIN_SEED_PASSWORD (>=16).\nhashPassword does not use BETTER_AUTH_SECRET; do not invent a dummy signing secret.",
+  );
   process.exit(1);
 }
 
 const now = new Date().toISOString();
 const hash = await hashPassword(password);
-
-function sqlString(value) {
-  return `'${value.replaceAll("'", "''")}'`;
-}
-
-process.stdout.write(`-- Temporary allowlisted operator. Remove after Cloudflare Access is live.
-INSERT OR REPLACE INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
-VALUES (${sqlString(userId)}, ${sqlString(name)}, ${sqlString(email)}, 1, NULL, ${sqlString(now)}, ${sqlString(now)});
-
-INSERT OR REPLACE INTO "account" (
-  "id", "accountId", "providerId", "userId", "accessToken", "refreshToken", "idToken",
-  "accessTokenExpiresAt", "refreshTokenExpiresAt", "scope", "password", "createdAt", "updatedAt"
-) VALUES (
-  ${sqlString(accountRowId)}, ${sqlString(userId)}, 'credential', ${sqlString(userId)},
-  NULL, NULL, NULL, NULL, NULL, NULL, ${sqlString(hash)},
-  ${sqlString(now)}, ${sqlString(now)}
+process.stdout.write(
+  buildAdminCredentialSql({
+    email,
+    name,
+    passwordHash: hash,
+    now,
+    userId,
+    accountId: accountRowId,
+  }),
 );
-`);

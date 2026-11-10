@@ -7,14 +7,15 @@ The admin area is a small operational workspace, not a CRM. Cloudflare Access re
 Temporary Better Auth email/password sessions are an explicit, time-bounded alternative:
 
 - Allowlist `ADMIN_EMAILS` and a future `TEMP_ADMIN_EXPIRES_AT` are both required outside local development.
-- Signup/`/setup-admin` stay local-development only. `DEV_ADMIN_BYPASS` is ignored outside `ENVIRONMENT=development`.
-- Staging (`kaiyue-travel-staging.kai-yue.workers.dev`) may use this path for testing.
-- Production public hosts stay fail-closed unless those two vars are set and Access is not configured. Setting Cloudflare Access vars disables password admin so the site can return to Access without a code change.
+- Signup/`/setup-admin` stay loopback-development only (`localhost` / `127.0.0.1` plus `ENVIRONMENT=development`). `ENVIRONMENT=development` and `ADMIN_SETUP_TOKEN` on a public, staging, Access, or unknown host still 404 signup.
+- `DEV_ADMIN_BYPASS` is ignored unless that same loopback surface is true.
+- Staging (`kaiyue-travel-staging.kai-yue.workers.dev`) may use password login for testing only while Access is unset.
+- Production public hosts stay fail-closed unless those two vars are set and Access is not configured. Setting Cloudflare Access vars disables password admin on every non-local surface so the site can return to Access without a code change.
 - `admin.kaiyuemacau.com` never accepts password login.
 
 Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up.
 
-Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. Expiry closes temporary password access without deleting records or rotating `BETTER_AUTH_SECRET`. This does not replace Cloudflare Access.
+Local first-account setup requires a one-time token on loopback development; remove the token after setup. `hashPassword` does not use `BETTER_AUTH_SECRET` (that secret only signs session cookies). Expiry closes temporary password access without deleting records or rotating `BETTER_AUTH_SECRET`. This does not replace Cloudflare Access.
 
 ## Navigation
 

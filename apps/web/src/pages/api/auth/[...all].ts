@@ -5,12 +5,12 @@ import { createAdminSessionAuth } from "../../../lib/server/admin-session.ts";
 import { allowedAdminEmails } from "../../../lib/server/admin-session.ts";
 import {
   assertLiveAdminSurface,
+  emailSignupAllowed,
   forbiddenResponse,
-  isLocalRuntime,
+  isLocalAdminSurface,
   passwordAdminAllowed,
   temporaryPasswordConfigured,
 } from "../../../lib/server/admin-gate.ts";
-import { isDevelopment } from "../../../lib/server/env.ts";
 import { clientIp, errorResponse, requestIdFrom } from "../../../lib/server/http.ts";
 import { enforceAdminSignInRateLimit } from "../../../lib/server/rate-limit.ts";
 
@@ -35,7 +35,7 @@ export const ALL: APIRoute = async ({ request }) => {
     return forbiddenResponse();
   }
 
-  if (!isLocalRuntime(env) && !temporaryPasswordConfigured(env)) {
+  if (!isLocalAdminSurface(env, request) && !temporaryPasswordConfigured(env)) {
     return forbiddenResponse();
   }
 
@@ -52,7 +52,7 @@ export const ALL: APIRoute = async ({ request }) => {
     if (request.method !== "POST") return new Response("Method not allowed", { status: 405 });
     const token = env.ADMIN_SETUP_TOKEN;
     if (
-      !isDevelopment(env) ||
+      !emailSignupAllowed(env, request) ||
       !token ||
       token.length < 32 ||
       !equalSecret(request.headers.get("x-admin-setup-token") ?? "", token)

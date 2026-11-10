@@ -8,8 +8,11 @@ RESEND_STAFF_TO=ops@example.invalid
 RESEND_REPLY_TO=
 ACCESS_TEAM_DOMAIN=
 ACCESS_AUD=
+# Loopback + ENVIRONMENT=development only. Ignored on public hosts.
 DEV_ADMIN_BYPASS=false
+# Session cookie signing. Not used by hashPassword.
 BETTER_AUTH_SECRET=
 ADMIN_EMAILS=
+# Loopback signup only. Public hosts 404 even with ENVIRONMENT=development.
 ADMIN_SETUP_TOKEN=
 TEMP_ADMIN_EXPIRES_AT=

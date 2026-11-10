@@ -4,11 +4,14 @@ import {
   PRODUCTION_HOSTS,
   STAGING_HOSTS,
   assertLiveAdminSurface,
+  emailSignupAllowed,
+  isLocalAdminSurface,
   isPreviewRuntime,
   isProtectedAdminPath,
   passwordAdminAllowed,
   temporaryPasswordConfigured,
 } from "../../apps/web/src/lib/server/admin-gate.ts";
+import { requireAdmin } from "../../apps/web/src/lib/server/auth.ts";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createTestEnv } from "../helpers/memory-d1.ts";
 
@@ -201,7 +204,7 @@ describe("temporary password admin", () => {
     expect(response.status).toBe(403);
   });
 
-  it("prepares production public hosts for temp password only when Access is unset", () => {
+  it("prepares production public hosts for temp password only when Access is unset", async () => {
     const ready = createTestEnv({
       ENVIRONMENT: "production",
       DEV_ADMIN_BYPASS: "false",
@@ -225,5 +228,78 @@ describe("temporary password admin", () => {
     expect(() => assertLiveAdminSurface(withAccess, "/login", login)).toThrow(
       /Admin access is not configured/,
     );
+    const admin = new Request(`${productionOrigin}/admin`);
+    expect(() => assertLiveAdminSurface(withAccess, "/admin", admin)).not.toThrow();
+    await expect(requireAdmin(admin, withAccess)).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("disables password on staging and preview when Access is configured", async () => {
+    const env = {
+      ...tempPreviewEnv(),
+      ACCESS_TEAM_DOMAIN: "kaiyue.cloudflareaccess.com",
+      ACCESS_AUD: "audience-test",
+    };
+    const login = new Request(`${stagingOrigin}/login`);
+    const admin = new Request(`${stagingOrigin}/admin`);
+    const signup = new Request(`${stagingOrigin}/api/auth/sign-up/email`, { method: "POST" });
+    expect(passwordAdminAllowed(env, login)).toBe(false);
+    expect(() => assertLiveAdminSurface(env, "/login", login)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(() => assertLiveAdminSurface(env, "/api/auth/sign-in/email", signup)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(() => assertLiveAdminSurface(env, "/admin", admin)).not.toThrow();
+    await expect(requireAdmin(admin, env)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    const api = await handleApi(new Request(`${stagingOrigin}/api/v1/admin/summary`), env);
+    expect(api.status).toBe(403);
+  });
+});
+
+describe("local-only email signup", () => {
+  const development = createTestEnv({
+    ENVIRONMENT: "development",
+    ADMIN_SETUP_TOKEN: "a".repeat(32),
+    DEV_ADMIN_BYPASS: "true",
+  });
+  const tokenHeader = { "x-admin-setup-token": "a".repeat(32) };
+
+  it("allows signup only on loopback development, not public or unknown hosts", () => {
+    const local = new Request("http://localhost:4321/api/auth/sign-up/email", {
+      method: "POST",
+      headers: tokenHeader,
+    });
+    expect(isLocalAdminSurface(development, local)).toBe(true);
+    expect(emailSignupAllowed(development, local)).toBe(true);
+
+    const hosts = [
+      `${stagingOrigin}/api/auth/sign-up/email`,
+      `${productionOrigin}/api/auth/sign-up/email`,
+      `${accessOrigin}/api/auth/sign-up/email`,
+      "https://evil.example/api/auth/sign-up/email",
+      "https://kaiyue-travel.kai-yue.workers.dev/api/auth/sign-up/email",
+    ];
+    for (const url of hosts) {
+      const request = new Request(url, { method: "POST", headers: tokenHeader });
+      expect(isLocalAdminSurface(development, request), url).toBe(false);
+      expect(emailSignupAllowed(development, request), url).toBe(false);
+    }
+  });
+
+  it("does not treat ENVIRONMENT=development as signup on staging or production", () => {
+    const staging = new Request(`${stagingOrigin}/api/auth/sign-up/email`, {
+      method: "POST",
+      headers: tokenHeader,
+    });
+    const production = new Request(`${productionOrigin}/api/auth/sign-up/email`, {
+      method: "POST",
+      headers: tokenHeader,
+    });
+    expect(() => assertLiveAdminSurface(development, "/api/auth/sign-up/email", staging)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(() =>
+      assertLiveAdminSurface(development, "/api/auth/sign-up/email", production),
+    ).toThrow(/Admin access is not configured/);
   });
 });

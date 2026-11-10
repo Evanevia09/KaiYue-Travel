@@ -36,6 +36,17 @@ export function isStagingHost(request: Request): boolean {
   return (STAGING_HOSTS as readonly string[]).includes(requestHost(request));
 }
 
+export function isLoopbackHost(request: Request): boolean {
+  const host = requestHost(request);
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host === "[::1]" ||
+    host.endsWith(".localhost")
+  );
+}
+
 export function isLocalRuntime(env: Pick<AppEnv, "ENVIRONMENT" | "ENV">): boolean {
   const environment = (env.ENVIRONMENT ?? "").trim().toLowerCase();
   const envFlag = (env.ENV ?? "").trim().toLowerCase();
@@ -76,11 +87,35 @@ export function isLocalAdminSurface(
   if (isProductionHost(request) || isAccessAdminHost(request) || isStagingHost(request)) {
     return false;
   }
+  if (!isLoopbackHost(request)) {
+    return false;
+  }
   return isLocalRuntime(env);
+}
+
+export function emailSignupAllowed(
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+  request: Request,
+): boolean {
+  return isLocalAdminSurface(env, request);
 }
 
 export function accessConfigured(env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">): boolean {
   return Boolean(env.ACCESS_TEAM_DOMAIN?.trim() && env.ACCESS_AUD?.trim());
+}
+
+/**
+ * Cloudflare Access, when configured, is the only non-local admin identity.
+ * Password login stays available on loopback development so operators can work
+ * without a tunnel.
+ */
+export function accessTakesOver(
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
+  request: Request,
+): boolean {
+  return (
+    !isLocalAdminSurface(env, request) && (isAccessAdminHost(request) || accessConfigured(env))
+  );
 }
 
 export function passwordAdminPath(pathname: string): boolean {
@@ -129,14 +164,17 @@ export function passwordAdminAllowed(
   if (isAccessAdminHost(request)) {
     return false;
   }
-  if (isProductionHost(request)) {
-    return !accessConfigured(env) && temporaryPasswordConfigured(env);
+  if (accessConfigured(env) && !isLocalAdminSurface(env, request)) {
+    return false;
   }
   if (isLocalAdminSurface(env, request)) {
     return true;
   }
   if (!temporaryPasswordConfigured(env)) {
     return false;
+  }
+  if (isProductionHost(request)) {
+    return true;
   }
   return isPreviewRuntime(env, request) || isStagingHost(request);
 }
@@ -145,13 +183,13 @@ export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: R
   if (!isProtectedAdminPath(pathname)) {
     return;
   }
-  if (isAccessAdminHost(request)) {
-    if (accessConfigured(env) && !passwordAdminPath(pathname)) {
-      return;
-    }
-    throw new AppError("FORBIDDEN", "Admin access is not configured.");
-  }
   if (isLocalAdminSurface(env, request)) {
+    return;
+  }
+  if (accessTakesOver(env, request)) {
+    if (passwordAdminPath(pathname) || !accessConfigured(env)) {
+      throw new AppError("FORBIDDEN", "Admin access is not configured.");
+    }
     return;
   }
   if (passwordAdminAllowed(env, request)) {

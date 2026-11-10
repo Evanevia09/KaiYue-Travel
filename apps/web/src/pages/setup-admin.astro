@@ -4,10 +4,11 @@ import { env } from "cloudflare:workers";
 import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SetupForm } from "../components/admin/SetupForm.tsx";
 import { adminLocaleFromCookies, t } from "../lib/admin-i18n.ts";
+import { isLocalAdminSurface } from "../lib/server/admin-gate.ts";
 import "../styles/global.css";
 
 const locale = adminLocaleFromCookies(Astro.cookies);
-if (env.ENVIRONMENT !== "development") {
+if (!isLocalAdminSurface(env, Astro.request)) {
   return new Response(t(locale, "setup.disabled"), {
     status: 403,
     headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
