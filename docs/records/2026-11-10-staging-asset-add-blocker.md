@@ -38,14 +38,14 @@ Missing hashed JS never reaches the Worker, including `Sec-Fetch-Mode: cors` / `
 | `keep_assets:true` + `assets.config.run_worker_first` for only those 14 paths, no jwt | Official field exists, but `keep_assets` does not apply new `assets.config`; community repro shows routing unchanged. Inventing “config-only assets without jwt” would be an unsanctioned API. |
 | `keep_assets:true` + extra text modules, no routing change | Live unmatched `/_astro` requests never hit the Worker. |
 | `run_worker_first: true` for all requests | Broad asset routing; still needs `assets.config` to take effect; same keep_assets gap. |
-| Full local `dist/client` wrangler upload | That **is** a complete replacement ledger from this build. Public JS hashes match, but HTML/unknown live-only files would be replaced. Forbidden here. |
+| Full local `dist/client` wrangler / complete-manifest upload | This **is** a complete replacement ledger. HTML is an intentionally new staged version. Unknown live-only files are a residual risk. **PROPOSED** staging-only trial (same Worker/D1, previous version rollback). **Not approved.** Mika assessing. See `docs/records/2026-11-10-staging-complete-ledger-proposal.md`. |
 | Extra R2/KV/service/Worker/tunnel | Out of scope. |
 
 ## What remains allowed (not a working `/login`)
 
 A script-only PUT with `keep_assets:true` and **no** `assets` object keeps public assets and can ship new Worker JS (`/login` SSR). The emitted `/_astro/LoginForm.DI7HqLqN.js` (and `api._aekQyCR.js`, etc.) still 404 as `404.html`. That is not a staging trial of password login.
 
-Unblockers that are **not** this agent inventing APIs: Cloudflare-provided complete manifest/export of the current staging asset set, or an official documented additive-asset operation. Independent review and staging approval still required before any mutation.
+Unblockers: a complete-ledger staging rebuild (now packaged, **PROPOSED not approved**), or a Cloudflare complete export / official additive API. Independent review and Mika’s staging decision still required before any mutation.
 
 ## Provisioning (separate)
 

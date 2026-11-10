@@ -49,22 +49,20 @@ After Access is live: let `TEMP_ADMIN_EXPIRES_AT` pass or delete that var, delet
 
 Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00`. Do not rotate those in this increment. Production password **capability is approved** (user t73/t74) but stays fail-closed until PM deliberately sets production `ADMIN_EMAILS` + future `TEMP_ADMIN_EXPIRES_AT` after staging verification. Do not treat that as missing authorization of the feature.
 
-## Staging Worker package (box copy) — additive upload blocked
+## Staging packages
 
-`artifacts/kaiyue-staging-worker-68f751b.zip` still holds `entry.js` (`main_module` exact name, MIME `application/javascript+module`, sha256 `28cb9f0a561d79732c4922ddd50489a19134c501b1b0134e52ad75585195cca7`) built at `68f751be9e79171198020e7a157f295bff5db1ee`.
+- Additive 14-file jwt + `keep_assets` remains **unsafe**. Do not send it.
+- **PROPOSED (not approved):** complete-ledger staging trial. Zip `artifacts/kaiyue-staging-complete-5dab462.zip` (sha256 `d10a3d7f117fcae626eeffa9b928781b082e1a7afae61c08bab54d29549ce923`). Built at **runtimeSourceSHA** `5dab46281ce84b5b5974a28bdb9f94513c670644`. `entry.js` sha256 `4e21131158d4a69516eccf60ee05bbf65a274ec2fbfc11c1a91ef631932e4654`. 136-file complete manifest. HTML is the new staged version. Same Worker/D1; rollback = previous version + assets. Mika assessing. No executor writes. See `docs/records/2026-11-10-staging-complete-ledger-proposal.md`.
+- Connector must use the **assets-upload-session JWT** (not the account token) on `POST /workers/assets/upload`. If it cannot switch `Authorization`, that is a capability gap — do not paste credentials.
 
-**Do not** PUT that zip with `keep_assets:true` **and** a 14-file `assets.jwt`. Official Upload Worker metadata: an explicit `assets` upload takes precedence over `keep_assets` (not a union) and would drop unpublished public files absent from that 14-file ledger. See `docs/records/2026-11-10-staging-asset-add-blocker.md`.
+GitHub Actions [`42864265892`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42864265892) succeeded on `5dab462`. Provisioner zip unchanged; env-only, do not start the server. Do not retry production Workers Builds.
 
-Live unmatched `/_astro/LoginForm.DI7HqLqN.js` and `api._aekQyCR.js` return cached `404.html` **without** Worker middleware headers, so extra Worker text modules cannot serve them unless routing is changed. `run_worker_first` for only those 14 paths is an official wrangler field, but applying `assets.config` without a complete-manifest jwt is not a documented additive keep_assets behaviour (community repro: routing stays `serve_directly`).
+## Authorized staging upload (PM only, after Mika)
 
-No extra buckets, tunnels, or HTML rebuild. Independent review / staging approval still required before any Cloudflare mutation. Do not `wrangler deploy` / `versions upload` from an agent. Do not retry production Workers Builds.
-
-## Authorized staging upload (PM only)
-
-Independent review is OK for a staging-only trial of `68f751b`. After GitHub Actions is green on the latest head and staging browser QA. Prefer the connector PUT above so public assets stay. Wrangler remains an operator fallback with an explicit env:
+Independent review is OK for a staging-only trial. Complete-ledger PUT is **proposed**, not approved. Wrangler fallback after approval:
 
 ```text
-pnpm build
+PUBLIC_SITE_URL=https://kaiyue-travel-staging.kai-yue.workers.dev pnpm --filter @kaiyue/web build
 node scripts/require-wrangler-env.mjs --env staging
 npx wrangler versions upload --env staging --name kaiyue-travel-staging
 ```
