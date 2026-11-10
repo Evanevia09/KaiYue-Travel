@@ -30,48 +30,57 @@ Compiled gate listed `PRODUCTION_HOSTS = ["kaiyue-travel.scalingsmb.workers.dev"
 - Signup / `DEV_ADMIN_BYPASS` require a loopback host plus a development/local label. `ENVIRONMENT=development` on a public host is not enough.
 - Do not use public signup, public development, or a hostname-only bypass.
 
-## Source + static parity vs 5 Nov bundles / live (2026-11-10)
+## Source + static parity vs 5 Nov / live (2026-11-10, branch build)
 
-Recovered Worker scripts only (no source maps, no `_astro` dump):
+Machine dump: `artifacts/parity-nov5/manifest.json`. Rebuild + crawl: `pnpm build && node scripts/compare-live-parity.mjs`. Browser-UA crawl of 36 public paths × production / www / staging (108 HTML). Full Worker `entry.js` byte equality is **not** claimed (hashes differ; source maps unavailable).
 
-| Artifact | sha256 | bytes |
+### Public client islands — proven byte match
+
+Every HTML-referenced `/_astro/*` file is the same set on production, www, and staging except `/login` (403 JSON, no islands). Nested static imports from those islands were fetched from production. Dist hashes and sha256 match live (filename hash equality here is content equality, not the success criterion).
+
+| live `/_astro` | sha256 | verdict |
 | --- | --- | --- |
-| production `entry.js` | `0942309f987408ab474e77683438481f997567c97b4902a72845e25baa9c15d0` | 4181127 |
-| staging `entry.js` | `437926967df82fa60a993b0d71fee0d12f38fe34decfbded9562ad1d6bfaf758` | 4181808 |
+| `BaseLayout.Dq8L4eEk.css` | `d1a703d2…` | BYTE_AND_NAME_MATCH |
+| `BaseLayout.astro_…gK1lsl9Z.js` | `c2c93f9f…` | BYTE_AND_NAME_MATCH |
+| `BookingEmbedded.cFmMjUfb.js` | `58761506…` | BYTE_AND_NAME_MATCH |
+| `BookingSheet.BjhsA3XK.js` | `a374b1e7…` | BYTE_AND_NAME_MATCH |
+| `BookingForm.BY2srzpk.js` | `aaa1bf1f…` | BYTE_AND_NAME_MATCH (nested) |
+| `BookingLauncher.BqoyMjDS.js` | `1585a5ec…` | BYTE_AND_NAME_MATCH (asset present; public HTML currently uses `showMobileBook={false}`) |
+| `ContactForm.CJmZZAL8.js` | `86c66973…` | BYTE_AND_NAME_MATCH (about/contact/B2B) |
+| `client.DrPMauyT.js` | `f5821089…` | BYTE_AND_NAME_MATCH |
+| `store.BKJ62xil.js` / `i18n.CluPyr_6.js` / `src.BLL3_vvi.js` | match | BYTE_AND_NAME_MATCH (nested) |
+| `react.Bi21MRdE.js` / `react-dom.Zo7SlITr.js` / `jsx-runtime.myd_k2E3.js` / `rolldown-runtime.C_o-9qvY.js` | match | BYTE_AND_NAME_MATCH (nested) |
+| `auth-client.B2D_TZZE.js` / `status.CrrMiddk.js` | match | BYTE_AND_NAME_MATCH (present on live asset store; not HTML-referenced on public routes) |
 
-Compiled vs this branch (admin-auth / gate):
+No live-only public JS/CSS. No content-diff public islands. Sampled `/images` on earlier routes still MATCH git `apps/web/public`.
 
-| Item | 5 Nov compiled | This branch |
+Admin-only dist islands are **not** on live public HTML. `LoginForm.DI7HqLqN.js` 404s on production (expected: `/login` is 403 today; this branch changes that module). `api._aekQyCR.js` (admin fetch helper) 404s on production.
+
+### Server `entry.js` module boundaries vs this build
+
+Recovered production `entry.js` sha256 `0942309f…` (4181127 bytes); staging `43792696…` (4181808). Comments name `apps/web/dist/server/chunks/*`. Hash suffixes differ after a new bundle (expected). Logical families present in both: `admin-gate`, `auth`, `login`, `setup-admin`, `admin-session`, admin UI panels, booking/contact routers, special-offers, i18n, kysely/D1 dialects.
+
+| Difference | Kind | Public behaviour? |
 | --- | --- | --- |
-| `ACCESS_ADMIN_HOST` | `admin.kaiyuemacau.com` | same |
-| `PRODUCTION_HOSTS` | `kaiyue-travel.scalingsmb.workers.dev`, `kaiyue-travel-staging.kai-yue.workers.dev` | `kaiyuemacau.com`, `www.kaiyuemacau.com`, `kaiyue-travel.scalingsmb.workers.dev` (**staging host removed on purpose**; public apex/www added) |
-| `www.kaiyuemacau.com` string | absent | present |
-| `isLocalAdminSurface` | absent | present (loopback + development) |
-| `TEMP_ADMIN_EXPIRES_AT` / `DEV_ADMIN_BYPASS` / `ADMIN_SETUP_TOKEN` / `sign-up/email` | present | present |
-| Full minified `entry.js` | not reconstructed | not claimed |
+| `PRODUCTION_HOSTS` compiled = scalingsmb + staging workers.dev; branch = apex, www, scalingsmb (**staging host removed**) | intentional auth | staging `/login` can leave the 403 gate once this Worker is uploaded to staging with existing allowlist/expiry |
+| `isLocalAdminSurface` / `emailSignupAllowed` / `accessTakesOver` | intentional auth | signup/bypass stay loopback; Access vars disable password on every non-local host |
+| `passwordAdminAllowed` requires allowlist + future `TEMP_ADMIN_EXPIRES_AT` | intentional auth | production `/login` stays 403 until PM sets those vars after staging QA (capability is **user-approved**; implementation remains fail-closed) |
+| `enforceAdminSignInRateLimit` (rate-limit chunk) | intentional auth | `/api/auth` sign-in only |
+| `LoginForm` minLength 16 + 403/429/expired copy | intentional auth | only after `/login` HTML is served |
+| `env_*` helpers (`noticeHours`) folded into `admin_*`; `db.ts` and `static-image-collection` split out | bundler graph | no public island change; `noticeHours` still present |
+| Catch-all `_.._*` / `_id__*` hash names | bundler | same Astro routes |
 
-Live public **files** vs git `apps/web/public` (sha256 MATCH on sampled routes: `/`, `/about`, `/services/airport-transfer`, `/services/local-transfers`, plus staging `/` and `/about`): favicon, hero-home jpg/webp, city-tours + home-hero-family-v2 set, group logo png/webp, mark.svg, wechat-qr.svg, about-fleet-hero, about-operations-feature, airport-transfer hero/feature, local-transfers hero/feature. No DIFF and no LIVE_ONLY image on those pages.
+Unexplained public client/server behaviour: **none identified**. Full compiled Worker equality is still not proven (maps missing; server chunk hashes differ). Staging this branch for browser QA is reversible relative to public `_astro` bytes.
 
-Live **compiled islands** (not in git; not in the 5 Nov `entry.js` dump). Same five `_astro` files on production, www, and staging home:
+### Login-only git delta vs `origin/main` `608c4f5`
 
-| path | sha256 | bytes |
-| --- | --- | --- |
-| `/_astro/BaseLayout.Dq8L4eEk.css` | `d1a703d29e0fdd2b4e8258249d6a0c2a260f9de9c5269c7458b4ee7c7c8280f1` | 61376 |
-| `/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js` | `c2c93f9f6c488559b6b7dddb0eaaea8ce81591ab2139f1b9d319a05442a085c8` | 238617 |
-| `/_astro/BookingEmbedded.cFmMjUfb.js` | `58761506be52a91a71ae09dd97c9c72624598cee3d022958066ac9036cdada04` | 1680 |
-| `/_astro/BookingSheet.BjhsA3XK.js` | `a374b1e77e5020036afecc34f4857d2057459ea48b8af2c677ef83be8a52113a` | 2410 |
-| `/_astro/client.DrPMauyT.js` | `f5821089e31bb9f4b85d7ee275aa494337ea300f070b52230f5049dc270f7601` | 209276 |
-
-**Exact remaining parity blockers (do not promote until accepted):**
-
-1. Source maps were not recoverable, so unpublished 5 Nov Worker source cannot be diffed file-for-file against git.
-2. The 5 Nov dump is server `entry.js` only. Live `_astro/*` client/CSS assets were not dumped; a new build will emit new hashed names and could replace live islands even when public images MATCH.
-3. Compiled `PRODUCTION_HOSTS` still lists the staging workers.dev host; this branch removes it and adds apex/www. That is an intentional auth fix, not unexplained drift, but it is still a compiled-source difference.
-4. Git public files not referenced on home (other service/about images, `logo.svg`, `robots.txt`) were not all fetched; sampled extra routes MATCH where checked.
+24 product/test/config files, `+988/−122` (auth/wrangler/provision/tests). Not a public UI rewrite. Staging merge added already-promoted docs so the PR is mergeable into `staging`.
 
 ## GitHub Actions / Workers Builds (2026-11-10)
 
-Head `474f2bff8affcb0805ff2a6de9e45d72c71b3315`: **0** GitHub Actions workflow runs. Check suites: `cursor` queued (0 runs), `firebase-app-hosting` queued, `netlify` queued, `cloudflare-workers-and-pages` **failure**. The only GitHub check is `Workers Builds: kaiyue-travel` (script `kaiyue-travel`, dashboard path `/workers/services/view/kaiyue-travel/production/builds/88bf86f9-0571-4ba0-b64e-486eb220b83a`). That is a **production** version-upload path. It was not retried. CI workflow `on.pull_request` existed unfiltered; a later push should fire `pull_request` synchronize. `workflow_dispatch` added as operator fallback. Do not retry the production Workers Build.
+PR CI run [`42858489938`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42858489938) on `fce3a66`: **success**, 2026-11-10 16:49–16:50 UTC (00:49–00:50 Asia/Macau). Job `check`: typecheck 0 errors, **131/131** tests, lint, build. No retry or `workflow_dispatch` needed. Later heads will queue a new `pull_request` synchronize run; do not dispatch from this agent.
+
+Cloudflare **Workers Builds: kaiyue-travel** auto-ran on this PR and **failed closed** (`c78b97ba-0566-48c9-a6db-d892dc6c6670`). That path is a **production** version upload. **Do not retry.** Production Worker version is unchanged. Any later upload is `--env staging` only after PM approval.
 
 ## Verification (this increment)
 

@@ -13,3 +13,4 @@ playwright-report
 .vite
 worker-configuration.d.ts
 .pnpm-store
+artifacts/parity-nov5/live-cache/

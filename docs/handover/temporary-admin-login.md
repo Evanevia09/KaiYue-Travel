@@ -16,7 +16,7 @@
 
 ## Parity limits
 
-See `docs/records/2026-11-10-temporary-admin-login.md` for the source/asset delta manifest. Source maps were not recoverable. Static Worker `_astro` assets were not dumped from the 5 Nov bundles. Full Worker-bundle parity is **not** claimed. Do not promote if unexplained compiled/static differences could erase newer public work.
+See `docs/records/2026-11-10-temporary-admin-login.md` and `artifacts/parity-nov5/manifest.json`. Public `/_astro` islands used on live routes (home, services, contact/about/B2B, nested booking/contact graph) **byte-match** this branch’s dist, including hashed names. Server `entry.js` is not byte-identical; remaining differences are the intentional admin-gate/auth/login set plus bundler chunk splits. Full Worker equality is not claimed. Staging this branch for browser QA should not replace unpublished public islands.
 
 ## Do not
 
@@ -35,7 +35,7 @@ Vault can generate a password and fill a browser password field. It cannot shell
 Viable path (no public signup, no development mode on a public host):
 
 1. Generate a password (≥16) in the vault. Do not paste it into chat, git, CI logs, or screenshots.
-2. On a trusted machine, `node scripts/provision-admin-local.mjs` and open `http://127.0.0.1:8789/`.
+2. On a trusted machine **without a repo checkout**, copy `artifacts/kaiyue-provision-admin-local.zip` (also attached on the PR as `/opt/cursor/artifacts/kaiyue-provision-admin-local.zip`). `unzip` and `node provision-admin.mjs`. With a checkout, `node scripts/provision-admin-local.mjs` is the same server. Open `http://127.0.0.1:8789/`. The listener binds `127.0.0.1` only (Host/Origin allowlist, CSRF cookie, CSP/`X-Frame-Options`, 8 KiB body cap). Hasher is bundled Better Auth 1.7.5 `password.node.mjs` scrypt (N=16384 r=16 p=1 dkLen=64) — the same export the Worker uses. No secrets and no generated passwords in the zip.
 3. Fill email + password from the vault browser extension. Submit. The page hashes locally and downloads SQL. The process does not log the password.
 4. Confirm the SQL file has no raw password (hash only) and uses `WHERE NOT EXISTS` on email (safe to re-apply).
 5. Apply that SQL to the **intended** D1 only:
@@ -47,7 +47,7 @@ Viable path (no public signup, no development mode on a public host):
 
 After Access is live: let `TEMP_ADMIN_EXPIRES_AT` pass or delete that var, delete the Better Auth user/account rows, and keep Access JWT verification.
 
-Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00`. Do not rotate those in this increment. Production currently has neither, so `/login` stays 403 until a separately authorized production change.
+Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00`. Do not rotate those in this increment. Production password **capability is approved** (user t73/t74) but stays fail-closed until PM deliberately sets production `ADMIN_EMAILS` + future `TEMP_ADMIN_EXPIRES_AT` after staging verification. Do not treat that as missing authorization of the feature.
 
 ## Authorized staging upload (PM only)
 
