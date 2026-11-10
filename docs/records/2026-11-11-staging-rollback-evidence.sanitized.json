@@ -1,0 +1,190 @@
+{
+  "kind": "verified_platform_metadata",
+  "not": "This file is a sanitized GET snapshot. It is not a mutation log and does not prove asset-file backup completeness.",
+  "snapshot": {
+    "local_asia_macau": "2026-11-11 01:34:24 Asia/Macau",
+    "utc": "2026-11-10T17:34:24Z"
+  },
+  "method": "GET only via sanctioned user-Cloudflare execute; no POST/PUT/PATCH/DELETE",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "account_name": "Kai Yue",
+  "proposed_rollback_version_id": "b53c0353-bfc4-4700-a5c7-725b7167af6e",
+  "note_on_proposal": "This version id is not in the hashed complete-ledger proposal (docs/records/2026-11-10-staging-complete-ledger-proposal.md). It is the current 100% staging deployment.",
+  "staging": {
+    "script": "kaiyue-travel-staging",
+    "current_deployment": {
+      "id": "caeee848-fb0d-4914-a770-2d60996f106e",
+      "source": "api",
+      "created_on_utc": "2026-11-10T14:40:34.100062Z",
+      "created_on_asia_macau": "2026-11-10 22:40:34 Asia/Macau",
+      "strategy": "percentage",
+      "annotations": {
+        "workers/triggered_by": "secret"
+      },
+      "versions": [
+        {
+          "version_id": "b53c0353-bfc4-4700-a5c7-725b7167af6e",
+          "percentage": 100
+        }
+      ]
+    },
+    "current_version": {
+      "id": "b53c0353-bfc4-4700-a5c7-725b7167af6e",
+      "number": 5,
+      "created_on_utc": "2026-11-10T14:40:34.100062Z",
+      "created_on_asia_macau": "2026-11-10 22:40:34 Asia/Macau",
+      "source": "api",
+      "author_id": "c855c6e15f9bfce8af3ec42715c51a29",
+      "author_email": "scalingsmb@gmail.com",
+      "has_preview": false,
+      "annotations": {
+        "workers/triggered_by": "secret"
+      },
+      "script_etag": "7083e9d37b7d48f57a04082ab96dfddee7d04b07e9f8231ff6e5a2f9cadf3c9c",
+      "handlers": [
+        "fetch"
+      ],
+      "last_deployed_from": "api",
+      "compatibility_date": "2026-09-01",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "usage_model": "standard"
+    },
+    "target_is_current_100_percent": true,
+    "target_in_staging_version_list": true,
+    "versions_total_count": 5,
+    "version_ids_newest_first": [
+      "b53c0353-bfc4-4700-a5c7-725b7167af6e",
+      "d0067e4d-a933-464b-9648-18677e85ad0c",
+      "c7e26a2f-db33-49b8-92c3-dc9cf80aeb66",
+      "4ca90f8f-afbd-431d-a956-4b163e936255",
+      "6310922d-4643-4fac-9d06-6ebc4c9ed95f"
+    ],
+    "assets": {
+      "settings_has_assets_field": false,
+      "binding_named_ASSETS_type_assets": true,
+      "version_resources_script_runtime_assets_present": true,
+      "serve_directly": true,
+      "base_path": "/",
+      "raw_run_worker_first": false,
+      "headers_rules_recorded": true,
+      "redirects_rules_recorded": true,
+      "asset_file_inventory_in_api_response": false,
+      "asset_content_hashes_in_api_response": false,
+      "do_not_infer_asset_content_backup_completeness": true
+    },
+    "bindings_isolated": {
+      "DB": {
+        "type": "d1",
+        "name": "DB",
+        "id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+        "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70"
+      },
+      "OFFERS_BUCKET": {
+        "type": "r2_bucket",
+        "name": "OFFERS_BUCKET",
+        "bucket_name": "kaiyue-offers-staging"
+      }
+    },
+    "other_bindings_sanitized": [
+      {
+        "name": "ADMIN_EMAILS",
+        "type": "plain_text",
+        "text": "daniel@kaiyuemacau.com"
+      },
+      {
+        "name": "ASSETS",
+        "type": "assets"
+      },
+      {
+        "name": "BETTER_AUTH_SECRET",
+        "type": "secret_text"
+      },
+      {
+        "name": "BOOKING_NOTICE_HOURS",
+        "type": "plain_text",
+        "text": "24"
+      },
+      {
+        "name": "BUSINESS_TIMEZONE",
+        "type": "plain_text",
+        "text": "Asia/Macau"
+      },
+      {
+        "name": "DEV_ADMIN_BYPASS",
+        "type": "plain_text",
+        "text": "false"
+      },
+      {
+        "name": "ENVIRONMENT",
+        "type": "plain_text",
+        "text": "preview"
+      },
+      {
+        "name": "PUBLIC_SITE_URL",
+        "type": "plain_text",
+        "text": "https://kaiyue-travel-staging.kai-yue.workers.dev"
+      },
+      {
+        "name": "TEMP_ADMIN_EXPIRES_AT",
+        "type": "plain_text",
+        "text": "2026-11-24T15:59:59+08:00"
+      },
+      {
+        "name": "WHATSAPP_NUMBER",
+        "type": "plain_text",
+        "text": "+85328338882"
+      }
+    ],
+    "secret_text_names_only": [
+      "BETTER_AUTH_SECRET"
+    ],
+    "secret_values_included": false
+  },
+  "production_read_only_check": {
+    "script": "kaiyue-travel",
+    "unchanged_since_recorded_2026_11_05": true,
+    "versions_total_count": 1,
+    "current_version_id": "74ebe1fc-135d-4a97-b297-e2d1d2748fa0",
+    "current_version_number": 1,
+    "current_version_created_on_utc": "2026-11-05T09:38:49.385106Z",
+    "current_version_created_on_asia_macau": "2026-11-05 17:38:49 Asia/Macau",
+    "current_version_source": "wrangler",
+    "current_deployment": {
+      "id": "f28d63c0-c372-4c2d-a4ad-5743ff2781aa",
+      "source": "wrangler",
+      "created_on_utc": "2026-11-05T09:38:49.385106Z",
+      "created_on_asia_macau": "2026-11-05 17:38:49 Asia/Macau",
+      "strategy": "percentage",
+      "annotations": {
+        "workers/message": "Automatic deployment on upload.",
+        "workers/triggered_by": "upload"
+      },
+      "versions": [
+        {
+          "version_id": "74ebe1fc-135d-4a97-b297-e2d1d2748fa0",
+          "percentage": 100
+        }
+      ]
+    },
+    "bindings_isolated": {
+      "DB": {
+        "type": "d1",
+        "name": "DB",
+        "id": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+        "database_id": "06cf879d-8fea-4088-8881-7d382e1b8c11"
+      },
+      "OFFERS_BUCKET": {
+        "type": "r2_bucket",
+        "name": "OFFERS_BUCKET",
+        "bucket_name": "kaiyue-offers-production"
+      }
+    },
+    "ENVIRONMENT": "production",
+    "d1_distinct_from_staging": true,
+    "r2_distinct_from_staging": true,
+    "secret_text_names_only": [],
+    "secret_values_included": false
+  }
+}
