@@ -5,8 +5,14 @@
   // Live uploads MUST pass `--env staging` or `--env production` (or set
   // CLOUDFLARE_ENV to the same value). Top-level config is intentionally not a
   // live Worker: Workers Builds for `kaiyue-travel` without `--env` previously
-  // targeted production. Run `node scripts/require-wrangler-env.mjs --env <name>`
-  // before `wrangler versions upload`. Do not `wrangler deploy` from an agent.
+  // targeted production. Official default deploy command is `npx wrangler deploy`
+  // (https://developers.cloudflare.com/workers/ci-cd/builds/configuration/).
+  // Without `--env` that command uses this placeholder name/D1/R2, not
+  // `env.production`. Do not rename top-level `name` to `kaiyue-travel` to green
+  // GitHub check `Workers Builds: kaiyue-travel`. Staging-only dashboard fields
+  // are in docs/08-delivery-and-operations.md. Run
+  // `node scripts/require-wrangler-env.mjs --env <name>` before
+  // `wrangler versions upload`. Do not `wrangler deploy` from an agent.
   //
   // `wrangler preview` uses the `previews` block. That block uses isolated
   // placeholder D1/R2 IDs and must not bind live staging or production data.

@@ -11,6 +11,7 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Report:** `docs/handover/temporary-admin-login.md`
 - **Change:** Reconstruct unpublished Access-host admin gate; stop treating the staging workers.dev host as production; explicit allowlisted password login with expiry. Review follow-up: loopback-only signup; Access disables password globally; email-idempotent seed; loopback vault-fill provisioning; wrangler `--env` required (`env.staging` / `env.production`). Merged `staging` `3fb82362` (no rebase/force).
 - **D1/R2 in git config:** production `06cf879d-8fea-4088-8881-7d382e1b8c11` / `kaiyue-offers-production` under `env.production`; staging `043cd0ff-a1e6-4b5e-98c1-968c286e0c70` / `kaiyue-offers-staging` under `env.staging`. Top-level is not a live Worker. Do not bind `069aa442…`.
+- **Build split (2026-11-12):** GitHub Actions `check` on `c8c129b` is green (136 tests, run 42866722740). Red check is Cloudflare `Workers Builds: kaiyue-travel` production upload (build `bf4a1c0a-977a-4365-8e38-9e4e6f147c85`). Do not green it by removing `kaiyue-travel-env-required`. Staging-only dashboard plan: `docs/08-delivery-and-operations.md`.
 - **Do not:** merge or deploy from an agent; `wrangler deploy`; retry production Workers Builds; mutate live staging allowlist/expiry; print a password or secret; claim `released`.
 
 ## 2026-11-03 — Booking UX live verify (`released`)
