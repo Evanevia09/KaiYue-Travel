@@ -36,7 +36,7 @@ Official defaults: [Workers Builds configuration](https://developers.cloudflare.
 6. Build variable (non-secret): `CLOUDFLARE_ENV=staging`.
 7. If previews are enabled, Preview command: `npx wrangler preview` without `--env staging` (repo `previews` uses placeholder D1/R2; `--env staging` would bind live staging D1).
 8. Do not put passwords, `BETTER_AUTH_SECRET`, or allowlist mutations in build variables.
-9. A successful staging versions upload still needs a separate 100% promotion after Mika approval and Evan unknown-static-file risk acceptance. t73/t74 does not accept that replacement risk.
+9. After a staging versions upload, promote that version to 100% only when PM is ready for staging UI/console/security. Evan t81u (2026-11-12) asked to get the live dashboard after t79’s unknown-static explanation; t73/t74 is password-capability only. Source writers still must not `wrangler deploy` or retry production Workers Builds.
 
 Confirm in the dashboard which Cloudflare account the GitHub check actually uses. The GitHub check details URL uses account path `41386f432b6fa180fe84f51e709b729b`; a Kai Yue Scripts GET used account `33ecc75158a1cdd23ba1a62eb70c5103`. Do not change account bindings from an agent.
 

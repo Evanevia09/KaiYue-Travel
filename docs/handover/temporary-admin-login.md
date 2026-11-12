@@ -1,7 +1,7 @@
 # Temporary allowlisted admin password login
 
 **Task:** `kai-yue-temporary-admin-login-20261110`  
-**Status:** implementation on a task branch; not merged, not deployed, not `user_accepted`, not `released`.  
+**Status:** source package ready on the task branch. Evan t81u authorizes pursuing staged then live dashboard. Independent verifier owns Cloudflare writes. This source writer has not merged, uploaded, or seeded. Not `user_accepted`. Not `released`.  
 **Hosts:** production https://kaiyuemacau.com ; staging https://kaiyue-travel-staging.kai-yue.workers.dev  
 **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/26 into `staging`
 
@@ -47,25 +47,34 @@ Viable path (no public signup, no development mode on a public host):
 
 After Access is live: let `TEMP_ADMIN_EXPIRES_AT` pass or delete that var, delete the Better Auth user/account rows, and keep Access JWT verification.
 
-Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00`. Do not rotate those in this increment. Production password **capability is approved** (user t73/t74) but stays fail-closed until PM deliberately sets production `ADMIN_EMAILS` + future `TEMP_ADMIN_EXPIRES_AT` after staging verification. Do not treat that as missing authorization of the feature.
+Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00` (GET evidence 2026-11-11; wrangler `env.staging` matches). Verified still future at 2026-11-12 13:07 Asia/Macau (~291 h remaining). Do not rotate those in this increment. Production password **capability is approved** (t73/t74) and Evan t81u asked to get the live dashboard after t79’s unknown-static explanation; production wrangler still **omits** allowlist/expiry so `/login` stays 403 until PM sets those vars after staging UI/console/security. Do not treat t81u as this agent uploading.
 
 ## Staging packages
 
 - Additive 14-file jwt + `keep_assets` remains **unsafe**. Do not send it.
-- **PROPOSED (not approved):** complete-ledger staging trial. Zip `artifacts/kaiyue-staging-complete-5dab462.zip` (sha256 `d10a3d7f117fcae626eeffa9b928781b082e1a7afae61c08bab54d29549ce923`). Built at **runtimeSourceSHA** `5dab46281ce84b5b5974a28bdb9f94513c670644`. `entry.js` sha256 `4e21131158d4a69516eccf60ee05bbf65a274ec2fbfc11c1a91ef631932e4654`. 136-file complete manifest. HTML is the new staged version. Same Worker/D1. Mika has **not** approved. Evan risk acceptance pending. No executor writes. See `docs/records/2026-11-10-staging-complete-ledger-proposal.md`.
+- **Release package (do not rebuild):** `artifacts/kaiyue-staging-complete-5dab462.zip` sha256 `d10a3d7f117fcae626eeffa9b928781b082e1a7afae61c08bab54d29549ce923` (10984197 bytes). runtimeSourceSHA `5dab46281ce84b5b5974a28bdb9f94513c670644`. `entry.js` sha256 `4e21131158d4a69516eccf60ee05bbf65a274ec2fbfc11c1a91ef631932e4654`. `apps/web` unchanged through head `f6c9274`. A wrangler rebuild of the same SHA is **not** bit-identical (`entry.js` embeds a per-build Astro `key`). See `docs/records/2026-11-10-staging-complete-ledger-proposal.md` and zip `OPERATOR-API-PLAN.txt`.
 - **Rollback provenance (GET 2026-11-11 01:34:24 Asia/Macau):** current 100% version `b53c0353-bfc4-4700-a5c7-725b7167af6e`, deployment `caeee848-fb0d-4914-a770-2d60996f106e`, D1 `043cd0ff-…`, R2 `kaiyue-offers-staging`, `ASSETS` present. Evidence `docs/records/2026-11-11-staging-rollback-evidence.sanitized.json` sha256 `39a4e00e4acab704d5f7b4dca5b0b31cf50eb5ee5a69956a8241ed25eb10edab`. Plan `docs/records/2026-11-11-staging-rollback-plan.md`. **Verified:** platform metadata. **Untested:** Deployments POST restoring that version’s script + attached assets. No asset inventory/hashes in GET. Residual unknown completeness remains. Production `kaiyue-travel` unchanged.
 - Connector must use the **assets-upload-session JWT** (not the account token) on `POST /workers/assets/upload`. If it cannot switch `Authorization`, that is a capability gap — do not paste credentials.
 
 GitHub Actions [`42866722740`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42866722740) on head `c8c129b` **success** (job `check`, 136/136 tests). That is the test CI. Cloudflare check [`Workers Builds: kaiyue-travel`](https://github.com/Evanevia09/KaiYue-Travel/runs/130007335350) on the same SHA **failure**, build `bf4a1c0a-977a-4365-8e38-9e4e6f147c85`, script `kaiyue-travel` / production, details [dashboard](https://dash.cloudflare.com/41386f432b6fa180fe84f51e709b729b/workers/services/view/kaiyue-travel/production/builds/bf4a1c0a-977a-4365-8e38-9e4e6f147c85). GitHub check `output.text` and annotations are empty. Local reproduce of the official default deploy command (`npx wrangler deploy` with no `--env`) uses placeholder Worker `kaiyue-travel-env-required` / D1 `00000000-0000-4000-8000-000000000001` / `ENVIRONMENT=unspecified`; wrangler 4.132.0 warns that no target env was specified. Do not rename top-level wrangler to green that check. Staging-only dashboard fields: `docs/08-delivery-and-operations.md`. GitHub Actions [`42864265892`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/42864265892) succeeded on `5dab462`. Provisioner zip unchanged; env-only, do not start the server. Do not retry production Workers Builds.
 
-## Authorized staging upload (PM only, after Mika)
+## Independent verifier — staging then production (source writer does not run)
 
-Independent review is OK for a staging-only trial. Complete-ledger PUT is **proposed**, not approved. Wrangler fallback after approval:
+Head `f6c9274383121c729c7c6fd522b4ce366072cadb`. GitHub Actions [`43123457292`](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43123457292) 139/139. Do not retry production Workers Builds. Do not rename top-level wrangler.
+
+**Accounts (committed evidence, no guess):** Worker GET snapshot used Kai Yue `33ecc75158a1cdd23ba1a62eb70c5103`. GitHub check URLs use dashboard path `41386f432b6fa180fe84f51e709b729b`. Resolve which account holds `kaiyue-travel-staging` before any write.
+
+**Staging (script `kaiyue-travel-staging`, D1 `043cd0ff-…`, R2 `kaiyue-offers-staging`):** do not mutate `ADMIN_EMAILS`, `TEMP_ADMIN_EXPIRES_AT`, `BETTER_AUTH_SECRET`, or Access vars (Access must stay unset for password login). Prefer the boxed zip (bit-stable). Wrangler fallback rebuilds `entry.js`:
 
 ```text
-PUBLIC_SITE_URL=https://kaiyue-travel-staging.kai-yue.workers.dev pnpm --filter @kaiyue/web build
 node scripts/require-wrangler-env.mjs --env staging
 npx wrangler versions upload --env staging --name kaiyue-travel-staging
 ```
 
-Production temporary-login **capability is already approved** (t73/t74). Configure production vars only after staging persists. Do not retry the GitHub check `Workers Builds: kaiyue-travel` (that path is `/workers/services/view/kaiyue-travel/production/builds/…`). Never `wrangler deploy` from an agent.
+Then promote that **new** version to 100% (do not `wrangler deploy` unless PM accepts immediate 100%). Complete-manifest PUT in the zip deploys immediately — confirm `b53c0353-bfc4-4700-a5c7-725b7167af6e` remains listed first.
+
+**Rollback staging:** `POST .../scripts/kaiyue-travel-staging/deployments` with version `b53c0353-bfc4-4700-a5c7-725b7167af6e` at 100%. Not a D1/R2 mutate. Untested POST.
+
+**After PM staging UI+console/security:** production script `kaiyue-travel`, D1 `06cf879d-…`. Set production `ADMIN_EMAILS` + future `TEMP_ADMIN_EXPIRES_AT` (Access still unset). Then `npx wrangler versions upload --env production --name kaiyue-travel`. **Rollback production:** version `74ebe1fc-135d-4a97-b297-e2d1d2748fa0` at 100%. Do not apply seed SQL to production D1 until that promotion.
+
+Seed (if staging `/login` has no user): env-only provisioner zip `a5195c7f…`; do not start loopback; do not send passwords here.
