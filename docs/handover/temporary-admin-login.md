@@ -11,8 +11,8 @@
 - Removed `kaiyue-travel-staging.kai-yue.workers.dev` from production hosts. That listing was why staging `/login` returned 403 JSON (`Admin access is not configured.`, `requestId: gate`) even with `ENVIRONMENT=preview`, allowlist, and `BETTER_AUTH_SECRET`.
 - Temporary password login is explicit: non-local requires `ADMIN_EMAILS` and a future `TEMP_ADMIN_EXPIRES_AT`. Signup and `DEV_ADMIN_BYPASS` stay **loopback** local-only (`localhost` / `127.0.0.1` + `ENVIRONMENT=development`). `ENVIRONMENT=development` + setup token on a public/staging/Access/unknown host still 404s signup.
 - Access vars (`ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`) disable password admin on every non-local surface, including staging/preview. `/admin` then requires Access JWT; `/login` and `/api/auth` stay 403.
-- `admin.kaiyuemacau.com` is the password dashboard while Access is unset (allowlist + expiry). Configured Access vars still take over (JWT, password 403). Apex public paths stay on `kaiyuemacau.com`. `/` on the admin host lands `/admin` or `/login`.
-- Production public hosts stay fail-closed until allowlist + future expiry are set **and** Access is unset.
+- `admin.kaiyuemacau.com` is the password dashboard while Access is unset (allowlist + expiry). Configured Access vars still take over (JWT, password 403). Apex public paths stay on `kaiyuemacau.com`. `/` on the admin host lands `/admin` or `/login`. Marketing/locale HTML on that host redirects to `/login`. Admin-host auth trusted origins are the admin origin only.
+- Production public hosts (apex, www, legacy workers.dev) stay password-403 even when allowlist and expiry are set. Temporary password is the admin host, staging/preview, and loopback only.
 - Root `wrangler.jsonc` top-level is **not** a live target (`kaiyue-travel-env-required`). Live Workers are `env.staging` and `env.production`. `previews` uses placeholder D1/R2 and does not bind staging.
 
 ## Parity limits
@@ -48,7 +48,7 @@ Viable path (no public signup, no development mode on a public host):
 
 After Access is live: let `TEMP_ADMIN_EXPIRES_AT` pass or delete that var, delete the Better Auth user/account rows, and keep Access JWT verification.
 
-Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00` (GET evidence 2026-11-11; wrangler `env.staging` matches). Verified still future at 2026-11-12 13:07 Asia/Macau (~291 h remaining). Do not rotate those in this increment. Production password **capability is approved** (t73/t74) and Evan t81u asked to get the live dashboard after t79’s unknown-static explanation; production wrangler still **omits** allowlist/expiry so `/login` stays 403 until PM sets those vars after staging UI/console/security. Do not treat t81u as this agent uploading.
+Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T15:59:59+08:00` (GET evidence 2026-11-11; wrangler `env.staging` matches). Verified still future at 2026-11-12 13:07 Asia/Macau (~291 h remaining). Do not rotate those in this increment. Production public `/login` stays 403 even after PM sets allowlist/expiry; the live dashboard host is `admin.kaiyuemacau.com`. Do not treat t81u as this agent uploading.
 
 ## Staging packages
 

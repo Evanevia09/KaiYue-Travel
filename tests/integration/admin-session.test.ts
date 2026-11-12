@@ -87,7 +87,7 @@ describe("admin session on local D1", () => {
     ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   }, 30_000);
 
-  it("accepts the same session on the staging host and rejects production without temp vars", async () => {
+  it("accepts the same session on the staging host and rejects production public hosts", async () => {
     const stagingOrigin = "https://kaiyue-travel-staging.kai-yue.workers.dev";
     const stagingEnv = {
       ...env,
@@ -130,14 +130,12 @@ describe("admin session on local D1", () => {
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
 
-    const productionReady = await requireAdmin(
-      new Request("https://kaiyuemacau.com/admin", { headers: { cookie: cookie! } }),
-      {
+    await expect(
+      requireAdmin(new Request("https://kaiyuemacau.com/admin", { headers: { cookie: cookie! } }), {
         ...stagingEnv,
         ENVIRONMENT: "production",
         PUBLIC_SITE_URL: "https://kaiyuemacau.com",
-      },
-    );
-    expect(productionReady.email).toBe(email);
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   }, 30_000);
 });

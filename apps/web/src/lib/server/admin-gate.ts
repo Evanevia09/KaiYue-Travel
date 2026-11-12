@@ -8,9 +8,10 @@ export const ACCESS_ADMIN_HOST = "admin.kaiyuemacau.com";
 export const CANONICAL_PUBLIC_ORIGIN = "https://kaiyuemacau.com";
 
 /**
- * Public production hostnames. Password admin is fail-closed here unless
- * Access is unset and a future TEMP_ADMIN_EXPIRES_AT + ADMIN_EMAILS pair is
- * explicitly configured. The staging workers.dev host must not appear here.
+ * Public production hostnames. Password admin stays fail-closed here even
+ * when allowlist and expiry are set. Temporary password is
+ * `admin.kaiyuemacau.com` only (plus staging/preview/loopback). The staging
+ * workers.dev host must not appear here.
  */
 export const PRODUCTION_HOSTS = [
   "kaiyuemacau.com",
@@ -169,10 +170,32 @@ export function passwordAdminAllowed(
   if (!temporaryPasswordConfigured(env)) {
     return false;
   }
-  if (isProductionHost(request) || isAccessAdminHost(request)) {
+  if (isProductionHost(request)) {
+    return false;
+  }
+  if (isAccessAdminHost(request)) {
     return true;
   }
   return isPreviewRuntime(env, request) || isStagingHost(request);
+}
+
+const DASHBOARD_ASSET_PREFIXES = ["/_astro/", "/images/"] as const;
+const DASHBOARD_ASSET_PATHS = ["/favicon.ico"] as const;
+
+export function isAdminDashboardAssetPath(pathname: string): boolean {
+  if ((DASHBOARD_ASSET_PATHS as readonly string[]).includes(pathname)) {
+    return true;
+  }
+  return DASHBOARD_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+/** Paths the dedicated admin host may serve. Marketing/locale HTML is excluded. */
+export function isAdminDashboardPath(pathname: string): boolean {
+  const path = pathname.replace(/\/$/, "") || "/";
+  if (path === "/") {
+    return true;
+  }
+  return isProtectedAdminPath(pathname) || isAdminDashboardAssetPath(pathname);
 }
 
 export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: Request): void {

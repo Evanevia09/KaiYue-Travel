@@ -7,6 +7,7 @@ import {
   assertLiveAdminSurface,
   forbiddenResponse,
   isAccessAdminHost,
+  isAdminDashboardPath,
   isProtectedAdminPath,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
@@ -34,6 +35,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
         return context.redirect("/login", 302);
       }
     }
+    if (!isAdminDashboardPath(context.url.pathname)) {
+      return context.redirect("/login", 302);
+    }
   }
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
     try {
@@ -55,7 +59,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     response.headers.set(key, value);
   }
-  if (context.url.pathname.startsWith("/admin")) {
+  if (isAccessAdminHost(context.request) || context.url.pathname.startsWith("/admin")) {
     response.headers.set("x-robots-tag", "noindex, nofollow");
     response.headers.set("cache-control", "no-store");
   }

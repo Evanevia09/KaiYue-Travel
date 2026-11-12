@@ -6,13 +6,15 @@ import {
   assertLiveAdminSurface,
   emailSignupAllowed,
   isAccessAdminHost,
+  isAdminDashboardPath,
   isLocalAdminSurface,
   isPreviewRuntime,
   isProtectedAdminPath,
   passwordAdminAllowed,
   temporaryPasswordConfigured,
 } from "../../apps/web/src/lib/server/admin-gate.ts";
-import { requireAdmin } from "../../apps/web/src/lib/server/auth.ts";
+import { adminAuthTrustedOrigins } from "../../apps/web/src/lib/server/admin-session.ts";
+import { requireAdmin, requireSameOrigin } from "../../apps/web/src/lib/server/auth.ts";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createTestEnv } from "../helpers/memory-d1.ts";
 
@@ -274,7 +276,7 @@ describe("temporary password admin", () => {
     await expect(requireAdmin(admin, withAccess)).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("prepares production public hosts for temp password only when Access is unset", async () => {
+  it("keeps production public hosts password-closed even when allowlist and expiry are set", async () => {
     const ready = createTestEnv({
       ENVIRONMENT: "production",
       DEV_ADMIN_BYPASS: "false",
@@ -288,19 +290,26 @@ describe("temporary password admin", () => {
       ACCESS_TEAM_DOMAIN: "kaiyue.cloudflareaccess.com",
       ACCESS_AUD: "audience-test",
     };
-    const login = new Request(`${productionOrigin}/login`);
-    expect(passwordAdminAllowed(ready, login)).toBe(true);
-    expect(() => assertLiveAdminSurface(ready, "/login", login)).not.toThrow();
-    expect(() => assertLiveAdminSurface(ready, "/setup-admin", login)).toThrow(
-      /Operator setup is disabled/,
-    );
-    expect(passwordAdminAllowed(withAccess, login)).toBe(false);
-    expect(() => assertLiveAdminSurface(withAccess, "/login", login)).toThrow(
-      /Admin access is not configured/,
-    );
+    for (const origin of [productionOrigin, wwwOrigin, legacyOrigin]) {
+      const login = new Request(`${origin}/login`);
+      const admin = new Request(`${origin}/admin`);
+      expect(passwordAdminAllowed(ready, login), origin).toBe(false);
+      expect(() => assertLiveAdminSurface(ready, "/login", login)).toThrow(
+        /Admin access is not configured/,
+      );
+      expect(() => assertLiveAdminSurface(ready, "/admin", admin)).toThrow(
+        /Admin access is not configured/,
+      );
+      expect(passwordAdminAllowed(withAccess, login), origin).toBe(false);
+      expect(() => assertLiveAdminSurface(withAccess, "/login", login)).toThrow(
+        /Admin access is not configured/,
+      );
+    }
     const admin = new Request(`${productionOrigin}/admin`);
-    expect(() => assertLiveAdminSurface(withAccess, "/admin", admin)).not.toThrow();
+    await expect(requireAdmin(admin, ready)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(requireAdmin(admin, withAccess)).rejects.toMatchObject({ code: "FORBIDDEN" });
+    const api = await handleApi(new Request(`${productionOrigin}/api/v1/admin/summary`), ready);
+    expect(api.status).toBe(403);
   });
 
   it("disables password on staging and preview when Access is configured", async () => {
@@ -323,6 +332,70 @@ describe("temporary password admin", () => {
     await expect(requireAdmin(admin, env)).rejects.toMatchObject({ code: "FORBIDDEN" });
     const api = await handleApi(new Request(`${stagingOrigin}/api/v1/admin/summary`), env);
     expect(api.status).toBe(403);
+  });
+});
+
+describe("admin host origin and public HTML", () => {
+  const productionEnv = createTestEnv({
+    ENVIRONMENT: "production",
+    DEV_ADMIN_BYPASS: "false",
+    ADMIN_EMAILS: "operator@example.invalid",
+    TEMP_ADMIN_EXPIRES_AT: futureExpiry,
+    PUBLIC_SITE_URL: productionOrigin,
+  });
+
+  it("rejects apex and www Origins on admin-host mutation POSTs", () => {
+    const adminPost = new Request(`${accessOrigin}/api/v1/admin/bookings/KY-TEST/status`, {
+      method: "POST",
+      headers: { origin: productionOrigin },
+    });
+    expect(() => requireSameOrigin(adminPost, productionEnv)).toThrow(
+      /Cross-origin admin mutations are not allowed/,
+    );
+    const wwwPost = new Request(`${accessOrigin}/api/v1/admin/bookings/KY-TEST/status`, {
+      method: "POST",
+      headers: { origin: wwwOrigin },
+    });
+    expect(() => requireSameOrigin(wwwPost, productionEnv)).toThrow(
+      /Cross-origin admin mutations are not allowed/,
+    );
+    const sameOrigin = new Request(`${accessOrigin}/api/v1/admin/bookings/KY-TEST/status`, {
+      method: "POST",
+      headers: { origin: accessOrigin },
+    });
+    expect(() => requireSameOrigin(sameOrigin, productionEnv)).not.toThrow();
+  });
+
+  it("restricts admin-host Better Auth trusted origins to the request origin", () => {
+    const adminRequest = new Request(`${accessOrigin}/api/auth/sign-in/email`);
+    expect(adminAuthTrustedOrigins(productionEnv, adminRequest)).toEqual([accessOrigin]);
+    expect(adminAuthTrustedOrigins(productionEnv, adminRequest)).not.toContain(productionOrigin);
+    const stagingRequest = new Request(`${stagingOrigin}/api/auth/sign-in/email`);
+    const staging = adminAuthTrustedOrigins({ PUBLIC_SITE_URL: stagingOrigin }, stagingRequest);
+    expect(staging).toContain(stagingOrigin);
+  });
+
+  it("allows dashboard paths on the admin host and redirects marketing and locale HTML", () => {
+    expect(isAdminDashboardPath("/")).toBe(true);
+    expect(isAdminDashboardPath("/login")).toBe(true);
+    expect(isAdminDashboardPath("/admin")).toBe(true);
+    expect(isAdminDashboardPath("/admin/offers")).toBe(true);
+    expect(isAdminDashboardPath("/api/auth/sign-in/email")).toBe(true);
+    expect(isAdminDashboardPath("/api/v1/admin/summary")).toBe(true);
+    expect(isAdminDashboardPath("/_astro/client.js")).toBe(true);
+    expect(isAdminDashboardPath("/favicon.ico")).toBe(true);
+    expect(isAdminDashboardPath("/images/mark.svg")).toBe(true);
+    expect(isAdminDashboardPath("/about")).toBe(false);
+    expect(isAdminDashboardPath("/pt")).toBe(false);
+    expect(isAdminDashboardPath("/pt/about")).toBe(false);
+    expect(isAdminDashboardPath("/zh-Hant")).toBe(false);
+    expect(isAdminDashboardPath("/zh-Hant/services/airport-transfer")).toBe(false);
+    expect(isAdminDashboardPath("/services/airport-transfer")).toBe(false);
+    expect(isAccessAdminHost(new Request(`${productionOrigin}/`))).toBe(false);
+    expect(isProtectedAdminPath("/")).toBe(false);
+    expect(() =>
+      assertLiveAdminSurface(productionEnv, "/", new Request(`${productionOrigin}/`)),
+    ).not.toThrow();
   });
 });
 
