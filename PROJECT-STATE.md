@@ -843,7 +843,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Changed: owner t90–t96: `admin.kaiyuemacau.com` is the staff dashboard. Removed hostname-only Access 403 when Access vars are unset. Removed `STAFF_ADMIN_HOST`. Access vars still take over when set. Admin `/` → `/admin` or `/login`. Apex public routes unchanged.
 - Decision/evidence: Evan 2026-11-12 13:55–13:56 Asia/Macau t96 “remove that” extra Access requirement. 13:45 complete staging file replacement still stands.
 - Verified: `pnpm test` 142/142, lint clean, typecheck 0 errors, `pnpm build` completed. Admin-host password allow/deny, expired/no-allowlist, remote signup deny, public routes ungated.
-- Not verified: custom domain attach, DNS, staging UI, package hashes until the freeze build. Not `user_accepted` or `released`.
+- Not verified: custom domain attach, DNS, staging UI, independent security review, browser QA on 8f41369 packages. Not `user_accepted` or `released`.
 
 ### 2026-11-12 — Evan t81u: deployable 5dab462 package, source writer does not upload
 
