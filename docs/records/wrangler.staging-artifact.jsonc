@@ -1,0 +1,63 @@
+// Sanitized STAGING upload config for kaiyue-travel-staging on account 33ecc only.
+// Derived from frozen zip 01M776J5A1EMFGAY7N73Y21M57.zip
+//   sha256 b5b0be97da9189c5da5dccf88e8a29d95ed4841a724cbaa84dc249ceb26a2bf5
+//   SOURCE-SHA fa5184ccda2d149c2d4acb8914db315ca8e5b4c4
+//   entry.js sha256 646f7dc771d6fb0088498c5002763c083d841668e8a263242b5b726c025120d9
+// plus fresh GET 2026-11-12 14:23:27 CST (Asia/Macau) of live 33ecc bindings.
+//
+// DOCUMENTED DELTAS vs the frozen artifact wrangler.jsonc (which has no
+// account_id, no_bundle, keep_vars, workers_dev, preview_urls, or
+// assets.run_worker_first):
+//   - account_id pinned to 33ecc75158a1cdd23ba1a62eb70c5103 (do not use 41386f)
+//   - no_bundle + keep_vars (CLI flags still required)
+//   - workers_dev: true, preview_urls: false (match live staging settings)
+//   - assets.run_worker_first: true  REQUIRED so admin-host middleware runs.
+//     Frozen package defaults (flag omitted) serve dist-client/index.html and
+//     prerendered marketing/locale HTML without invoking the Worker, which
+//     would leave https://admin.kaiyuemacau.com/ as the public homepage and
+//     skip noindex/redirects. Do not upload without this flag if the admin
+//     hostname will be attached to the resulting version.
+//
+// Secrets are omitted. --keep-vars preserves live BETTER_AUTH_SECRET.
+// Do not add --env, --secrets-file, or wrangler deploy.
+// This file is for versions upload only. No upload is performed by the reviewer.
+{
+  "name": "kaiyue-travel-staging",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "main": "./entry.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "no_bundle": true,
+  "keep_vars": true,
+  "assets": {
+    "directory": "./dist-client",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-staging",
+      "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-staging"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "preview",
+    "PUBLIC_SITE_URL": "https://kaiyue-travel-staging.kai-yue.workers.dev",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "DEV_ADMIN_BYPASS": "false",
+    "ADMIN_EMAILS": "daniel@kaiyuemacau.com",
+    "TEMP_ADMIN_EXPIRES_AT": "2026-11-24T15:59:59+08:00"
+  }
+}

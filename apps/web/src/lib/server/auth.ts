@@ -2,7 +2,9 @@ import { AppError } from "@kaiyue/contracts";
 import { verifyAccessJwt } from "./access-jwt.ts";
 import {
   accessConfigured,
-  isLocalRuntime,
+  accessTakesOver,
+  isAccessAdminHost,
+  isLocalAdminSurface,
   isProductionHost,
   passwordAdminAllowed,
 } from "./admin-gate.ts";
@@ -15,18 +17,22 @@ export type AdminIdentity = {
 };
 
 export async function requireAdmin(request: Request, env: AppEnv): Promise<AdminIdentity> {
-  if (isProductionHost(request)) {
+  if (accessTakesOver(env, request)) {
     if (!accessConfigured(env)) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    const productionToken = request.headers.get("cf-access-jwt-assertion");
-    if (!productionToken) {
+    const accessToken = request.headers.get("cf-access-jwt-assertion");
+    if (!accessToken) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    return verifyAccessJwt(productionToken, env);
+    return verifyAccessJwt(accessToken, env);
   }
 
-  if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true") {
+  if (isProductionHost(request) && !passwordAdminAllowed(env, request)) {
+    throw new AppError("FORBIDDEN", "Admin access is not configured.");
+  }
+
+  if (isLocalAdminSurface(env, request) && env.DEV_ADMIN_BYPASS === "true") {
     return { id: "dev-admin", email: "dev-admin@localhost" };
   }
 
@@ -63,7 +69,9 @@ export function requireSameOrigin(request: Request, env: AppEnv): void {
   const site = env.PUBLIC_SITE_URL;
   const requestOrigin = new URL(request.url).origin;
   const allowed = new Set<string>();
-  if (site) allowed.add(new URL(site).origin);
+  if (site && !isAccessAdminHost(request)) {
+    allowed.add(new URL(site).origin);
+  }
   allowed.add(requestOrigin);
   if (origin && !allowed.has(origin)) {
     throw new AppError("FORBIDDEN", "Cross-origin admin mutations are not allowed.");

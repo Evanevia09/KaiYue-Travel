@@ -2,11 +2,20 @@
 
 ## Goal and access
 
-The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*`. The current local development alternative uses Better Auth email/password sessions in D1, with an explicit `ADMIN_EMAILS` allowlist. Admin UI pages and API handlers both require a valid identity. Production access policy and operator provisioning still require owner review.
+The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*` and for `admin.kaiyuemacau.com`. Admin UI pages and API handlers both require a valid identity.
+
+Temporary Better Auth email/password sessions are an explicit, time-bounded alternative:
+
+- Allowlist `ADMIN_EMAILS` and a future `TEMP_ADMIN_EXPIRES_AT` are both required outside local development.
+- Signup/`/setup-admin` stay loopback-development only (`localhost` / `127.0.0.1` plus `ENVIRONMENT=development`). `ENVIRONMENT=development` and `ADMIN_SETUP_TOKEN` on a public, staging, Access, or unknown host still 404 signup.
+- `DEV_ADMIN_BYPASS` is ignored unless that same loopback surface is true.
+- Staging (`kaiyue-travel-staging.kai-yue.workers.dev`) may use password login for testing only while Access is unset.
+- Production public hosts (apex, www, legacy workers.dev) stay fail-closed for password admin even when allowlist and expiry are set. Setting Cloudflare Access vars disables password admin on every non-local surface so the site can return to Access without a code change.
+- `admin.kaiyuemacau.com` is the staff dashboard host. Temporary allowlist + future expiry password login is allowed there while Access is unset. Setting Cloudflare Access vars (`ACCESS_TEAM_DOMAIN` and `ACCESS_AUD`) disables password login and requires Access JWT. Apex `kaiyuemacau.com` public routes are unchanged. On the admin host, `/` goes to `/admin` when signed in (or Access is configured) and `/login` otherwise. Marketing and locale HTML on that host redirect to `/login`. The host is `noindex`. Admin-host auth trusted origins and mutation Origin are the admin origin only.
 
 Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up.
 
-Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. `TEMP_ADMIN_EXPIRES_AT` can close temporary local dashboard access at a fixed timestamp without deleting records or changing the secret. This does not provision a production operator or replace Cloudflare Access.
+Local first-account setup requires a one-time token on loopback development; remove the token after setup. `hashPassword` does not use `BETTER_AUTH_SECRET` (that secret only signs session cookies). Expiry closes temporary password access without deleting records or rotating `BETTER_AUTH_SECRET`. This does not replace Cloudflare Access.
 
 ## Navigation
 

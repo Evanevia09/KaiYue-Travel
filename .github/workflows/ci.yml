@@ -1,9 +1,16 @@
 name: CI
 
+# GitHub Actions `CI` is this workflow. Cloudflare "Workers Builds: kaiyue-travel"
+# is a separate GitHub check that uploads the production Worker. Do not retry
+# that production build from a pull request. pull_request is listed for main and
+# staging so a PR into staging still runs tests. workflow_dispatch is the
+# operator fallback when a GitHub App event did not queue Actions.
 on:
   pull_request:
+    branches: [main, staging]
   push:
-    branches: [main]
+    branches: [main, staging]
+  workflow_dispatch:
 
 jobs:
   check:

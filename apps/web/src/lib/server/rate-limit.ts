@@ -4,8 +4,16 @@ import type { D1Database } from "./env.ts";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_HITS = 8;
+const ADMIN_SIGNIN_WINDOW_MS = 10 * 60 * 1000;
+const ADMIN_SIGNIN_MAX_HITS = 5;
 
-export async function enforceRateLimit(db: D1Database, bucket: string): Promise<void> {
+export async function enforceRateLimit(
+  db: D1Database,
+  bucket: string,
+  options?: { windowMs?: number; maxHits?: number },
+): Promise<void> {
+  const windowMs = options?.windowMs ?? WINDOW_MS;
+  const maxHits = options?.maxHits ?? MAX_HITS;
   const now = Date.now();
   const row = await first<{ count: number; window_start: string }>(
     db,
@@ -13,7 +21,7 @@ export async function enforceRateLimit(db: D1Database, bucket: string): Promise<
     bucket,
   );
 
-  if (!row || now - Date.parse(row.window_start) >= WINDOW_MS) {
+  if (!row || now - Date.parse(row.window_start) >= windowMs) {
     await run(
       db,
       `INSERT INTO rate_limits (bucket, count, window_start)
@@ -25,7 +33,7 @@ export async function enforceRateLimit(db: D1Database, bucket: string): Promise<
     return;
   }
 
-  if (row.count >= MAX_HITS) {
+  if (row.count >= maxHits) {
     throw new AppError(
       "RATE_LIMITED",
       "Too many requests. Please wait a few minutes and try again.",
@@ -33,4 +41,11 @@ export async function enforceRateLimit(db: D1Database, bucket: string): Promise<
   }
 
   await run(db, "UPDATE rate_limits SET count = count + 1 WHERE bucket = ?", bucket);
+}
+
+export async function enforceAdminSignInRateLimit(db: D1Database, ip: string): Promise<void> {
+  await enforceRateLimit(db, `admin-signin:${ip}`, {
+    windowMs: ADMIN_SIGNIN_WINDOW_MS,
+    maxHits: ADMIN_SIGNIN_MAX_HITS,
+  });
 }

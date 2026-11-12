@@ -1,0 +1,842 @@
+{
+  "builtAt": "2026-11-10T17:01:24.474Z",
+  "branchSha": "fce3a665b83f35e6153a5f3bb2659df669fa613c",
+  "hostsCompared": [
+    "https://kaiyuemacau.com",
+    "https://www.kaiyuemacau.com",
+    "https://kaiyue-travel-staging.kai-yue.workers.dev"
+  ],
+  "pagesFetched": 108,
+  "uniqueLiveAstro": 18,
+  "distAstroCount": 31,
+  "homeIslandsSameAcrossHosts": true,
+  "client": {
+    "byteMatches": 17,
+    "diffs": [],
+    "liveOnly": [],
+    "semanticNear": [],
+    "buildOnlyPublic": [
+      "api._aekQyCR.js"
+    ],
+    "buildAdminOnly": [
+      "AdminLocaleSwitch.AW9mvxVt.js",
+      "BookingDetailPanel.BkbY9XB-.js",
+      "BookingsPanel.bFDjlHxY.js",
+      "CalendarPanel.C4LBMqaW.js",
+      "ContactDetailPanel.BX3k8Way.js",
+      "ContactsPanel.C4l2f9ag.js",
+      "DashboardPanel.BOTjT2Gn.js",
+      "InventoryPanel.DHPXN2e6.js",
+      "LoginForm.DI7HqLqN.js",
+      "OffersPanel.ChIAc9eb.js",
+      "SetupForm.CNBXj-dW.js",
+      "SignOutButton.DcT_T_1m.js",
+      "admin-i18n.BqNzmZPb.js"
+    ]
+  },
+  "server": {
+    "recoveredProductionSha256": "0942309f987408ab474e77683438481f997567c97b4902a72845e25baa9c15d0",
+    "recoveredStagingSha256": "437926967df82fa60a993b0d71fee0d12f38fe34decfbded9562ad1d6bfaf758",
+    "recoveredHosts": "[\"kaiyue-travel.scalingsmb.workers.dev\", \"kaiyue-travel-staging.kai-yue.workers.dev\"]",
+    "recoveredHasLocalSurface": false,
+    "sharedModuleStems": 63,
+    "buildOnlyModuleStems": [
+      "_.._93M06oJ_",
+      "_.._CC4E_9jU",
+      "admin",
+      "bun-sqlite-dialect-C7ftEUSI_B5_ZUydh",
+      "db_BJi_UM06",
+      "login",
+      "rate-limit",
+      "static-image-collection"
+    ],
+    "liveOnlyModuleStems": [
+      "_.._CbYf_wkV",
+      "_id__BPFIyV_Y",
+      "_id__Csm_XGt_",
+      "admin_CDed_WXS",
+      "bun-sqlite-dialect-C7ftEUSI",
+      "entry",
+      "env",
+      "login_nby_uWbr",
+      "special-offers_C_7yz55E",
+      "special-offers_Ww_ltElj",
+      "virtual_astro_middleware"
+    ]
+  },
+  "routeDrift": [
+    {
+      "path": "/login",
+      "statuses": {
+        "prod": 403,
+        "www": 403,
+        "staging": 403
+      },
+      "sameAssetSet": true,
+      "refs": []
+    }
+  ],
+  "comparisons": [
+    {
+      "live": "BaseLayout.Dq8L4eEk.css",
+      "stem": "BaseLayout",
+      "class": "public",
+      "liveSha256": "d1a703d29e0fdd2b4e8258249d6a0c2a260f9de9c5269c7458b4ee7c7c8280f1",
+      "liveBytes": 61376,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist BaseLayout.Dq8L4eEk.css",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+      "stem": "BaseLayout.astro_astro_type_script_index_1_lang",
+      "class": "public",
+      "liveSha256": "c2c93f9f6c488559b6b7dddb0eaaea8ce81591ab2139f1b9d319a05442a085c8",
+      "liveBytes": 238617,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "BookingEmbedded.cFmMjUfb.js",
+      "stem": "BookingEmbedded",
+      "class": "public",
+      "liveSha256": "58761506be52a91a71ae09dd97c9c72624598cee3d022958066ac9036cdada04",
+      "liveBytes": 1680,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist BookingEmbedded.cFmMjUfb.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "BookingForm.BY2srzpk.js",
+      "stem": "BookingForm",
+      "class": "public",
+      "liveSha256": "aaa1bf1f3f340ecdd85d123560140ed033d829c8c975c4e381bfcc9dd9bc001d",
+      "liveBytes": 37510,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist BookingForm.BY2srzpk.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "BookingLauncher.BqoyMjDS.js",
+      "stem": "BookingLauncher",
+      "class": "public",
+      "liveSha256": "1585a5ec3d2c80ac8a0a8122f6466519250d50489ddacb0fd4cd2806db2d0f58",
+      "liveBytes": 543,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist BookingLauncher.BqoyMjDS.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "BookingSheet.BjhsA3XK.js",
+      "stem": "BookingSheet",
+      "class": "public",
+      "liveSha256": "a374b1e77e5020036afecc34f4857d2057459ea48b8af2c677ef83be8a52113a",
+      "liveBytes": 2410,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist BookingSheet.BjhsA3XK.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "ContactForm.CJmZZAL8.js",
+      "stem": "ContactForm",
+      "class": "public",
+      "liveSha256": "86c66973e19efe323f372a1bbd9dc0153c7ccc9772712cab4fbe24ca1bced74a",
+      "liveBytes": 4355,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist ContactForm.CJmZZAL8.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "api._aekQyCR.js",
+      "stem": "api",
+      "class": "public",
+      "liveSha256": "9eab2c6f100143522df19b37074d7edc60efc4e7a902d8227097ddfd76184064",
+      "liveBytes": 11695,
+      "verdict": "ABSENT_ON_LIVE",
+      "note": "HTTP 404",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "auth-client.B2D_TZZE.js",
+      "stem": "auth-client",
+      "class": "public",
+      "liveSha256": "8c6f95d827fb246b1f05c434a5acf2351acd70634f5a239eaf208c03fd860d8a",
+      "liveBytes": 30885,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist auth-client.B2D_TZZE.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "client.DrPMauyT.js",
+      "stem": "client",
+      "class": "public",
+      "liveSha256": "f5821089e31bb9f4b85d7ee275aa494337ea300f070b52230f5049dc270f7601",
+      "liveBytes": 209276,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist client.DrPMauyT.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "i18n.CluPyr_6.js",
+      "stem": "i18n",
+      "class": "public",
+      "liveSha256": "a98e9f278e51925934ade304a7a0164520850125bcc783b513a5128e23ea1c60",
+      "liveBytes": 190,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist i18n.CluPyr_6.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "jsx-runtime.myd_k2E3.js",
+      "stem": "jsx-runtime",
+      "class": "public",
+      "liveSha256": "b7ed143d0a6e46ace111e3eee82d9abf3ba306d5a5459c07c5956c1e7432ffc3",
+      "liveBytes": 487,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist jsx-runtime.myd_k2E3.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "react-dom.Zo7SlITr.js",
+      "stem": "react-dom",
+      "class": "public",
+      "liveSha256": "18254112443ff932907b4d62f6eb4ca31841c3ceb73ef495726a32786550138e",
+      "liveBytes": 3952,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist react-dom.Zo7SlITr.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "react.Bi21MRdE.js",
+      "stem": "react",
+      "class": "public",
+      "liveSha256": "e623ccffd90f5a1d169a9ae8e8c674333118bb449177d8d21b10fe65bc7798a7",
+      "liveBytes": 7928,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist react.Bi21MRdE.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "rolldown-runtime.C_o-9qvY.js",
+      "stem": "rolldown-runtime",
+      "class": "public",
+      "liveSha256": "1e34799ff5b9ec304765b403dc4b07cb195021c0830fab6fb437407c56ff6f8f",
+      "liveBytes": 138,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist rolldown-runtime.C_o-9qvY.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "src.BLL3_vvi.js",
+      "stem": "src",
+      "class": "public",
+      "liveSha256": "f66273e32fe38fc190f79e316499b871ec17cc25d1338d47253c862fe322b94a",
+      "liveBytes": 90430,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist src.BLL3_vvi.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "status.CrrMiddk.js",
+      "stem": "status",
+      "class": "public",
+      "liveSha256": "50a3eba1aa2d4d072c9a997bc6a510403df3935dbe51eda4550d2b1c4022954f",
+      "liveBytes": 234,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist status.CrrMiddk.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    },
+    {
+      "live": "store.BKJ62xil.js",
+      "stem": "store",
+      "class": "public",
+      "liveSha256": "a743a37630e3eab6ff2ba82d25f996fc76cccc5aba7f8bf008ef351f2e5fa049",
+      "liveBytes": 3327,
+      "verdict": "BYTE_AND_NAME_MATCH",
+      "note": "dist store.BKJ62xil.js",
+      "stringScore": null,
+      "liveOnlyStrings": [],
+      "buildOnlyStrings": []
+    }
+  ],
+  "routeInventory": [
+    {
+      "path": "/",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/about",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/contact",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/faq",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js"
+      ]
+    },
+    {
+      "path": "/privacy",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js"
+      ]
+    },
+    {
+      "path": "/terms",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js"
+      ]
+    },
+    {
+      "path": "/corporate",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/business/hotels-resorts",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/business/travel-agency",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/special-offers",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/airport-transfer",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/cross-border-rides",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/local-transfers",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/local-chauffeur",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/weddings",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/city-tours",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js"
+      ]
+    },
+    {
+      "path": "/services/city-tours/half-day",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/city-tours/full-day",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/services/city-tours/special-offer",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/booking/confirmation",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js"
+      ]
+    },
+    {
+      "path": "/pt",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/about",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/contact",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/corporate",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/business/hotels-resorts",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/special-offers",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/services/airport-transfer",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/pt/services/city-tours/half-day",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant/about",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant/contact",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant/corporate",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/ContactForm.CJmZZAL8.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant/special-offers",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant/services/airport-transfer",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/zh-Hant/services/city-tours/half-day",
+      "statuses": {
+        "prod": 200,
+        "www": 200,
+        "staging": 200
+      },
+      "sameAssetSet": true,
+      "refs": [
+        "/_astro/BaseLayout.Dq8L4eEk.css",
+        "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+        "/_astro/BookingEmbedded.cFmMjUfb.js",
+        "/_astro/BookingSheet.BjhsA3XK.js",
+        "/_astro/client.DrPMauyT.js"
+      ]
+    },
+    {
+      "path": "/login",
+      "statuses": {
+        "prod": 403,
+        "www": 403,
+        "staging": 403
+      },
+      "sameAssetSet": true,
+      "refs": []
+    }
+  ]
+}

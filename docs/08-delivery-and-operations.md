@@ -11,7 +11,36 @@
 
 Never share D1 databases, email recipients, or secrets across production and non-production. Preview environments must not send real customer/staff mail.
 
-Workers Builds for this repository run from the repo root `wrangler.jsonc`. `wrangler versions upload` uses the top-level config (not `env.preview`) unless `--env` or `CLOUDFLARE_ENV` is set. `npx wrangler preview` uses the `previews` block and does not inherit top-level D1/R2. The dashboard root directory can stay at the repository root; changing it to `apps/web` is a dashboard change and is not required. On the current staging branch, both production and preview bind D1 `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`) and R2 `kaiyue-offers-staging`. Do not merge those bindings to `main`.
+Workers Builds for this repository run from the repo root `wrangler.jsonc`. **Top-level config is not a live target** (`name` `kaiyue-travel-env-required`, placeholder D1/R2). Live Workers are `env.staging` (`kaiyue-travel-staging`, D1 `043cd0ff-a1e6-4b5e-98c1-968c286e0c70`, R2 `kaiyue-offers-staging`) and `env.production` (`kaiyue-travel`, D1 `06cf879d-8fea-4088-8881-7d382e1b8c11`, R2 `kaiyue-offers-production`). Authorized uploads must pass `--env staging` or `--env production` (or `CLOUDFLARE_ENV`). Run `node scripts/require-wrangler-env.mjs --env <name>` first. `wrangler versions upload` without `--env` must not target production. Cloudflare Workers Builds for Worker `kaiyue-travel` is a production version upload; do not retry a PR production build. `npx wrangler preview` uses the `previews` block with isolated placeholder D1/R2 and must not bind live staging. Do not bind D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f`. Do not run `wrangler deploy` from an agent.
+
+The fa5184c complete-ledger ZIP and the operator overlay are **separate deployment inputs**. Frozen in-ZIP `wrangler.jsonc` omits `assets.run_worker_first` (static `index.html` / locale HTML would bypass middleware). Staging versions-upload, when separately authorized, must use reviewed overlay `docs/records/wrangler.staging-artifact.jsonc` (`run_worker_first: true`). That overlay is authoritative. Production needs its own reviewed overlay after staging verification. Static requests that reach the Worker still use `env.ASSETS.fetch` (asset store, not a recursive Worker fetch).
+
+GitHub Actions workflow `.github/workflows/ci.yml` (`CI` / job `check`) is the test CI: lint, typecheck, test, build. It does not run wrangler. The red GitHub check `Workers Builds: kaiyue-travel` is Cloudflare Git integration on the **production** Worker. Do not rename top-level `wrangler.jsonc` `name` to `kaiyue-travel` to turn that check green.
+
+### Workers Builds dashboard (PM review; staging-only)
+
+Official defaults: [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) deploy command `npx wrangler deploy`; preview command `npx wrangler preview`; Git branch `main`. Wrangler environments require connecting the repo to **each** environment Worker and adding `--env` ([advanced setups](https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/)). This agent must not change Cloudflare project/build settings.
+
+**On production Worker `kaiyue-travel` (Settings → Builds) — stop PR production uploads:**
+
+1. Production Git branch: `main` only.
+2. Disable preview/non-production builds on this Worker, or keep Preview command `npx wrangler preview` with no `--env production` and no `CLOUDFLARE_ENV=production`.
+3. Do not set Deploy command to production `--env`. Do not Retry a failed production build from a task PR.
+4. Stronger option: disconnect Git from `kaiyue-travel` until an authorized `main` promotion.
+
+**On staging Worker `kaiyue-travel-staging` (Settings → Builds) — after Mika/Evan still have not approved a trial, this only prepares routing:**
+
+1. Connect GitHub `Evanevia09/KaiYue-Travel` to this Worker if it is not already connected.
+2. Production Git branch for **this** Worker: `staging`.
+3. Root directory: `/`.
+4. Build command: `pnpm install --frozen-lockfile && pnpm build`.
+5. Deploy command: `npx wrangler versions upload --env staging --name kaiyue-travel-staging` (override the official `npx wrangler deploy` default; `deploy` promotes 100%).
+6. Build variable (non-secret): `CLOUDFLARE_ENV=staging`.
+7. If previews are enabled, Preview command: `npx wrangler preview` without `--env staging` (repo `previews` uses placeholder D1/R2; `--env staging` would bind live staging D1).
+8. Do not put passwords, `BETTER_AUTH_SECRET`, or allowlist mutations in build variables.
+9. After a staging versions upload, promote that version to 100% only when PM is ready for staging UI/console/security. Evan t81u (2026-11-12) asked to get the live dashboard after t79’s unknown-static explanation; t73/t74 is password-capability only. Source writers still must not `wrangler deploy` or retry production Workers Builds.
+
+Confirm in the dashboard which Cloudflare account the GitHub check actually uses. The GitHub check details URL uses account path `41386f432b6fa180fe84f51e709b729b`; a Kai Yue Scripts GET used account `33ecc75158a1cdd23ba1a62eb70c5103`. Do not change account bindings from an agent.
 
 ## Configuration and secrets
 

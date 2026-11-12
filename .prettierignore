@@ -10,3 +10,9 @@ worker-configuration.d.ts
 AGENTS.md
 BUSINESS_INFORMATION.md
 docs
+# Generated review/box-copy dumps only. Source generators remain
+# scripts/build-provision-artifact.mjs and scripts/compare-live-parity.mjs.
+artifacts/kaiyue-provision-admin-local/
+artifacts/parity-nov5/
+artifacts/*.zip
+artifacts/kaiyue-*-complete-*/

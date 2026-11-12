@@ -1,5 +1,59 @@
 # Promote staging to main — handover
 
+## Released (2026-11-03) — Booking UX
+
+**Status:** `released` — established after this live verify.  
+**Live SHA:** `870c536fe4b05e0028e166997e367259c54ce100`  
+**PR:** [#24](https://github.com/Evanevia09/KaiYue-Travel/pull/24) squash-merged to `main`  
+**Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
+**Live host:** https://kaiyue-travel.scalingsmb.workers.dev
+
+Public-safe facts after promote:
+
+- Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.
+- PR #24 squash-merged to `main` as `870c536fe4b05e0028e166997e367259c54ce100` (head was `b3ff757555bfaeaae285d6c4bd7cfb81c1247240` on `cursor/promote-booking-ux-to-main-25d7`; base had been `96390fa27faefd6d1c1cc4435e74ff344b0ad218`).
+- Workers Builds on `main` SUCCESS for that SHA. Live https://kaiyue-travel.scalingsmb.workers.dev published.
+- Live browser QA **PASS** (390×844): language switcher English / Português / 繁體中文 (no 聯合國 / 葡萄牙); time picker blank `--:--` + Save disabled until hour+minute; WhatsApp required on WhatsApp tab; email phone optional; console clean.
+- Production `/admin` and `/login` still return 403 JSON gate `Admin access is not configured` (requestId gate).
+- Shared D1 `0008` was already applied 2026-11-02 — not re-applied. Staging tip that was promoted: `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23).
+- No `wrangler deploy` from agents.
+
+Do not re-apply `0008`. Do not weaken production admin gates. Do not run `wrangler deploy` from an agent.
+
+---
+
+## 2026-11-03 — Booking UX promote (pre-merge)
+
+**Status:** promote completed. `released` established after the live verify recorded above.  
+**Owner request:** Evan asked push live 2026-11-03 ~8:28 PM Asia/Macau.  
+**Promote branch:** `cursor/promote-booking-ux-to-main-25d7`  
+**PR into `main`:** https://github.com/Evanevia09/KaiYue-Travel/pull/24 (squash-merged as `870c536fe4b05e0028e166997e367259c54ce100`)  
+**Staging tip:** `3fb823629c1412007af40f40b32a4183b739e08b` (PR #23 squash-merge)  
+**Main tip merged in:** `96390fa27faefd6d1c1cc4435e74ff344b0ad218`  
+**Promote-branch tip before squash:** `b3ff757555bfaeaae285d6c4bd7cfb81c1247240`  
+**Staging QA:** already **PASS**.  
+**Live browser QA:** **PASS** (390×844) as listed in **Released**.
+
+What this promote includes:
+
+- From `staging` (kept): mobile time picker (wheel scroll contained; blank `--:--` until both hour/minute chosen), WhatsApp required on WhatsApp channel, language switcher shows English / Português / 繁體中文 (PR #23).
+- From `main` (kept): released optional Macau tour-guide (#21 live, #22 released docs) and 包車接送 (#17).
+
+Unchanged on purpose:
+
+- No `wrangler deploy` from this task.
+- Production `/admin` and `/login` stay 403 until Cloudflare Access is configured.
+- Shared D1 `0008` already applied 2026-11-02 — not re-applied.
+- `wrangler.jsonc` D1/R2 bindings were not edited.
+
+Conflict files (manual, docs only): `HANDOVER.md`, `PROJECT-STATE.md`, `docs/06-booking-widget.md`, `docs/README.md`, `docs/handover/macau-tour-guide.md`. Product files auto-merged.
+
+Feature report: `docs/handover/booking-time-whatsapp-lang.md`.
+
+---
+
+## 2026-10-30 — Admin zh-Hant + 包車接送 (PR #17)
+
 **Date:** 2026-10-30  
 **Branch:** `cursor/promote-staging-to-main-3426` (based on `staging` `dbcdbb48`, merged `origin/main` `9157ea43`)  
 **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/17 into `main`  

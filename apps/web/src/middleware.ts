@@ -3,8 +3,11 @@ import { AppError, createRequestId } from "@kaiyue/contracts";
 import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
+  accessTakesOver,
   assertLiveAdminSurface,
   forbiddenResponse,
+  isAccessAdminHost,
+  isAdminDashboardPath,
   isProtectedAdminPath,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
@@ -18,6 +21,24 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
+  if (isAccessAdminHost(context.request)) {
+    const path = context.url.pathname.replace(/\/$/, "") || "/";
+    if (path === "/") {
+      try {
+        const { env } = await import("cloudflare:workers");
+        if (accessTakesOver(env, context.request)) {
+          return context.redirect("/admin", 302);
+        }
+        await requireAdmin(context.request, env);
+        return context.redirect("/admin", 302);
+      } catch {
+        return context.redirect("/login", 302);
+      }
+    }
+    if (!isAdminDashboardPath(context.url.pathname)) {
+      return context.redirect("/login", 302);
+    }
+  }
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
     try {
       // Static pages are prerendered in Node, where the Worker-only module is unavailable.
@@ -38,7 +59,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
     response.headers.set(key, value);
   }
-  if (context.url.pathname.startsWith("/admin")) {
+  if (isAccessAdminHost(context.request) || context.url.pathname.startsWith("/admin")) {
     response.headers.set("x-robots-tag", "noindex, nofollow");
     response.headers.set("cache-control", "no-store");
   }

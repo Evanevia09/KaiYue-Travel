@@ -56,7 +56,7 @@ export function SetupForm({ locale }: { locale: AdminLocale }) {
           name="password"
           type="password"
           autoComplete="new-password"
-          minLength={12}
+          minLength={16}
           required
         />
       </label>

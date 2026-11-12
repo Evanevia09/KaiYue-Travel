@@ -101,7 +101,7 @@ These are proposed defaults used by the first application scaffold. They can be 
 - **Timezone / locale:** `Asia/Macau` display timezone; public English, Macau Portuguese (`pt-PT`), and Traditional Chinese (`zh-Hant`) routes and forms are implemented locally. Native-language and business-owner review remains a production publication gate.
 - **Draft persistence:** in-memory plus `sessionStorage` for journey fields only (service, locations, times, counts). Contact details are not written to storage.
 - **Status emails:** staff/customer status-change email is not sent in Release 1. Create-time staff notification is attempted only when `RESEND_API_KEY` is present.
-- **Admin auth:** Cloudflare Access JWT verification when `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are set. `DEV_ADMIN_BYPASS=true` is honored only when `ENVIRONMENT=development`.
+- **Admin auth:** Cloudflare Access JWT verification when `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are set, including on `admin.kaiyuemacau.com`. Unset Access does not close that host. Access configured on any non-local surface disables password login (staging/preview included). `DEV_ADMIN_BYPASS=true` and email signup are honored only on a loopback host with `ENVIRONMENT=development` (or `local`). Temporary Better Auth password login is allowlisted and expiry-gated on `admin.kaiyuemacau.com`, staging/preview, and loopback; production public hosts stay password-closed. It is never enabled by a public development mode, public signup, or hostname-only bypass.
 
 ## Remaining architecture decisions
 
