@@ -7,6 +7,7 @@ import {
   assertLiveAdminSurface,
   forbiddenResponse,
   isProtectedAdminPath,
+  isStaffAdminHost,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
 
@@ -19,6 +20,12 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
+  if (isStaffAdminHost(context.request)) {
+    const path = context.url.pathname.replace(/\/$/, "") || "/";
+    if (path === "/") {
+      return context.redirect("/login", 302);
+    }
+  }
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
     try {
       // Static pages are prerendered in Node, where the Worker-only module is unavailable.

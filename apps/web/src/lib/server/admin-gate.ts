@@ -5,6 +5,7 @@ const LIVE_ADMIN_PATHS = ["/admin", "/api/admin", "/api/v1/admin"];
 const PASSWORD_ADMIN_PATHS = ["/login", "/setup-admin", "/api/auth"];
 
 export const ACCESS_ADMIN_HOST = "admin.kaiyuemacau.com";
+export const STAFF_ADMIN_HOST = "staff.kaiyuemacau.com";
 export const CANONICAL_PUBLIC_ORIGIN = "https://kaiyuemacau.com";
 
 /**
@@ -26,6 +27,10 @@ export function requestHost(request: Request): string {
 
 export function isAccessAdminHost(request: Request): boolean {
   return requestHost(request) === ACCESS_ADMIN_HOST;
+}
+
+export function isStaffAdminHost(request: Request): boolean {
+  return requestHost(request) === STAFF_ADMIN_HOST;
 }
 
 export function isProductionHost(request: Request): boolean {
@@ -84,7 +89,12 @@ export function isLocalAdminSurface(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
   request: Request,
 ): boolean {
-  if (isProductionHost(request) || isAccessAdminHost(request) || isStagingHost(request)) {
+  if (
+    isProductionHost(request) ||
+    isAccessAdminHost(request) ||
+    isStaffAdminHost(request) ||
+    isStagingHost(request)
+  ) {
     return false;
   }
   if (!isLoopbackHost(request)) {
@@ -173,7 +183,7 @@ export function passwordAdminAllowed(
   if (!temporaryPasswordConfigured(env)) {
     return false;
   }
-  if (isProductionHost(request)) {
+  if (isProductionHost(request) || isStaffAdminHost(request)) {
     return true;
   }
   return isPreviewRuntime(env, request) || isStagingHost(request);

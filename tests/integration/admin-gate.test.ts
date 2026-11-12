@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   ACCESS_ADMIN_HOST,
   PRODUCTION_HOSTS,
+  STAFF_ADMIN_HOST,
   STAGING_HOSTS,
   assertLiveAdminSurface,
   emailSignupAllowed,
   isLocalAdminSurface,
   isPreviewRuntime,
   isProtectedAdminPath,
+  isStaffAdminHost,
   passwordAdminAllowed,
   temporaryPasswordConfigured,
 } from "../../apps/web/src/lib/server/admin-gate.ts";
@@ -33,6 +35,7 @@ const productionOrigin = "https://kaiyuemacau.com";
 const wwwOrigin = "https://www.kaiyuemacau.com";
 const legacyOrigin = "https://kaiyue-travel.scalingsmb.workers.dev";
 const accessOrigin = `https://${ACCESS_ADMIN_HOST}`;
+const staffOrigin = `https://${STAFF_ADMIN_HOST}`;
 
 function tempPreviewEnv() {
   return createTestEnv({
@@ -121,6 +124,12 @@ describe("production admin gate", () => {
     );
   });
 
+  it("does not treat staff.kaiyuemacau.com as a public production host", () => {
+    expect(PRODUCTION_HOSTS).not.toContain(STAFF_ADMIN_HOST);
+    expect(STAFF_ADMIN_HOST).toBe("staff.kaiyuemacau.com");
+    expect(ACCESS_ADMIN_HOST).toBe("admin.kaiyuemacau.com");
+  });
+
   it("keeps the Access hostname password-closed even when temp vars are set", () => {
     const env = tempPreviewEnv();
     const login = new Request(`${accessOrigin}/login`);
@@ -204,6 +213,52 @@ describe("temporary password admin", () => {
     expect(response.status).toBe(403);
   });
 
+  it("allows staff.kaiyuemacau.com password login when allowlist and expiry are set", () => {
+    const productionEnv = createTestEnv({
+      ENVIRONMENT: "production",
+      DEV_ADMIN_BYPASS: "false",
+      ADMIN_EMAILS: "operator@example.invalid",
+      TEMP_ADMIN_EXPIRES_AT: futureExpiry,
+    });
+    const stagingEnv = tempPreviewEnv();
+    const login = new Request(`${staffOrigin}/login`);
+    const admin = new Request(`${staffOrigin}/admin`);
+    expect(isStaffAdminHost(login)).toBe(true);
+    expect(passwordAdminAllowed(productionEnv, login)).toBe(true);
+    expect(passwordAdminAllowed(stagingEnv, login)).toBe(true);
+    expect(() => assertLiveAdminSurface(productionEnv, "/login", login)).not.toThrow();
+    expect(() => assertLiveAdminSurface(productionEnv, "/admin", admin)).not.toThrow();
+    expect(() => assertLiveAdminSurface(stagingEnv, "/setup-admin", login)).toThrow(
+      /Operator setup is disabled/,
+    );
+    expect(emailSignupAllowed(productionEnv, login)).toBe(false);
+    expect(isLocalAdminSurface(productionEnv, login)).toBe(false);
+  });
+
+  it("keeps staff.kaiyuemacau.com fail-closed without temp vars and Access-closed when Access is set", async () => {
+    const closed = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
+    const withAccess = createTestEnv({
+      ENVIRONMENT: "production",
+      DEV_ADMIN_BYPASS: "false",
+      ADMIN_EMAILS: "operator@example.invalid",
+      TEMP_ADMIN_EXPIRES_AT: futureExpiry,
+      ACCESS_TEAM_DOMAIN: "kaiyue.cloudflareaccess.com",
+      ACCESS_AUD: "audience-test",
+    });
+    const login = new Request(`${staffOrigin}/login`);
+    const admin = new Request(`${staffOrigin}/admin`);
+    expect(passwordAdminAllowed(closed, login)).toBe(false);
+    expect(() => assertLiveAdminSurface(closed, "/login", login)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(passwordAdminAllowed(withAccess, login)).toBe(false);
+    expect(() => assertLiveAdminSurface(withAccess, "/login", login)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(() => assertLiveAdminSurface(withAccess, "/admin", admin)).not.toThrow();
+    await expect(requireAdmin(admin, withAccess)).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
   it("prepares production public hosts for temp password only when Access is unset", async () => {
     const ready = createTestEnv({
       ENVIRONMENT: "production",
@@ -276,6 +331,7 @@ describe("local-only email signup", () => {
       `${stagingOrigin}/api/auth/sign-up/email`,
       `${productionOrigin}/api/auth/sign-up/email`,
       `${accessOrigin}/api/auth/sign-up/email`,
+      `${staffOrigin}/api/auth/sign-up/email`,
       "https://evil.example/api/auth/sign-up/email",
       "https://kaiyue-travel.kai-yue.workers.dev/api/auth/sign-up/email",
     ];

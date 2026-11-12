@@ -12,7 +12,8 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Change:** Reconstruct unpublished Access-host admin gate; stop treating the staging workers.dev host as production; explicit allowlisted password login with expiry. Review follow-up: loopback-only signup; Access disables password globally; email-idempotent seed; loopback vault-fill provisioning; wrangler `--env` required (`env.staging` / `env.production`). Merged `staging` `3fb82362` (no rebase/force).
 - **D1/R2 in git config:** production `06cf879d-8fea-4088-8881-7d382e1b8c11` / `kaiyue-offers-production` under `env.production`; staging `043cd0ff-a1e6-4b5e-98c1-968c286e0c70` / `kaiyue-offers-staging` under `env.staging`. Top-level is not a live Worker. Do not bind `069aa442…`.
 - **Build split (2026-11-12):** GitHub Actions `check` on `f6c9274` is green (139 tests, run 43123457292). Red check is Cloudflare `Workers Builds: kaiyue-travel` production upload. Do not green it by removing `kaiyue-travel-env-required`.
-- **t81u package:** `artifacts/kaiyue-staging-complete-5dab462.zip` sha256 `d10a3d7f117fcae626eeffa9b928781b082e1a7afae61c08bab54d29549ce923`. runtimeSourceSHA `5dab462` (`apps/web` unchanged at head). Independent verifier uploads; this agent does not.
+- **t81u package:** `artifacts/kaiyue-staging-complete-5dab462.zip` sha256 `d10a3d7f117fcae626eeffa9b928781b082e1a7afae61c08bab54d29549ce923`. runtimeSourceSHA `5dab462`. Independent verifier uploads; this agent does not.
+- **t87u host:** password dashboard `staff.kaiyuemacau.com`. `admin.kaiyuemacau.com` Access-only (unset Access → 403). Owner accepted complete staging file replacement.
 - **Do not:** merge or deploy from this source writer; `wrangler deploy`; retry production Workers Builds; mutate live staging allowlist/expiry; print a password or secret; claim `released`.
 
 ## 2026-11-03 — Booking UX live verify (`released`)
