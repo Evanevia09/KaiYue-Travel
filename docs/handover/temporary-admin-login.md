@@ -53,7 +53,7 @@ Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T
 ## Staging packages
 
 - Additive 14-file jwt + `keep_assets` remains **unsafe**. Do not send it.
-- **Release packages (do not rebuild):** runtimeSourceSHA `fa5184ccda2d149c2d4acb8914db315ca8e5b4c4`. Staging zip `artifacts/kaiyue-staging-complete-fa5184c.zip` sha256 `b5b0be97da9189c5da5dccf88e8a29d95ed4841a724cbaa84dc249ceb26a2bf5`. Production zip `artifacts/kaiyue-production-complete-fa5184c.zip` sha256 `6bb3489ea8218477c5950bd8779baf25b09e288582123bcde5df957e6490af69`. See `docs/records/2026-11-12-admin-host-complete-ledger.md`. 8f41369 and 5dab462 are superseded.
+- **Release packages (do not rebuild):** runtimeSourceSHA `fa5184ccda2d149c2d4acb8914db315ca8e5b4c4`. Staging zip `artifacts/kaiyue-staging-complete-fa5184c.zip` sha256 `b5b0be97da9189c5da5dccf88e8a29d95ed4841a724cbaa84dc249ceb26a2bf5`. Production zip `artifacts/kaiyue-production-complete-fa5184c.zip` sha256 `6bb3489ea8218477c5950bd8779baf25b09e288582123bcde5df957e6490af69`. Staging upload also requires overlay `docs/records/wrangler.staging-artifact.jsonc` sha256 `11ead30e9c3afa33e333027eb2850a40b50c815792e3e225458584d98d9c0bb6` (`assets.run_worker_first: true`; overlay is authoritative vs the in-ZIP wrangler). Independent rereview sha256 `312796895b693dbdc2b4b627b8bda8734943137fad0b13f87a3297fcf94f9e17`. See `docs/records/2026-11-12-admin-host-complete-ledger.md`. 8f41369 and 5dab462 are superseded. Production not approved.
 - **Rollback provenance (GET 2026-11-11 01:34:24 Asia/Macau):** current 100% version `b53c0353-bfc4-4700-a5c7-725b7167af6e`, deployment `caeee848-fb0d-4914-a770-2d60996f106e`, D1 `043cd0ff-…`, R2 `kaiyue-offers-staging`, `ASSETS` present. Evidence `docs/records/2026-11-11-staging-rollback-evidence.sanitized.json` sha256 `39a4e00e4acab704d5f7b4dca5b0b31cf50eb5ee5a69956a8241ed25eb10edab`. Plan `docs/records/2026-11-11-staging-rollback-plan.md`. **Verified:** platform metadata. **Untested:** Deployments POST restoring that version’s script + attached assets. No asset inventory/hashes in GET. Residual unknown completeness remains. Production `kaiyue-travel` unchanged.
 - Connector must use the **assets-upload-session JWT** (not the account token) on `POST /workers/assets/upload`. If it cannot switch `Authorization`, that is a capability gap — do not paste credentials.
 
@@ -65,17 +65,16 @@ Head `f6c9274383121c729c7c6fd522b4ce366072cadb`. GitHub Actions [`43123457292`](
 
 **Accounts (committed evidence, no guess):** Worker GET snapshot used Kai Yue `33ecc75158a1cdd23ba1a62eb70c5103`. GitHub check URLs use dashboard path `41386f432b6fa180fe84f51e709b729b`. Resolve which account holds `kaiyue-travel-staging` before any write.
 
-**Staging (script `kaiyue-travel-staging`, D1 `043cd0ff-…`, R2 `kaiyue-offers-staging`):** do not mutate `ADMIN_EMAILS`, `TEMP_ADMIN_EXPIRES_AT`, `BETTER_AUTH_SECRET`, or Access vars (Access must stay unset for password login). Prefer the boxed zip (bit-stable). Wrangler fallback rebuilds `entry.js`:
+**Staging (script `kaiyue-travel-staging`, D1 `043cd0ff-…`, R2 `kaiyue-offers-staging`):** do not mutate `ADMIN_EMAILS`, `TEMP_ADMIN_EXPIRES_AT`, `BETTER_AUTH_SECRET`, or Access vars (Access must stay unset for password login). Use the frozen staging ZIP plus overlay `docs/records/wrangler.staging-artifact.jsonc` (`--config`; `run_worker_first: true`). Do not rebuild `entry.js`. Do not upload the in-ZIP wrangler.jsonc. Do not `wrangler deploy`. Production remains a later, separately reviewed overlay.
 
 ```text
-node scripts/require-wrangler-env.mjs --env staging
-npx wrangler versions upload --env staging --name kaiyue-travel-staging
+npx wrangler versions upload --no-bundle --keep-vars --strict --name kaiyue-travel-staging --config wrangler.staging-artifact.jsonc
 ```
 
 Then promote that **new** version to 100% (do not `wrangler deploy` unless PM accepts immediate 100%). Complete-manifest PUT in the zip deploys immediately — confirm `b53c0353-bfc4-4700-a5c7-725b7167af6e` remains listed first.
 
 **Rollback staging:** `POST .../scripts/kaiyue-travel-staging/deployments` with version `b53c0353-bfc4-4700-a5c7-725b7167af6e` at 100%. Not a D1/R2 mutate. Untested POST.
 
-**After PM staging UI+console/security:** production script `kaiyue-travel`, D1 `06cf879d-…`. Set production `ADMIN_EMAILS` + future `TEMP_ADMIN_EXPIRES_AT` (Access still unset). Then `npx wrangler versions upload --env production --name kaiyue-travel`. **Rollback production:** version `74ebe1fc-135d-4a97-b297-e2d1d2748fa0` at 100%. Do not apply seed SQL to production D1 until that promotion.
+**Production:** not approved. Final production config needs its own review and staging verification (including `run_worker_first`). Do not upload, set vars/secrets, attach the admin hostname, or retry Workers Builds. **Rollback production** remains version `74ebe1fc-135d-4a97-b297-e2d1d2748fa0` at 100%. Do not apply seed SQL to production D1.
 
 Seed (if staging `/login` has no user): env-only provisioner zip `a5195c7f…`; do not start loopback; do not send passwords here.
