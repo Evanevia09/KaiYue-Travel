@@ -1,7 +1,7 @@
 # 2026-11-10 — Staging complete-ledger trial is PROPOSED, not approved
 
 **task_id:** `kai-yue-temporary-admin-login-20261110`  
-Owner 2026-11-12 13:45 Asia/Macau accepted complete staging file-set replacement (older test files may be lost; full backup unverified). Evan t81u asked to get it live after t79. t87u: password host `staff.kaiyuemacau.com`, not Access-only `admin.kaiyuemacau.com`. Independent verifier executes Cloudflare writes/DNS. This source writer still does **not** upload. PM staging UI/console/security before production vars. Zip hashes below **unchanged**. Not `user_accepted`. Not `released`.
+Owner 2026-11-12 13:45 Asia/Macau accepted complete staging file-set replacement (older test files may be lost; full backup unverified). t96: password host `admin.kaiyuemacau.com` with extra Access-only 403 removed. Independent verifier executes Cloudflare writes/DNS. This source writer still does **not** upload. PM staging UI/console/security before production vars. Not `user_accepted`. Not `released`.
 
 Complete-ledger zip / runtimeSourceSHA `5dab46281ce84b5b5974a28bdb9f94513c670644` hashes below are **unchanged**. This docs increment only records rollback provenance that was missing from the hashed proposal.
 

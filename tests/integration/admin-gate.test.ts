@@ -2,14 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   ACCESS_ADMIN_HOST,
   PRODUCTION_HOSTS,
-  STAFF_ADMIN_HOST,
   STAGING_HOSTS,
   assertLiveAdminSurface,
   emailSignupAllowed,
+  isAccessAdminHost,
   isLocalAdminSurface,
   isPreviewRuntime,
   isProtectedAdminPath,
-  isStaffAdminHost,
   passwordAdminAllowed,
   temporaryPasswordConfigured,
 } from "../../apps/web/src/lib/server/admin-gate.ts";
@@ -35,7 +34,6 @@ const productionOrigin = "https://kaiyuemacau.com";
 const wwwOrigin = "https://www.kaiyuemacau.com";
 const legacyOrigin = "https://kaiyue-travel.scalingsmb.workers.dev";
 const accessOrigin = `https://${ACCESS_ADMIN_HOST}`;
-const staffOrigin = `https://${STAFF_ADMIN_HOST}`;
 
 function tempPreviewEnv() {
   return createTestEnv({
@@ -124,23 +122,30 @@ describe("production admin gate", () => {
     );
   });
 
-  it("does not treat staff.kaiyuemacau.com as a public production host", () => {
-    expect(PRODUCTION_HOSTS).not.toContain(STAFF_ADMIN_HOST);
-    expect(STAFF_ADMIN_HOST).toBe("staff.kaiyuemacau.com");
+  it("does not treat admin.kaiyuemacau.com as a public production host", () => {
+    expect(PRODUCTION_HOSTS).not.toContain(ACCESS_ADMIN_HOST);
     expect(ACCESS_ADMIN_HOST).toBe("admin.kaiyuemacau.com");
   });
 
-  it("keeps the Access hostname password-closed even when temp vars are set", () => {
-    const env = tempPreviewEnv();
-    const login = new Request(`${accessOrigin}/login`);
-    const admin = new Request(`${accessOrigin}/admin`);
-    expect(passwordAdminAllowed(env, login)).toBe(false);
-    expect(() => assertLiveAdminSurface(env, "/login", login)).toThrow(
-      /Admin access is not configured/,
-    );
-    expect(() => assertLiveAdminSurface(env, "/admin", admin)).toThrow(
-      /Admin access is not configured/,
-    );
+  it("does not gate public routes on the production site", () => {
+    const env = createTestEnv({
+      ENVIRONMENT: "production",
+      DEV_ADMIN_BYPASS: "false",
+      ADMIN_EMAILS: "operator@example.invalid",
+      TEMP_ADMIN_EXPIRES_AT: futureExpiry,
+    });
+    expect(isProtectedAdminPath("/")).toBe(false);
+    expect(isProtectedAdminPath("/services/airport-transfer")).toBe(false);
+    expect(() =>
+      assertLiveAdminSurface(env, "/", new Request(`${productionOrigin}/`)),
+    ).not.toThrow();
+    expect(() =>
+      assertLiveAdminSurface(
+        env,
+        "/services/airport-transfer",
+        new Request(`${productionOrigin}/services/airport-transfer`),
+      ),
+    ).not.toThrow();
   });
 });
 
@@ -213,7 +218,7 @@ describe("temporary password admin", () => {
     expect(response.status).toBe(403);
   });
 
-  it("allows staff.kaiyuemacau.com password login when allowlist and expiry are set", () => {
+  it("allows admin.kaiyuemacau.com password login when allowlist and expiry are set", () => {
     const productionEnv = createTestEnv({
       ENVIRONMENT: "production",
       DEV_ADMIN_BYPASS: "false",
@@ -221,9 +226,9 @@ describe("temporary password admin", () => {
       TEMP_ADMIN_EXPIRES_AT: futureExpiry,
     });
     const stagingEnv = tempPreviewEnv();
-    const login = new Request(`${staffOrigin}/login`);
-    const admin = new Request(`${staffOrigin}/admin`);
-    expect(isStaffAdminHost(login)).toBe(true);
+    const login = new Request(`${accessOrigin}/login`);
+    const admin = new Request(`${accessOrigin}/admin`);
+    expect(isAccessAdminHost(login)).toBe(true);
     expect(passwordAdminAllowed(productionEnv, login)).toBe(true);
     expect(passwordAdminAllowed(stagingEnv, login)).toBe(true);
     expect(() => assertLiveAdminSurface(productionEnv, "/login", login)).not.toThrow();
@@ -235,8 +240,14 @@ describe("temporary password admin", () => {
     expect(isLocalAdminSurface(productionEnv, login)).toBe(false);
   });
 
-  it("keeps staff.kaiyuemacau.com fail-closed without temp vars and Access-closed when Access is set", async () => {
+  it("denies admin.kaiyuemacau.com without allowlist or after expiry, and when Access is set", async () => {
     const closed = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
+    const expired = createTestEnv({
+      ENVIRONMENT: "production",
+      DEV_ADMIN_BYPASS: "false",
+      ADMIN_EMAILS: "operator@example.invalid",
+      TEMP_ADMIN_EXPIRES_AT: pastExpiry,
+    });
     const withAccess = createTestEnv({
       ENVIRONMENT: "production",
       DEV_ADMIN_BYPASS: "false",
@@ -245,10 +256,14 @@ describe("temporary password admin", () => {
       ACCESS_TEAM_DOMAIN: "kaiyue.cloudflareaccess.com",
       ACCESS_AUD: "audience-test",
     });
-    const login = new Request(`${staffOrigin}/login`);
-    const admin = new Request(`${staffOrigin}/admin`);
+    const login = new Request(`${accessOrigin}/login`);
+    const admin = new Request(`${accessOrigin}/admin`);
     expect(passwordAdminAllowed(closed, login)).toBe(false);
     expect(() => assertLiveAdminSurface(closed, "/login", login)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(passwordAdminAllowed(expired, login)).toBe(false);
+    expect(() => assertLiveAdminSurface(expired, "/login", login)).toThrow(
       /Admin access is not configured/,
     );
     expect(passwordAdminAllowed(withAccess, login)).toBe(false);
@@ -331,7 +346,6 @@ describe("local-only email signup", () => {
       `${stagingOrigin}/api/auth/sign-up/email`,
       `${productionOrigin}/api/auth/sign-up/email`,
       `${accessOrigin}/api/auth/sign-up/email`,
-      `${staffOrigin}/api/auth/sign-up/email`,
       "https://evil.example/api/auth/sign-up/email",
       "https://kaiyue-travel.kai-yue.workers.dev/api/auth/sign-up/email",
     ];

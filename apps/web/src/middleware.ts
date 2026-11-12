@@ -3,11 +3,11 @@ import { AppError, createRequestId } from "@kaiyue/contracts";
 import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
-  ACCESS_ADMIN_HOST,
+  accessTakesOver,
   assertLiveAdminSurface,
   forbiddenResponse,
+  isAccessAdminHost,
   isProtectedAdminPath,
-  isStaffAdminHost,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
 
@@ -20,10 +20,19 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
-  if (isStaffAdminHost(context.request)) {
+  if (isAccessAdminHost(context.request)) {
     const path = context.url.pathname.replace(/\/$/, "") || "/";
     if (path === "/") {
-      return context.redirect("/login", 302);
+      try {
+        const { env } = await import("cloudflare:workers");
+        if (accessTakesOver(env, context.request)) {
+          return context.redirect("/admin", 302);
+        }
+        await requireAdmin(context.request, env);
+        return context.redirect("/admin", 302);
+      } catch {
+        return context.redirect("/login", 302);
+      }
     }
   }
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
@@ -38,9 +47,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     } catch (error) {
       if (error instanceof AppError && (error.code === "FORBIDDEN" || error.status === 403)) {
         return forbiddenResponse(error.message);
-      }
-      if (context.url.hostname === ACCESS_ADMIN_HOST) {
-        return forbiddenResponse("Admin authentication is required.");
       }
       return context.redirect("/login", 302);
     }

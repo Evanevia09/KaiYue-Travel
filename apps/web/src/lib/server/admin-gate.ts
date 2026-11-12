@@ -5,7 +5,6 @@ const LIVE_ADMIN_PATHS = ["/admin", "/api/admin", "/api/v1/admin"];
 const PASSWORD_ADMIN_PATHS = ["/login", "/setup-admin", "/api/auth"];
 
 export const ACCESS_ADMIN_HOST = "admin.kaiyuemacau.com";
-export const STAFF_ADMIN_HOST = "staff.kaiyuemacau.com";
 export const CANONICAL_PUBLIC_ORIGIN = "https://kaiyuemacau.com";
 
 /**
@@ -27,10 +26,6 @@ export function requestHost(request: Request): string {
 
 export function isAccessAdminHost(request: Request): boolean {
   return requestHost(request) === ACCESS_ADMIN_HOST;
-}
-
-export function isStaffAdminHost(request: Request): boolean {
-  return requestHost(request) === STAFF_ADMIN_HOST;
 }
 
 export function isProductionHost(request: Request): boolean {
@@ -89,12 +84,7 @@ export function isLocalAdminSurface(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
   request: Request,
 ): boolean {
-  if (
-    isProductionHost(request) ||
-    isAccessAdminHost(request) ||
-    isStaffAdminHost(request) ||
-    isStagingHost(request)
-  ) {
+  if (isProductionHost(request) || isAccessAdminHost(request) || isStagingHost(request)) {
     return false;
   }
   if (!isLoopbackHost(request)) {
@@ -115,17 +105,16 @@ export function accessConfigured(env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCES
 }
 
 /**
- * Cloudflare Access, when configured, is the only non-local admin identity.
- * Password login stays available on loopback development so operators can work
- * without a tunnel.
+ * Cloudflare Access, when ACCESS_TEAM_DOMAIN and ACCESS_AUD are both set, is
+ * the only non-local admin identity. Unset Access does not close
+ * admin.kaiyuemacau.com by hostname. Password login stays available on
+ * loopback development so operators can work without a tunnel.
  */
 export function accessTakesOver(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
   request: Request,
 ): boolean {
-  return (
-    !isLocalAdminSurface(env, request) && (isAccessAdminHost(request) || accessConfigured(env))
-  );
+  return !isLocalAdminSurface(env, request) && accessConfigured(env);
 }
 
 export function passwordAdminPath(pathname: string): boolean {
@@ -171,9 +160,6 @@ export function passwordAdminAllowed(
   >,
   request: Request,
 ): boolean {
-  if (isAccessAdminHost(request)) {
-    return false;
-  }
   if (accessConfigured(env) && !isLocalAdminSurface(env, request)) {
     return false;
   }
@@ -183,7 +169,7 @@ export function passwordAdminAllowed(
   if (!temporaryPasswordConfigured(env)) {
     return false;
   }
-  if (isProductionHost(request) || isStaffAdminHost(request)) {
+  if (isProductionHost(request) || isAccessAdminHost(request)) {
     return true;
   }
   return isPreviewRuntime(env, request) || isStagingHost(request);

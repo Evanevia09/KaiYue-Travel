@@ -11,7 +11,7 @@ Temporary Better Auth email/password sessions are an explicit, time-bounded alte
 - `DEV_ADMIN_BYPASS` is ignored unless that same loopback surface is true.
 - Staging (`kaiyue-travel-staging.kai-yue.workers.dev`) may use password login for testing only while Access is unset.
 - Production public hosts stay fail-closed unless those two vars are set and Access is not configured. Setting Cloudflare Access vars disables password admin on every non-local surface so the site can return to Access without a code change.
-- `admin.kaiyuemacau.com` never accepts password login. It is Access-only; with Access unset it stays 403 JSON. Temporary password uses `staff.kaiyuemacau.com` (allowlist + future expiry, Access unset). Apex `kaiyuemacau.com` public routes are unchanged. On the staff host, `/` redirects to `/login`.
+- `admin.kaiyuemacau.com` is the staff dashboard host. Temporary allowlist + future expiry password login is allowed there while Access is unset. Setting Cloudflare Access vars (`ACCESS_TEAM_DOMAIN` and `ACCESS_AUD`) disables password login and requires Access JWT. Apex `kaiyuemacau.com` public routes are unchanged. On the admin host, `/` goes to `/admin` when signed in (or Access is configured) and `/login` otherwise.
 
 Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up.
 
