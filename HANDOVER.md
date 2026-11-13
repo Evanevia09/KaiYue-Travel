@@ -2,6 +2,13 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-13 — Version 2 photo recompression; public domain not yet updated
+
+- **Branch:** `cursor/website-photos-v2-compress` from `staging`; PR into `staging`, then promote into `main`
+- **Change:** 26 Version 2 JPEGs re-encoded at quality 88 (14.3 MB → 7.1 MB total), same dimensions. Images and docs only.
+- **Live state:** `kaiyue-travel.scalingsmb.workers.dev` (GitHub-built) serves the Version 2 photos. `kaiyuemacau.com` (Worker `kaiyue-travel`, version `74ebe1fc`, manually deployed from the unpushed `codex/kaiyue-staging-account` branch) and the Kai Yue account staging Worker (`kaiyue-travel-staging`, 2026-11-10 API upload carrying the PR #26 temporary admin login) still serve the previous photos. `main` merges do not reach either.
+- **Do not:** deploy `main` to the Kai Yue account (it lacks that branch's admin Access gating); run `wrangler deploy` without Evan's explicit go-ahead.
+
 ## 2026-11-13 — Illustrative photo set Version 2 (staging, then promote)
 
 - **Staging:** https://github.com/Evanevia09/KaiYue-Travel/pull/27 squash-merged to `staging` as `9027ee4`
