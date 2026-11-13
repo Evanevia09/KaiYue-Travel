@@ -4,6 +4,10 @@
 
 ## Shared generation brief
 
+### Version 2 photo set — 2026-11-13
+
+Evan supplied an updated "Kai Yue Images - Version 2" set that replaces every file in `/images/illustrative/` under the same name. JPEGs are used as supplied. The Home and City Tours WebP variants are encoded from the supplied same-size PNGs (quality 82). The About fleet hero is encoded from `about-fleet-hero-kai-yue-plates-v5.png` (JPEG quality 88). Scene briefs below still describe each slot. Owner image-use approval remains a publication gate.
+
 ### Local plate-branding revision — 2026-10-22
 
 Evan requested Kai Yue branding inside visible front number plates across the exterior hero set, plus a Home hero vehicle revision to match the Alphard 40 Series appearance in the other service images. The built-in image generation tool used each existing scene as its edit target and `apps/web/public/images/kai-yue-travel-group-logo.png` as the brand reference. The Home edit also used the existing Airport Transfer hero as its vehicle reference. This request supersedes the earlier exclusion of branded display plates for these revised images.

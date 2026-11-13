@@ -2,6 +2,13 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-13 — Illustrative photo set Version 2
+
+- **Branch:** `cursor/website-photos-v2` from `staging` `3fb82362`
+- **PR:** into `staging`, then a promote PR into `main` (Evan asked to commit, open the PR, and promote)
+- **Change:** All 32 files in `apps/web/public/images/illustrative/` replaced by Evan's Version 2 set under the same names. WebP variants and the About fleet JPEG were encoded from the supplied PNGs. Images only; no code, bindings, migrations, or admin gate changes.
+- **Do not:** run `wrangler deploy`; weaken production `/admin` or `/api/auth` 403.
+
 ## 2026-11-03 — Booking time picker, required WhatsApp, language labels
 
 - **Branch:** `cursor/booking-time-whatsapp-lang-d8c6`
