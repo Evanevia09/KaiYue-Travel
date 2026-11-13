@@ -2,6 +2,13 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-13 — Version 2 photos live on kaiyuemacau.com
+
+- **Live:** Kai Yue Worker `kaiyue-travel` version `5b859f36` at 100% (apex and www). Previous public build plus the final Version 2 photos; built from local, unpushed `cursor/public-photos-v2` (`9ff8192`).
+- **Rollback:** `wrangler versions deploy 74ebe1fc-135d-4a97-b297-e2d1d2748fa0@100% --name kaiyue-travel` on the Kai Yue account.
+- **Verified:** all 32 images and 59 pages served as built on apex and www; `/admin`, `/api/auth/session`, `/api/v1/admin/summary` 403. Bindings identical to the previous version; routes untouched.
+- **Not done:** Kai Yue staging Worker not redeployed (it carries the PR #26 temporary admin login). GitHub Builds for the Kai Yue account still pending.
+
 ## 2026-11-13 — Version 2 photo recompression; public domain not yet updated
 
 - **Branch:** `cursor/website-photos-v2-compress` from `staging`; PR into `staging`, then promote into `main`
