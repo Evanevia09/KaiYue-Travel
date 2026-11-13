@@ -2,6 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-13 — Illustrative photo set Version 2 (staging, then promote)
+
+- **Staging:** https://github.com/Evanevia09/KaiYue-Travel/pull/27 squash-merged to `staging` as `9027ee4`
+- **Promote branch:** `cursor/promote-photos-v2-to-main` (staging `9027ee4` + merge `origin/main` `608c4f5`); PR into `main`
+- **Change:** All 32 files in `apps/web/public/images/illustrative/` replaced by Evan's Version 2 set under the same names. WebP variants and the About fleet JPEG were encoded from the supplied PNGs. Images only; no code, bindings, migrations, or admin gate changes.
+- **Preview:** https://cursor-website-photos-v2-kaiyue-travel.scalingsmb.workers.dev served all 32 images byte-identical to the commit; Home and About reference them.
+- **Conflict files:** docs only. `docs/README.md` and two handover reports taken from `main`; `HANDOVER.md` and `PROJECT-STATE.md` take `main` plus this entry.
+- **Do not:** run `wrangler deploy` (Workers Builds deploys from `main`); weaken production `/admin` or `/api/auth` 403.
+
 ## 2026-11-03 — Booking UX live verify (`released`)
 
 - **Live SHA:** `870c536fe4b05e0028e166997e367259c54ce100` (PR #24 squash-merge to `main`)
