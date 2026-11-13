@@ -6,7 +6,7 @@
 
 ### Version 2 photo set — 2026-11-13
 
-Evan supplied an updated "Kai Yue Images - Version 2" set that replaces every file in `/images/illustrative/` under the same name. JPEGs are used as supplied. The Home and City Tours WebP variants are encoded from the supplied same-size PNGs (quality 82). The About fleet hero is encoded from `about-fleet-hero-kai-yue-plates-v5.png` (JPEG quality 88). Scene briefs below still describe each slot. Owner image-use approval remains a publication gate.
+Evan supplied an updated "Kai Yue Images - Version 2" set that replaces every file in `/images/illustrative/` under the same name. JPEGs are re-encoded from the supplied files at quality 88 (mozjpeg), about half the supplied size at the same dimensions. The Home and City Tours WebP variants are encoded from the supplied same-size PNGs (quality 82). The About fleet hero is encoded from `about-fleet-hero-kai-yue-plates-v5.png` (JPEG quality 88). Scene briefs below still describe each slot. Owner image-use approval remains a publication gate.
 
 ### Local plate-branding revision — 2026-10-22
 
