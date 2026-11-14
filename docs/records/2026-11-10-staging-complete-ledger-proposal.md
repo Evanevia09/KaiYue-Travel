@@ -1,5 +1,7 @@
 # 2026-11-10 — Staging complete-ledger trial is PROPOSED, not approved
 
+**Historical (2026-11-10).** Current staging traffic as of 2026-11-14 is version `114b62a3-83c9-4cac-b80a-21d0d855717c` at 100%; `b53c0353-…` is the rollback target. See `docs/records/2026-11-14-staging-activation-closeout.md`.
+
 **task_id:** `kai-yue-temporary-admin-login-20261110`  
 Owner 2026-11-12 13:45 Asia/Macau accepted complete staging file-set replacement (older test files may be lost; full backup unverified). t96: password host `admin.kaiyuemacau.com` with extra Access-only 403 removed. Independent verifier executes Cloudflare writes/DNS. This source writer still does **not** upload. PM staging UI/console/security before production vars. Not `user_accepted`. Not `released`.
 
