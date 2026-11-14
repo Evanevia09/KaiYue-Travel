@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { localizeCaughtError, prefixedLabel, t, type AdminLocale } from "../../lib/admin-i18n.ts";
+import {
+  bookingChannelLabel,
+  localizeCaughtError,
+  prefixedLabel,
+  t,
+  type AdminLocale,
+} from "../../lib/admin-i18n.ts";
 import { adminFetch, formatWhen, type AdminBooking } from "./api.ts";
+import { bookingsStatusPath, locationPath, statusFromSearch } from "./list-query.ts";
 
 type Props = {
   locale: AdminLocale;
@@ -42,6 +49,27 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
     };
   }, [status, page, cursors, locale]);
 
+  useEffect(() => {
+    function onPopState() {
+      const next = statusFromSearch(window.location.search);
+      setStatus(next);
+      setPage(0);
+      setCursors([null]);
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  function changeStatus(next: string) {
+    setStatus(next);
+    setPage(0);
+    setCursors([null]);
+    const path = bookingsStatusPath(next);
+    if (locationPath(window.location.pathname, window.location.search) !== path) {
+      window.history.pushState({ status: next }, "", path);
+    }
+  }
+
   return (
     <div>
       <div className="admin-list-toolbar">
@@ -61,14 +89,7 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
       <div className="filters admin-filters">
         <label>
           {t(locale, "bookings.status")}{" "}
-          <select
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
-              setPage(0);
-              setCursors([null]);
-            }}
-          >
+          <select value={status} onChange={(event) => changeStatus(event.target.value)}>
             <option value="">{t(locale, "bookings.statusAll")}</option>
             <option value="enquiry">{t(locale, "status.enquiry")}</option>
             <option value="assigned">{t(locale, "status.assigned")}</option>
@@ -98,7 +119,7 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
                 destination: form.get("destination"),
                 pickupAt: new Date(String(form.get("pickupAt"))).toISOString(),
                 passengerCount: Number(form.get("passengerCount")),
-                communicationChannel: "whatsapp",
+                communicationChannel: "admin",
                 contactName: form.get("contactName"),
                 phone: form.get("phone"),
                 message: form.get("message"),
@@ -193,12 +214,12 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
               <tbody>
                 {items.map((item) => (
                   <tr key={item.reference}>
-                    <td>
+                    <td data-label={t(locale, "bookings.colBooking")}>
                       <a className="admin-reference" href={`/admin/bookings/${item.reference}`}>
                         {item.reference}
                       </a>
                     </td>
-                    <td>
+                    <td data-label={t(locale, "bookings.colPickup")}>
                       <strong>{formatWhen(item.pickupAt, locale)}</strong>
                       <small>
                         {t(
@@ -210,7 +231,7 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
                         )}
                       </small>
                     </td>
-                    <td>
+                    <td data-label={t(locale, "bookings.colJourney")}>
                       <strong>{item.pickupLocation}</strong>
                       <small>
                         →{" "}
@@ -222,15 +243,11 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
                           : prefixedLabel(locale, "service", item.serviceType)}
                       </small>
                     </td>
-                    <td>
+                    <td data-label={t(locale, "bookings.colCustomer")}>
                       <strong>{item.contactName || t(locale, "bookings.unnamed")}</strong>
-                      <small>
-                        {item.phone ||
-                          item.email ||
-                          prefixedLabel(locale, "channel", item.communicationChannel)}
-                      </small>
+                      <small>{item.phone || item.email || bookingChannelLabel(locale, item)}</small>
                     </td>
-                    <td>
+                    <td data-label={t(locale, "bookings.colDispatch")}>
                       {item.driverId && item.vehicleId ? (
                         <span className="admin-dispatch-ready">
                           {t(locale, "bookings.driverAssigned")}
@@ -241,12 +258,12 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td data-label={t(locale, "bookings.colStatus")}>
                       <span className={`badge badge--${item.status}`}>
                         {prefixedLabel(locale, "status", item.status)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label={t(locale, "bookings.open")}>
                       <a
                         className="admin-row-link"
                         href={`/admin/bookings/${item.reference}`}

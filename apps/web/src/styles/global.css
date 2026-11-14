@@ -3159,7 +3159,9 @@ html[lang="zh-Hant"] astro-island[ssr] {
 }
 
 .table-wrap {
-  overflow: auto;
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -3272,9 +3274,23 @@ td {
 .admin-table-card {
   padding: 0;
   overflow: hidden;
+  max-width: 100%;
 }
 .admin-bookings-table {
   min-width: 880px;
+}
+.admin-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.65rem;
+  align-items: center;
+}
+.admin-table-actions .admin-inline-link {
+  white-space: nowrap;
+}
+.admin-list-toolbar .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .admin-bookings-table thead {
   background: #f8fafb;
@@ -3760,6 +3776,7 @@ td {
   .admin-list-toolbar,
   .admin-detail-heading {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
   .admin-calendar-card .react-calendar__tile {
     min-height: 3.5rem;
@@ -4076,11 +4093,11 @@ td {
   }
 
   .admin-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .admin-nav {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .admin-brand,
@@ -4090,20 +4107,98 @@ td {
 
   .admin-nav nav {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.35rem;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-nav nav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 0.55rem 0.75rem;
   }
 
   .admin-main {
+    min-width: 0;
     padding: 1rem;
   }
 
+  .admin-topbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .admin-topbar__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-topbar__actions .btn {
+    white-space: nowrap;
+  }
+
   .admin-kpis {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .admin-dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-bookings-table {
+    min-width: 0;
+  }
+
+  .admin-bookings-table thead {
+    display: none;
+  }
+
+  .admin-bookings-table,
+  .admin-bookings-table tbody,
+  .admin-bookings-table tr,
+  .admin-bookings-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-bookings-table tr {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e8ecee;
+  }
+
+  .admin-bookings-table td {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 0.4fr) minmax(0, 1fr);
+    gap: 0.45rem 0.75rem;
+    align-items: start;
+    padding: 0.35rem 0;
+    border-bottom: 0;
+  }
+
+  .admin-bookings-table td::before {
+    content: attr(data-label);
+    color: #65737b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .admin-bookings-table td.admin-table-actions,
+  .admin-bookings-table td:has(.admin-row-link) {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-bookings-table td:has(.admin-row-link)::before,
+  .admin-bookings-table td.admin-table-actions::before {
+    display: none;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 879px) {
+  .admin-kpis {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

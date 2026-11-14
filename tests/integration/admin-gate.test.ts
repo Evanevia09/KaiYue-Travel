@@ -20,24 +20,36 @@ const PRODUCTION_PATHS = [
   "/api/auth/sign-in/email",
 ];
 
-describe("production admin gate", () => {
-  it("forbids every listed admin surface on kaiyue-travel.scalingsmb.workers.dev", async () => {
-    const env = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
-    for (const pathname of PRODUCTION_PATHS) {
-      expect(isProtectedAdminPath(pathname)).toBe(true);
-      const request = new Request(`https://kaiyue-travel.scalingsmb.workers.dev${pathname}`);
-      expect(() => assertLiveAdminSurface(env, pathname, request)).toThrow(
-        /Admin access is not configured/,
-      );
-    }
+const PUBLIC_PRODUCTION_ORIGINS = [
+  "https://kaiyue-travel.scalingsmb.workers.dev",
+  "https://kaiyuemacau.com",
+  "https://www.kaiyuemacau.com",
+] as const;
 
-    for (const pathname of ["/api/v1/admin/bookings", "/api/admin/offers"]) {
-      const response = await handleApi(
-        new Request(`https://kaiyue-travel.scalingsmb.workers.dev${pathname}`),
-        env,
-      );
-      expect(response.status, pathname).toBe(403);
+describe("production admin gate", () => {
+  it("forbids every listed admin surface on public production hosts", async () => {
+    const env = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
+    for (const origin of PUBLIC_PRODUCTION_ORIGINS) {
+      for (const pathname of PRODUCTION_PATHS) {
+        expect(isProtectedAdminPath(pathname)).toBe(true);
+        const request = new Request(`${origin}${pathname}`);
+        expect(() => assertLiveAdminSurface(env, pathname, request)).toThrow(
+          /Admin access is not configured/,
+        );
+      }
+
+      for (const pathname of ["/api/v1/admin/bookings", "/api/admin/offers"]) {
+        const response = await handleApi(new Request(`${origin}${pathname}`), env);
+        expect(response.status, `${origin}${pathname}`).toBe(403);
+      }
     }
+  });
+
+  it("does not treat DEV_ADMIN_BYPASS as an apex shortcut", () => {
+    const env = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "true" });
+    expect(() =>
+      assertLiveAdminSurface(env, "/login", new Request("https://kaiyuemacau.com/login")),
+    ).toThrow(/Admin access is not configured/);
   });
 });
 

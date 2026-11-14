@@ -2,6 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Production-safe staff-dashboard UX candidate from live 9ff81925 (prepare-only)
+
+- **Branch:** `cursor/promote-staff-dashboard-ux-from-live-2cad` from `9ff81925d722bb5f9fbdd2af3ef609d72ada8ecc`. Separate from PR #33, PR #34 (`dad60edf` / `d8c8bd20`), PR #26, and PR #32 (this SHA is PR #32 head; do not merge #32 or #34).
+- **Change:** UX-only deltas from `8ed952a7` on the independently verified live source. Git `admin-gate.ts` / `middleware.ts` / `auth.ts` / `wrangler.jsonc` unchanged. Overlay `docs/records/wrangler.production-artifact.jsonc`: production D1 `06cf879d`, `run_worker_first=false`, no temp-admin/6-char/allowlist/secrets/staging bindings.
+- **Report:** `docs/records/2026-11-15-production-staff-dashboard-ux-candidate.md`
+- **Do not:** merge/upload/activate; retry Workers Builds; change production D1/DNS/Access; upload staging packages to live.
+- **Statuses:** `implemented`/`checked` only after local gates in the report. Not `user_accepted` / `deployed` / `released`.
+
 ## 2026-11-03 — Booking time picker, required WhatsApp, language labels
 
 - **Branch:** `cursor/booking-time-whatsapp-lang-d8c6`

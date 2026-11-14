@@ -1,4 +1,9 @@
 import { AppError, destinationRequired, type ServiceType } from "@kaiyue/contracts";
+import {
+  ASSIGNMENT_PAIR_ERROR,
+  assignmentValidationError,
+  parseAssignmentInput,
+} from "../assignment.ts";
 import type { D1Database } from "./env.ts";
 import { first } from "./db.ts";
 import { bookingToAdmin, getBookingByReference, type BookingRow } from "./bookings.ts";
@@ -176,16 +181,14 @@ export async function assignBooking(
   const data = inputObject(input);
   if (data.expectedUpdatedAt !== row.updated_at)
     throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
-  const driverId =
-    data.driverId === null ? null : typeof data.driverId === "string" ? data.driverId : undefined;
-  const vehicleId =
-    data.vehicleId === null
-      ? null
-      : typeof data.vehicleId === "string"
-        ? data.vehicleId
-        : undefined;
-  if (driverId === undefined || vehicleId === undefined || Boolean(driverId) !== Boolean(vehicleId))
-    throw new AppError("VALIDATION_FAILED", "Choose both a driver and vehicle, or clear both.");
+  const next = parseAssignmentInput(data);
+  if (!next) throw new AppError("VALIDATION_FAILED", ASSIGNMENT_PAIR_ERROR);
+  const assignmentError = assignmentValidationError(
+    { driverId: row.driver_id, vehicleId: row.vehicle_id },
+    next,
+  );
+  if (assignmentError) throw new AppError("VALIDATION_FAILED", assignmentError);
+  const { driverId, vehicleId } = next;
   if (driverId && vehicleId) {
     const [driver, vehicle] = await Promise.all([
       first<DriverRow>(db, "SELECT * FROM drivers WHERE id = ?", driverId),
