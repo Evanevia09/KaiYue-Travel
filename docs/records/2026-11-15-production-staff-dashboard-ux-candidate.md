@@ -63,25 +63,30 @@ for `/admin`, `/login`, `/setup-admin`, `/api/v1/admin/bookings`, `/api/admin/of
 
 ## Overlay / package hashes
 
-Filled after freeze. Overlay path: `docs/records/wrangler.production-artifact.jsonc`.
+Freeze SHA (do not rerun the ledger on later docs-only commits): `cd33cf8c8bb876171d55de1d062668877f51e833`.
+Overlay path: `docs/records/wrangler.production-artifact.jsonc`.
+Zip is local-only (`artifacts/` gitignored). Dry-run wrangler printed git bindings (`069aa442`, `ADMIN_EMAILS=admin-test@kaiyue.test`); that is **not** the upload config. Zip `wrangler.jsonc` is the overlay (D1 `06cf879d`, `run_worker_first=false`, no those vars).
 
 | Item | Value |
 |---|---|
-| Overlay SHA256 | _pending freeze_ |
-| Ledger zip SHA256 | _pending freeze_ |
-| entry.js SHA256 | _pending freeze_ |
-| Head SHA | _pending commit_ |
-| Report SHA256 | _pending commit_ |
+| Overlay SHA256 | `fbed31586d74ac2ebdae03e047294eda6da0456c07d4ea553081e0eba888e03d` |
+| Zip wrangler.jsonc SHA256 | `6b0597e7ee05a0ea0551fc58b1f047557e41d7f61248600d09ccd5722eb1b276` |
+| Ledger zip SHA256 | `dbac8f9b957d1d09b18c58a0df25718f2582af90790ffa236c59587238261ca5` (9992675 bytes) |
+| entry.js SHA256 | `024ab81b3e7bcdfb929d070ec1c72a3a38ce1505c070997257028b7108a70797` |
+| Ledger files | 136 |
+| Freeze SHA | `cd33cf8c8bb876171d55de1d062668877f51e833` |
+
+Report SHA256 is of this file after the hash-record commit (not inside the freeze zip).
 
 ## Local checks
 
 | Check | Result |
 |---|---|
-| lint | _pending_ |
-| typecheck | _pending_ |
-| unit/integration | _pending_ |
-| production build | _pending_ |
-| ledger dry-run | _pending_ |
+| lint | pass (`prettier --check .`; `artifacts/` gitignored) |
+| typecheck | pass (0 errors, 3 existing hints) |
+| unit/integration | **137/137**, including public-host `/admin` `/login` 403 on apex, www, and legacy workers.dev |
+| production build | pass (`PUBLIC_SITE_URL=https://kaiyuemacau.com`); built `/zh-Hant` still contains 包車接送 |
+| ledger dry-run | pass; `--dry-run` only; no upload |
 
 ## Conflicts / blockers
 
