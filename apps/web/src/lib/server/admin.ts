@@ -1,7 +1,7 @@
 import { AppError, BOOKING_STATUSES, CONTACT_STATUSES } from "@kaiyue/contracts";
 import type { AppEnv, D1Database } from "./env.ts";
 import { businessTimezone } from "./env.ts";
-import { all, first, nowIso, run } from "./db.ts";
+import { all, first, nowIso } from "./db.ts";
 import { readJson } from "./http.ts";
 import {
   bookingToAdmin,
@@ -71,6 +71,7 @@ export async function addNote(
   entityId: string,
   body: string,
   actorId: string,
+  requestId: string,
 ) {
   const trimmed = body.trim();
   if (trimmed.length < 2 || trimmed.length > 1000) {
@@ -80,17 +81,20 @@ export async function addNote(
   }
   const id = crypto.randomUUID();
   const createdAt = nowIso();
-  await run(
-    db,
-    `INSERT INTO admin_notes (id, entity_type, entity_id, body, created_by, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    id,
-    entityType,
-    entityId,
-    trimmed,
-    actorId,
-    createdAt,
-  );
+  await db.batch([
+    db
+      .prepare(
+        `INSERT INTO admin_notes (id, entity_type, entity_id, body, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(id, entityType, entityId, trimmed, actorId, createdAt),
+    db
+      .prepare(
+        `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+         VALUES (?, ?, ?, 'note_added', ?, NULL, NULL, ?, ?)`,
+      )
+      .bind(crypto.randomUUID(), entityType, entityId, actorId, requestId, createdAt),
+  ]);
   return { id, entityType, entityId, body: trimmed, createdBy: actorId, createdAt };
 }
 

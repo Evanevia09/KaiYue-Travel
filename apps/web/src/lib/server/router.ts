@@ -219,7 +219,7 @@ export async function handleApi(
         }
         const body = (await readJson(request)) as { body?: string };
         return json(
-          await addNote(env.DB, "booking", booking.id, body.body ?? "", actor.id),
+          await addNote(env.DB, "booking", booking.id, body.body ?? "", actor.id, requestId),
           201,
           requestId,
         );
@@ -254,7 +254,7 @@ export async function handleApi(
         const detail = await handleAdminContactDetail(env, contactNoteParams.id!);
         const body = (await readJson(request)) as { body?: string };
         return json(
-          await addNote(env.DB, "contact", detail.contact.id, body.body ?? "", actor.id),
+          await addNote(env.DB, "contact", detail.contact.id, body.body ?? "", actor.id, requestId),
           201,
           requestId,
         );

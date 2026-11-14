@@ -46,6 +46,14 @@ export function withOfferStatus<T extends { status: string }>(offer: T, status: 
   return { ...offer, status };
 }
 
+export function offerReadinessLabel(
+  status: "draft" | "published",
+  complete: boolean,
+): "offers.ready" | "offers.incomplete" | null {
+  if (status === "published") return null;
+  return complete ? "offers.ready" : "offers.incomplete";
+}
+
 /** Busy key follows the requested next state, not the optimistic current status. */
 export function offerStatusBusyKey(id: string, next: "published" | "draft"): string {
   return next === "published" ? `publish:${id}` : `unpublish:${id}`;
