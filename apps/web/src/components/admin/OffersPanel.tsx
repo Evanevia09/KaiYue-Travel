@@ -5,6 +5,7 @@ import { adminFetch, formatWhen } from "./api.ts";
 import {
   editorAfterWrite,
   filesFromDataTransfer,
+  offerReadinessLabel,
   offerSaveTarget,
   offerStatusBusyKey,
   offerStatusControl,
@@ -412,65 +413,73 @@ export function OffersPanel({
         ) : items.length === 0 ? (
           <p className="muted">{t(locale, "offers.empty")}</p>
         ) : (
-          <table className="admin-bookings-table">
-            <thead>
-              <tr>
-                <th>{t(locale, "offers.colTitle")}</th>
-                <th>{t(locale, "offers.colStatus")}</th>
-                <th>{t(locale, "offers.colPrice")}</th>
-                <th>{t(locale, "offers.colUpdated")}</th>
-                <th>{t(locale, "offers.colActions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => {
-                const action = offerStatusControl(busy, item.id, item.status);
-                return (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>{item.title}</strong>
-                      <small>
-                        {item.complete ? t(locale, "offers.ready") : t(locale, "offers.incomplete")}
-                      </small>
-                    </td>
-                    <td>
-                      <span className={`badge badge--${item.status}`}>
-                        {prefixedLabel(locale, "status", item.status)}
-                      </span>
-                    </td>
-                    <td>{item.priceFrom == null ? t(locale, "offers.hidden") : item.priceFrom}</td>
-                    <td>{formatWhen(item.updatedAt, locale)}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="admin-inline-link"
-                        onClick={() => openEdit(item)}
-                        disabled={locked}
+          <div className="table-wrap">
+            <table className="admin-bookings-table">
+              <thead>
+                <tr>
+                  <th>{t(locale, "offers.colTitle")}</th>
+                  <th>{t(locale, "offers.colStatus")}</th>
+                  <th>{t(locale, "offers.colPrice")}</th>
+                  <th>{t(locale, "offers.colUpdated")}</th>
+                  <th>{t(locale, "offers.colActions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => {
+                  const action = offerStatusControl(busy, item.id, item.status);
+                  const readiness = offerReadinessLabel(item.status, item.complete);
+                  return (
+                    <tr key={item.id}>
+                      <td data-label={t(locale, "offers.colTitle")}>
+                        <strong>{item.title}</strong>
+                        {readiness ? <small>{t(locale, readiness)}</small> : null}
+                      </td>
+                      <td data-label={t(locale, "offers.colStatus")}>
+                        <span className={`badge badge--${item.status}`}>
+                          {prefixedLabel(locale, "status", item.status)}
+                        </span>
+                      </td>
+                      <td data-label={t(locale, "offers.colPrice")}>
+                        {item.priceFrom == null ? t(locale, "offers.hidden") : item.priceFrom}
+                      </td>
+                      <td data-label={t(locale, "offers.colUpdated")}>
+                        {formatWhen(item.updatedAt, locale)}
+                      </td>
+                      <td
+                        className="admin-table-actions"
+                        data-label={t(locale, "offers.colActions")}
                       >
-                        {t(locale, "offers.edit")}
-                      </button>{" "}
-                      <button
-                        type="button"
-                        className="admin-inline-link"
-                        onClick={() => void setStatus(item.id, action.next)}
-                        disabled={locked}
-                      >
-                        {t(locale, action.labelKey)}
-                      </button>{" "}
-                      <button
-                        type="button"
-                        className="admin-inline-link"
-                        onClick={() => setConfirmId(item.id)}
-                        disabled={locked}
-                      >
-                        {t(locale, "offers.delete")}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        <button
+                          type="button"
+                          className="admin-inline-link"
+                          onClick={() => openEdit(item)}
+                          disabled={locked}
+                        >
+                          {t(locale, "offers.edit")}
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-inline-link"
+                          onClick={() => void setStatus(item.id, action.next)}
+                          disabled={locked}
+                        >
+                          {t(locale, action.labelKey)}
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-inline-link"
+                          onClick={() => setConfirmId(item.id)}
+                          disabled={locked}
+                        >
+                          {t(locale, "offers.delete")}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 

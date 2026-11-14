@@ -5,7 +5,8 @@ import PageHero from "../components/content/PageHero.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { localeFromPath, localePath } from "../lib/i18n.ts";
 import { listPublicOffers } from "../lib/server/offers/service.ts";
-import { specialOfferUi } from "../lib/special-offer-copy.ts";
+import { publicOfferCardImage } from "../lib/offer-card.ts";
+import { formatOfferFromPrice, specialOfferUi } from "../lib/special-offer-copy.ts";
 import { env } from "cloudflare:workers";
 
 Astro.response.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
@@ -56,56 +57,55 @@ const widgetOffers = items.map((item) => ({ id: item.id, title: item.title }));
           <p class="muted">{copy.empty}</p>
         ) : (
           <div class="home-tour-grid">
-            {items.map((item, index) => (
-              <article class="home-tour-card">
-                {item.mainPhotoUrl && (
-                  <a
-                    class="home-tour-card__media"
-                    href={localePath(`/special-offers/${item.id}`, locale)}
-                  >
-                    <img
-                      src={item.mainPhotoThumbUrl ?? item.mainPhotoUrl}
-                      srcset={
-                        item.mainPhotoThumbUrl
-                          ? `${item.mainPhotoThumbUrl} 480w, ${item.mainPhotoUrl} 1600w`
-                          : undefined
-                      }
-                      sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 33vw"
-                      alt=""
-                      width={item.mainPhotoWidth ?? 1600}
-                      height={item.mainPhotoHeight ?? 1104}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      decoding="async"
-                      fetchpriority={index === 0 ? "high" : "low"}
-                    />
-                  </a>
-                )}
-                <div class="home-tour-card__body">
-                  <h3>
-                    <a href={localePath(`/special-offers/${item.id}`, locale)}>{item.title}</a>
-                  </h3>
-                  <p>{item.description}</p>
-                  {item.priceFrom != null && (
-                    <p class="home-tour-card__fact">
-                      {copy.from} {item.priceFrom}
-                    </p>
-                  )}
-                  {item.terms && (
-                    <p>
-                      <strong>{copy.terms}.</strong> {item.terms}
-                    </p>
-                  )}
-                  <p>
+            {items.map((item, index) => {
+              const image = publicOfferCardImage(item);
+              return (
+                <article class="home-tour-card">
+                  {image && (
                     <a
-                      class="btn btn--primary"
+                      class="home-tour-card__media"
                       href={localePath(`/special-offers/${item.id}`, locale)}
                     >
-                      {copy.book}
+                      <img
+                        src={image.src}
+                        srcset={image.srcset}
+                        sizes="(max-width: 700px) 100vw, (max-width: 1000px) 50vw, 33vw"
+                        alt=""
+                        width={image.width}
+                        height={image.height}
+                        loading={index === 0 ? "eager" : "lazy"}
+                        decoding="async"
+                        fetchpriority={index === 0 ? "high" : "low"}
+                      />
                     </a>
-                  </p>
-                </div>
-              </article>
-            ))}
+                  )}
+                  <div class="home-tour-card__body">
+                    <h3>
+                      <a href={localePath(`/special-offers/${item.id}`, locale)}>{item.title}</a>
+                    </h3>
+                    <p>{item.description}</p>
+                    {item.priceFrom != null && (
+                      <p class="home-tour-card__fact">
+                        {formatOfferFromPrice(locale, item.priceFrom)}
+                      </p>
+                    )}
+                    {item.terms && (
+                      <p>
+                        <strong>{copy.terms}.</strong> {item.terms}
+                      </p>
+                    )}
+                    <p>
+                      <a
+                        class="btn btn--primary"
+                        href={localePath(`/special-offers/${item.id}`, locale)}
+                      >
+                        {copy.book}
+                      </a>
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )
       }

@@ -225,6 +225,7 @@ export const adminEn = {
   "channel.whatsapp": "WhatsApp",
   "channel.email": "Email",
   "channel.phone": "Phone",
+  "channel.admin": "Staff",
 
   "event.status_change": "Status change",
   "event.details_edit": "Details edit",
@@ -238,7 +239,7 @@ export const adminEn = {
   "cal.agenda": "Daily agenda",
   "cal.loading": "Loading bookings…",
   "cal.empty": "No pickups scheduled for this day.",
-  "cal.itemMeta": "{reference} · {status} · {count} passengers",
+  "cal.itemMeta": "{reference} · {status} · {passengers}",
 
   "inv.eyebrow": "Dispatch resources",
   "inv.heading": "Drivers & vehicles",
@@ -283,13 +284,43 @@ export const adminEn = {
 
   "contacts.status": "Status",
   "contacts.all": "All",
+  "contacts.eyebrow": "Inquiries",
+  "contacts.heading": "Contacts",
+  "contacts.lead": "Review general and corporate inquiries. Status changes stay on this record.",
   "contacts.loading": "Loading inquiries…",
   "contacts.empty": "No inquiries match these filters.",
+  "contacts.colReference": "Reference",
+  "contacts.colReceived": "Received",
+  "contacts.colInquiry": "Inquiry",
+  "contacts.colName": "Name",
+  "contacts.colStatus": "Status",
+  "contacts.view": "View →",
+  "contacts.open": "Open",
+  "contacts.openAria": "Open {reference}",
   "contacts.back": "Back to contacts",
   "contact.loading": "Loading inquiry…",
+  "contact.eyebrow": "Inquiry",
+  "contact.received": "Received {when}",
+  "contact.company": "Company",
+  "contact.phone": "Phone",
+  "contact.email": "Email",
+  "contact.message": "Message",
+  "contact.workflow": "Workflow",
+  "contact.status": "Status",
+  "contact.statusHelp": "Status changes do not notify the sender automatically.",
   "contact.mark": "Mark {status}",
+  "contact.finalStatus": "This inquiry has reached a final status.",
+  "contact.teamNotes": "Team notes",
   "contact.note": "Internal note",
+  "contact.notePlaceholder": "Add a handover note…",
   "contact.saveNote": "Save note",
+  "contact.saving": "Saving…",
+  "contact.noteAdded": "Note added.",
+  "contact.statusChanged": "Status changed to {status}.",
+  "contact.noNotes": "No internal notes yet.",
+  "contact.history": "History",
+  "contact.audit": "Audit trail",
+  "contact.noEvents": "No recorded changes yet.",
 
   "offers.eyebrow": "Catalogue",
   "offers.heading": "Special Offers",
@@ -379,6 +410,7 @@ export const adminEn = {
   "error.validEmail": "Enter a valid email.",
   "error.validEmailAddress": "Enter a valid email address.",
   "error.chooseBothResources": "Choose both a driver and vehicle, or clear both.",
+  "error.chooseAssignment": "Choose a driver and a vehicle.",
   "error.chooseActiveResources": "Choose active driver and vehicle records.",
   "error.vehicleCapacity": "Vehicle capacity is below passenger count.",
   "error.duplicatePlate": "A vehicle with this plate already exists.",
@@ -647,6 +679,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "channel.whatsapp": "WhatsApp",
   "channel.email": "電郵",
   "channel.phone": "電話",
+  "channel.admin": "人手輸入",
 
   "event.status_change": "狀態變更",
   "event.details_edit": "編輯資料",
@@ -660,7 +693,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "cal.agenda": "當日行程",
   "cal.loading": "載入預約中…",
   "cal.empty": "當日沒有接載安排。",
-  "cal.itemMeta": "{reference} · {status} · {count} 名乘客",
+  "cal.itemMeta": "{reference} · {status} · {passengers}",
 
   "inv.eyebrow": "調度資源",
   "inv.heading": "司機與車輛",
@@ -705,13 +738,43 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
 
   "contacts.status": "狀態",
   "contacts.all": "全部",
+  "contacts.eyebrow": "查詢",
+  "contacts.heading": "聯絡查詢",
+  "contacts.lead": "查閱一般及企業查詢。狀態只在此紀錄更新。",
   "contacts.loading": "載入查詢中…",
   "contacts.empty": "沒有符合這些條件的查詢。",
+  "contacts.colReference": "編號",
+  "contacts.colReceived": "收到時間",
+  "contacts.colInquiry": "查詢類型",
+  "contacts.colName": "姓名",
+  "contacts.colStatus": "狀態",
+  "contacts.view": "查看 →",
+  "contacts.open": "開啟",
+  "contacts.openAria": "開啟 {reference}",
   "contacts.back": "返回查詢列表",
   "contact.loading": "載入查詢中…",
+  "contact.eyebrow": "查詢",
+  "contact.received": "收到於 {when}",
+  "contact.company": "公司",
+  "contact.phone": "電話",
+  "contact.email": "電郵",
+  "contact.message": "訊息",
+  "contact.workflow": "流程",
+  "contact.status": "狀態",
+  "contact.statusHelp": "更改狀態不會自動通知來訊者。",
   "contact.mark": "標記為{status}",
+  "contact.finalStatus": "此查詢已達最終狀態。",
+  "contact.teamNotes": "團隊備註",
   "contact.note": "內部備註",
+  "contact.notePlaceholder": "新增交接備註…",
   "contact.saveNote": "儲存備註",
+  "contact.saving": "儲存中…",
+  "contact.noteAdded": "已新增備註。",
+  "contact.statusChanged": "狀態已改為{status}。",
+  "contact.noNotes": "尚未有內部備註。",
+  "contact.history": "紀錄",
+  "contact.audit": "操作紀錄",
+  "contact.noEvents": "尚未有操作紀錄。",
 
   "offers.eyebrow": "目錄",
   "offers.heading": "特別優惠",
@@ -800,6 +863,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "error.validEmail": "請輸入有效電郵。",
   "error.validEmailAddress": "請輸入有效電郵地址。",
   "error.chooseBothResources": "請同時選擇司機及車輛，或兩者一併清空。",
+  "error.chooseAssignment": "請選擇司機及車輛。",
   "error.chooseActiveResources": "請選擇可用的司機及車輛紀錄。",
   "error.vehicleCapacity": "車輛載客量低於乘客人數。",
   "error.duplicatePlate": "此車牌的車輛已存在。",
@@ -928,6 +992,20 @@ export function prefixedLabel(
   return raw.replaceAll("_", " ");
 }
 
+export function bookingChannelLabel(
+  locale: AdminLocale,
+  booking: { communicationChannel: string; sourceTrigger?: string | null },
+): string {
+  if (booking.sourceTrigger === "admin-manual" || booking.communicationChannel === "admin") {
+    return t(locale, "channel.admin");
+  }
+  return prefixedLabel(locale, "channel", booking.communicationChannel);
+}
+
+export function passengerCountLabel(locale: AdminLocale, count: number): string {
+  return t(locale, count === 1 ? "bookings.passengerOne" : "bookings.passengerMany", { count });
+}
+
 const EXACT_ERROR_MESSAGES: Record<string, AdminMessageKey> = {
   "Admin request failed.": "error.generic",
   "Something went wrong. Please try again.": "error.UNAVAILABLE",
@@ -954,6 +1032,7 @@ const EXACT_ERROR_MESSAGES: Record<string, AdminMessageKey> = {
   "Enter a valid email.": "error.validEmail",
   "Enter a valid email address.": "error.validEmailAddress",
   "Choose both a driver and vehicle, or clear both.": "error.chooseBothResources",
+  "Choose a driver and a vehicle.": "error.chooseAssignment",
   "Choose active driver and vehicle records.": "error.chooseActiveResources",
   "Vehicle capacity is below passenger count.": "error.vehicleCapacity",
   "A vehicle with this plate already exists.": "error.duplicatePlate",

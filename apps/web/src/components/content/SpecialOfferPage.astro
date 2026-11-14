@@ -2,7 +2,7 @@
 import { BookingEmbedded } from "../booking/BookingEmbedded.tsx";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { localeFromPath } from "../../lib/i18n.ts";
-import { specialOfferUi } from "../../lib/special-offer-copy.ts";
+import { formatOfferAmount, specialOfferUi } from "../../lib/special-offer-copy.ts";
 import PageHero from "./PageHero.astro";
 
 type OfferPhoto = {
@@ -110,7 +110,7 @@ const seoDescription =
           offer.priceFrom != null && (
             <div class="product-price">
               <p class="product-price__label">{copy.from}</p>
-              <p class="product-price__value">{offer.priceFrom}</p>
+              <p class="product-price__value">MOP {formatOfferAmount(offer.priceFrom)}</p>
             </div>
           )
         }

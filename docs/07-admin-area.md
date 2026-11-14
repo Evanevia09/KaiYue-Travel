@@ -46,7 +46,8 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Default sort: nearest relevant pickup first, with overdue/new items visibly flagged.
 - Pagination is server-side. Empty, loading, partial-error, and no-result states are distinct.
 - The implemented list uses a stable `(pickup_at, id)` cursor so equal pickup times are not skipped; the UI has Previous/Next controls and a total count.
-- Staff may add a booking enquiry manually from the bookings view. It uses the same server validation and idempotent persistence path as public enquiries.
+- Staff may add a booking enquiry manually from the bookings view. It uses the same server validation and idempotent persistence path as public enquiries. Manual entries store `communication_channel = admin` (with `source_trigger = admin-manual`) and are labelled Staff, not WhatsApp. Existing manual rows that were stored as WhatsApp still display as Staff when the source trigger is `admin-manual`.
+- The status combobox writes `?status=` on `/admin/bookings` so dashboard KPI deep links and back/forward stay in sync.
 
 ## Calendar
 
@@ -55,7 +56,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Selecting an event opens booking detail.
 - Color is supplemented by label/icon. Cancelled bookings remain visible by default but visually de-emphasized.
 - The calendar reads booking data; drag-to-reschedule is out of scope for Release 1.
-- The implemented month view uses the React Calendar component with a day agenda. Pickup dates are grouped in Macau time.
+- The implemented month view uses the React Calendar component with a day agenda. Pickup dates are grouped in Macau time. Agenda copy uses singular “1 passenger” when the count is one.
 
 ## Booking detail
 
@@ -63,17 +64,17 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Pickup/destination, dates/times with timezone, passenger/luggage information, preference/notes.
 - Contact details with safe copy actions.
 - Status update constrained to valid transitions.
-- Internal notes and minimal audit history.
+- Internal notes and minimal audit history. Adding a note also writes a `note_added` audit event (without copying the note body).
 - Notification state and safe retry if implemented.
 - Operators may edit journey and contact details, with validation and a revision check; edits record only changed field names in the audit trail, not personal data.
-- Operators may assign an active driver and vehicle together, or clear both. Vehicle capacity must cover the current passenger count. Availability and scheduling conflicts still require manual review.
+- Operators may assign an active driver and vehicle together, or clear both. Saving with no driver and no vehicle when nothing is assigned is rejected with a visible validation error; the UI must not show a success state for that no-op. Vehicle capacity must cover the current passenger count. Availability and scheduling conflicts still require manual review.
 
 Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` available from active stages. Do not imply that status changes contact the customer unless a corresponding email workflow is explicitly implemented and shown before confirmation.
 
 ## Contacts
 
-- List fields: received time, name/company, inquiry type, status.
-- Detail: approved contact fields, original plain-text message, notes, and event history.
+- List fields: received time, name/company, inquiry type, status. The list uses the same toolbar, filter, table, empty, and loading treatment as bookings.
+- Detail: approved contact fields, original plain-text message, notes, and event history, using the same card/aside layout as booking detail. Status is only changed by the existing Mark Replied / Mark Closed actions.
 - Status updates: `new` → `replied` → `closed`; reopening should be explicit and audited if supported.
 - Email client links may be provided, but full outbound messaging is outside Release 1.
 
@@ -93,8 +94,9 @@ Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` ava
 
 ## Admin UX requirements
 
-- Desktop-first but usable on a phone for urgent review.
+- Desktop-first but usable on a phone for urgent review. At typical phone widths (~375px) the nav wraps or scrolls instead of clipping labels, header actions wrap, and KPI cards stack. Bookings and offers tables stay inside the main pane; at narrow widths they stack into labelled rows so TITLE and ACTIONS remain on-screen.
 - Keyboard-accessible tables, filters, dialog/drawer, and calendar alternatives.
+- Published special offers do not keep a “Ready to publish” badge. Public offer list cards use the selected main photo (full image URL, thumbnail as srcset) and show MOP with the stored price.
 - Confirm destructive/terminal actions; keep status updates reversible only when business policy allows.
 - Optimistic UI may be used only when failure rollback is unambiguous; status changes should prefer confirmed server responses.
 - Never show a success message before the server confirms persistence.

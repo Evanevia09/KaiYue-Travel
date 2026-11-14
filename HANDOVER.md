@@ -2,6 +2,13 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-14 — Staff-dashboard UAT UX on live runtime 6b62da09 (packaging review)
+
+- **Branch:** `cursor/staff-dashboard-uat-on-runtime-6b62da09-2cad` from `6b62da09` + cherry-pick `8ed952a7`
+- **PR:** draft into `staging` for packaging visibility only — do not merge or deploy until a **new** Worker package is reviewed
+- **Change:** the 12 staff-dashboard UAT UX fixes from PR #33 (`8ed952a7`, based on git staging `b38ad506`) replayed onto live official-staging runtime `6b62da09` so packaging keeps temporary-admin-login and staging-only 6 / production 16 password min. PR #33 left at `8ed952a7`. PR #26 left at `2b12338c`.
+- **Do not:** merge; `wrangler deploy` / versions upload / versions deploy; reuse old `6b62da09` zip hashes; touch PR #33 or #26; retry Workers Builds `12e616dd`; attach domains; push `main` or `staging`.
+
 ## 2026-11-14 — Staging UAT six-character password min (packaged, not uploaded)
 
 - **task_id:** `kai-yue-temporary-admin-login-20261110`
