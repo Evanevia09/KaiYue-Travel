@@ -2,6 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Cloudflare form-notification PLAN (not implemented)
+
+- **Task id:** `kai-yue-cloudflare-form-notifications-20261115`
+- **Branch:** `cursor/cloudflare-form-notifications-plan-2cad` from live-equivalent `a631f0b` (not `main`).
+- **Report:** `docs/records/2026-11-15-cloudflare-form-notifications-plan.md`
+- **Change:** inventory of booking/contact staff-mail triggers and Email Service prerequisites. No code, DNS, sends, or form submits.
+- **Do not:** implement until 33ecc domain onboard is verified (PM check). Do not overwrite live `f3169afb` or staging runtime.
+
 ## 2026-11-15 — Staff-dashboard UX live closeout (33ecc `f3169afb`; do not merge main)
 
 - **Branch / PR:** `cursor/promote-staff-dashboard-ux-from-live-2cad` / https://github.com/Evanevia09/KaiYue-Travel/pull/35 — docs closeout only. Do not merge into `main`. PR #34 unchanged.
