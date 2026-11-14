@@ -2,7 +2,13 @@ import { useState } from "react";
 import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { authClient } from "./auth-client.ts";
 
-export function LoginForm({ locale }: { locale: AdminLocale }) {
+export function LoginForm({
+  locale,
+  minPasswordLength = 16,
+}: {
+  locale: AdminLocale;
+  minPasswordLength?: number;
+}) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
@@ -48,7 +54,7 @@ export function LoginForm({ locale }: { locale: AdminLocale }) {
           name="password"
           type="password"
           autoComplete="current-password"
-          minLength={16}
+          minLength={minPasswordLength}
           required
         />
       </label>

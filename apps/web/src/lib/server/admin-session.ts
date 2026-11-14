@@ -1,9 +1,15 @@
 import { AppError } from "@kaiyue/contracts";
 import { betterAuth } from "better-auth";
-import { isAccessAdminHost, isLocalAdminSurface, isLocalRuntime } from "./admin-gate.ts";
+import {
+  adminPasswordMinLength,
+  DEFAULT_ADMIN_PASSWORD_MIN_LENGTH,
+  isAccessAdminHost,
+  isLocalAdminSurface,
+  isLocalRuntime,
+} from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
 
-export const MIN_ADMIN_PASSWORD_LENGTH = 16;
+export const MIN_ADMIN_PASSWORD_LENGTH = DEFAULT_ADMIN_PASSWORD_MIN_LENGTH;
 
 export function allowedAdminEmails(env: AppEnv): Set<string> {
   return new Set(
@@ -47,7 +53,7 @@ export function createAdminSessionAuth(env: AppEnv, allowSignup = false, request
     emailAndPassword: {
       enabled: true,
       disableSignUp: !allowSignup,
-      minPasswordLength: MIN_ADMIN_PASSWORD_LENGTH,
+      minPasswordLength: adminPasswordMinLength(env, request),
     },
     session: {
       expiresIn: 60 * 60 * 8,

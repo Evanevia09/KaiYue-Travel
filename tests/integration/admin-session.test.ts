@@ -138,4 +138,87 @@ describe("admin session on local D1", () => {
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   }, 30_000);
+
+  it("accepts a 6-character password on staging with the test flag and keeps production at 16", async () => {
+    const stagingOrigin = "https://kaiyue-travel-staging.kai-yue.workers.dev";
+    const six = "uat6pw";
+    const five = "uat5x";
+    const stagingEnv = {
+      ...env,
+      ENVIRONMENT: "preview",
+      PUBLIC_SITE_URL: stagingOrigin,
+      DEV_ADMIN_BYPASS: "false",
+      ADMIN_STAGING_TEST_PASSWORD_MIN: "6",
+    };
+    const stagingAuth = createAdminSessionAuth(
+      stagingEnv,
+      true,
+      new Request(`${stagingOrigin}/api/auth/sign-up/email`),
+    );
+    const signupSix = await stagingAuth.handler(
+      new Request(`${stagingOrigin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: stagingOrigin },
+        body: JSON.stringify({
+          name: "Staging UAT",
+          email: "six-uat@example.invalid",
+          password: six,
+        }),
+      }),
+    );
+    expect(signupSix.status).toBe(200);
+
+    const signupFive = await stagingAuth.handler(
+      new Request(`${stagingOrigin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: stagingOrigin },
+        body: JSON.stringify({
+          name: "Too Short",
+          email: "five-uat@example.invalid",
+          password: five,
+        }),
+      }),
+    );
+    expect(signupFive.status).toBeGreaterThanOrEqual(400);
+
+    const productionAuth = createAdminSessionAuth(
+      {
+        ...stagingEnv,
+        ENVIRONMENT: "production",
+        PUBLIC_SITE_URL: "https://kaiyuemacau.com",
+      },
+      true,
+      new Request("https://kaiyuemacau.com/api/auth/sign-up/email"),
+    );
+    const productionSix = await productionAuth.handler(
+      new Request("https://kaiyuemacau.com/api/auth/sign-up/email", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://kaiyuemacau.com" },
+        body: JSON.stringify({
+          name: "Prod",
+          email: "prod-six@example.invalid",
+          password: six,
+        }),
+      }),
+    );
+    expect(productionSix.status).toBeGreaterThanOrEqual(400);
+
+    const spoofedAuth = createAdminSessionAuth(
+      { ...stagingEnv, ENVIRONMENT: "production" },
+      true,
+      new Request(`${stagingOrigin}/api/auth/sign-up/email`),
+    );
+    const spoofedSix = await spoofedAuth.handler(
+      new Request(`${stagingOrigin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: stagingOrigin },
+        body: JSON.stringify({
+          name: "Spoof",
+          email: "spoof-six@example.invalid",
+          password: six,
+        }),
+      }),
+    );
+    expect(spoofedSix.status).toBeGreaterThanOrEqual(400);
+  }, 30_000);
 });

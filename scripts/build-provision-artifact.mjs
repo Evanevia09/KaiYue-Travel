@@ -62,6 +62,11 @@ ADMIN_SEED_PASSWORD are already in this process environment:
 
   ADMIN_SEED_EMAIL='…' ADMIN_SEED_PASSWORD='…' node provision-admin.mjs > seed-admin.sql
 
+Default password minimum is 16. Isolated staging UAT six-character
+mode (does not change production policy):
+
+  ADMIN_SEED_STAGING_TEST=1 ADMIN_SEED_EMAIL='…' ADMIN_SEED_PASSWORD='…' node provision-admin.mjs > seed-admin.sql
+
 No listener is started in that mode. SQL goes to stdout only.
 Do not paste the password into chat or logs. Stop with Ctrl+C.
 Do not use this to open public signup or development on a live host.

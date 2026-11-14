@@ -4,11 +4,13 @@ import { AppError } from "@kaiyue/contracts";
 import { createAdminSessionAuth } from "../../../lib/server/admin-session.ts";
 import { allowedAdminEmails } from "../../../lib/server/admin-session.ts";
 import {
+  adminPasswordMinLength,
   assertLiveAdminSurface,
   emailSignupAllowed,
   forbiddenResponse,
   isLocalAdminSurface,
   passwordAdminAllowed,
+  passwordMeetsAdminMin,
   temporaryPasswordConfigured,
 } from "../../../lib/server/admin-gate.ts";
 import { clientIp, errorResponse, requestIdFrom } from "../../../lib/server/http.ts";
@@ -46,6 +48,21 @@ export const ALL: APIRoute = async ({ request }) => {
       await enforceAdminSignInRateLimit(env.DB, clientIp(request));
     } catch (error) {
       return errorResponse(error, requestId);
+    }
+    let signInBody: { password?: unknown };
+    try {
+      signInBody = (await request.clone().json()) as { password?: unknown };
+    } catch {
+      return new Response("Invalid JSON", { status: 400 });
+    }
+    if (!passwordMeetsAdminMin(signInBody.password, adminPasswordMinLength(env, request))) {
+      return new Response(JSON.stringify({ message: "Password is too short" }), {
+        status: 400,
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      });
     }
   }
   if (signup) {

@@ -1,7 +1,7 @@
 # Temporary allowlisted admin password login
 
 **Task:** `kai-yue-temporary-admin-login-20261110`  
-**Status (2026-11-14 14:13 CST Asia/Macau):** implementation done; staging **uploaded** and **activated** at 100% v6 (`114b62a3-83c9-4cac-b80a-21d0d855717c`). Unauthenticated workers.dev QA **partial**. Authenticated dashboard QA **BLOCKED** (no provisioned credentials). Not `user_accepted`. Not `released`. This source writer does not merge, seed, DNS, or attach `admin.kaiyuemacau.com`. Closeout: `docs/records/2026-11-14-staging-activation-closeout.md`.  
+**Status (2026-11-14 22:54 CST Asia/Macau):** live staging still fa5184c 100% v6. New unpublished runtime implements staging-only 6-character password min for synthetic UAT `uat-admin-20261114@kaiyue.test`. Authenticated QA **BLOCKED** until parent review + upload + seed. Not `user_accepted`. Not `released`. Closeout of live traffic: `docs/records/2026-11-14-staging-activation-closeout.md`. New package: `docs/records/2026-11-14-staging-uat-password-min.md`.  
 **Hosts:** production https://kaiyuemacau.com ; intended dashboard https://admin.kaiyuemacau.com (**not attached**); staging https://kaiyue-travel-staging.kai-yue.workers.dev  
 **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/26 into `staging`
 
@@ -22,7 +22,8 @@ See `docs/records/2026-11-10-temporary-admin-login.md` and `artifacts/parity-nov
 ## Do not
 
 - Merge or deploy from an agent. Do not `wrangler deploy`.
-- Mutate live staging `ADMIN_EMAILS` or `TEMP_ADMIN_EXPIRES_AT`.
+- Mutate live staging `ADMIN_EMAILS` or `TEMP_ADMIN_EXPIRES_AT` from this writer. The regenerated overlay’s planned Daniel + synthetic allowlist is operator review, not a live write.
+- Lower production or `admin.kaiyuemacau.com` password minimum. Six is staging workers.dev + explicit flag only.
 - Bind D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f`.
 - Enable public development, public signup, or `DEV_ADMIN_BYPASS` on staging/production.
 - Print or commit a password or `BETTER_AUTH_SECRET`. Do not invent a dummy signing secret for hashing.
@@ -35,8 +36,8 @@ Vault can generate a password and fill a browser password field. It cannot shell
 
 Viable path (no public signup, no development mode on a public host):
 
-1. Generate a password (≥16) in the vault. Do not paste it into chat, git, CI logs, or screenshots.
-2. Hash without exposing a listener when `ADMIN_SEED_EMAIL` and `ADMIN_SEED_PASSWORD` are already in the PM process environment (vault cannot shell-export; a masked Cursor secret request may populate the env). Standalone zip: `ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… node provision-admin.mjs > seed-admin.sql`. With a checkout, the same env on `node scripts/provision-admin-local.mjs` or `node scripts/seed-preview-test-admin.mjs`. **Do not tunnel, proxy, or change the browser to reach 127.0.0.1.** Default `node provision-admin.mjs` with those env vars unset still binds 127.0.0.1 only. Hasher is Better Auth 1.7.5 scrypt. Nothing logs the password. **This rebuilds the standalone zip** so env hashing works without HTTP; previous zip bytes are superseded. `.prettierignore` still skips the generated dump.
+1. Generate a password in the vault. Staging UAT may be 6 characters with `ADMIN_SEED_STAGING_TEST=1`. Default hasher minimum remains 16. Do not paste it into chat, git, CI logs, or screenshots.
+2. Hash without exposing a listener when `ADMIN_SEED_EMAIL` and `ADMIN_SEED_PASSWORD` are already in the PM process environment (vault cannot shell-export). Staging UAT six-character mode: `ADMIN_SEED_STAGING_TEST=1 ADMIN_SEED_EMAIL=… ADMIN_SEED_PASSWORD=… node provision-admin.mjs > seed-admin.sql`. Default without that flag still requires ≥16. With a checkout, the same env on `node scripts/provision-admin-local.mjs` or `node scripts/seed-preview-test-admin.mjs`. **Do not tunnel, proxy, or change the browser to reach 127.0.0.1.** Hasher is Better Auth 1.7.5 scrypt. Nothing logs the password.
 3. Fill email + password from the vault browser extension. Submit. The page hashes locally and downloads SQL. The process does not log the password.
 4. Confirm the SQL file has no raw password (hash only) and uses `WHERE NOT EXISTS` on email (safe to re-apply).
 5. Apply that SQL to the **intended** D1 only:
@@ -53,7 +54,8 @@ Staging Worker already has `ADMIN_EMAILS` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24T
 ## Staging packages
 
 - Additive 14-file jwt + `keep_assets` remains **unsafe**. Do not send it.
-- **Release packages (do not rebuild):** runtimeSourceSHA `fa5184ccda2d149c2d4acb8914db315ca8e5b4c4`. Staging zip sha256 `b5b0be97da9189c5da5dccf88e8a29d95ed4841a724cbaa84dc249ceb26a2bf5`. Overlay sha256 `11ead30e9c3afa33e333027eb2850a40b50c815792e3e225458584d98d9c0bb6`. Production zip sha256 `6bb3489ea8218477c5950bd8779baf25b09e288582123bcde5df957e6490af69` was **not** uploaded. 8f41369 and 5dab462 remain superseded. See `docs/records/2026-11-12-admin-host-complete-ledger.md` and `docs/records/2026-11-14-staging-activation-closeout.md`.
+- **Live serving (do not treat as this increment’s upload inputs):** runtimeSourceSHA `fa5184ccda2d149c2d4acb8914db315ca8e5b4c4`. Staging zip sha256 `b5b0be97da9189c5da5dccf88e8a29d95ed4841a724cbaa84dc249ceb26a2bf5`. Overlay sha256 `11ead30e9c3afa33e333027eb2850a40b50c815792e3e225458584d98d9c0bb6`. Production zip sha256 `6bb3489ea8218477c5950bd8779baf25b09e288582123bcde5df957e6490af69` was **not** uploaded.
+- **New unpublished package:** `docs/records/2026-11-14-staging-uat-password-min.md`. Do **not** upload fa5184c overlay `11ead30e…` with the new runtime.
 - **Current staging (2026-11-14 14:08:57 CST):** 100% `114b62a3-83c9-4cac-b80a-21d0d855717c` (v6), deployment `32931ef9-0e11-4c5b-9f5a-5649d7aaf747`, `raw_run_worker_first=true`. Rollback target `b53c0353-bfc4-4700-a5c7-725b7167af6e`. Production 100% owner photos `5b859f36-39c5-43aa-817a-434d56ae8214` (2026-11-13; not this task). Custom domains 0; `admin.kaiyuemacau.com` not attached.
 - **Rollback provenance (GET 2026-11-11 01:34:24 Asia/Macau, historical):** then-current 100% version `b53c0353-bfc4-4700-a5c7-725b7167af6e`, deployment `caeee848-fb0d-4914-a770-2d60996f106e`. Evidence `docs/records/2026-11-11-staging-rollback-evidence.sanitized.json` sha256 `39a4e00e4acab704d5f7b4dca5b0b31cf50eb5ee5a69956a8241ed25eb10edab`. Plan `docs/records/2026-11-11-staging-rollback-plan.md`. That GET is **not** the 2026-11-14 traffic picture.
 - Connector must use the **assets-upload-session JWT** (not the account token) on `POST /workers/assets/upload`. If it cannot switch `Authorization`, that is a capability gap — do not paste credentials.

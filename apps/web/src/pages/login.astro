@@ -9,10 +9,12 @@ import {
   adminLocaleFromCookies,
   t,
 } from "../lib/admin-i18n.ts";
+import { adminPasswordMinLength } from "../lib/server/admin-gate.ts";
 import "../styles/global.css";
 
 const locale = adminLocaleFromCookies(Astro.cookies);
 const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
+const minPasswordLength = adminPasswordMinLength(env, Astro.request);
 ---
 
 <!doctype html>
@@ -60,7 +62,7 @@ const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
         {t(locale, "login.eyebrow")}
       </p><h1>{t(locale, "login.heading")}</h1><p class="muted">
         {t(locale, "login.help")}
-      </p><LoginForm client:load locale={locale} />{
+      </p><LoginForm client:load locale={locale} minPasswordLength={minPasswordLength} />{
         env.ENVIRONMENT === "development" && (
           <p class="admin-login-help">
             {t(locale, "login.setupHelp")} <a href="/setup-admin">{t(locale, "login.setupLink")}</a>

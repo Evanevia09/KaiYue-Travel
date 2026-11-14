@@ -69,6 +69,7 @@ const vars = staging
       DEV_ADMIN_BYPASS: "false",
       ADMIN_EMAILS: "daniel@kaiyuemacau.com",
       TEMP_ADMIN_EXPIRES_AT: "2026-11-24T15:59:59+08:00",
+      ADMIN_STAGING_TEST_PASSWORD_MIN: "6",
     }
   : {
       ENVIRONMENT: "production",

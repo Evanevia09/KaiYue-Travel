@@ -21,6 +21,12 @@ export const PRODUCTION_HOSTS = [
 
 export const STAGING_HOSTS = ["kaiyue-travel-staging.kai-yue.workers.dev"] as const;
 
+/** Default Better Auth / login / hasher minimum. Production always uses this. */
+export const DEFAULT_ADMIN_PASSWORD_MIN_LENGTH = 16;
+/** Staging workers.dev UAT only, and only with ADMIN_STAGING_TEST_PASSWORD_MIN=6. */
+export const STAGING_TEST_ADMIN_PASSWORD_MIN_LENGTH = 6;
+export const ADMIN_STAGING_TEST_PASSWORD_MIN_FLAG = "6";
+
 export function requestHost(request: Request): string {
   return new URL(request.url).hostname.toLowerCase();
 }
@@ -129,6 +135,41 @@ export function isProtectedAdminPath(pathname: string): boolean {
     passwordAdminPath(pathname) ||
     LIVE_ADMIN_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
   );
+}
+
+type PasswordMinEnv = Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ADMIN_STAGING_TEST_PASSWORD_MIN">;
+
+/**
+ * Six-character passwords are allowed only on the isolated staging workers.dev
+ * host when the explicit Worker var is exactly "6". Production ENVIRONMENT,
+ * production public hosts, and admin.kaiyuemacau.com stay at 16 even if the
+ * flag is set or the request Host is spoofed.
+ */
+export function stagingTestPasswordMinEnabled(env: PasswordMinEnv, request?: Request): boolean {
+  const flag = (env.ADMIN_STAGING_TEST_PASSWORD_MIN ?? "").trim();
+  if (flag !== ADMIN_STAGING_TEST_PASSWORD_MIN_FLAG) {
+    return false;
+  }
+  if ((env.ENVIRONMENT ?? "").trim().toLowerCase() === "production") {
+    return false;
+  }
+  if (!request) {
+    return false;
+  }
+  if (isProductionHost(request) || isAccessAdminHost(request)) {
+    return false;
+  }
+  return isStagingHost(request);
+}
+
+export function adminPasswordMinLength(env: PasswordMinEnv, request?: Request): number {
+  return stagingTestPasswordMinEnabled(env, request)
+    ? STAGING_TEST_ADMIN_PASSWORD_MIN_LENGTH
+    : DEFAULT_ADMIN_PASSWORD_MIN_LENGTH;
+}
+
+export function passwordMeetsAdminMin(password: unknown, minLength: number): boolean {
+  return typeof password === "string" && password.length >= minLength;
 }
 
 export function temporaryPasswordConfigured(

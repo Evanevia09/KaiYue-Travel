@@ -2,6 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-14 — Staging UAT six-character password min (packaged, not uploaded)
+
+- **task_id:** `kai-yue-temporary-admin-login-20261110`
+- **Branch / PR:** `cursor/temporary-admin-login-763f` / https://github.com/Evanevia09/KaiYue-Travel/pull/26
+- **Report:** `docs/records/2026-11-14-staging-uat-password-min.md`
+- **Live staging:** still fa5184c / `114b62a3-…` @100%. New runtime is unpublished pending Mika review.
+- **Change:** staging workers.dev password min 6 only with `ADMIN_STAGING_TEST_PASSWORD_MIN=6`. Production stays 16. Hasher 6 only with `ADMIN_SEED_STAGING_TEST=1`. Overlay regenerated (Daniel + `uat-admin-20261114@kaiyue.test`). Do not reuse overlay `11ead30e…`.
+- **Do not:** upload/activate/seed from this writer; reset Daniel; production deploy; public signup/bypass; chat-expose passwords.
+
 ## 2026-11-14 — Staging fa5184c uploaded and activated (docs closeout)
 
 - **task_id:** `kai-yue-temporary-admin-login-20261110`

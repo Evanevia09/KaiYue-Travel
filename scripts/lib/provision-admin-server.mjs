@@ -6,8 +6,9 @@
 import { randomBytes } from "node:crypto";
 import http from "node:http";
 import { buildAdminCredentialSql } from "./admin-seed-sql.mjs";
+import { MIN_PASSWORD } from "./provision-admin-from-env.mjs";
 
-export const MIN_PASSWORD = 16;
+export { MIN_PASSWORD };
 export const MAX_BODY_BYTES = 8192;
 export const CSRF_COOKIE = "kaiyue_provision_csrf";
 
@@ -56,7 +57,7 @@ export function parseForm(raw) {
   };
 }
 
-export function pageHtml(csrf) {
+export function pageHtml(csrf, minPassword = MIN_PASSWORD) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -81,8 +82,8 @@ export function pageHtml(csrf) {
     <input id="email" name="email" type="email" required autocomplete="username"/>
     <label for="name">Display name</label>
     <input id="name" name="name" type="text" autocomplete="name" value="Temporary staff operator"/>
-    <label for="password">Password (vault fill, ≥16)</label>
-    <input id="password" name="password" type="password" required minlength="16" autocomplete="current-password"/>
+    <label for="password">Password (vault fill, ≥${minPassword})</label>
+    <input id="password" name="password" type="password" required minlength="${minPassword}" autocomplete="current-password"/>
     <button type="submit">Download SQL</button>
   </form>
 </body>
@@ -110,10 +111,17 @@ function send(response, status, headers, body) {
   response.end(body);
 }
 
-export function createProvisionServer({ hashPassword, port = 8789, host = "127.0.0.1" }) {
+export function createProvisionServer({
+  hashPassword,
+  port = 8789,
+  host = "127.0.0.1",
+  minPassword = MIN_PASSWORD,
+}) {
   if (host !== "127.0.0.1") {
     throw new Error("Provision server must bind 127.0.0.1.");
   }
+  const requiredLength =
+    Number.isInteger(minPassword) && minPassword > 0 ? minPassword : MIN_PASSWORD;
   const server = http.createServer(async (request, response) => {
     const remote = request.socket.remoteAddress ?? "";
     if (!loopbackAddress(remote)) {
@@ -137,7 +145,7 @@ export function createProvisionServer({ hashPassword, port = 8789, host = "127.0
           "content-type": "text/html; charset=utf-8",
           "set-cookie": `${CSRF_COOKIE}=${encodeURIComponent(csrf)}; Path=/; HttpOnly; SameSite=Strict`,
         },
-        pageHtml(csrf),
+        pageHtml(csrf, requiredLength),
       );
       return;
     }
@@ -170,12 +178,12 @@ export function createProvisionServer({ hashPassword, port = 8789, host = "127.0
         send(response, 403, { "content-type": "text/plain; charset=utf-8" }, "Invalid CSRF token.");
         return;
       }
-      if (!form.email || form.password.length < MIN_PASSWORD) {
+      if (!form.email || form.password.length < requiredLength) {
         send(
           response,
           400,
           { "content-type": "text/plain; charset=utf-8" },
-          "Need an email and a password of at least 16 characters.",
+          `Need an email and a password of at least ${requiredLength} characters.`,
         );
         return;
       }

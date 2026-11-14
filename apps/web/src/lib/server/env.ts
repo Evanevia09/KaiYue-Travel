@@ -42,6 +42,8 @@ export type AppEnv = {
   ADMIN_EMAILS?: string;
   ADMIN_SETUP_TOKEN?: string;
   TEMP_ADMIN_EXPIRES_AT?: string;
+  /** Staging UAT only. Must be the exact string "6" plus staging host; ignored elsewhere. */
+  ADMIN_STAGING_TEST_PASSWORD_MIN?: string;
   OFFERS_BUCKET?: import("./offers/objects.ts").OfferR2Bucket;
   offerStore?: import("./offers/store.ts").OfferStore;
   objectStore?: import("./offers/objects.ts").ObjectStore;

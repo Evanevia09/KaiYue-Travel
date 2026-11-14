@@ -20,9 +20,10 @@
   // Do not use D1 `069aa442-30c9-4454-ab3a-26eb372b3a1f` — that database is
   // not in the current Kai Yue account.
   //
-  // Staging ADMIN_EMAILS / TEMP_ADMIN_EXPIRES_AT match the already-configured
-  // Worker vars and must not be changed by this increment. Production omits
-  // both so live stays fail-closed until a separately authorized promotion.
+  // Staging ADMIN_EMAILS stays daniel@ in git. Planned synthetic UAT allowlist
+  // is operator overlay only. ADMIN_STAGING_TEST_PASSWORD_MIN=6 is staging UAT
+  // only; production omits it and the code still requires 16 on production
+  // hosts even if the flag is spoofed. TEMP_ADMIN_EXPIRES_AT remains 2026-11-24.
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "kaiyue-travel-env-required",
   "main": "./apps/web/dist/server/entry.mjs",
@@ -84,6 +85,7 @@
         "DEV_ADMIN_BYPASS": "false",
         "ADMIN_EMAILS": "daniel@kaiyuemacau.com",
         "TEMP_ADMIN_EXPIRES_AT": "2026-11-24T15:59:59+08:00",
+        "ADMIN_STAGING_TEST_PASSWORD_MIN": "6",
       },
     },
     "production": {

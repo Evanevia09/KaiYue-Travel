@@ -2,7 +2,7 @@ import http from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { sqlFromSeedEnv } from "../../scripts/lib/provision-admin-from-env.mjs";
+import { seedPasswordMin, sqlFromSeedEnv } from "../../scripts/lib/provision-admin-from-env.mjs";
 import {
   CSRF_COOKIE,
   MAX_BODY_BYTES,
@@ -204,6 +204,78 @@ describe("loopback provision server", () => {
       process.stderr.write = originalError;
     }
   });
+
+  it("rejects six-character vault fill unless staging-test min is set", async () => {
+    const crypto = await import(betterAuthCrypto);
+    verifyPassword = crypto.verifyPassword;
+    await start();
+    const six = "uat6pw";
+    const { csrf, cookieHeader, response } = await getForm();
+    expect(response.body).toMatch(/minlength="16"/);
+    const posted = await rawRequest({
+      method: "POST",
+      path: "/sql",
+      headers: {
+        host: `127.0.0.1:${port}`,
+        origin: `http://127.0.0.1:${port}`,
+        cookie: cookieHeader,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ email, password: six, csrf, name: "Op" }).toString(),
+    });
+    expect(posted.status).toBe(400);
+    expect(posted.body).not.toContain(six);
+
+    await new Promise<void>((resolve, reject) => {
+      server?.close((error) => (error ? reject(error) : resolve()));
+    });
+    server = createProvisionServer({
+      hashPassword: crypto.hashPassword,
+      port: 0,
+      host: "127.0.0.1",
+      minPassword: 6,
+    });
+    const listening = await listenProvisionServer(server, { port: 0, host: "127.0.0.1" });
+    port = listening.port;
+    const stagingForm = await getForm();
+    expect(stagingForm.response.body).toMatch(/minlength="6"/);
+    const accepted = await rawRequest({
+      method: "POST",
+      path: "/sql",
+      headers: {
+        host: `127.0.0.1:${port}`,
+        origin: `http://127.0.0.1:${port}`,
+        cookie: stagingForm.cookieHeader,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        email,
+        password: six,
+        csrf: stagingForm.csrf,
+        name: "Op",
+      }).toString(),
+    });
+    expect(accepted.status).toBe(200);
+    expect(accepted.body).not.toContain(six);
+    const rejectedFive = await rawRequest({
+      method: "POST",
+      path: "/sql",
+      headers: {
+        host: `127.0.0.1:${port}`,
+        origin: `http://127.0.0.1:${port}`,
+        cookie: stagingForm.cookieHeader,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        email,
+        password: "uat5x",
+        csrf: stagingForm.csrf,
+        name: "Op",
+      }).toString(),
+    });
+    expect(rejectedFive.status).toBe(400);
+    expect(rejectedFive.body).not.toContain("uat5x");
+  });
 });
 
 describe("provision hash from env (no listener)", () => {
@@ -255,5 +327,56 @@ describe("provision hash from env (no listener)", () => {
         },
       }),
     ).rejects.toMatchObject({ code: "PASSWORD_TOO_SHORT" });
+  });
+
+  it("keeps hasher default at 16 and accepts 6 only in explicit staging-test mode", async () => {
+    expect(seedPasswordMin({})).toBe(16);
+    expect(seedPasswordMin({ ADMIN_SEED_STAGING_TEST: "1" })).toBe(6);
+    const crypto = await import(betterAuthCrypto);
+    const six = "uat6pw";
+    const five = "uat5x";
+    await expect(
+      sqlFromSeedEnv({
+        hashPassword: crypto.hashPassword,
+        env: {
+          ADMIN_SEED_EMAIL: email,
+          ADMIN_SEED_PASSWORD: six,
+        },
+      }),
+    ).rejects.toMatchObject({ code: "PASSWORD_TOO_SHORT" });
+
+    const sql = await sqlFromSeedEnv({
+      hashPassword: crypto.hashPassword,
+      env: {
+        ADMIN_SEED_EMAIL: email,
+        ADMIN_SEED_PASSWORD: six,
+        ADMIN_SEED_STAGING_TEST: "1",
+      },
+    });
+    expect(sql).toContain(email);
+    expect(sql).not.toContain(six);
+
+    await expect(
+      sqlFromSeedEnv({
+        hashPassword: crypto.hashPassword,
+        env: {
+          ADMIN_SEED_EMAIL: email,
+          ADMIN_SEED_PASSWORD: five,
+          ADMIN_SEED_STAGING_TEST: "1",
+        },
+      }),
+    ).rejects.toMatchObject({ code: "PASSWORD_TOO_SHORT" });
+    try {
+      await sqlFromSeedEnv({
+        hashPassword: crypto.hashPassword,
+        env: {
+          ADMIN_SEED_EMAIL: email,
+          ADMIN_SEED_PASSWORD: five,
+          ADMIN_SEED_STAGING_TEST: "1",
+        },
+      });
+    } catch (error) {
+      expect(String(error)).not.toContain(five);
+    }
   });
 });
