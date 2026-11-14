@@ -39,6 +39,7 @@ export type AdminBooking = {
   handCarryCount: number | null;
   vehiclePreference: string | null;
   communicationChannel: string;
+  sourceTrigger?: string | null;
   contactName: string | null;
   phone: string | null;
   email: string | null;

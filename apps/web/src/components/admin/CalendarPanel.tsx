@@ -4,6 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import {
   adminDateLocale,
   localizeCaughtError,
+  passengerCountLabel,
   prefixedLabel,
   t,
   type AdminLocale,
@@ -140,7 +141,7 @@ export function CalendarPanel({ locale }: { locale: AdminLocale }) {
                     {t(locale, "cal.itemMeta", {
                       reference: item.reference,
                       status: prefixedLabel(locale, "status", item.status),
-                      count: item.passengerCount,
+                      passengers: passengerCountLabel(locale, item.passengerCount),
                     })}
                   </small>
                 </a>

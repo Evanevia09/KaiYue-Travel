@@ -9,10 +9,12 @@ import {
   adminLocaleFromCookieHeader,
   adminMessageKeys,
   adminZhHant,
+  bookingChannelLabel,
   formatAdminWhen,
   localizeAdminError,
   persistAdminLocale,
   parseAdminLocale,
+  passengerCountLabel,
   prefixedLabel,
   t,
 } from "./admin-i18n.ts";
@@ -135,6 +137,32 @@ describe("admin error and label localization", () => {
     expect(prefixedLabel("zh-Hant", "status", "enquiry")).toBe("查詢");
     expect(prefixedLabel("zh-Hant", "service", "airport_transfer")).toBe("機場包車接送");
     expect(prefixedLabel("en", "service", "airport_transfer")).toBe("Airport transfer");
+  });
+
+  it("labels admin-created bookings as staff, including legacy WhatsApp rows", () => {
+    expect(
+      bookingChannelLabel("en", {
+        communicationChannel: "whatsapp",
+        sourceTrigger: "admin-manual",
+      }),
+    ).toBe("Staff");
+    expect(
+      bookingChannelLabel("zh-Hant", {
+        communicationChannel: "admin",
+        sourceTrigger: "admin-manual",
+      }),
+    ).toBe("人手輸入");
+    expect(
+      bookingChannelLabel("en", { communicationChannel: "whatsapp", sourceTrigger: "hero-embed" }),
+    ).toBe("WhatsApp");
+  });
+
+  it("pluralizes a single passenger in the calendar agenda", () => {
+    expect(passengerCountLabel("en", 1)).toBe("1 passenger");
+    expect(passengerCountLabel("en", 2)).toBe("2 passengers");
+    expect(
+      t("en", "cal.itemMeta", { reference: "KY-1", status: "Enquiry", passengers: "1 passenger" }),
+    ).toBe("KY-1 · Enquiry · 1 passenger");
   });
 });
 

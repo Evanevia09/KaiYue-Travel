@@ -181,6 +181,26 @@ describe("bookingCreateSchema", () => {
     expect(parsed.contactName).toBeUndefined();
   });
 
+  it("accepts a staff manual enquiry without treating it as WhatsApp", () => {
+    const parsed = bookingCreateSchema.parse(
+      validBooking({
+        communicationChannel: "admin",
+        sourceTrigger: "admin-manual",
+        sourcePage: "/admin/bookings",
+        sourceMode: "page",
+        contactName: "Desk guest",
+        phone: "",
+        email: "",
+      }),
+    );
+    expect(parsed.communicationChannel).toBe("admin");
+    expect(
+      bookingCreateSchema.safeParse(
+        validBooking({ communicationChannel: "admin", sourceTrigger: "hero-embed" }),
+      ).success,
+    ).toBe(false);
+  });
+
   it("keeps Email phone optional while still requiring a valid number when supplied", () => {
     const parsed = bookingCreateSchema.parse(validBooking({ phone: "" }));
     expect(parsed.phone).toBeUndefined();
