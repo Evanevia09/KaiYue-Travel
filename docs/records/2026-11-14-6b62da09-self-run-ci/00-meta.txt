@@ -1,0 +1,11 @@
+kind: SELF_RUN_NOT_GITHUB_ACTIONS
+testedSHA: 6b62da09fba7de4e88d418750fde22a71a915a20
+expectedSHA: 6b62da09fba7de4e88d418750fde22a71a915a20
+asof_utc: 2026-11-14T15:07:16Z
+hostname: cursor
+uname: Linux cursor 6.12.113+ #1 SMP PREEMPT_DYNAMIC Fri Nov 13 20:22:28 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+node: v22.23.4
+pnpm: 10.15.0
+cwd: /tmp/kaiyue-6b62da09
+ci_commands: pnpm install --frozen-lockfile; pnpm lint; pnpm typecheck; pnpm test; PUBLIC_SITE_URL=https://example.invalid pnpm build
+secrets: none passed; ADMIN_SEED_* and BETTER_AUTH_SECRET unset for this run

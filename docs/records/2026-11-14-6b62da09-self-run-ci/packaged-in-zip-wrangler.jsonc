@@ -1,0 +1,37 @@
+{
+  "name": "kaiyue-travel-staging",
+  "main": "./entry.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./dist-client",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-staging",
+      "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-staging"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "preview",
+    "PUBLIC_SITE_URL": "https://kaiyue-travel-staging.kai-yue.workers.dev",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "DEV_ADMIN_BYPASS": "false",
+    "ADMIN_EMAILS": "daniel@kaiyuemacau.com",
+    "TEMP_ADMIN_EXPIRES_AT": "2026-11-24T15:59:59+08:00",
+    "ADMIN_STAGING_TEST_PASSWORD_MIN": "6"
+  }
+}

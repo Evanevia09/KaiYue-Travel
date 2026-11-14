@@ -1,0 +1,685 @@
+{
+  "fileCount": 136,
+  "files": [
+    {
+      "path": "/404.html",
+      "bytes": 11510,
+      "sha256": "68b18140d62951e177517ca0d9fe1763f0f68d46000dae5a87eabd40af995ef0"
+    },
+    {
+      "path": "/_astro/AdminLocaleSwitch.AW9mvxVt.js",
+      "bytes": 767,
+      "sha256": "d55fe39e8f7f7c0ee2090c3b6fa58f74b4e4badf4ce49953e82dc09e59f5ed5b"
+    },
+    {
+      "path": "/_astro/BaseLayout.Dq8L4eEk.css",
+      "bytes": 61376,
+      "sha256": "d1a703d29e0fdd2b4e8258249d6a0c2a260f9de9c5269c7458b4ee7c7c8280f1"
+    },
+    {
+      "path": "/_astro/BaseLayout.astro_astro_type_script_index_1_lang.gK1lsl9Z.js",
+      "bytes": 238617,
+      "sha256": "c2c93f9f6c488559b6b7dddb0eaaea8ce81591ab2139f1b9d319a05442a085c8"
+    },
+    {
+      "path": "/_astro/BookingDetailPanel.BkbY9XB-.js",
+      "bytes": 10843,
+      "sha256": "69a984a14db47b22971f782757c7b73239599cdd504a076d5336da68948628bc"
+    },
+    {
+      "path": "/_astro/BookingEmbedded.cFmMjUfb.js",
+      "bytes": 1680,
+      "sha256": "58761506be52a91a71ae09dd97c9c72624598cee3d022958066ac9036cdada04"
+    },
+    {
+      "path": "/_astro/BookingForm.BY2srzpk.js",
+      "bytes": 37510,
+      "sha256": "aaa1bf1f3f340ecdd85d123560140ed033d829c8c975c4e381bfcc9dd9bc001d"
+    },
+    {
+      "path": "/_astro/BookingLauncher.BqoyMjDS.js",
+      "bytes": 543,
+      "sha256": "1585a5ec3d2c80ac8a0a8122f6466519250d50489ddacb0fd4cd2806db2d0f58"
+    },
+    {
+      "path": "/_astro/BookingSheet.BjhsA3XK.js",
+      "bytes": 2410,
+      "sha256": "a374b1e77e5020036afecc34f4857d2057459ea48b8af2c677ef83be8a52113a"
+    },
+    {
+      "path": "/_astro/BookingsPanel.bFDjlHxY.js",
+      "bytes": 7320,
+      "sha256": "2c9ec0b6b676e866035ba961e5827f66e6e55bf1a6a42c25a90cde781c3ee679"
+    },
+    {
+      "path": "/_astro/CalendarPanel.C4LBMqaW.js",
+      "bytes": 28744,
+      "sha256": "daf7f06501c05271d474ce1221aea7f73f8027408d8c66481ae0eb087ec4667e"
+    },
+    {
+      "path": "/_astro/ContactDetailPanel.BX3k8Way.js",
+      "bytes": 2035,
+      "sha256": "47cbb618fe3f8a97cb197e7571d7f08c6f7e142d8d7c686b19b149e0571bc87a"
+    },
+    {
+      "path": "/_astro/ContactForm.CJmZZAL8.js",
+      "bytes": 4355,
+      "sha256": "86c66973e19efe323f372a1bbd9dc0153c7ccc9772712cab4fbe24ca1bced74a"
+    },
+    {
+      "path": "/_astro/ContactsPanel.C4l2f9ag.js",
+      "bytes": 1500,
+      "sha256": "f557bde41604ba99d6d221d69484c71f23600b30183549d8152d6b4d2d35cbed"
+    },
+    {
+      "path": "/_astro/DashboardPanel.BOTjT2Gn.js",
+      "bytes": 3240,
+      "sha256": "0c4e40f794022cbb1fe0ac0ece75ac27bf43b52775f91ef3b2a1386c8b21a18d"
+    },
+    {
+      "path": "/_astro/InventoryPanel.DHPXN2e6.js",
+      "bytes": 7060,
+      "sha256": "e1def28e8fc661facd60571ecde105ac7ff04d316a4eea431cba2fee434389fd"
+    },
+    {
+      "path": "/_astro/LoginForm.K3jTBsxo.js",
+      "bytes": 1508,
+      "sha256": "0b8854da568e5e49e0311cfaec69a6993df36a96f264a5d3ce6ade59842c0810"
+    },
+    {
+      "path": "/_astro/OffersPanel.ChIAc9eb.js",
+      "bytes": 14213,
+      "sha256": "a2e867361639f125abffb06e58f99aac63e994271ac2f9dec82e67c1ae8b7d53"
+    },
+    {
+      "path": "/_astro/SetupForm.CNBXj-dW.js",
+      "bytes": 1808,
+      "sha256": "b0960f502140254b4d8c27ac1a451f753452ba76760ff9fea9639c768a66c14e"
+    },
+    {
+      "path": "/_astro/SignOutButton.DcT_T_1m.js",
+      "bytes": 531,
+      "sha256": "f9811f3ba7690b0da1bf1b72a39b55be2341e90b0b52c73627788e636f5ba8a2"
+    },
+    {
+      "path": "/_astro/admin-i18n.BqNzmZPb.js",
+      "bytes": 38287,
+      "sha256": "83d96e89a82e8612c72cac618d724156a1d829a8524e98748d45b5ae5ed09f84"
+    },
+    {
+      "path": "/_astro/api._aekQyCR.js",
+      "bytes": 488,
+      "sha256": "4dc3ce0595b63c220cdf7fd84839415a6170799b8a913f7040f15765b9d975d9"
+    },
+    {
+      "path": "/_astro/auth-client.B2D_TZZE.js",
+      "bytes": 30885,
+      "sha256": "8c6f95d827fb246b1f05c434a5acf2351acd70634f5a239eaf208c03fd860d8a"
+    },
+    {
+      "path": "/_astro/client.DrPMauyT.js",
+      "bytes": 209276,
+      "sha256": "f5821089e31bb9f4b85d7ee275aa494337ea300f070b52230f5049dc270f7601"
+    },
+    {
+      "path": "/_astro/i18n.CluPyr_6.js",
+      "bytes": 190,
+      "sha256": "a98e9f278e51925934ade304a7a0164520850125bcc783b513a5128e23ea1c60"
+    },
+    {
+      "path": "/_astro/jsx-runtime.myd_k2E3.js",
+      "bytes": 487,
+      "sha256": "b7ed143d0a6e46ace111e3eee82d9abf3ba306d5a5459c07c5956c1e7432ffc3"
+    },
+    {
+      "path": "/_astro/react-dom.Zo7SlITr.js",
+      "bytes": 3952,
+      "sha256": "18254112443ff932907b4d62f6eb4ca31841c3ceb73ef495726a32786550138e"
+    },
+    {
+      "path": "/_astro/react.Bi21MRdE.js",
+      "bytes": 7928,
+      "sha256": "e623ccffd90f5a1d169a9ae8e8c674333118bb449177d8d21b10fe65bc7798a7"
+    },
+    {
+      "path": "/_astro/rolldown-runtime.C_o-9qvY.js",
+      "bytes": 138,
+      "sha256": "1e34799ff5b9ec304765b403dc4b07cb195021c0830fab6fb437407c56ff6f8f"
+    },
+    {
+      "path": "/_astro/src.BLL3_vvi.js",
+      "bytes": 90430,
+      "sha256": "f66273e32fe38fc190f79e316499b871ec17cc25d1338d47253c862fe322b94a"
+    },
+    {
+      "path": "/_astro/status.CrrMiddk.js",
+      "bytes": 234,
+      "sha256": "50a3eba1aa2d4d072c9a997bc6a510403df3935dbe51eda4550d2b1c4022954f"
+    },
+    {
+      "path": "/_astro/store.BKJ62xil.js",
+      "bytes": 3327,
+      "sha256": "a743a37630e3eab6ff2ba82d25f996fc76cccc5aba7f8bf008ef351f2e5fa049"
+    },
+    {
+      "path": "/about/index.html",
+      "bytes": 26691,
+      "sha256": "35a8815d159b8809f1288384fe10340c2e1d5e13caf3a57d89dce29c7a9eada6"
+    },
+    {
+      "path": "/booking/confirmation/index.html",
+      "bytes": 11080,
+      "sha256": "522cf9bec54959e92c3ebcb5dad471d9aaa4b68bb9e5de0ebfc12213a1f98a3d"
+    },
+    {
+      "path": "/business/hotels-resorts/index.html",
+      "bytes": 23495,
+      "sha256": "fc5871c8eb380493ca49e1edd8d201da743e3f12d5cc1cdeb9e54442a3382db3"
+    },
+    {
+      "path": "/business/travel-agency/index.html",
+      "bytes": 23630,
+      "sha256": "600043ada3a19f52c0a75fb32f34103e980fd39818e9bd20b83a7a7c3379cb0c"
+    },
+    {
+      "path": "/contact/index.html",
+      "bytes": 19904,
+      "sha256": "9c081ddb04de9e93bf6762c7f712278f6d2f950ee416dd9c644931004a07157d"
+    },
+    {
+      "path": "/corporate/index.html",
+      "bytes": 25154,
+      "sha256": "4544554f2f50ea051f59aaf66cd74066badefb8a9f3e4e19f17378d135c3b326"
+    },
+    {
+      "path": "/faq/index.html",
+      "bytes": 11993,
+      "sha256": "0b1619b63b5926c6801a880516d524c58950496d86c15c3fd81639782ad1cbc7"
+    },
+    {
+      "path": "/favicon.ico",
+      "bytes": 367,
+      "sha256": "27bc2da4effd47f71ef908f00bd280055e9301ef1add2baff610118f5370afe2"
+    },
+    {
+      "path": "/images/hero-home.jpg",
+      "bytes": 178526,
+      "sha256": "a5db790ef92cabb53ed9961866436cc1c3e0c681ea6a45b2bd8d78502680a7e5"
+    },
+    {
+      "path": "/images/hero-home.webp",
+      "bytes": 136780,
+      "sha256": "85a34c866599bfd1f00cc7623229aa3f5896fa24ad1c614b747b039277ec0f4b"
+    },
+    {
+      "path": "/images/hero-vehicle.jpg",
+      "bytes": 123836,
+      "sha256": "b3a5bc1a1b3e146b2c390935934e1bd54016923eb10f8025f41a768635c73993"
+    },
+    {
+      "path": "/images/illustrative/about-fleet-hero.jpg",
+      "bytes": 359237,
+      "sha256": "c03233a62c26aa1759b1ce9b5b1a33bfa7a857c7eb3d07796e689e3705968b68"
+    },
+    {
+      "path": "/images/illustrative/about-office-hero.jpg",
+      "bytes": 227351,
+      "sha256": "e19bb1ce05b2c027e861125c9d837bd0abf5d474ec45a15eff216bb655c0314d"
+    },
+    {
+      "path": "/images/illustrative/about-operations-feature.jpg",
+      "bytes": 263072,
+      "sha256": "a200842753fe1e45f28bf8b237a3c41bf24a7990030bf26f949d92f05ec11273"
+    },
+    {
+      "path": "/images/illustrative/about-team-feature.jpg",
+      "bytes": 303283,
+      "sha256": "eec2dd23e3b5db12c5ab5c7f7fc0447761802852f3e1e51a36d660b06bd17491"
+    },
+    {
+      "path": "/images/illustrative/airport-transfer-feature.jpg",
+      "bytes": 312517,
+      "sha256": "20e309d8bdff4172acb135e9920335e0b59d58abbe672a9478bf12bf9d1ce62a"
+    },
+    {
+      "path": "/images/illustrative/airport-transfer-hero.jpg",
+      "bytes": 286293,
+      "sha256": "89eb639442be7c5748f4bc11d7421cd156128eec2e7c39f39b8588c5b662dcd9"
+    },
+    {
+      "path": "/images/illustrative/city-tours-feature-800.webp",
+      "bytes": 68346,
+      "sha256": "317f2cc69fb290b04867bbaf60af2a87514cba9c4175667052eb5fbdc8ab0948"
+    },
+    {
+      "path": "/images/illustrative/city-tours-feature.jpg",
+      "bytes": 450608,
+      "sha256": "f72d740b577ca1875debf3ffcc6e1f461d3b4345a108685f6ff5918001992f36"
+    },
+    {
+      "path": "/images/illustrative/city-tours-hero-800.webp",
+      "bytes": 79618,
+      "sha256": "70055d64d3b725c6a6745c3c54dba1029f9513aaf7f0630c40243aa5c645f86e"
+    },
+    {
+      "path": "/images/illustrative/city-tours-hero.jpg",
+      "bytes": 322040,
+      "sha256": "4060707b08260ba830043d90c43fe0ac3194c73a897863819fb06e74cf972b3b"
+    },
+    {
+      "path": "/images/illustrative/corporate-solutions-feature.jpg",
+      "bytes": 309650,
+      "sha256": "eb8624e1b8b614ce1cf094b5fd97db21e8bf907a2bfc2bd741898a6754304ad8"
+    },
+    {
+      "path": "/images/illustrative/corporate-solutions-hero.jpg",
+      "bytes": 259894,
+      "sha256": "bc75404384977559a73bf9f606be8d19eab3b8eecd753f49ec0990e4e408dbdc"
+    },
+    {
+      "path": "/images/illustrative/cross-border-rides-feature.jpg",
+      "bytes": 338423,
+      "sha256": "92dfb645c7dee538ed2e288c2ea79de39ed80ad27ba8a5973087b1a927096681"
+    },
+    {
+      "path": "/images/illustrative/cross-border-rides-hero.jpg",
+      "bytes": 300617,
+      "sha256": "23a109028488d1723a6c2598bc444f06fc5cc2f269df370ceab9b57cf921b938"
+    },
+    {
+      "path": "/images/illustrative/home-feature-driver-family-v2.jpg",
+      "bytes": 336456,
+      "sha256": "48731062bed6c57e07442a3483d0d767d915c9265afa1ebdf30fae3b37f81e64"
+    },
+    {
+      "path": "/images/illustrative/home-feature-family.jpg",
+      "bytes": 280117,
+      "sha256": "36d3403375442463f7750b09fd7a4e8a858b1d6ea44df070afd2d3e032837ed7"
+    },
+    {
+      "path": "/images/illustrative/home-hero-family-v2-1200.webp",
+      "bytes": 111106,
+      "sha256": "2397da6c7a09312ae7d4ba547692fd7ea549decc7f46cdace606c2dd1e2cab44"
+    },
+    {
+      "path": "/images/illustrative/home-hero-family-v2-1672.webp",
+      "bytes": 171490,
+      "sha256": "ea9c2b7d80f280d30d4dd2df480e84a3d80989042edae2905537507f4a540eac"
+    },
+    {
+      "path": "/images/illustrative/home-hero-family-v2-800.webp",
+      "bytes": 59218,
+      "sha256": "159612864eaf4cd2e1015c041891760a2bc035054a680948dc344cc23469896e"
+    },
+    {
+      "path": "/images/illustrative/home-hero-family-v2.jpg",
+      "bytes": 274271,
+      "sha256": "d9bcd6fc878cd73afcfeab786c9ab8dd4a152b7e79fb5464273a8f9a6a754950"
+    },
+    {
+      "path": "/images/illustrative/home-hero-family.jpg",
+      "bytes": 285435,
+      "sha256": "499396a4f068b75292f34bd6c55e508c8cd80038561fa6fc43eab6ecc0d81c2d"
+    },
+    {
+      "path": "/images/illustrative/hotels-resorts-feature.jpg",
+      "bytes": 322884,
+      "sha256": "30780262457ff54312d74e7e9cc4b76e9400a4e5a7a7f02008938b9b0988b637"
+    },
+    {
+      "path": "/images/illustrative/hotels-resorts-hero.jpg",
+      "bytes": 255494,
+      "sha256": "2068d01a30d0cfea83ad5153dd63aee88533216db4081852faeb27e806213afc"
+    },
+    {
+      "path": "/images/illustrative/local-chauffeur-feature.jpg",
+      "bytes": 383019,
+      "sha256": "0672dc18337a35c97e82fcc84cb231a06789d7ed06ca109069b03108d033dd13"
+    },
+    {
+      "path": "/images/illustrative/local-chauffeur-hero-v2.jpg",
+      "bytes": 206283,
+      "sha256": "f3f4da660af65524e8d6a7f1299da080e1bc5fbaa27cadcb1961c8cfe09af51a"
+    },
+    {
+      "path": "/images/illustrative/local-chauffeur-hero.jpg",
+      "bytes": 339531,
+      "sha256": "eddfeb38b9fc983fc1f55a0ce7154ecd4f8bc07436dc908a7b262578b72476cf"
+    },
+    {
+      "path": "/images/illustrative/local-transfers-feature.jpg",
+      "bytes": 363879,
+      "sha256": "a0fc4b7a1a0e86f3b0979b093b04891aa3f8c94ff2c6c7b0a62518185a223c94"
+    },
+    {
+      "path": "/images/illustrative/local-transfers-hero.jpg",
+      "bytes": 316854,
+      "sha256": "6b5d478d421d8e5a9e16a3ec9e4a7b5ea6d656be38745963d35c4c81a2b57c04"
+    },
+    {
+      "path": "/images/illustrative/travel-agency-feature.jpg",
+      "bytes": 334829,
+      "sha256": "c75bc4433db2cbef109d8d75bda7b98c200260db4502aba4f70684d5e2e91a1e"
+    },
+    {
+      "path": "/images/illustrative/travel-agency-hero.jpg",
+      "bytes": 277563,
+      "sha256": "a7dcb303f78dbfb1f1b8a0aecedd3eb52c46c5243e4ab5726af4dd76d9f04876"
+    },
+    {
+      "path": "/images/illustrative/weddings-feature.jpg",
+      "bytes": 364123,
+      "sha256": "1394b98ae7f2b887aaf15f7e86e83a4bd4102539e47a96fa1da5bd48e07dfa61"
+    },
+    {
+      "path": "/images/illustrative/weddings-hero.jpg",
+      "bytes": 277051,
+      "sha256": "24903d6b79d7784ce7c3112d373900017ceb271ee606fe24865fcb1528eb9ac6"
+    },
+    {
+      "path": "/images/kai-yue-travel-group-logo.png",
+      "bytes": 134024,
+      "sha256": "8b7a5c27d74c34d2f6d5c41e4116cc53df88b812c20bcea4c87d6d88a53c097d"
+    },
+    {
+      "path": "/images/kai-yue-travel-group-logo.webp",
+      "bytes": 28392,
+      "sha256": "8c4b8edc7a61fe535f509d57acd7fc65618c0aa3cb4ffa0d645ac9e32ba140cc"
+    },
+    {
+      "path": "/images/logo-light.svg",
+      "bytes": 735,
+      "sha256": "9115094e217537abd75691babb453fc61fadba153738c7c6399f099a224e1bb9"
+    },
+    {
+      "path": "/images/logo.svg",
+      "bytes": 725,
+      "sha256": "31b371fad5a9726377a2265f51f9a49b38a046b636ea9976a66682f6cec9dfc5"
+    },
+    {
+      "path": "/images/mark.svg",
+      "bytes": 478,
+      "sha256": "0cfc07422cbf674cedd80f8ae8e10d24e3a4393863d49d171c4ceee94be64f27"
+    },
+    {
+      "path": "/images/wechat-qr.svg",
+      "bytes": 13742,
+      "sha256": "aa9b09f5f520cc71df56354fc65609ff4965e50d3fd5a11b87cb30ddc3d4d1a9"
+    },
+    {
+      "path": "/index.html",
+      "bytes": 31310,
+      "sha256": "7e6936620d5a49d330df1836810df8be65916d384c2126bae28de7cc3ef89418"
+    },
+    {
+      "path": "/privacy/index.html",
+      "bytes": 11134,
+      "sha256": "31c78e909bd37aa27a19f71a4226d93cc0475929d10ae722b1a8ae88e6b9de90"
+    },
+    {
+      "path": "/pt/404/index.html",
+      "bytes": 14866,
+      "sha256": "bbb3f97334470ddc9abae106284aa297d0897ace250f9c88dc44b8e4eac5d138"
+    },
+    {
+      "path": "/pt/about/index.html",
+      "bytes": 29013,
+      "sha256": "268074abdc8c92f99d2215ab30ebaf9e5b1a140d3e3a6bfb8c8595545fb86e64"
+    },
+    {
+      "path": "/pt/booking/confirmation/index.html",
+      "bytes": 14432,
+      "sha256": "fd69afcd4a98fd6bff3dd7b57dc39058e09dd9a666306d2b0f1fa3fafc39e294"
+    },
+    {
+      "path": "/pt/business/hotels-resorts/index.html",
+      "bytes": 25950,
+      "sha256": "2e3a0afd942059a9b2cc54345cf1d87688e3afb89266f756ca807fb0e770c26e"
+    },
+    {
+      "path": "/pt/business/travel-agency/index.html",
+      "bytes": 26033,
+      "sha256": "9f2ef190955cde24d1137cb5b4f184285b3b2b06d069914c7a8741d7096248a9"
+    },
+    {
+      "path": "/pt/contact/index.html",
+      "bytes": 21834,
+      "sha256": "544fc4894183d8b57dc9a58388611483554137fd4be7180748cd71ed30bbaa9f"
+    },
+    {
+      "path": "/pt/corporate/index.html",
+      "bytes": 27491,
+      "sha256": "65bb16d975991b7130ab346a8e89ee92f5636a22c63c5efd217c9fc28aa5e2a5"
+    },
+    {
+      "path": "/pt/faq/index.html",
+      "bytes": 15403,
+      "sha256": "1063198ee33b5517ad5017fab321d1c0b9693e9a2be0a85c6d2567c2eeea257a"
+    },
+    {
+      "path": "/pt/index.html",
+      "bytes": 32289,
+      "sha256": "f1aaf42fce6e78dfaba5d00ad544dfd99eeb695f6f6f8c073c2d610db81964fc"
+    },
+    {
+      "path": "/pt/privacy/index.html",
+      "bytes": 14575,
+      "sha256": "0ca2544e08d815ad056b35ebb7d54c171ce50059413617987c76df1514339424"
+    },
+    {
+      "path": "/pt/services/airport-transfer/index.html",
+      "bytes": 24938,
+      "sha256": "c48d24632a717f569b0911b94ea3f022de5b726f7c43e9d48bcadef90a9fccec"
+    },
+    {
+      "path": "/pt/services/city-tours/full-day/index.html",
+      "bytes": 25459,
+      "sha256": "9b8594b3ef114007d8eb2720f9d9f4226f3fb0932c1f7c95d1c86f04a0f54c4c"
+    },
+    {
+      "path": "/pt/services/city-tours/half-day/index.html",
+      "bytes": 25487,
+      "sha256": "6f7d723a10b3d7987398e244b06def4d51a58eb154a2a0ef9fc3fff7ee802be4"
+    },
+    {
+      "path": "/pt/services/city-tours/index.html",
+      "bytes": 19204,
+      "sha256": "7678f4b4704e58973dabf50f1f960687c93c26f024da0b3a8c2f2c8fd0e34490"
+    },
+    {
+      "path": "/pt/services/city-tours/special-offer/index.html",
+      "bytes": 25864,
+      "sha256": "dff2e197edc9a4be3f85abd332474cd984249ea7b72adad700dac9528650eb01"
+    },
+    {
+      "path": "/pt/services/cross-border-rides/index.html",
+      "bytes": 24954,
+      "sha256": "c220838250361ac1b89454fbded1fc12b7dab7db560eb2edebda9e5656641d24"
+    },
+    {
+      "path": "/pt/services/local-chauffeur/index.html",
+      "bytes": 24797,
+      "sha256": "a6f15a3ccaf813147dc5b08f4406e34156479cffe3a5f210fe88b63cfd116084"
+    },
+    {
+      "path": "/pt/services/local-transfers/index.html",
+      "bytes": 24956,
+      "sha256": "0921456ad7ce83d8db47466bab92257101023c9020db2bf9d5dd7d7834a756fa"
+    },
+    {
+      "path": "/pt/services/weddings/index.html",
+      "bytes": 24679,
+      "sha256": "c42ca7212320e58839c2847696ece82bc7c2e17b35bf776a2a89f80896310ca3"
+    },
+    {
+      "path": "/pt/terms/index.html",
+      "bytes": 14536,
+      "sha256": "d8397e37bfb4b710eaad64e1c9f3fc4fc0d5de551b6cf791730b9b7c930f9e0e"
+    },
+    {
+      "path": "/robots.txt",
+      "bytes": 117,
+      "sha256": "f4954d8972acbb5bd64c63e8f6e7b135d74108456f9d05df2834a62e95df74c7"
+    },
+    {
+      "path": "/services/airport-transfer/index.html",
+      "bytes": 24548,
+      "sha256": "d623620efb4c6d41817ff84e870bb1f486e531e5745841fc9733331c525a58cf"
+    },
+    {
+      "path": "/services/city-tours/full-day/index.html",
+      "bytes": 24757,
+      "sha256": "35a2a6b6a0a5b527a49e13f3a300f90be83ad24618fd5d3c8502d6131058a2cd"
+    },
+    {
+      "path": "/services/city-tours/half-day/index.html",
+      "bytes": 24813,
+      "sha256": "8e4efe46b3e21dd7d861d6ee9c182bc13a25df83334548db4013f55221d5c0a2"
+    },
+    {
+      "path": "/services/city-tours/index.html",
+      "bytes": 18440,
+      "sha256": "5b2e9b2fc5a4e747fed1d4b16d5112f2dbe4897e37f617a737e8332ab12844eb"
+    },
+    {
+      "path": "/services/city-tours/special-offer/index.html",
+      "bytes": 25086,
+      "sha256": "2f46022921f6de6d8db9518570d4862ad3cb85f157cb338ea19e6efbdd85fbe1"
+    },
+    {
+      "path": "/services/cross-border-rides/index.html",
+      "bytes": 24452,
+      "sha256": "e1ba7ed9674824b1c0175c06f49b594e607e82c0f5cd0657ecd6423b430ebc78"
+    },
+    {
+      "path": "/services/local-chauffeur/index.html",
+      "bytes": 24272,
+      "sha256": "553bdccfdb1b067caefa26fc000c033b892e68a46a64bee8705eea1209264803"
+    },
+    {
+      "path": "/services/local-transfers/index.html",
+      "bytes": 24409,
+      "sha256": "e59ddd579170a815564a091cda029509ce50744e8df1bb2c365dbf09216932e3"
+    },
+    {
+      "path": "/services/weddings/index.html",
+      "bytes": 24127,
+      "sha256": "166c706228d695f8645e2ea8c5178cc11cab3d45b5dcffe27c0737a181933fe6"
+    },
+    {
+      "path": "/sitemap-0.xml",
+      "bytes": 5723,
+      "sha256": "90bc63e2240a836505f528f344b259a90c43a0a4519f693ae5819a7d476b0ed8"
+    },
+    {
+      "path": "/sitemap-index.xml",
+      "bytes": 212,
+      "sha256": "db4b6ee3dd730f219581994ae4a289efacce7db7544688b85f2188c6f56f9eff"
+    },
+    {
+      "path": "/terms/index.html",
+      "bytes": 11111,
+      "sha256": "4fda9567d567a8bd626b9bec6ee5bd6d7cc84e29d8861d8c57096035c6d835fc"
+    },
+    {
+      "path": "/zh-Hant/404/index.html",
+      "bytes": 14739,
+      "sha256": "a0b0a40120e93bb3f118485f2568d18fed03d36d80c8a84b8ab81e741a2789eb"
+    },
+    {
+      "path": "/zh-Hant/about/index.html",
+      "bytes": 27764,
+      "sha256": "91ea432de8857a31b5684b619ec74fa0c2730f56945501d8a13d3b79959cb295"
+    },
+    {
+      "path": "/zh-Hant/booking/confirmation/index.html",
+      "bytes": 14387,
+      "sha256": "e4af658090143d8f778dc642b9f894444dfca864586b3cce9cfee310ebf292cb"
+    },
+    {
+      "path": "/zh-Hant/business/hotels-resorts/index.html",
+      "bytes": 25429,
+      "sha256": "e957fd2f1772cc56c2e9d53fe38ac24d3a5416d2e4c1faeeb9276cf4491e35e2"
+    },
+    {
+      "path": "/zh-Hant/business/travel-agency/index.html",
+      "bytes": 25387,
+      "sha256": "720e2e814afeb7bc3f1d582c890e260ce937de99f3cf966629560e901ba69418"
+    },
+    {
+      "path": "/zh-Hant/contact/index.html",
+      "bytes": 21694,
+      "sha256": "58116ba60d4aecc66389de31ba96423683674322c2d6cc751376e6006fd291b1"
+    },
+    {
+      "path": "/zh-Hant/corporate/index.html",
+      "bytes": 26541,
+      "sha256": "bcf2debf4c850d5b8c48fc9f34693dbc8f2b91603cebaa05f72e7e0acfc50cb1"
+    },
+    {
+      "path": "/zh-Hant/faq/index.html",
+      "bytes": 15209,
+      "sha256": "45dd5ba7a67ce8662ef967bdcd73fb5a63795a539420a8b2ed4189f45a606c71"
+    },
+    {
+      "path": "/zh-Hant/index.html",
+      "bytes": 31549,
+      "sha256": "f99ad477ff3f0162c1502de2ef441575975ba732825ac8b3a0f3ca9b3b431377"
+    },
+    {
+      "path": "/zh-Hant/privacy/index.html",
+      "bytes": 14423,
+      "sha256": "00cd15dce4f8b0990c4477b1cf13387d4b102bb7af36a83d46f05d1a18805190"
+    },
+    {
+      "path": "/zh-Hant/services/airport-transfer/index.html",
+      "bytes": 24640,
+      "sha256": "1f9bd1a7c181b031f7dc2761dad30fdaf7c0680c5fed276b2da05b8fca832cb3"
+    },
+    {
+      "path": "/zh-Hant/services/city-tours/full-day/index.html",
+      "bytes": 25108,
+      "sha256": "b14bdced7f4ad42a79a8aeac237a7e7f99aeee654cbebf6427057a74ea9e0509"
+    },
+    {
+      "path": "/zh-Hant/services/city-tours/half-day/index.html",
+      "bytes": 25096,
+      "sha256": "c3363a84bfd55c8067d3a2238be1f2fd507460a6def817486154ca947e53913a"
+    },
+    {
+      "path": "/zh-Hant/services/city-tours/index.html",
+      "bytes": 18837,
+      "sha256": "b5619eab736d56d73337ff4c677b78490b7ba26513f43d581582be8b1191da3c"
+    },
+    {
+      "path": "/zh-Hant/services/city-tours/special-offer/index.html",
+      "bytes": 25383,
+      "sha256": "de9e78a59f6a3843b0022654028978cf44e2312710fd6dfc3175ecc202d284bb"
+    },
+    {
+      "path": "/zh-Hant/services/cross-border-rides/index.html",
+      "bytes": 24537,
+      "sha256": "a4500780e7b115f9cc779f7c8bb87ddf99c1cf1856e09a3160b72f24d6b262b8"
+    },
+    {
+      "path": "/zh-Hant/services/local-chauffeur/index.html",
+      "bytes": 24413,
+      "sha256": "e71436d9f752420453602ea7dff9cf15cd1f2eb335e31129a59d2d31afc6a69c"
+    },
+    {
+      "path": "/zh-Hant/services/local-transfers/index.html",
+      "bytes": 24614,
+      "sha256": "8c0e78af199f9fc04974acb38cd100b30b37708cab6c9b12b06c0d0493eea626"
+    },
+    {
+      "path": "/zh-Hant/services/weddings/index.html",
+      "bytes": 24345,
+      "sha256": "816a058f111c3a295dc89f16f61ada4e7f65d73b1f45a3bbc37b2fdbba9a91ff"
+    },
+    {
+      "path": "/zh-Hant/terms/index.html",
+      "bytes": 14385,
+      "sha256": "5ca3614bbf4ff40c64bd2ba26c7cb16ff147d917cf60b1f5b356e0f31f1f71c2"
+    }
+  ]
+}

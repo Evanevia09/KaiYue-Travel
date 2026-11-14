@@ -2,6 +2,16 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-14 — Test-evidence closeout for unpublished runtime `6b62da09` (self-run, not Actions)
+
+- **task_id:** `kai-yue-temporary-admin-login-20261110`
+- **Branch / PR:** `cursor/temporary-admin-login-763f` / https://github.com/Evanevia09/KaiYue-Travel/pull/26
+- **Report:** `docs/records/2026-11-14-staging-uat-password-min.md` and `docs/records/2026-11-14-6b62da09-self-run-ci/`
+- **Independent GitHub Actions:** **none** on `6b62da09` or docs head `c1dc6a77`. `ci.yml` supports tests-only `workflow_dispatch`; this writer cannot dispatch. Latest passing Actions on this lineage is `5ca8cf0` (predates six-min). Cloudflare `Workers Builds: kaiyue-travel` on `c1dc6a77` is a **failed production** upload — do not retry.
+- **Self-run (not Actions):** exact `6b62da09fba7de4e88d418750fde22a71a915a20`; install/lint/typecheck/test/build all exit 0; **152/152**. No secrets. Evidence tarball sha256 `395769165acde5a0eb1f2ec4f7782762c6441756229d0b4dc56883f927146946`.
+- **Runtime unchanged:** zip `641d725d…58572` (10979636 bytes); overlay `b754e2fa…720b`; ledger `491632e0…4501`; `entry.js` `bc839f5b…cb3d`. No rebuild.
+- **Do not:** upload/activate/seed/D1/domain/CD/main/production; empty-commit to trigger CD; merge unrelated staging conflicts.
+
 ## 2026-11-14 — Staging UAT six-character password min (packaged, not uploaded)
 
 - **task_id:** `kai-yue-temporary-admin-login-20261110`

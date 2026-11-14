@@ -1,7 +1,7 @@
 # Temporary allowlisted admin password login
 
 **Task:** `kai-yue-temporary-admin-login-20261110`  
-**Status (2026-11-14 22:54 CST Asia/Macau):** live staging still fa5184c 100% v6. New unpublished runtime implements staging-only 6-character password min for synthetic UAT `uat-admin-20261114@kaiyue.test`. Authenticated QA **BLOCKED** until parent review + upload + seed. Not `user_accepted`. Not `released`. Closeout of live traffic: `docs/records/2026-11-14-staging-activation-closeout.md`. New package: `docs/records/2026-11-14-staging-uat-password-min.md`.  
+**Status (2026-11-14 15:07 UTC):** live staging still fa5184c 100% v6. New unpublished runtime `6b62da09` implements staging-only 6-character password min for synthetic UAT `uat-admin-20261114@kaiyue.test`. Test evidence on that SHA is **self-run** (152/152), not GitHub Actions. Authenticated QA **BLOCKED** until parent review + upload + seed. Not `user_accepted`. Not `released`. Closeout of live traffic: `docs/records/2026-11-14-staging-activation-closeout.md`. New package: `docs/records/2026-11-14-staging-uat-password-min.md`. Self-run logs: `docs/records/2026-11-14-6b62da09-self-run-ci/`.  
 **Hosts:** production https://kaiyuemacau.com ; intended dashboard https://admin.kaiyuemacau.com (**not attached**); staging https://kaiyue-travel-staging.kai-yue.workers.dev  
 **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/26 into `staging`
 
@@ -66,7 +66,7 @@ GitHub Actions [`42866722740`](https://github.com/Evanevia09/KaiYue-Travel/actio
 
 **Done (2026-11-14):** frozen fa5184c uploaded (GUI + Wrangler 4.132.0 `--strict` on a real TTY; owner-approved script-API warning). Clean entry-only dir + external `--assets` (unpack-in-place is stale). Activated with `114b62a3-83c9-4cac-b80a-21d0d855717c@100%`. Account `33ecc75158a1cdd23ba1a62eb70c5103`. Do not mutate `ADMIN_EMAILS`, `TEMP_ADMIN_EXPIRES_AT`, `BETTER_AUTH_SECRET`, or Access vars.
 
-**Current packaging if a later versions-upload is separately authorized** (do not run now):
+**Current packaging if a later versions-upload is separately authorized** (do not run now). Do **not** unzip the complete zip so `entry.js` and `dist-client` share cwd (unpack-in-place is stale). Clean dir = `entry.js` + overlay only; `--assets` points at frozen `dist-client` outside that directory:
 
 ```text
 npx wrangler@4.132.0 versions upload ./entry.js \

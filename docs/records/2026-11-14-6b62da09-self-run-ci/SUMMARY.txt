@@ -1,0 +1,6 @@
+testedSHA=6b62da09fba7de4e88d418750fde22a71a915a20
+01-install.exit=0
+02-lint.exit=0
+03-typecheck.exit=0
+04-test.exit=0
+05-build.exit=0

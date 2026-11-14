@@ -1,0 +1,29 @@
+===== START 03-typecheck 2026-11-14T15:07:31Z =====
+command: pnpm typecheck
+
+> kaiyue-travel@ typecheck /tmp/kaiyue-6b62da09
+> pnpm -r --if-present typecheck
+
+Scope: 2 of 3 workspace projects
+packages/contracts typecheck$ tsc --noEmit
+packages/contracts typecheck: Done
+apps/web typecheck$ astro check && tsc --noEmit
+apps/web typecheck: 15:07:35 [content] Syncing content
+apps/web typecheck: 15:07:35 [content] Synced content
+apps/web typecheck: 15:07:35 [types] Generated 1.28s
+apps/web typecheck: 15:07:35 [check] Getting diagnostics for Astro files in /tmp/kaiyue-6b62da09/apps/web...
+apps/web typecheck: [96msrc/components/admin/InventoryPanel.tsx[0m:[93m45[0m:[93m38[0m - [93mwarning[0m[90m ts(6385): [0m'FormEvent' is deprecated.
+apps/web typecheck: [7m45[0m   async function submit(event: React.FormEvent<HTMLFormElement>) {
+apps/web typecheck: [7m  [0m [93m                                     ~~~~~~~~~[0m
+apps/web typecheck: [96msrc/components/admin/OffersPanel.tsx[0m:[93m169[0m:[93m13[0m - [93mwarning[0m[90m ts(6385): [0m'returnValue' is deprecated.
+apps/web typecheck: [7m169[0m       event.returnValue = "";
+apps/web typecheck: [7m   [0m [93m            ~~~~~~~~~~~[0m
+apps/web typecheck: [96msrc/layouts/BaseLayout.astro[0m:[93m119[0m:[93m20[0m - [93mwarning[0m[90m ts(6133): [0m'media' is declared but its value is never read.
+apps/web typecheck: [7m119[0m       onload="this.media='all'"
+apps/web typecheck: [7m   [0m [93m                   ~~~~~[0m
+apps/web typecheck: Result (120 files): 
+apps/web typecheck: - 0 errors
+apps/web typecheck: - 0 warnings
+apps/web typecheck: - 3 hints
+apps/web typecheck: Done
+===== END 03-typecheck exit=0 2026-11-14T15:07:47Z =====

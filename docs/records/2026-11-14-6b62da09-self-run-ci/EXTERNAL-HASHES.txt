@@ -1,0 +1,15 @@
+# External hashes 2026-11-14T15:07Z self-run evidence + unpublished runtime 6b62da09
+
+641d725d063c2db37f2aa9dae335fdad8a23ef30e83de24eed0c1df58fa58572  artifacts/kaiyue-staging-complete-6b62da0.zip
+b754e2fabc3693e3d89e27f5c966442d1e1ceecad1914277a40fb7547794720b  docs/records/wrangler.staging-artifact.jsonc
+451cbb7de9d3123b1901ba28af3fdbcec370d622ee39e145eef1b69303521b51  artifacts/kaiyue-provision-admin-local.zip
+491632e0001f452cfa098ae8af56fcec7d13576fb127e75af0bcb33a92184501  /tmp/kaiyue-evidence-6b62da09/packaged-assets-ledger.json
+c6907c7886bb62705f1adc4be078fe402b8350b4f2741375eefd147094f49e47  /tmp/kaiyue-evidence-6b62da09/packaged-SOURCE-SHA.txt
+bc839f5bd0afa400839663a54fc89a930e5984decf74aac91e79bf6ab5decb3d  entry.js (from zip)
+c6907c7886bb62705f1adc4be078fe402b8350b4f2741375eefd147094f49e47  SOURCE-SHA.txt (from zip)
+641d725d063c2db37f2aa9dae335fdad8a23ef30e83de24eed0c1df58fa58572  /opt/cursor/artifacts/kaiyue-staging-complete-6b62da0.zip
+b754e2fabc3693e3d89e27f5c966442d1e1ceecad1914277a40fb7547794720b  /opt/cursor/artifacts/wrangler.staging-artifact.jsonc
+395769165acde5a0eb1f2ec4f7782762c6441756229d0b4dc56883f927146946  /opt/cursor/artifacts/kaiyue-6b62da09-self-run-ci.tar.gz
+
+zip_bytes=10979636
+testedSHA=6b62da09fba7de4e88d418750fde22a71a915a20

@@ -1,0 +1,44 @@
+{
+  "kind": "complete-ledger",
+  "not": "This package does not contain secrets. Do not add --secrets-file.",
+  "runtimeSourceSHA": "6b62da09fba7de4e88d418750fde22a71a915a20",
+  "env": "staging",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "zone_id_parent_reported": "fb84210cb8175ff4412b444805e1a6a5",
+  "script": "kaiyue-travel-staging",
+  "compatibility_date_live_verified": "2026-09-01",
+  "compatibility_flags_live_verified": [
+    "nodejs_compat"
+  ],
+  "assets_serve_directly": true,
+  "public_site_url": "https://kaiyue-travel-staging.kai-yue.workers.dev",
+  "dashboard_host": "admin.kaiyuemacau.com",
+  "d1": {
+    "binding": "DB",
+    "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+    "database_name": "kaiyue-travel-staging"
+  },
+  "r2": {
+    "binding": "OFFERS_BUCKET",
+    "bucket_name": "kaiyue-offers-staging"
+  },
+  "vars": {
+    "ENVIRONMENT": "preview",
+    "PUBLIC_SITE_URL": "https://kaiyue-travel-staging.kai-yue.workers.dev",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "DEV_ADMIN_BYPASS": "false",
+    "ADMIN_EMAILS": "daniel@kaiyuemacau.com",
+    "TEMP_ADMIN_EXPIRES_AT": "2026-11-24T15:59:59+08:00",
+    "ADMIN_STAGING_TEST_PASSWORD_MIN": "6"
+  },
+  "secret_names_live": [
+    "BETTER_AUTH_SECRET"
+  ],
+  "secret_values_included": false,
+  "rollback_version_id": "b53c0353-bfc4-4700-a5c7-725b7167af6e",
+  "entry_js_sha256": "bc839f5bd0afa400839663a54fc89a930e5984decf74aac91e79bf6ab5decb3d",
+  "ledger_files": 136,
+  "upload": "From this directory after unzip: npx wrangler versions upload --no-bundle --keep-vars --strict --name kaiyue-travel-staging"
+}

@@ -1,0 +1,166 @@
+===== START 04-test 2026-11-14T15:07:47Z =====
+command: pnpm test
+
+> kaiyue-travel@ test /tmp/kaiyue-6b62da09
+> vitest run
+
+
+ RUN  v3.2.7 /tmp/kaiyue-6b62da09
+
+(node:5118) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/admin-gate.test.ts (19 tests) 70ms
+(node:5124) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5117) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > persists a valid booking once and replays matching idempotency keys
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-6FC32N2Q","requestId":"req_857b4be7448c42868ef5","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.337Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > persists a valid booking once and replays matching idempotency keys
+{"level":"info","message":"booking_created","requestId":"req_857b4be7448c42868ef5","reference":"KY-6FC32N2Q","notificationState":"skipped","ts":"2026-11-14T15:07:48.338Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > rejects reused idempotency keys with a different payload
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-Z77GJ4FA","requestId":"req_50169370ed6243c899b1","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.344Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > rejects reused idempotency keys with a different payload
+{"level":"info","message":"booking_created","requestId":"req_50169370ed6243c899b1","reference":"KY-Z77GJ4FA","notificationState":"skipped","ts":"2026-11-14T15:07:48.344Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores hourly duration in booking notes
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-SW6G2R82","requestId":"req_2ed92d2416434beabe8f","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.356Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores hourly duration in booking notes
+{"level":"info","message":"booking_created","requestId":"req_2ed92d2416434beabe8f","reference":"KY-SW6G2R82","notificationState":"skipped","ts":"2026-11-14T15:07:48.356Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a city tour package without a destination or return
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-AJWVF9GG","requestId":"req_f00d12a036e04b08b667","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.360Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a city tour package without a destination or return
+{"level":"info","message":"booking_created","requestId":"req_f00d12a036e04b08b667","reference":"KY-AJWVF9GG","notificationState":"skipped","ts":"2026-11-14T15:07:48.360Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > persists a WhatsApp enquiry and returns a formatted deep link
+{"level":"info","message":"booking_created","requestId":"req_a13dc3ac5ead4eaaa8fe","reference":"KY-VJY9WACW","notificationState":"skipped","ts":"2026-11-14T15:07:48.379Z"}
+
+ ✓ tests/integration/offers.test.ts (7 tests) 76ms
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the pt WhatsApp request and confirmation
+{"level":"info","message":"booking_created","requestId":"req_261cb44af06449bbaf51","reference":"KY-GPBM4JJK","notificationState":"skipped","ts":"2026-11-14T15:07:48.384Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the zh-Hant WhatsApp request and confirmation
+{"level":"info","message":"booking_created","requestId":"req_8ec1618932e9417db745","reference":"KY-TFWA53ZN","notificationState":"skipped","ts":"2026-11-14T15:07:48.389Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > accepts an optional message and omits empty Message text from WhatsApp
+{"level":"info","message":"booking_created","requestId":"req_84e605e76bf14e2ea3dc","reference":"KY-UNKHYP25","notificationState":"skipped","ts":"2026-11-14T15:07:48.394Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > accepts an email enquiry with an empty message
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-LKPX4FHM","requestId":"req_9cac524c28654256ac9f","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.398Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > accepts an email enquiry with an empty message
+{"level":"info","message":"booking_created","requestId":"req_9cac524c28654256ac9f","reference":"KY-LKPX4FHM","notificationState":"skipped","ts":"2026-11-14T15:07:48.398Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a published special offer id and title on the booking
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-9V8EBHGL","requestId":"req_4ffbdae35499481ca7ec","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.403Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a published special offer id and title on the booking
+{"level":"info","message":"booking_created","requestId":"req_4ffbdae35499481ca7ec","reference":"KY-9V8EBHGL","notificationState":"skipped","ts":"2026-11-14T15:07:48.403Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > labels a special-offer WhatsApp enquiry as special offer, not city tour
+{"level":"info","message":"booking_created","requestId":"req_a98099eb44ea4210881b","reference":"KY-7JCEXFQ4","notificationState":"skipped","ts":"2026-11-14T15:07:48.408Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the pt special-offer WhatsApp service label
+{"level":"info","message":"booking_created","requestId":"req_65b14a1ada1f4c099de6","reference":"KY-N8DUGNY3","notificationState":"skipped","ts":"2026-11-14T15:07:48.412Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the zh-Hant special-offer WhatsApp service label
+{"level":"info","message":"booking_created","requestId":"req_8c5f824648884188bd09","reference":"KY-U2EGY2SY","notificationState":"skipped","ts":"2026-11-14T15:07:48.416Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > keeps city tour on a City Tours WhatsApp enquiry
+{"level":"info","message":"booking_created","requestId":"req_ea2248c10dbc478abca1","reference":"KY-UKRTL565","notificationState":"skipped","ts":"2026-11-14T15:07:48.421Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a half-day tour-guide preference and omits luggage
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-KC4JH7KC","requestId":"req_503cf20a30714b70b2dd","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.430Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a half-day tour-guide preference and omits luggage
+{"level":"info","message":"booking_created","requestId":"req_503cf20a30714b70b2dd","reference":"KY-KC4JH7KC","notificationState":"skipped","ts":"2026-11-14T15:07:48.430Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > keeps luggage on a non-package journey and leaves tour-guide unset
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-YDRTEKN2","requestId":"req_e871dd7155d54f0bb77a","reason":"missing_resend_key","ts":"2026-11-14T15:07:48.436Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > keeps luggage on a non-package journey and leaves tour-guide unset
+{"level":"info","message":"booking_created","requestId":"req_e871dd7155d54f0bb77a","reference":"KY-YDRTEKN2","notificationState":"skipped","ts":"2026-11-14T15:07:48.436Z"}
+
+ ✓ tests/integration/bookings.test.ts (20 tests) 115ms
+ ✓ apps/web/src/lib/i18n.test.ts (12 tests) 15ms
+ ✓ tests/integration/provision-admin-local.test.ts (7 tests) 446ms
+ ✓ packages/contracts/src/booking.test.ts (18 tests) 11ms
+ ✓ apps/web/src/lib/admin-i18n.test.ts (9 tests) 25ms
+(node:5271) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/dispatch.test.ts > dispatch administration > protects inventory routes and validates assignments
+{"level":"info","message":"booking_created","requestId":"req_6865b7c852284f3b811f","reference":"KY-LNB2FAMY","notificationState":"skipped","ts":"2026-11-14T15:07:49.316Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > edits details and paginates identical pickup times without dropping rows
+{"level":"info","message":"booking_created","requestId":"req_e094a11943f54db3bf49","reference":"KY-PRXCMWF6","notificationState":"skipped","ts":"2026-11-14T15:07:49.325Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > edits details and paginates identical pickup times without dropping rows
+{"level":"info","message":"booking_created","requestId":"req_9807bbe0c2b547469c28","reference":"KY-VKCPGP5M","notificationState":"skipped","ts":"2026-11-14T15:07:49.326Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > edits details and paginates identical pickup times without dropping rows
+{"level":"info","message":"booking_created","requestId":"req_ba6daa64ae864e38a8c6","reference":"KY-JMTAYJJE","notificationState":"skipped","ts":"2026-11-14T15:07:49.327Z"}
+
+ ✓ tests/integration/dispatch.test.ts (3 tests) 39ms
+ ✓ tests/integration/wrangler-targets.test.ts (8 tests) 72ms
+ ✓ apps/web/src/components/admin/offer-editor.test.ts (5 tests) 4ms
+ ✓ apps/web/src/lib/server/access-jwt.test.ts (4 tests) 43ms
+(node:5400) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/admin-password-min.test.ts (2 tests) 13ms
+(node:5444) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/admin-seed-sql.test.ts (3 tests) 83ms
+(node:5406) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/admin.test.ts > admin authorization and mutations > allows the local development bypass and records audited status changes
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-U4XYSW3S","requestId":"req_bff1c7dcb84a4c66ac8f","reason":"missing_resend_key","ts":"2026-11-14T15:07:50.068Z"}
+
+stdout | tests/integration/admin.test.ts > admin authorization and mutations > allows the local development bypass and records audited status changes
+{"level":"info","message":"booking_created","requestId":"req_bff1c7dcb84a4c66ac8f","reference":"KY-U4XYSW3S","notificationState":"skipped","ts":"2026-11-14T15:07:50.069Z"}
+
+ ✓ tests/integration/admin.test.ts (2 tests) 24ms
+ ✓ packages/contracts/src/offer.test.ts (5 tests) 5ms
+ ✓ apps/web/src/lib/offer-image.test.ts (3 tests) 43ms
+ ✓ apps/web/src/components/booking/datetime.test.ts (5 tests) 26ms
+ ✓ packages/contracts/src/status.test.ts (4 tests) 2ms
+(node:5527) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/contacts.test.ts > POST /api/v1/contacts > stores a corporate inquiry
+{"level":"info","message":"notification_skipped","kind":"contact","reference":"INQ-FX3F62AR","requestId":"req_abe4368b25824897b409","reason":"missing_resend_key","ts":"2026-11-14T15:07:50.867Z"}
+
+stdout | tests/integration/contacts.test.ts > POST /api/v1/contacts > stores a corporate inquiry
+{"level":"info","message":"contact_created","requestId":"req_abe4368b25824897b409","reference":"INQ-FX3F62AR","notificationState":"skipped","ts":"2026-11-14T15:07:50.867Z"}
+
+ ✓ tests/integration/contacts.test.ts (2 tests) 19ms
+ ✓ apps/web/src/lib/server/offers/images.test.ts (2 tests) 4ms
+ ✓ apps/web/src/components/admin/api.test.ts (2 tests) 12ms
+ ✓ packages/contracts/src/ids.test.ts (3 tests) 12ms
+ ✓ apps/web/src/lib/server/offers/objects.test.ts (1 test) 2ms
+ ✓ packages/contracts/src/phone.test.ts (2 tests) 2ms
+ ✓ apps/web/src/components/booking/store.test.ts (1 test) 1ms
+stderr | tests/integration/admin-session.test.ts > admin session on local D1 > accepts a 6-character password on staging with the test flag and keeps production at 16
+2026-11-14T15:07:51.848Z WARN [Better Auth]: Password is too short
+
+stderr | tests/integration/admin-session.test.ts > admin session on local D1 > accepts a 6-character password on staging with the test flag and keeps production at 16
+2026-11-14T15:07:51.959Z WARN [Better Auth]: Password is too short
+
+stderr | tests/integration/admin-session.test.ts > admin session on local D1 > accepts a 6-character password on staging with the test flag and keeps production at 16
+2026-11-14T15:07:52.061Z WARN [Better Auth]: Password is too short
+
+ ✓ tests/integration/admin-session.test.ts (3 tests) 2314ms
+   ✓ admin session on local D1 > rejects anonymous requests, then accepts a signed-in allowlisted account  1092ms
+   ✓ admin session on local D1 > accepts the same session on the staging host and rejects production public hosts  351ms
+   ✓ admin session on local D1 > accepts a 6-character password on staging with the test flag and keeps production at 16  455ms
+
+ Test Files  26 passed (26)
+      Tests  152 passed (152)
+   Start at  15:07:47
+   Duration  4.51s (transform 696ms, setup 0ms, collect 4.55s, tests 3.48s, environment 3ms, prepare 1.31s)
+
+===== END 04-test exit=0 2026-11-14T15:07:52Z =====

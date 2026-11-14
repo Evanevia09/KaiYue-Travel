@@ -1,0 +1,98 @@
+===== START 05-build 2026-11-14T15:07:52Z =====
+command: env PUBLIC_SITE_URL=https://example.invalid pnpm build
+
+> kaiyue-travel@ build /tmp/kaiyue-6b62da09
+> pnpm --filter @kaiyue/web build
+
+
+> @kaiyue/web@0.1.0 build /tmp/kaiyue-6b62da09/apps/web
+> astro build && node scripts/normalize-redirects.mjs
+
+15:07:55 [content] Syncing content
+15:07:55 [content] Astro config changed
+15:07:55 [content] Clearing content store
+15:07:55 [content] Synced content
+15:07:55 [types] Generated 872ms
+15:07:55 [build] output: "static"
+15:07:55 [build] mode: "server"
+15:07:55 [build] directory: /tmp/kaiyue-6b62da09/apps/web/dist/
+15:07:55 [build] adapter: @astrojs/cloudflare
+15:07:55 [build] Collecting build info...
+15:07:55 [build] ✓ Completed in 915ms.
+15:07:55 [build] Building server entrypoints...
+15:07:55 [vite] ✓ built in 757ms
+15:07:56 [vite] ✓ built in 808ms
+15:07:56 [vite] ✓ built in 191ms
+
+ prerendering static routes 
+15:07:57   ├─ /404.html (+153ms) 
+15:07:57   ├─ /about/index.html (+12ms) 
+15:07:57   ├─ /booking/confirmation/index.html (+8ms) 
+15:07:57   ├─ /business/hotels-resorts/index.html (+5ms) 
+15:07:57   ├─ /business/travel-agency/index.html (+44ms) 
+15:07:57   ├─ /contact/index.html (+4ms) 
+15:07:57   ├─ /corporate/index.html (+4ms) 
+15:07:57   ├─ /faq/index.html (+5ms) 
+15:07:57   ├─ /privacy/index.html (+3ms) 
+15:07:57   ├─ /services/city-tours/full-day/index.html (+6ms) 
+15:07:57   ├─ /services/city-tours/half-day/index.html (+2ms) 
+15:07:57   ├─ /services/city-tours/special-offer/index.html (+2ms) 
+15:07:57   ├─ /services/airport-transfer/index.html (+3ms) 
+15:07:57   ├─ /services/cross-border-rides/index.html (+3ms) 
+15:07:57   ├─ /services/local-transfers/index.html (+2ms) 
+15:07:57   ├─ /services/local-chauffeur/index.html (+2ms) 
+15:07:57   ├─ /services/weddings/index.html (+2ms) 
+15:07:57   ├─ /services/city-tours/index.html (+2ms) 
+15:07:57   ├─ /services/index.html (+0ms) (file not created, response body was empty)
+15:07:57   ├─ /terms/index.html (+2ms) 
+15:07:57   ├─ /pt/services/city-tours/full-day/index.html (+17ms) 
+15:07:57   ├─ /pt/services/city-tours/half-day/index.html (+8ms) 
+15:07:57   ├─ /pt/services/city-tours/special-offer/index.html (+5ms) 
+15:07:57   ├─ /zh-Hant/services/city-tours/full-day/index.html (+7ms) 
+15:07:57   ├─ /zh-Hant/services/city-tours/half-day/index.html (+5ms) 
+15:07:57   ├─ /zh-Hant/services/city-tours/special-offer/index.html (+4ms) 
+15:07:57   ├─ /pt/services/airport-transfer/index.html (+5ms) 
+15:07:57   ├─ /pt/services/cross-border-rides/index.html (+4ms) 
+15:07:57   ├─ /pt/services/local-transfers/index.html (+5ms) 
+15:07:57   ├─ /pt/services/local-chauffeur/index.html (+4ms) 
+15:07:57   ├─ /pt/services/weddings/index.html (+6ms) 
+15:07:57   ├─ /pt/services/city-tours/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/services/airport-transfer/index.html (+4ms) 
+15:07:57   ├─ /zh-Hant/services/cross-border-rides/index.html (+4ms) 
+15:07:57   ├─ /zh-Hant/services/local-transfers/index.html (+4ms) 
+15:07:57   ├─ /zh-Hant/services/local-chauffeur/index.html (+6ms) 
+15:07:57   ├─ /zh-Hant/services/weddings/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/services/city-tours/index.html (+3ms) 
+15:07:57   ├─ /pt/index.html (+6ms) 
+15:07:57   ├─ /pt/about/index.html (+4ms) 
+15:07:57   ├─ /pt/contact/index.html (+3ms) 
+15:07:57   ├─ /pt/corporate/index.html (+4ms) 
+15:07:57   ├─ /pt/business/travel-agency/index.html (+4ms) 
+15:07:57   ├─ /pt/business/hotels-resorts/index.html (+4ms) 
+15:07:57   ├─ /pt/faq/index.html (+2ms) 
+15:07:57   ├─ /pt/privacy/index.html (+2ms) 
+15:07:57   ├─ /pt/terms/index.html (+2ms) 
+15:07:57   ├─ /pt/booking/confirmation/index.html (+3ms) 
+15:07:57   ├─ /pt/404/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/index.html (+4ms) 
+15:07:57   ├─ /zh-Hant/about/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/contact/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/corporate/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/business/travel-agency/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/business/hotels-resorts/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/faq/index.html (+3ms) 
+15:07:57   ├─ /zh-Hant/privacy/index.html (+2ms) 
+15:07:57   ├─ /zh-Hant/terms/index.html (+2ms) 
+15:07:57   ├─ /zh-Hant/booking/confirmation/index.html (+2ms) 
+15:07:57   ├─ /zh-Hant/404/index.html (+2ms) 
+15:07:57   ├─ /index.html (+2ms) 
+15:07:57 ✓ Completed in 475ms.
+
+15:07:57 [build] Rearranging server assets...
+15:07:57 [build] ✓ Completed in 2.28s.
+15:07:57 [@astrojs/cloudflare] Injected immutable Cache-Control for /_astro/* into _headers.
+15:07:57 [@astrojs/sitemap] `sitemap-index.xml` created at `dist/client`
+15:07:57 [build] Server built in 3.21s
+15:07:57 [build] Complete!
+[redirects] normalised 2 rule(s) in dist/client/_redirects
+===== END 05-build exit=0 2026-11-14T15:07:57Z =====
