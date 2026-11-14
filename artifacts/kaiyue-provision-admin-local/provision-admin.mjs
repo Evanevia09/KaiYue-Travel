@@ -88,6 +88,14 @@ WHERE NOT EXISTS (
 
 // scripts/lib/provision-admin-from-env.mjs
 var MIN_PASSWORD = 16;
+var STAGING_TEST_MIN_PASSWORD = 6;
+function seedPasswordMin(env = process.env) {
+  const mode = (env.ADMIN_SEED_STAGING_TEST ?? "").trim().toLowerCase();
+  if (mode === "1" || mode === "true" || mode === "yes") {
+    return STAGING_TEST_MIN_PASSWORD;
+  }
+  return MIN_PASSWORD;
+}
 function readSeedEnv(env = process.env) {
   return {
     email: env.ADMIN_SEED_EMAIL?.trim().toLowerCase() ?? "",
@@ -106,13 +114,17 @@ async function sqlFromSeedEnv({
   now = (/* @__PURE__ */ new Date()).toISOString()
 }) {
   const seed = readSeedEnv(env);
+  const minPassword = seedPasswordMin(env);
   if (!seed.email) {
     throw Object.assign(new Error("Set ADMIN_SEED_EMAIL."), { code: "MISSING_EMAIL" });
   }
-  if (seed.password.length < MIN_PASSWORD) {
-    throw Object.assign(new Error("ADMIN_SEED_PASSWORD must be at least 16 characters."), {
-      code: "PASSWORD_TOO_SHORT"
-    });
+  if (seed.password.length < minPassword) {
+    throw Object.assign(
+      new Error(`ADMIN_SEED_PASSWORD must be at least ${minPassword} characters.`),
+      {
+        code: "PASSWORD_TOO_SHORT"
+      }
+    );
   }
   const passwordHash = await hashPassword2(seed.password);
   return buildAdminCredentialSql({
@@ -128,7 +140,6 @@ async function sqlFromSeedEnv({
 // scripts/lib/provision-admin-server.mjs
 import { randomBytes as randomBytes2 } from "node:crypto";
 import http from "node:http";
-var MIN_PASSWORD2 = 16;
 var MAX_BODY_BYTES = 8192;
 var CSRF_COOKIE = "kaiyue_provision_csrf";
 function loopbackAddress(address) {
@@ -169,7 +180,7 @@ function parseForm(raw) {
     csrf: params.get("csrf") ?? ""
   };
 }
-function pageHtml(csrf) {
+function pageHtml(csrf, minPassword = MIN_PASSWORD) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -194,8 +205,8 @@ function pageHtml(csrf) {
     <input id="email" name="email" type="email" required autocomplete="username"/>
     <label for="name">Display name</label>
     <input id="name" name="name" type="text" autocomplete="name" value="Temporary staff operator"/>
-    <label for="password">Password (vault fill, \u226516)</label>
-    <input id="password" name="password" type="password" required minlength="16" autocomplete="current-password"/>
+    <label for="password">Password (vault fill, \u2265${minPassword})</label>
+    <input id="password" name="password" type="password" required minlength="${minPassword}" autocomplete="current-password"/>
     <button type="submit">Download SQL</button>
   </form>
 </body>
@@ -220,10 +231,16 @@ function send(response, status, headers, body) {
   response.writeHead(status, { ...securityHeaders(), ...headers });
   response.end(body);
 }
-function createProvisionServer({ hashPassword: hashPassword2, port = 8789, host = "127.0.0.1" }) {
+function createProvisionServer({
+  hashPassword: hashPassword2,
+  port = 8789,
+  host = "127.0.0.1",
+  minPassword = MIN_PASSWORD
+}) {
   if (host !== "127.0.0.1") {
     throw new Error("Provision server must bind 127.0.0.1.");
   }
+  const requiredLength = Number.isInteger(minPassword) && minPassword > 0 ? minPassword : MIN_PASSWORD;
   const server = http.createServer(async (request, response) => {
     const remote = request.socket.remoteAddress ?? "";
     if (!loopbackAddress(remote)) {
@@ -247,7 +264,7 @@ function createProvisionServer({ hashPassword: hashPassword2, port = 8789, host 
           "content-type": "text/html; charset=utf-8",
           "set-cookie": `${CSRF_COOKIE}=${encodeURIComponent(csrf)}; Path=/; HttpOnly; SameSite=Strict`
         },
-        pageHtml(csrf)
+        pageHtml(csrf, requiredLength)
       );
       return;
     }
@@ -280,12 +297,12 @@ function createProvisionServer({ hashPassword: hashPassword2, port = 8789, host 
         send(response, 403, { "content-type": "text/plain; charset=utf-8" }, "Invalid CSRF token.");
         return;
       }
-      if (!form.email || form.password.length < MIN_PASSWORD2) {
+      if (!form.email || form.password.length < requiredLength) {
         send(
           response,
           400,
           { "content-type": "text/plain; charset=utf-8" },
-          "Need an email and a password of at least 16 characters."
+          `Need an email and a password of at least ${requiredLength} characters.`
         );
         return;
       }
@@ -346,7 +363,13 @@ if (seedEnvPresent()) {
 } else {
   const HOST = "127.0.0.1";
   const PORT = Number(process.env.ADMIN_PROVISION_PORT || 8789);
-  const server = createProvisionServer({ hashPassword: hashPassword$1, port: PORT, host: HOST });
+  const minPassword = seedPasswordMin();
+  const server = createProvisionServer({
+    hashPassword: hashPassword$1,
+    port: PORT,
+    host: HOST,
+    minPassword
+  });
   const { port } = await listenProvisionServer(server, { port: PORT, host: HOST });
   process.stdout.write(
     `Loopback admin hash form: http://${HOST}:${port}/

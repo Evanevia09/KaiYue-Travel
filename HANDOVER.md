@@ -7,7 +7,8 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **task_id:** `kai-yue-temporary-admin-login-20261110`
 - **Branch / PR:** `cursor/temporary-admin-login-763f` / https://github.com/Evanevia09/KaiYue-Travel/pull/26
 - **Report:** `docs/records/2026-11-14-staging-uat-password-min.md`
-- **Live staging:** still fa5184c / `114b62a3-…` @100%. New runtime is unpublished pending Mika review.
+- **Live staging:** still fa5184c / `114b62a3-…` @100%. New runtime `6b62da09…` unpublished pending Mika review.
+- **Hashes:** zip `641d725d063c2db37f2aa9dae335fdad8a23ef30e83de24eed0c1df58fa58572`; overlay `b754e2fabc3693e3d89e27f5c966442d1e1ceecad1914277a40fb7547794720b`; provisioner `451cbb7de9d3123b1901ba28af3fdbcec370d622ee39e145eef1b69303521b51`.
 - **Change:** staging workers.dev password min 6 only with `ADMIN_STAGING_TEST_PASSWORD_MIN=6`. Production stays 16. Hasher 6 only with `ADMIN_SEED_STAGING_TEST=1`. Overlay regenerated (Daniel + `uat-admin-20261114@kaiyue.test`). Do not reuse overlay `11ead30e…`.
 - **Do not:** upload/activate/seed from this writer; reset Daniel; production deploy; public signup/bypass; chat-expose passwords.
 
