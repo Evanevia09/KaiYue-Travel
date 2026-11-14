@@ -5,10 +5,11 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 ## 2026-11-15 — Cloudflare form-notification PLAN (not implemented)
 
 - **Task id:** `kai-yue-cloudflare-form-notifications-20261115`
-- **Branch:** `cursor/cloudflare-form-notifications-plan-2cad` from live-equivalent `a631f0b` (not `main`).
+- **Branch / PR:** `cursor/cloudflare-form-notifications-plan-2cad` / https://github.com/Evanevia09/KaiYue-Travel/pull/36 (stacked on #35; do not merge).
 - **Report:** `docs/records/2026-11-15-cloudflare-form-notifications-plan.md`
-- **Change:** inventory of booking/contact staff-mail triggers and Email Service prerequisites. No code, DNS, sends, or form submits.
-- **Do not:** implement until 33ecc domain onboard is verified (PM check). Do not overwrite live `f3169afb` or staging runtime.
+- **PM 06:33 (confirmed):** domain **not ready** — `cf-bounce` sending DNS missing; onboarding/limits APIs **403**. Preserve Google MX/SPF/DMARC. No Email Routing.
+- **Scope defaults:** keep booking Reply-To and contact reference-only; staff-only; no dual Resend+Cloudflare sending. From/recipient remain owner choice (git has `.invalid` only).
+- **Do not:** implement until onboard is verified. No email code, DNS, sends, form submits, Builds retry, rebase onto PR #35, or live/staging overwrite. Live closeout stays on PR #35.
 
 ## 2026-11-15 — Staff-dashboard UX live closeout (33ecc `f3169afb`; do not merge main)
 
@@ -17,7 +18,7 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Live:** account `33ecc` script `kaiyue-travel`; inactive upload `71a66a99` 06:21:29; 100% `f3169afb` 06:23:32 Macau. Rollback `5b859f36` / `7c72bf5a`.
 - **Readback:** D1 `06cf879d`, R2 production, serve_directly / `run_worker_first=false`, no temp vars/secrets. GET 12 pages + 30 images 200; apex/www admin/login 403.
 - **Browser 06:29:** EN/zh-Hant/PT homes + `/special-offers`; Version 2 photos; 包車接送; empty catalog; ~460px public usable; not 375px staff. Screenshots in parent `/workspace/...browser-qa` (not this VM).
-- **Owner:** t139u/t143u/t146u; board **site** approval 06:06; user result 06:29. Licence claims unverified.
+- **Owner:** t139u/t143u/t146u; board **site** approval 06:06; report delivered 06:29; owner explicitly authorized release; project acceptance not separately recorded (correction on release branch; this branch is not rebased). Licence claims unverified.
 - **Writer run:** `bc-38ae08ab-8286-5b33-ac65-b28874582cad`. Parent Lab event id unavailable, not invented.
 - **Next:** separate task `kai-yue-cloudflare-form-notifications-20261115` (plan only).
 - **Report:** `docs/records/2026-11-15-production-staff-dashboard-ux-candidate.md`
