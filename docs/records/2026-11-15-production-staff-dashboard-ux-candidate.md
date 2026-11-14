@@ -12,9 +12,9 @@
 **Statuses (keep distinct):**
 - `implemented` / `checked` / `pushed` / report delivered: this candidate branch
 - owner-authorized live: Evan t139u/t143u/t146u; board site approval direct 06:06
-- `user_accepted` as live Worker: user result delivered 06:29
+- report delivered 06:29; owner explicitly authorized release; project acceptance not separately recorded. Delivery is **not** `user_accepted`.
 - `deployed` / `released` on account `33ecc` script `kaiyue-travel`: inactive upload `71a66a99-0605-401f-9997-e6d3c3e9561b` at 06:21:29; separate 100% activation 15 Nov 06:23:32 Macau, deployment `f3169afb-ccb7-4c52-9fde-b043cd15854d`
-- GitHub `main` is **not** merged. Staging PR #34 is unchanged.
+- GitHub `main` is **not** merged. Staging PR #34 is unchanged. `user_accepted` is **not** recorded.
 
 Historical candidate provenance below is preserved. Frozen zip was **not** rebuilt.
 
@@ -142,7 +142,7 @@ Do **not** merge this PR into `main`. Do **not** rebuild the freeze.
 | HTTP | GET 12 pages + 30 images 200; apex/www `/admin` `/login` 403 |
 | Browser final 06:29 | EN/zh-Hant/PT homes and `/special-offers` catalogs render; Version 2 hero/cards good; 包車接送; catalog proper no-published-offers state; no public console errors/failed requests; all 4 admin/login 403. Real Chrome ~460px public layout/menu + PT catalog usable. **Not** 375px staff-mobile verification. |
 | Screenshots | parent `/workspace/...browser-qa`. **This VM does not have them.** |
-| User result | delivered 06:29 |
+| Report / acceptance | report delivered 06:29; owner explicitly authorized release; project acceptance not separately recorded |
 | Not done | no submissions/mail/WhatsApp/data/DNS/`main` merge/staging/CD/41386f mutations |
 
 Git `wrangler.jsonc` on this branch is still the live-source blob and remains unsafe to upload. Live used the overlay.
