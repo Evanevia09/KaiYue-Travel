@@ -39,7 +39,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 19. [Promote staging to main](handover/promote-staging-to-main.md)
 20. [Optional Macau tour guide](handover/macau-tour-guide.md)
 21. [Booking time picker, required WhatsApp, language labels](handover/booking-time-whatsapp-lang.md)
-22. [Production-safe staff-dashboard UX candidate from live 9ff81925 (prepare-only, 2026-11-15)](records/2026-11-15-production-staff-dashboard-ux-candidate.md)
+22. [Staff-dashboard UX live closeout from freeze cd33cf8c (2026-11-15; do not merge main)](records/2026-11-15-production-staff-dashboard-ux-candidate.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

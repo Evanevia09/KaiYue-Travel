@@ -2,6 +2,18 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Staff-dashboard UX live closeout (33ecc `f3169afb`; do not merge main)
+
+- **Branch / PR:** `cursor/promote-staff-dashboard-ux-from-live-2cad` / https://github.com/Evanevia09/KaiYue-Travel/pull/35 — docs closeout only. Do not merge into `main`. PR #34 unchanged.
+- **Freeze:** `cd33cf8c` zip `dbac8f9b` 9992675 / entry `024ab81b` / overlay `fbed3158`. Mika ARTIFACT PASS; 137/137 on exact freeze.
+- **Live:** account `33ecc` script `kaiyue-travel`; inactive upload `71a66a99` 06:21:29; 100% `f3169afb` 06:23:32 Macau. Rollback `5b859f36` / `7c72bf5a`.
+- **Readback:** D1 `06cf879d`, R2 production, serve_directly / `run_worker_first=false`, no temp vars/secrets. GET 12 pages + 30 images 200; apex/www admin/login 403.
+- **Browser 06:29:** EN/zh-Hant/PT homes + `/special-offers`; Version 2 photos; 包車接送; empty catalog; ~460px public usable; not 375px staff. Screenshots in parent `/workspace/...browser-qa` (not this VM).
+- **Owner:** t139u/t143u/t146u; board **site** approval 06:06; user result 06:29. Licence claims unverified.
+- **Writer run:** `bc-38ae08ab-8286-5b33-ac65-b28874582cad`. Parent Lab event id unavailable, not invented.
+- **Next:** separate task `kai-yue-cloudflare-form-notifications-20261115` (plan only).
+- **Report:** `docs/records/2026-11-15-production-staff-dashboard-ux-candidate.md`
+
 ## 2026-11-15 — Production-safe staff-dashboard UX candidate from live 9ff81925 (prepare-only)
 
 - **Branch:** `cursor/promote-staff-dashboard-ux-from-live-2cad` from `9ff81925d722bb5f9fbdd2af3ef609d72ada8ecc`. Separate from PR #33, PR #34 (`dad60edf` / `d8c8bd20`), PR #26, and PR #32 (this SHA is PR #32 head; do not merge #32 or #34).
