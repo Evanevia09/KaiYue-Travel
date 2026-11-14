@@ -1,4 +1,10 @@
 // Sanitized STAGING upload config for kaiyue-travel-staging on account 33ecc only.
+// SOURCE-SHA d8c8bd20c1d5f38e4e3a74232be484dc3fca8741 (6b62da09 + cherry-pick 8ed952a7)
+// Staging zip artifacts/kaiyue-staging-complete-d8c8bd2.zip
+//   sha256 df66801b505c7482fcdf246f13fe7468422635bae3cb5e0fa0126a9a5e0dfab2
+//   entry.js sha256 745716269feff51329b39bef4bd2f79efa70c0df41b5cb3ff77716d1ffd1e9fb
+// Do not reuse 6b62da09 zip 641d725d… / entry bc839f5b… or fa5184c zip b5b0be97…
+// / overlay 11ead30e…. JSON vars unchanged from the 6b62da09 overlay.
 // Supersedes overlay sha256 11ead30e9c3afa33e333027eb2850a40b50c815792e3e225458584d98d9c0bb6
 // (that overlay belonged to frozen fa5184c / zip b5b0be97…). Do not upload that
 // overlay with this runtime.
