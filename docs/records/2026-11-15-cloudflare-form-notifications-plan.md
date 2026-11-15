@@ -3,9 +3,9 @@
 **Task id:** `kai-yue-cloudflare-form-notifications-20261115`  
 **Owner request (15 Nov 2026 06:24 Asia/Macau):** later create email notifications for form submissions using Cloudflare mail.  
 **Branch:** `cursor/cloudflare-form-notifications-plan-2cad` from live-equivalent closeout `a631f0b` (freeze `cd33cf8c`; **not** `origin/main` `037b93ad`).  
-**Status:** `plan` only. **Not** implemented. **Not** onboarded. **Not** sent. **Not** deployed. **Not** merged.  
+**Status:** `plan` only. **Not** implemented. **Not** onboarded. **Not** sent. **Not** deployed. **Not** merged. Workers Paid **not** activated (this writer has no purchase authority).  
 **Writer run:** `bc-38ae08ab-8286-5b33-ac65-b28874582cad`. Parent Lab event id unavailable; not invented.  
-**Do not:** write notification code; onboard/DNS; send mail; submit public forms; expand credentials; auto-email customers; overwrite live `f3169afb` or staging `61bc5a03`; merge PR #35/#34; retry/cancel `41386f` Builds; enable Email Routing; change apex Google Workspace MX/SPF/DMARC; bypass 403 onboarding APIs in browser/keys.
+**Do not:** write notification code until onboard verified; onboard/DNS; send mail; submit public forms; expand credentials; auto-email customers; overwrite live `f3169afb` or staging `61bc5a03`; merge PR #35/#34; retry/cancel `41386f` Builds; enable Email Routing; change apex Google Workspace MX/SPF/DMARC; buy/activate Workers Paid; create a new Worker/repo.
 
 Official retrieval 2026-11-15 (Cloudflare Email Service skill + `docs` MCP):
 [Workers API](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/),
@@ -34,7 +34,35 @@ Recorded as given. Not re-probed here.
 | Email Routing | **Do not enable** (conflicts with Google MX) |
 | Bypass | **Do not** use in-browser/keys to enable or to work around 403 |
 
-**Onboard is not verified.** `cf-bounce` records absent means Email Sending is not onboarded. Official onboard docs add `cf-bounce` MX/SPF/DKIM **and** a `_dmarc` TXT; that `_dmarc` step is a **conflict risk** with the required-unchanged apex Workspace DMARC. Do not resolve that in code. PM is researching a supported dashboard route, then will seek owner decision for blocked-connector browser/setup.
+**Onboard is not verified.** `cf-bounce` records absent means Email Sending is not onboarded.
+
+## Owner 12:09 (15 Nov 2026 Asia/Macau) — continue setup as far as possible
+
+Recorded as given. Not re-probed; no Paid purchase; no DNS.
+
+| Item | Result |
+|---|---|
+| 33ecc Email Sending UI | Requires **Workers Paid**. Account is **Free**. Domain **not** onboarded. |
+| Checkout | No non-committing checkout reached. Paid **$5/month + usage**. Unauthorized dialog too. |
+| Purchase authority | **Owner has none.** This writer must not activate Paid. |
+| Sending domain | **`notify.kaiyuemacau.com` explicitly requested** (dedicated subdomain). |
+| Staff recipient | **Not provided.** Parent is asking. Do not invent. |
+| Apex mail | Keep Google Workspace MX/SPF/DMARC. **No Email Routing.** |
+| Architecture | Native Kai Yue form notifications on **existing** `kaiyue-travel` Worker. Do **not** copy Rowmount into a new shared/non-durable Worker or repo. |
+
+**Workers Paid activation is a gate, not the last step.** After Paid, domain onboard, DNS on `notify`, overlay binding, code, authorized deploy, and tests still remain.
+
+### Rowmount reference only (not a copy)
+
+Owner pointed at form-mailer `05c8b7bc` as DNS/send **pattern**: native `env.EMAIL.send()`, `send_email` binding, sender `no-reply@notify.rowmount.co.jp`, DNS `cf-bounce.notify` MX/SPF, `cf-bounce._domainkey.notify` DKIM, `_dmarc.notify`, apex mail preserved.
+
+Kai Yue analog (plan only):
+
+- Implement later **inside** `kaiyue-travel` on account `33ecc`, overlay-only — not a new form-mailer service.
+- Onboard **subdomain** `notify.kaiyuemacau.com` ([subdomains](https://developers.cloudflare.com/email-service/configuration/subdomains/)): Cloudflare adds records on that subdomain, not apex Google MX.
+- Expected names (not applied): `cf-bounce.notify` MX/SPF, `cf-bounce._domainkey.notify` DKIM, `_dmarc.notify`.
+- From local-part is **not** named. Rowmount uses `no-reply@notify…`; treat as reference, not a Kai Yue mailbox until owner confirms.
+- Official docs: Email Sending is Workers Paid; 3,000 included emails/month then $0.35/1,000. Workers Paid itself is $5/month + usage ([Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [Email pricing](https://developers.cloudflare.com/email-service/platform/pricing/)).
 
 ## From / recipient config (actual source only)
 
@@ -57,7 +85,7 @@ Not staff-mail config (do not reuse as from/to):
 - Overlay `WHATSAPP_NUMBER=+85328338882` — WhatsApp deep link, not email.
 - Live Worker vars: closeout readback reported no temporary admin vars/secrets. Whether `RESEND_API_KEY` / from / to exist on 33ecc was **not** listed. This writer did not list live secrets.
 
-**No production from or staff recipient is inferable.** Owner must name them after onboard is possible. Do not invent `@kaiyuemacau.com` mailboxes.
+**Sending domain (owner 12:09):** `notify.kaiyuemacau.com`. **From local-part** not named (Rowmount reference `no-reply@notify…` only). **Staff recipient not provided** (parent asking). Do not invent either mailbox.
 
 ## Existing form types (source)
 
@@ -100,29 +128,83 @@ From this PM result + Email Service docs (still plan-only):
 - Workers Paid is **unknown**. Docs: arbitrary-recipient sending needs Workers Paid; sends to verified destination addresses can be free before domain onboard. Do not assume Paid.
 - No live/staging runtime overwrite until separately authorized. No public form submits for tests.
 
-## Best native approach (blocked until onboard)
+## Integration design (docs only; not implemented)
 
-Prefer Workers binding `env.EMAIL.send()` over REST/SMTP and over a new Resend key — **after** 33ecc Email Sending onboard is verified without touching Workspace MX and without Email Routing. Not started. No notification code before domain verified.
+Keep persist-first in `bookings.ts` / `contacts.ts`. Later replace the Resend HTTP body in `notifications.ts` with `env.EMAIL.send()` **after** onboard:
 
-## Scope defaults (not open questions)
+- Skip when sending is unconfigured (today: no `RESEND_API_KEY`; later: no `EMAIL` binding / no from/to).
+- `failed` if from/to missing or `send()` throws (`E_SENDER_DOMAIN_NOT_AVAILABLE`, `E_RECIPIENT_NOT_ALLOWED`, `E_RATE_LIMIT_EXCEEDED`, `E_DAILY_LIMIT_EXCEEDED`, `E_RECIPIENT_SUPPRESSED`, …). Persist errors do **not** roll back D1.
+- Booking `email` channel only; WhatsApp/`admin` stay `skipped`. Contact: every create, reference-only body, no `replyTo`.
+- Booking `replyTo` = guest email. Include `html` **and** `text`. Idempotency `${kind}-staff/${reference}` if the binding supports an equivalent; otherwise keep D1 idempotency as the public-submit guarantee.
+- **No dual send.** Do not call Resend once Email Service is live.
+- Overlay-only `send_email` on existing Worker `kaiyue-travel`. Never git root `wrangler.jsonc`. `destination_address` locked to the **named** staff inbox once provided. `allowed_sender_addresses` optional for the onboarded from.
+- `wrangler types` after a real binding change. Local: default simulation. `remote: true` is a **real send** — only with a designated test inbox, never public forms.
 
-- Booking Reply-To: keep current guest-email behavior.
-- Contact mail: keep reference-only body.
-- Provider: Email Service only (no dual Resend+Cloudflare sending).
-- Audience: staff only.
+Non-executable overlay fragment (**not** in `wrangler*.jsonc`; do not apply):
+
+```jsonc
+// FUTURE ONLY after notify.kaiyuemacau.com is onboarded on 33ecc.
+// Do not add to git wrangler.jsonc or upload now.
+"send_email": [
+  {
+    "name": "EMAIL",
+    "destination_address": "<OWNER_STAFF_INBOX>"
+  }
+]
+```
+
+`<OWNER_STAFF_INBOX>` is unset. From mailbox unset.
+
+## Test matrix (later; not run now)
+
+| Case | Expect |
+|---|---|
+| Booking persist + email channel, sending unconfigured | 201; row stored; `notification_state=skipped`; guest still gets reference |
+| Booking persist + email channel, send throws | 201; row stored; `failed`; no guest-facing mail error |
+| Booking WhatsApp / admin-manual | stored; `skipped`; no `EMAIL.send` |
+| Contact create, unconfigured / throw | 201; contact stored; `skipped` / `failed`; body remains reference-only |
+| Idempotent replay | original 201 body; no second send |
+| Dual provider | **forbidden** — one send path only |
+| Local `wrangler dev` without `remote: true` | simulated (console/files); **no** real mail |
+| Local `remote: true` | real mail to a **named test inbox only**; never public site |
+| Apex `/admin` `/login` | still 403 after any later overlay change |
+| Overlay tests | still forbid `admin-test@kaiyue.test` / staging D1 / `41386f` |
+
+No public form submits. No recipient-verification emails. No seed/migrations.
+
+## Checklist — remaining **before** Paid activation
+
+This writer **cannot** do these (no billing authority; no recipient):
+
+1. A **billing-authorized** person activates Workers Paid on **33ecc** ($5/month + Email Sending usage). Not this owner session; not this writer.
+2. Owner (or parent) **names the staff recipient**.
+3. Owner confirms from local-part on `notify.kaiyuemacau.com` (Rowmount `no-reply@` is reference only).
+
+Docs/readiness **done** on this branch: inventory, scope defaults, subdomain choice, Rowmount-as-pattern, persist-first design, test matrix, Paid-is-not-last-step sequencing. No email code.
+
+## Checklist — remaining **after** Paid activation (still not last)
+
+Paid does **not** finish the work.
+
+1. Onboard Email Sending for **`notify.kaiyuemacau.com`** on 33ecc (Compute → Email Service → Email Sending). **Not** apex. **Not** Email Routing. **Not** account 41386f.
+2. Verify DNS added only on the notify subdomain: `cf-bounce.notify` MX/SPF, `cf-bounce._domainkey.notify` DKIM, `_dmarc.notify`. Apex Google MX/SPF/DMARC **unchanged**.
+3. Separate authorized increment: overlay `send_email` + persist-first `EMAIL.send()` in existing Worker; `wrangler types`; tests in the matrix. **Skill: do not write that code until onboard is verified.**
+4. Separate authorized **deploy** using the production overlay (`--keep-vars`, not git wrangler). Do not overwrite staging.
+5. Local simulation, then one real send to a designated inbox. Confirm `sent`/`failed`/`skipped` in D1. Admin KPI still counts `failed`/`pending`.
+6. Confirm live `/admin` `/login` 403; no customer auto-mail.
 
 ## Genuine missing choices (not inferable)
 
-1. Owner/PM: dashboard onboard path that adds `cf-bounce` **without** changing apex Workspace MX/SPF/DMARC (and whether `_dmarc` in the official onboard flow is skipped or incompatible).
-2. Connector/OAuth 403 unblock (owner decision; not this writer).
-3. Workers Paid entitlement on account 33ecc.
-4. Production **from** address (source has only `.invalid`). Owner choice; do not invent.
-5. Production **staff recipient(s)** (source has only `.invalid`). Owner choice; binding restriction needs the exact address.
+1. Billing person to activate Workers Paid on 33ecc.
+2. Staff recipient address (parent asking).
+3. From local-part on `notify.kaiyuemacau.com`.
+
+Sending **domain** is owner-requested: `notify.kaiyuemacau.com`. Apex-vs-subdomain `_dmarc` clash is avoided by onboarding the subdomain, not apex.
 
 ## Out of scope now
 
-Notification code, DNS/onboard/enablement, Email Routing, apex MX/SPF/DMARC edits, credential expansion, sends, form submits, live package rebuild, `main` merge, manual Builds, customer acknowledgements.
+Notification code, DNS/onboard, Email Routing, apex MX/SPF/DMARC edits, Paid purchase, credential expansion, sends, form submits, recipient verification, seed/migrations, live package rebuild, `main` merge, new Worker/repo, rebase onto PR #35 `5aa40dd`, manual Builds.
 
 ## Next action
 
-Wait for PM dashboard-route research and owner decision on blocked-connector browser/setup. Keep plan/inventory only until Email Sending onboard is verified **and** from/to are named from owner, not inferred.
+Stop here until a billing-authorized person activates Workers Paid on 33ecc **and** a staff recipient is named. Then onboard `notify.kaiyuemacau.com` (still not this writer unless separately authorized). Do not treat Paid activation as go-live.

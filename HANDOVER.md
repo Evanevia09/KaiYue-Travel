@@ -7,9 +7,10 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Task id:** `kai-yue-cloudflare-form-notifications-20261115`
 - **Branch / PR:** `cursor/cloudflare-form-notifications-plan-2cad` / https://github.com/Evanevia09/KaiYue-Travel/pull/36 (stacked on #35; do not merge).
 - **Report:** `docs/records/2026-11-15-cloudflare-form-notifications-plan.md`
-- **PM 06:33 (confirmed):** domain **not ready** — `cf-bounce` sending DNS missing; onboarding/limits APIs **403**. Preserve Google MX/SPF/DMARC. No Email Routing.
-- **Scope defaults:** keep booking Reply-To and contact reference-only; staff-only; no dual Resend+Cloudflare sending. From/recipient remain owner choice (git has `.invalid` only).
-- **Do not:** implement until onboard is verified. No email code, DNS, sends, form submits, Builds retry, rebase onto PR #35, or live/staging overwrite. Live closeout stays on PR #35.
+- **Owner 12:09:** continue as far as possible. 33ecc Sending UI needs Workers Paid; account Free; no checkout; owner has **no** purchase authority. Dedicated **`notify.kaiyuemacau.com`**. Staff recipient **not** provided (parent asking). Rowmount `05c8b7bc` is DNS/send **pattern only** — native `EMAIL.send` on existing `kaiyue-travel`, not a new Worker.
+- **PM 06:33:** domain **not ready** — sending DNS missing; APIs **403**. Preserve Google MX/SPF/DMARC. No Email Routing.
+- **Paid is not last step:** after Paid → onboard `notify` → overlay binding + code → authorized deploy → tests.
+- **Do not:** email code until onboard verified; DNS; Paid buy; sends; rebase onto PR #35 `5aa40dd`.
 
 ## 2026-11-15 — Staff-dashboard UX live closeout (33ecc `f3169afb`; do not merge main)
 
