@@ -32,6 +32,9 @@ export function evaluateSchemaContract({
   if (contract.not_a_live_d1_readback !== true || contract.live_d1_query !== false) {
     errors.push("contract must declare it is not a live D1 readback");
   }
+  if (contract.not_tamperproof !== true) {
+    errors.push("contract must declare it is not tamperproof");
+  }
   if (
     contract.target?.d1_id !== constants.d1_id ||
     contract.target?.worker_name !== constants.worker_name
@@ -150,7 +153,7 @@ function main() {
     );
   }
   console.log(
-    `official-staging schema contract passed for ${diskFiles.length} migration files (source hashes of attested 0001–0010 only; live D1 not queried; ${SCHEMA_CONTRACT_PATH} is not a connection)`,
+    `official-staging schema contract passed for ${diskFiles.length} migration files (source hashes of attested 0001–0010 only; live D1 not queried; not tamperproof; ${SCHEMA_CONTRACT_PATH} is not a connection)`,
   );
 }
 

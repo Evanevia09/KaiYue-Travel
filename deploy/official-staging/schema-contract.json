@@ -1,6 +1,7 @@
 {
   "kind": "official-staging-schema-compatibility-contract",
   "not_a_live_d1_readback": true,
+  "not_tamperproof": true,
   "live_d1_query": false,
   "target": {
     "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
@@ -24,7 +25,7 @@
       "0009_admin_operator.sql",
       "0010_admin_operator_last_super.sql"
     ],
-    "note": "Attests the exact applied set 0001–0010 on D1 043cd0ff (0001–0008 already present; 0009/0010 applied 07:17). This file is a source contract, not a live D1 readback. CI must not apply migrations or query D1. Remote drift after attestation is undetected until a reviewed contract update. Tampering with the file list, order, or hashes must fail closed."
+    "note": "Attests the exact applied set 0001–0010 on D1 043cd0ff (0001–0008 already present; 0009/0010 applied 07:17). This file is a source contract, not a live D1 readback, and not tamperproof: editing this file together with source SQL can still pass. CI must not apply migrations or query D1. Remote drift after attestation is undetected until a reviewed contract update. Divergent file list, order, or hashes must fail closed."
   },
   "required_migration_files": [
     {

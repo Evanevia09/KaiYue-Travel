@@ -36,6 +36,9 @@ if (!match) {
 
 const versionId = match[1];
 if (process.env.GITHUB_OUTPUT) {
-  appendFileSync(process.env.GITHUB_OUTPUT, `version_id=${versionId}\n`);
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `worker_version_id=${versionId}\nversion_id=${versionId}\n`,
+  );
 }
 console.log(`uploaded inactive version ${versionId} (not yet on traffic)`);

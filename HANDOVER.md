@@ -5,12 +5,12 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 ## Current state — 2026-11-16 official staging CI/CD source (not connected)
 
 - **task_id:** `official-staging-cicd-20261116`
-- **Writer:** stacked branch `cursor/official-staging-cicd-a72c` from PR #41 head `6180543`. PR #41 source and frozen runtime `4af0a5c` unchanged.
+- **Writer:** same PR #42 / `cursor/official-staging-cicd-a72c` from PR #41 head `6180543`. PR #41 source and frozen runtime `4af0a5c` unchanged. Mika HOLD of `8964c428` is review evidence, not operations approval.
 - **Staged:** Worker `kaiyue-travel-staging` `72e580d0` @100% / deployment `28f8b40b` (ops 07:17 Asia/Macau). Production still `71a66a99` / `f3169afb`.
 - **Browser-checked (partial):** sign-in; desktop/mobile dashboard + Users for owner super-admin and UAT staff; profile / min-6 UI; no app JS errors; no mutations. Staff-session revocation untested. Admin-host `/` cached marketing unresolved. Not all QA pass. Not accepted / not released.
-- **CI/CD:** source only. Overlay + schema contract (`0001`–`0010` hashes, not live D1) + gated upload-then-activate. GitHub Environment name is **`staging`** (branch `official-staging`, no required reviewer). Specified-Workers Editor token is PM UI follow-up; not created. `official-staging` not pushed. Production GitHub env should require owner reviewer; production workflow stays fail-closed with no credentials.
+- **CI/CD:** source only, **not connected**. B1/B2 source blockers addressed: token is step-scoped to upload/candidate-view/activate; candidate gate is structured uploaded-version JSON (not substring stdout and not Worker `secret list`); activation fail-stops and reads back deployment/version/100% before smoke. Schema contract attests `0001`–`0010` hashes: **not** live D1, **not** tamperproof. GitHub Environment name is **`staging`** (git branch `official-staging`, no required reviewer). Specified-Workers Editor token is PM UI follow-up; not created. `official-staging` not pushed. Production GitHub env should require owner reviewer; production workflow stays fail-closed with no credentials. Independent re-review required. Do not auto-run operations after green checks.
 - **Record:** `docs/records/2026-11-16-official-staging-cicd.md`
-- **Do not:** merge, push `official-staging`/`main`, create tokens, claim connected, query D1 from CI, apply migrations from CI, rewire Workers Builds.
+- **Do not:** merge, push `official-staging`/`main`, create tokens, claim connected, query D1 from CI, apply migrations from CI, rewire Workers Builds, cache-purge, production.
 
 ## Current state — 2026-11-15 security correction
 

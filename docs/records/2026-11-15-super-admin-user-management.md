@@ -148,7 +148,7 @@ Do not upload, `wrangler deploy`, or apply SQL from this increment. Later operat
 | browser-checked | no | **Partial** sign-in, dashboard, Users, min-6 UI; no mutations; revocation untested; admin `/` cache unresolved. Not all QA pass |
 | `user_accepted` | no | no |
 | `released` | no | no |
-| CI/CD connected | no | **no** (source only; environment/token not created) |
+| CI/CD connected | no | **no** (source only; environment/token not created; Mika HOLD of `8964c428` is not ops approval) |
 | production changed | no; LIVE must stay `71a66a99` / `f3169afb` | still untouched |
 
 ## Blockers / open

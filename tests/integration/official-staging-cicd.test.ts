@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { HTML_WORKER_FIRST_PATHS } from "../../apps/web/src/lib/server/admin-gate.ts";
+import { evaluateActivationReadback } from "../../scripts/official-staging-activate.mjs";
+import { evaluateCandidate } from "../../scripts/official-staging-candidate-check.mjs";
 import {
   evaluateSchemaContract,
   hashMigrationFiles,
@@ -42,6 +44,7 @@ type SchemaContract = {
   kind: string;
   live_d1_query: boolean;
   not_a_live_d1_readback: boolean;
+  not_tamperproof: boolean;
   target: { d1_id: string; worker_name: string; account_id: string };
   attested_applied: { migration_files: string[] };
   required_migration_files: Array<{ file: string; sha256: string }>;
@@ -51,8 +54,13 @@ type SchemaContract = {
 
 type StagingConstants = {
   d1_id: string;
+  d1_name: string;
   worker_name: string;
   account_id: string;
+  r2_bucket: string;
+  production_d1: string;
+  obsolete_d1: string;
+  trial_d1: string;
   wrangler_version: string;
   github_environment: string;
   github_environment_required_reviewers: boolean;
@@ -62,6 +70,9 @@ type StagingConstants = {
   required_schema_tables: string[];
   github_secret_names: string[];
   forbidden_github_secret_names: string[];
+  compatibility_date: string;
+  html_worker_first_paths: string[];
+  vars: Record<string, string>;
 };
 
 const constants = JSON.parse(readFileSync(constantsPath, "utf8")) as StagingConstants;
@@ -100,6 +111,32 @@ describe("official staging CI/CD source", () => {
     expect(upload).not.toMatch(/\bdeploy\b/);
     expect(workflow).toContain("official-staging-upload.mjs");
     expect(workflow).toContain("official-staging-activate.mjs");
+    expect(workflow).toContain("official-staging-candidate-check.mjs");
+    expect(workflow).not.toContain("official-staging-binding-check");
+    expect(workflow).not.toContain("official-staging-secret-check");
+    expect(workflow).not.toContain("secret list");
+    expect(upload).toContain("worker_version_id=");
+  });
+
+  it("limits CLOUDFLARE_API_TOKEN to upload, candidate-check, and activate steps", () => {
+    expect(workflow).not.toMatch(/^ {4}env:\n(?: {6}.+\n)* {6}CLOUDFLARE_API_TOKEN:/m);
+    const indents = [...workflow.matchAll(/^( *)CLOUDFLARE_API_TOKEN:/gm)].map(
+      (match) => match[1].length,
+    );
+    expect(indents.length).toBe(3);
+    expect(indents.every((spaces) => spaces >= 10)).toBe(true);
+    const steps = workflow.split(/\n {6}- /);
+    for (const step of steps) {
+      if (/official-staging-(upload|candidate-check|activate)\.mjs/.test(step)) {
+        expect(step).toContain("CLOUDFLARE_API_TOKEN");
+      }
+      if (
+        /pnpm (install|build|lint|typecheck|test)/.test(step) ||
+        /official-staging-(guard|schema-check|smoke)\.mjs/.test(step)
+      ) {
+        expect(step).not.toContain("CLOUDFLARE_API_TOKEN");
+      }
+    }
   });
 
   it("pins Wrangler 4.132.0 and GitHub Actions SHAs", () => {
@@ -148,6 +185,7 @@ describe("official staging CI/CD source", () => {
   it("uses a source schema contract instead of querying D1", () => {
     expect(contract.live_d1_query).toBe(false);
     expect(contract.not_a_live_d1_readback).toBe(true);
+    expect(contract.not_tamperproof).toBe(true);
     expect(contract.target.d1_id).toBe(constants.d1_id);
     expect(contract.target.worker_name).toBe(constants.worker_name);
     expect(contract.ci_must_not).toEqual(
@@ -218,6 +256,7 @@ describe("official staging CI/CD source", () => {
     });
     expect(schema.status, schema.stderr).toBe(0);
     expect(schema.stdout).toMatch(/live D1 not queried/);
+    expect(schema.stdout).toMatch(/not tamperproof/);
     const guard = spawnSync(
       process.execPath,
       [join(repoRoot, "scripts/official-staging-guard.mjs")],
@@ -251,6 +290,10 @@ describe("official staging schema contract tamper guards", () => {
     liveQuery.contract.live_d1_query = true;
     expect(evaluateSchemaContract(liveQuery).join("\n")).toMatch(/not a live D1 readback/);
 
+    const tamperClaim = baseInput();
+    tamperClaim.contract.not_tamperproof = false;
+    expect(evaluateSchemaContract(tamperClaim).join("\n")).toMatch(/not tamperproof/);
+
     const hashTamper = baseInput();
     hashTamper.contract.required_migration_files[0].sha256 = "0".repeat(64);
     expect(evaluateSchemaContract(hashTamper).join("\n")).toMatch(/hash/);
@@ -274,5 +317,225 @@ describe("official staging schema contract tamper guards", () => {
     reorder.contract.required_migration_files = files;
     reorder.contract.attested_applied.migration_files = files.map((row) => row.file);
     expect(evaluateSchemaContract(reorder).join("\n")).toMatch(/order/);
+  });
+});
+
+const CANDIDATE_VERSION_ID = "72e580d0-aeb1-4766-935a-0cb9a27631a4";
+const ACTIVATION_DEPLOYMENT_ID = "28f8b40b-0ffa-45aa-ba82-601f9e429e0f";
+
+function validCandidate() {
+  return {
+    id: CANDIDATE_VERSION_ID,
+    resources: {
+      script_runtime: {
+        compatibility_date: constants.compatibility_date,
+        compatibility_flags: ["nodejs_compat"],
+      },
+      assets: {
+        config: {
+          run_worker_first: [...constants.html_worker_first_paths] as string[] | boolean,
+        },
+      },
+      bindings: [
+        { type: "d1", name: "DB", id: constants.d1_id, database_name: constants.d1_name },
+        { type: "r2_bucket", name: "OFFERS_BUCKET", bucket_name: constants.r2_bucket },
+        { type: "assets", name: "ASSETS" },
+        ...Object.entries(constants.vars).map(([name, text]) => ({
+          type: "plain_text",
+          name,
+          text,
+        })),
+        { type: "secret_text", name: "BETTER_AUTH_SECRET" },
+      ] as Array<Record<string, unknown>>,
+    },
+  };
+}
+
+describe("official staging uploaded-version candidate gate", () => {
+  it("accepts exact official binding names/types/IDs, vars, compatibility, Worker-first, and BetterAuth name/type only", () => {
+    expect(evaluateCandidate(validCandidate(), constants, CANDIDATE_VERSION_ID)).toEqual([]);
+  });
+
+  it("rejects a D1 UUID on the wrong binding name", () => {
+    const version = validCandidate();
+    const db = version.resources.bindings.find((row) => row.name === "DB");
+    if (!db) {
+      throw new Error("fixture missing DB");
+    }
+    db.name = "DATABASE";
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(/DB/);
+  });
+
+  it("rejects the wrong R2 binding type", () => {
+    const version = validCandidate();
+    const r2 = version.resources.bindings.find((row) => row.name === "OFFERS_BUCKET");
+    if (!r2) {
+      throw new Error("fixture missing OFFERS_BUCKET");
+    }
+    r2.type = "r2";
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /r2_bucket/,
+    );
+  });
+
+  it("rejects a missing ASSETS binding", () => {
+    const version = validCandidate();
+    version.resources.bindings = version.resources.bindings.filter((row) => row.name !== "ASSETS");
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /ASSETS/,
+    );
+  });
+
+  it("rejects boolean run_worker_first instead of the Worker-first path array", () => {
+    const version = validCandidate();
+    version.resources.assets.config.run_worker_first = true;
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /Worker-first/,
+    );
+  });
+
+  it("rejects a missing Worker-first path array", () => {
+    const version = validCandidate();
+    delete (version.resources as { assets?: unknown }).assets;
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /Worker-first/,
+    );
+  });
+
+  it("rejects BETTER_AUTH_SECRET as plain_text", () => {
+    const version = validCandidate();
+    const secret = version.resources.bindings.find((row) => row.name === "BETTER_AUTH_SECRET");
+    if (!secret) {
+      throw new Error("fixture missing BETTER_AUTH_SECRET");
+    }
+    secret.type = "plain_text";
+    (secret as { text?: string }).text = "not-a-secret-value";
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /BETTER_AUTH_SECRET/,
+    );
+  });
+
+  it("rejects a missing BetterAuth secret_text binding on the uploaded version", () => {
+    const version = validCandidate();
+    version.resources.bindings = version.resources.bindings.filter(
+      (row) => row.name !== "BETTER_AUTH_SECRET",
+    );
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /BETTER_AUTH_SECRET/,
+    );
+  });
+
+  it("rejects BetterAuth metadata that includes a secret value", () => {
+    const version = validCandidate();
+    const secret = version.resources.bindings.find((row) => row.name === "BETTER_AUTH_SECRET");
+    if (!secret) {
+      throw new Error("fixture missing BETTER_AUTH_SECRET");
+    }
+    (secret as { text?: string }).text = "leaked";
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /secret value/,
+    );
+  });
+
+  it("rejects a missing overlay var", () => {
+    const version = validCandidate();
+    version.resources.bindings = version.resources.bindings.filter(
+      (row) => row.name !== "PUBLIC_SITE_URL",
+    );
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /PUBLIC_SITE_URL/,
+    );
+  });
+
+  it("rejects Access, temp, password, and Resend names", () => {
+    const version = validCandidate();
+    version.resources.bindings.push({
+      type: "plain_text",
+      name: "ACCESS_AUD",
+      text: "aud",
+    });
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /ACCESS_AUD/,
+    );
+    const resend = validCandidate();
+    resend.resources.bindings.push({ type: "secret_text", name: "RESEND_API_KEY" });
+    expect(evaluateCandidate(resend, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(/RESEND/);
+  });
+
+  it("rejects production D1, wrong compatibility, and malformed bindings", () => {
+    const production = validCandidate();
+    const db = production.resources.bindings.find((row) => row.name === "DB");
+    if (!db) {
+      throw new Error("fixture missing DB");
+    }
+    (db as { id: string }).id = constants.production_d1;
+    expect(evaluateCandidate(production, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /forbidden D1|!=/,
+    );
+
+    const compat = validCandidate();
+    compat.resources.script_runtime.compatibility_date = "2024-01-01";
+    compat.resources.script_runtime.compatibility_flags = [];
+    const compatErrors = evaluateCandidate(compat, constants, CANDIDATE_VERSION_ID).join("\n");
+    expect(compatErrors).toMatch(/compatibility_date/);
+    expect(compatErrors).toMatch(/nodejs_compat/);
+
+    expect(
+      evaluateCandidate(
+        { id: CANDIDATE_VERSION_ID, resources: { bindings: {} } },
+        constants,
+        CANDIDATE_VERSION_ID,
+      ).join("\n"),
+    ).toMatch(/bindings must be an array/);
+    expect(evaluateCandidate(null as never, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /missing or not an object/,
+    );
+  });
+});
+
+describe("official staging activation readback", () => {
+  it("records deployment/version/100% and rejects split or wrong-version traffic", () => {
+    expect(
+      evaluateActivationReadback(
+        {
+          id: ACTIVATION_DEPLOYMENT_ID,
+          versions: [{ version_id: CANDIDATE_VERSION_ID, percentage: 100 }],
+        },
+        CANDIDATE_VERSION_ID,
+      ),
+    ).toEqual([]);
+
+    expect(
+      evaluateActivationReadback(
+        {
+          id: ACTIVATION_DEPLOYMENT_ID,
+          versions: [
+            { version_id: CANDIDATE_VERSION_ID, percentage: 50 },
+            { version_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", percentage: 50 },
+          ],
+        },
+        CANDIDATE_VERSION_ID,
+      ).join("\n"),
+    ).toMatch(/100%|single 100%/);
+
+    expect(
+      evaluateActivationReadback(
+        {
+          id: ACTIVATION_DEPLOYMENT_ID,
+          versions: [{ version_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", percentage: 100 }],
+        },
+        CANDIDATE_VERSION_ID,
+      ).join("\n"),
+    ).toMatch(/!= uploaded/);
+  });
+
+  it("treats a failed versions deploy as unknown remote traffic and does not assert old traffic remains", () => {
+    const activate = readFileSync(join(repoRoot, "scripts/official-staging-activate.mjs"), "utf8");
+    expect(activate).toMatch(/may have committed remotely/);
+    expect(activate).toMatch(/Remote traffic is unknown/);
+    expect(activate).not.toMatch(/previous traffic remains/);
+    expect(activate).toMatch(/Do not retry blindly/);
+    expect(activate).toMatch(/activation readback: worker/);
+    expect(activate).toMatch(/@100%/);
   });
 });

@@ -1,12 +1,11 @@
-# Official staging CD. Trigger: push to git branch official-staging after green checks.
-# GitHub Environment name is staging (allowed branch pattern official-staging).
-# No per-run manual approval on that environment — owner asked automatic staging
-# after green checks. Sequence: versions upload (no traffic) then
-# binding/secret/schema-contract gates then versions deploy VERSION@100%. Schema is a
-# source contract, not a live D1 query. Do not push official-staging until Mika review
-# and credential connection are verified. Environment staging is not connected in this PR.
-name: Official staging
+name: official-staging
 
+# Automatic official-staging deployment after green checks on the
+# official-staging git branch. GitHub Environment name is staging
+# (auto, no required reviewer). Git branch official-staging is not
+# GitHub Environment staging. Production remains disabled.
+# Upload is wrangler versions upload (inactive candidate). Activation is
+# wrangler versions deploy VERSION@100% after structured candidate gates.
 on:
   push:
     branches: [official-staging]
@@ -26,9 +25,7 @@ jobs:
     steps:
       - name: Refuse non-release refs
         run: |
-          echo "Official staging CD only runs on refs/heads/official-staging."
-          echo "Current ref: ${{ github.ref }}"
-          echo "Do not push official-staging until PM review. This job is fail-closed."
+          echo "official-staging CD only runs on refs/heads/official-staging"
           exit 1
 
   checks:
@@ -37,94 +34,83 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 10.28.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Pin Wrangler 4.132.0
-        run: node -e "const v=require('./node_modules/wrangler/package.json').version; if (v!=='4.132.0') { console.error(v); process.exit(1); }"
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
-        env:
-          PUBLIC_SITE_URL: https://staging.kaiyuemacau.com
       - run: node scripts/official-staging-guard.mjs
-      - run: node scripts/official-staging-schema-check.mjs
-      - run: node scripts/official-staging-package.mjs
 
   upload:
     needs: checks
     if: github.ref == 'refs/heads/official-staging'
     runs-on: ubuntu-latest
     environment: staging
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    outputs:
+      worker_version_id: ${{ steps.upload.outputs.worker_version_id }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 10.28.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-        env:
-          PUBLIC_SITE_URL: https://staging.kaiyuemacau.com
       - id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node scripts/official-staging-upload.mjs
-    outputs:
-      version_id: ${{ steps.upload.outputs.version_id }}
 
   verify:
     needs: upload
     if: github.ref == 'refs/heads/official-staging'
     runs-on: ubuntu-latest
     environment: staging
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      WORKER_VERSION_ID: ${{ needs.upload.outputs.version_id }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 10.28.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: node scripts/official-staging-binding-check.mjs
-      - run: node scripts/official-staging-secret-check.mjs
       - run: node scripts/official-staging-schema-check.mjs
+      - env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_VERSION_ID: ${{ needs.upload.outputs.worker_version_id }}
+        run: node scripts/official-staging-candidate-check.mjs
 
   activate:
     needs: [upload, verify]
     if: github.ref == 'refs/heads/official-staging'
     runs-on: ubuntu-latest
     environment: staging
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      WORKER_VERSION_ID: ${{ needs.upload.outputs.version_id }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          version: 10.28.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: node scripts/official-staging-activate.mjs
-
-  smoke:
-    needs: activate
-    if: github.ref == 'refs/heads/official-staging'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 22
+      - env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_VERSION_ID: ${{ needs.upload.outputs.worker_version_id }}
+        run: node scripts/official-staging-activate.mjs
       - run: node scripts/official-staging-smoke.mjs

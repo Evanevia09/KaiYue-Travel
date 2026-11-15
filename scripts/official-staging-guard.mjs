@@ -122,11 +122,70 @@ check(
 );
 check(!/reviewers:/.test(workflow), "staging CD must not encode per-run environment approval");
 check(workflow.includes("contents: read"), "workflow permissions must be contents: read");
-check(workflow.includes("versions upload"), "workflow must upload a version");
+{
+  const upload = readFileSync(join(REPO_ROOT, "scripts/official-staging-upload.mjs"), "utf8");
+  const candidate = readFileSync(
+    join(REPO_ROOT, "scripts/official-staging-candidate-check.mjs"),
+    "utf8",
+  );
+  const activate = readFileSync(join(REPO_ROOT, "scripts/official-staging-activate.mjs"), "utf8");
+  check(upload.includes("versions"), "upload script must call versions upload");
+  check(upload.includes("upload"), "upload script must call versions upload");
+  check(upload.includes("worker_version_id="), "upload script must emit worker_version_id");
+  check(candidate.includes("versions"), "candidate check must view the uploaded version");
+  check(candidate.includes("view"), "candidate check must view the uploaded version");
+  check(candidate.includes("--json"), "candidate check must parse structured JSON");
+  check(activate.includes("versions"), "activate script must call versions deploy");
+  check(activate.includes("deploy"), "activate script must call versions deploy");
+  check(activate.includes("deployments"), "activate script must read back deployments status");
+  check(
+    !/previous traffic remains/.test(activate),
+    "activate must not assert that previous traffic remains",
+  );
+  check(
+    activate.includes("may have committed remotely"),
+    "activate must treat command failure as possibly committed",
+  );
+}
 check(
-  workflow.includes("versions deploy"),
-  "workflow must activate with versions deploy after gates",
+  workflow.includes("official-staging-candidate-check.mjs"),
+  "workflow must validate the uploaded version with structured candidate check",
 );
+check(
+  !workflow.includes("official-staging-binding-check"),
+  "workflow must not use substring binding-check",
+);
+check(
+  !workflow.includes("official-staging-secret-check"),
+  "workflow must not use Worker secret-list as the candidate gate",
+);
+check(!workflow.includes("secret list"), "workflow must not use secret list as the candidate gate");
+check(
+  !/^ {4}env:\n(?: {6}.+\n)* {6}CLOUDFLARE_API_TOKEN:/m.test(workflow),
+  "CLOUDFLARE_API_TOKEN must not be set at job scope",
+);
+check(
+  /^ {10}CLOUDFLARE_API_TOKEN:/m.test(workflow),
+  "CLOUDFLARE_API_TOKEN must be set only on credentialed steps",
+);
+{
+  const steps = workflow.split(/\n {6}- /);
+  for (const step of steps) {
+    const needsToken = /official-staging-(upload|candidate-check|activate)\.mjs/.test(step);
+    const mustNotToken =
+      /pnpm (install|build|lint|typecheck|test)/.test(step) ||
+      /official-staging-(guard|schema-check|smoke)\.mjs/.test(step);
+    if (needsToken) {
+      check(step.includes("CLOUDFLARE_API_TOKEN"), "credentialed step must receive the token");
+    }
+    if (mustNotToken) {
+      check(
+        !step.includes("CLOUDFLARE_API_TOKEN"),
+        "setup/install/build/schema/smoke must not receive the token",
+      );
+    }
+  }
+}
 check(
   workflow.includes("11bd71901bbe5b1630ceea73d27597364c9af683"),
   "checkout action must be pinned SHA",
@@ -159,6 +218,7 @@ check(existsSync(SCHEMA_CONTRACT_PATH), "schema compatibility contract must exis
     contract.not_a_live_d1_readback === true,
     "schema contract must not claim live D1 readback",
   );
+  check(contract.not_tamperproof === true, "schema contract must declare it is not tamperproof");
   check(contract.target?.d1_id === constants.d1_id, "schema contract D1 id mismatch");
   check(
     (contract.ci_must_not ?? []).includes("d1 execute"),
