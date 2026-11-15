@@ -10,7 +10,7 @@ import { requireAdmin } from "../../lib/server/auth.ts";
 
 const locale = adminLocaleFromCookies(Astro.cookies);
 const actor = await requireAdmin(Astro.request, env);
-const profile = await adminProfilePayload(actor, env);
+const profile = adminProfilePayload(actor, env);
 const passwordChangeAvailable = passwordAdminAllowed(env, Astro.request);
 ---
 

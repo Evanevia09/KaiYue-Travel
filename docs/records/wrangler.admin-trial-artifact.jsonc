@@ -1,0 +1,56 @@
+// ISOLATED ADMIN TRIAL overlay PLAN. Not approved. Do not upload.
+// Parent will request Mika staging approval with the full plan in
+// docs/records/2026-11-15-isolated-admin-trial-plan.md before any provision.
+// This writer does not create Worker, D1, R2, DNS, or paid-plan resources.
+//
+// Do NOT target official UAT:
+//   Worker kaiyue-travel-staging / D1 043cd0ff / R2 kaiyue-offers-staging
+// Do NOT target production:
+//   Worker kaiyue-travel / D1 06cf879d / R2 kaiyue-offers-production
+// Do NOT use obsolete D1 069aa442.
+//
+// Sentinel IDs below are placeholders. Replace only after parent creates
+// empty trial resources and records the real IDs. keep_vars is false so a
+// new Worker does not inherit omitted UAT vars.
+//
+// Hostname must NOT be admin.kaiyuemacau.com and must NOT be listed in
+// PRODUCTION_HOSTS (kaiyue-travel.scalingsmb.workers.dev,
+// kaiyue-travel-staging.kai-yue.workers.dev). Preview ENVIRONMENT on this
+// workers.dev host is what enables password login. Fake operator only:
+// admin-trial@kaiyue.test — never daniel@kaiyuemacau.com.
+{
+  "name": "kaiyue-travel-admin-trial",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "main": "./entry.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "keep_vars": false,
+  "assets": {
+    "directory": "./dist-client",
+    "binding": "ASSETS",
+    "run_worker_first": false
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-admin-trial",
+      "database_id": "00000000-0000-4000-8000-00000000a1a1",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-admin-trial"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "preview",
+    "PUBLIC_SITE_URL": "https://kaiyue-travel-admin-trial.kai-yue.workers.dev",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "DEV_ADMIN_BYPASS": "false"
+  }
+}

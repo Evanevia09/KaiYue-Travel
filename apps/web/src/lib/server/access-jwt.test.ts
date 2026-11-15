@@ -124,10 +124,38 @@ describe("Access JWT signature verification", () => {
       ENVIRONMENT: "production",
       ACCESS_TEAM_DOMAIN: "https://team.cloudflareaccess.com",
       ACCESS_AUD: "preview-aud",
+      ADMIN_PRIMARY_EMAIL: "ops@example.test",
+      ADMIN_EMAILS: "ops@example.test",
     });
     await expect(requireAdmin(request, env)).resolves.toEqual(first);
     await expect(requireAdmin(request, { ...env, ACCESS_AUD: "different-app" })).rejects.toThrow(
       /not allowed/,
+    );
+    await expect(
+      requireAdmin(request, { ...env, ADMIN_PRIMARY_EMAIL: undefined, ADMIN_EMAILS: undefined }),
+    ).rejects.toThrow(/Primary operator is not configured/);
+
+    const otherPayload = Buffer.from(
+      JSON.stringify({
+        iss: accessIssuer("https://team.cloudflareaccess.com"),
+        aud: "preview-aud",
+        exp: now + 300,
+        nbf: now - 10,
+        email: "other-access@example.test",
+        sub: "access-user-other",
+      }),
+    ).toString("base64url");
+    const otherSignature = await crypto.subtle.sign(
+      "RSASSA-PKCS1-v1_5",
+      pair.privateKey,
+      new TextEncoder().encode(`${header}.${otherPayload}`),
+    );
+    const otherToken = `${header}.${otherPayload}.${Buffer.from(otherSignature).toString("base64url")}`;
+    const otherRequest = new Request(`https://${ACCESS_ADMIN_HOST}/admin`, {
+      headers: { "cf-access-jwt-assertion": otherToken },
+    });
+    await expect(requireAdmin(otherRequest, env)).rejects.toThrow(
+      /Primary operator authentication is required/,
     );
   });
 });

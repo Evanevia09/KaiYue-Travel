@@ -8,7 +8,7 @@ import {
   passwordAdminAllowed,
   requestHost,
 } from "./admin-gate.ts";
-import { assertProductionPrimaryOperator, temporaryAdminExpiryApplies } from "./admin-primary.ts";
+import { assertPrimaryOperator, temporaryAdminExpiryApplies } from "./admin-primary.ts";
 import { allowedAdminEmails, createAdminSessionAuth } from "./admin-session.ts";
 import type { AppEnv } from "./env.ts";
 
@@ -32,7 +32,9 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     if (!accessToken) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    return verifyAccessJwt(accessToken, env);
+    const accessIdentity = await verifyAccessJwt(accessToken, env);
+    assertPrimaryOperator(accessIdentity, env, request);
+    return accessIdentity;
   }
 
   if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true") {
@@ -41,7 +43,9 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
 
   const token = request.headers.get("cf-access-jwt-assertion");
   if (token && accessState === "configured") {
-    return verifyAccessJwt(token, env);
+    const accessIdentity = await verifyAccessJwt(token, env);
+    assertPrimaryOperator(accessIdentity, env, request);
+    return accessIdentity;
   }
 
   if (!passwordAdminAllowed(env, request)) {
@@ -62,7 +66,7 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
   const identity = { id: session.user.id, email: session.user.email };
-  assertProductionPrimaryOperator(identity, env, request, allowed);
+  assertPrimaryOperator(identity, env, request);
   return identity;
 }
 

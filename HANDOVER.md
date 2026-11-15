@@ -2,11 +2,18 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Mika rereview source prep (not live, not trial)
+
+- **Branch:** `cursor/admin-profile-password-2cad` (PR #39 stacked on PR #38). PR #38 must never be trialed alone.
+- **Change:** isolated trial plan (not UAT overlay); ENV-only primary on Access+password; `0009` removed; exclusive 0600 CREATE SQL with CHECK postcondition; 60s cookie-cache clock test. Vault cannot export generated passwords or write Worker bindings.
+- **UAT:** `docs/records/wrangler.staging-artifact.jsonc` is DO_NOT_UPLOAD (`043cd0ff`). Trial Worker/D1/R2 not created, not approved.
+- **Not done:** merge, deploy, DNS, Access, D1 apply, secret fill, paid plan, resource create, browser QA.
+
 ## 2026-11-15 — Staff profile password source prep (not live)
 
 - **Branch:** `cursor/admin-profile-password-2cad` from reconciliation `c8ad22c` / PR #38 (PR #38 left intact).
 - **Change:** `/admin/settings` own-password change; public hosts stay 403; min length 12; no staging 6-char; no Access values invented; no D1 seed.
-- **Daniel record:** `daniel@kaiyuemacau.com` from owner t156u + overlay exclusion test. Provisioning is parent/Vault after review.
+- **Daniel record:** `daniel@kaiyuemacau.com` from owner t156u + overlay exclusion test. Parent handles secrets after the package route is validated. Vault cannot export a generated login password into the CLI.
 - **Blocked:** 33ecc Access not enabled (403/9999); admin hostname unattached. Packet: `docs/records/2026-11-15-admin-profile-password-release-packet.md`.
 - **Not done:** merge, deploy, DNS, Access onboarding, credential write, staging overwrite, browser QA.
 

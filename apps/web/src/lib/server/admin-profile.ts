@@ -13,7 +13,7 @@ export async function readOwnAdminProfile(
   actor: AdminIdentity,
   requestId: string,
 ): Promise<Response> {
-  return json(await adminProfilePayload(actor, env), 200, requestId);
+  return json(adminProfilePayload(actor, env), 200, requestId);
 }
 
 export function refuseAdminRoleChange(): never {

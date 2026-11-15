@@ -1,5 +1,5 @@
 import { AppError } from "@kaiyue/contracts";
-import { ACCESS_ADMIN_HOST, requestHost } from "./admin-gate.ts";
+import { ACCESS_ADMIN_HOST, isProductionHost, requestHost } from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
 
 export const ADMIN_ROLE_STAFF = "staff";
@@ -9,6 +9,9 @@ export type AdminRole = (typeof ADMIN_ROLES)[number];
 
 /** Verified owner identity for the production primary operator. Not an allowlist label. */
 export const VERIFIED_PRODUCTION_PRIMARY_EMAIL = "daniel@kaiyuemacau.com";
+
+/** Isolated trial fixture identity. Never the production Daniel address. */
+export const TRIAL_OPERATOR_EMAIL = "admin-trial@kaiyue.test";
 
 export function normalizeAdminEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -37,6 +40,13 @@ export function productionDedicatedHostRequiresPrimary(
   );
 }
 
+export function liveAdminRequiresPrimary(
+  env: Pick<AppEnv, "ENVIRONMENT">,
+  request: Request,
+): boolean {
+  return productionDedicatedHostRequiresPrimary(env, request) || isProductionHost(request);
+}
+
 export function temporaryAdminExpiryApplies(
   env: Pick<AppEnv, "ENVIRONMENT">,
   request: Request,
@@ -44,64 +54,34 @@ export function temporaryAdminExpiryApplies(
   return !productionDedicatedHostRequiresPrimary(env, request);
 }
 
-export async function readPersistedAdminRole(
-  env: AppEnv,
-  userId: string,
-): Promise<AdminRole | null> {
-  try {
-    const row = await env.DB.prepare('SELECT "role" FROM "user" WHERE "id" = ?')
-      .bind(userId)
-      .first<{ role?: string }>();
-    if (row?.role === ADMIN_ROLE_PRIMARY || row?.role === ADMIN_ROLE_STAFF) {
-      return row.role;
-    }
-    return null;
-  } catch {
-    // Live D1 06cf879d at 2026-11-15 14:18 had no role column. Additive 0009 is not applied yet.
-    return null;
-  }
-}
-
 export function effectiveAdminRole(
   email: string,
-  persisted: AdminRole | null,
   env: Pick<AppEnv, "ADMIN_PRIMARY_EMAIL">,
 ): AdminRole {
-  if (isPrimaryAdminEmail(email, env)) {
-    return ADMIN_ROLE_PRIMARY;
-  }
-  if (persisted === ADMIN_ROLE_PRIMARY) {
-    return ADMIN_ROLE_STAFF;
-  }
-  return persisted ?? ADMIN_ROLE_STAFF;
+  return isPrimaryAdminEmail(email, env) ? ADMIN_ROLE_PRIMARY : ADMIN_ROLE_STAFF;
 }
 
-export function assertProductionPrimaryOperator(
+export function assertPrimaryOperator(
   actor: { email: string },
   env: Pick<AppEnv, "ENVIRONMENT" | "ADMIN_PRIMARY_EMAIL" | "ADMIN_EMAILS">,
   request: Request,
-  allowedEmails: Set<string>,
 ): void {
-  if (!productionDedicatedHostRequiresPrimary(env, request)) {
-    return;
-  }
   const primary = primaryAdminEmail(env);
-  if (!primary || !allowedEmails.has(primary)) {
+  if (liveAdminRequiresPrimary(env, request) && !primary) {
     throw new AppError("FORBIDDEN", "Primary operator is not configured.");
   }
-  if (!isPrimaryAdminEmail(actor.email, env)) {
+  if (primary && !isPrimaryAdminEmail(actor.email, env)) {
     throw new AppError("FORBIDDEN", "Primary operator authentication is required.");
   }
 }
 
-export async function adminProfilePayload(
+export function adminProfilePayload(
   actor: { id: string; email: string },
-  env: AppEnv,
-): Promise<{ email: string; role: AdminRole }> {
-  const persisted = await readPersistedAdminRole(env, actor.id);
+  env: Pick<AppEnv, "ADMIN_PRIMARY_EMAIL">,
+): { email: string; role: AdminRole } {
   return {
     email: actor.email,
-    role: effectiveAdminRole(actor.email, persisted, env),
+    role: effectiveAdminRole(actor.email, env),
   };
 }
 

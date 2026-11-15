@@ -12,7 +12,8 @@ Independent review and staging browser QA remain parent-coordinated. Owner autho
 |---|---|
 | Reconciliation | PR #38 `cursor/main-reconcile-dashboard-2cad` `c8ad22c5c9da05949b985effcbd046a040c1d621` — **never trial or merge alone** |
 | Reviewed PR #39 SHA (Mika input) | `6dcbc44dec0d5ccfcbc812db6d4161b7dd522577` — superseded |
-| Correction SHA (this increment) | `0e09ffe6d20cf812fa7548fc9da73aaf2fbba986` |
+| Mika rereview freeze | `0e09ffe6d20cf812fa7548fc9da73aaf2fbba986` / docs `9de0a9ae1ca33f72206589e990c02bebf60698b0` |
+| This increment | new HEAD on `cursor/admin-profile-password-2cad` after rereview fixes |
 | Notification checkpoint | PR #36 `dd69a47d74a06f1119aca116451a1060fa4413ed` |
 | Live-release checkpoint | PR #35 `5aa40dd90db5388883133818e3da5acd4112528a` — never blind-merge |
 | Staging 6-char UAT | `61bc5a03` / PR #34 — **never** port to production |
@@ -48,53 +49,48 @@ Do not claim immediate other-device logout.
 
 Positive login + password change now run as `ENVIRONMENT=production` on `https://admin.kaiyuemacau.com`, not only localhost. Coverage also includes signup denial, cross-origin denial, unallowlisted identity, DEV_ADMIN_BYPASS non-bypass, public apex 403, and expired UAT timestamp ignored on this host. Production password policy stays min 12. `ADMIN_STAGING_TEST_PASSWORD_MIN=6` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24` are not inherited.
 
-## (5) Primary operator — not an allowlist label
+Other-session tests now advance the signed cookie-cache clock past 60s (`Date.now()`), not only `disableCookieCache`.
 
-Owner asked for Daniel as main admin. Review correctly found **no RBAC / super-admin** in the frozen SHA. This increment adds a minimal server-enforced primary:
+## (5) Primary operator — env config, not DB RBAC
 
-- Worker var `ADMIN_PRIMARY_EMAIL` (Vault, not overlay, not git).
-- Additive `migrations/0009_admin_primary_role.sql` (`user.role` default `staff`). **Not applied.**
-- Production dedicated host: only the env-named primary email may password-login. Staff / other allowlisted users are 403.
-- `POST /api/v1/admin/profile/role` is always 403. Password-change cannot set `role`.
-- Persisted `primary` is ignored unless env names that same email (default-deny escalation).
-- UI says “Primary operator”, not Super Admin.
+Owner asked for Daniel as main admin, not a UI label. Authority is `ADMIN_PRIMARY_EMAIL` + `ADMIN_EMAILS` (password path). `requireAdmin` applies that check to **password sessions and Access JWTs**. A second Access identity cannot use the dedicated host.
 
-### Provisioning check (parent 14:18 production D1 read, no writes, no hashes)
+**No `0009` role migration.** 14:18 had no role column. A persisted `user.role` would be unused metadata and would pretend D1 enforces a single primary. Account creation still persists Better Auth `user` + `account` rows from `0004`. Profile “Primary operator” is derived from env match.
+
+`POST /api/v1/admin/profile/role` stays 403. Password-change cannot set `role`.
+
+### Provisioning check (parent 14:18 snapshot — re-read before apply)
 
 | Check | Result |
 |---|---|
 | D1 | `06cf879d-8fea-4088-8881-7d382e1b8c11` `kaiyue-travel-production` |
-| Exact and case-insensitive `daniel@kaiyuemacau.com` user count | **0** |
-| Associated credential account count | **0** |
+| Exact and case-insensitive `daniel@kaiyuemacau.com` user count | **0** at 14:18 |
+| Associated credential account count | **0** at 14:18 |
 | `user.email` UNIQUE | yes — do not insert a case variant |
 | `user` columns | id, name, email, emailVerified, image, createdAt, updatedAt |
-| role column / role table | **absent** (17 tables) |
-| Decision | **CREATE**, not password reset |
+| role column | **absent** — do not add one |
+| Decision at 14:18 | **CREATE**, not password reset. Re-run `--preflight` immediately before apply. |
 
-### Supported secret-safe CREATE path (parent after review)
+### Supported CREATE path (parent after package review)
 
-Approved path is the existing Better Auth hasher used by `scripts/seed-preview-test-admin.mjs`, **not** that preview seeder itself (obsolete D1 `069aa442`, `INSERT OR REPLACE`, 16-char preview policy, prints SQL including hash). Browser `/setup-admin` and `/api/auth/sign-up/email` stay development-only; loopback against live D1 is not a production fill path. **No new public admin-create endpoint.**
+Vault **cannot** export a generated login password into the local CLI or write Worker bindings. A later native user-secret request may put a **user-provided** password in `PRIMARY_ADMIN_PASSWORD` for this process only. Parent configures Worker secrets after the package route is validated. **No** public provisioner, credential collector, or browser loopback.
 
-Exact parent steps, no secrets in this packet:
+1. `--preflight` against live `06cf879d` (bounded counts only).
+2. `scripts/provision-primary-admin.mjs --write-sql --out <new path>` — exclusive `wx` 0600, refuses existing files/symlinks, CHECK(ok = 1) postcondition (SQLite/D1 RAISE() is trigger-only). Does not call wrangler.
+3. D1 `batch()` is transactional; `wrangler d1 execute --file` is sequential auto-commit. Interruption can leave a user without a credential; CREATE then **refuses**. Do not INSERT OR REPLACE or wipe.
+4. Operator signs in on `admin.kaiyuemacau.com` and changes password.
 
-1. Generate a temporary password in Vault (length ≥ 12). Do not commit it.
-2. Apply additive `0009` to production D1 **after** reviewed code is on the Worker that understands a missing column.
-3. `PRIMARY_ADMIN_EMAIL` / `PRIMARY_ADMIN_PASSWORD` / `BETTER_AUTH_SECRET` in the local shell only.
-4. `node scripts/provision-primary-admin.mjs --write-sql --out <0600 file>` then `--stamp-role` after 0009. Stdout omits password and hash. Script does not call wrangler.
-5. Parent applies the SQL file with `wrangler d1 execute` against `06cf879d` only.
-6. Vault Worker vars: `BETTER_AUTH_SECRET` (≥32), `ADMIN_EMAILS` and `ADMIN_PRIMARY_EMAIL` = the verified Daniel address. Omit `ADMIN_STAGING_TEST_PASSWORD_MIN` and `TEMP_ADMIN_EXPIRES_AT`.
-7. Operator signs in on `admin.kaiyuemacau.com` and changes the password at `/admin/settings`.
+Rejected: remote public signup, `/setup-admin`, `seed-preview-test-admin.mjs`, claiming “Vault sets” Worker vars from this writer.
 
-Rejected: remote public signup, `/setup-admin` on production, inventing Access values, porting UAT 6-char / Nov 24 expiry, untargeted `UPDATE user SET role='primary'`.
+## (6) Overlays and isolated trial plan
 
-## (6) Overlays — not git wrangler
+| File | Meaning |
+|---|---|
+| `docs/records/wrangler.production-artifact.jsonc` | Production upload overlay: `kaiyue-travel` / `06cf879d` / `kaiyue-offers-production` / `run_worker_first=false` |
+| `docs/records/wrangler.staging-artifact.jsonc` | **DO_NOT_UPLOAD** official UAT baseline (`043cd0ff`). `keep_vars: true` is why omitted vars would persist. Host is production-protected. |
+| `docs/records/wrangler.admin-trial-artifact.jsonc` | Unapproved isolated trial template: new Worker `kaiyue-travel-admin-trial`, sentinel D1, `keep_vars: false`, host `kaiyue-travel-admin-trial.kai-yue.workers.dev` (not in `PRODUCTION_HOSTS`). Fake operator `admin-trial@kaiyue.test`. |
 
-| Overlay | Worker | D1 | R2 | Assets |
-|---|---|---|---|---|
-| `docs/records/wrangler.production-artifact.jsonc` | `kaiyue-travel` | `06cf879d` | `kaiyue-offers-production` | `run_worker_first=false` |
-| `docs/records/wrangler.staging-artifact.jsonc` | `kaiyue-travel-staging` | official `043cd0ff` | `kaiyue-offers-staging` | `run_worker_first=true` |
-
-Neither overlay encodes allowlist, primary email, secrets, Access, 6-char, or Nov 24 expiry. Git `wrangler.jsonc` stays unsafe (obsolete `069aa442`) and must not be uploaded.
+Full plan + rollback: `docs/records/2026-11-15-isolated-admin-trial-plan.md`. Not created. Not approved. No paid-plan activation. Do not overwrite UAT.
 
 ## Auth / CSRF / rollback (preserved)
 
@@ -109,14 +105,27 @@ Neither overlay encodes allowlist, primary email, secrets, Access, 6-char, or No
 ## Verification (this increment)
 
 Raw logs: `docs/records/2026-11-15-admin-profile-password-check-logs.txt`  
-SHA256: `361bce51b5e610f9610abaff3994630d2d42e4f9b15c5ae0e5a9095c9cae27a9`
+SHA256: `79ada0887ae11cfe562d1981de247100d0c725afe8a2a2b1e6776916bcf8749d`
 
-Local: `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` **163/163** across **32** files; `pnpm build` complete.
+Local: `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` **165/165** across **32** files; `pnpm build` complete.
 
-Prior official Actions job `https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43684217704/job/132721152605` reviewed `6dcbc44d` (146 tests / 29 files) and is **not** release approval. Re-review **`0e09ffe6d20cf812fa7548fc9da73aaf2fbba986`**.
+Mika verified the previous **163** local checks on `0e09ffe` / `9de0a9ae`. That is **not** staging or provisioner sign-off. This increment is a **new** source SHA (recorded in the follow-up docs commit after this tree is hashed).
 
-Not verified here: staging/live browser QA, D1 apply of `0009`, Vault CREATE, staff-domain attach, Access onboarding, GitHub Actions on this SHA, Workers Builds `41386f` (do not retry or cancel).
+| Artifact | SHA256 |
+|---|---|
+| `package.json` | `468a148b0fd397598b030fbd92f611ff76c90b283525ce5bbb1e7da4b6715eff` |
+| `pnpm-lock.yaml` | `77534ea2b09a906a921384449803426de91a2c14ef101c1bbb6bd8a0a672403b` |
+| `docs/records/wrangler.production-artifact.jsonc` | `6ef1b9de6915159bc3018bf98930b4cb0e465c9bbd65aa0a05d3ff47fbd45bdf` |
+| `docs/records/wrangler.staging-artifact.jsonc` (DO_NOT_UPLOAD UAT) | `a00913877e3579a7c2521bf58c9965664ddd2d2ace9083290114c10ac89683ab` |
+| `docs/records/wrangler.admin-trial-artifact.jsonc` (unapproved plan) | `160c40c8541181abbd35d0ea370e2ed266c37ee6e944036fcdb7b9cff9294a9f` |
+| git `wrangler.jsonc` (unsafe; do not upload) | `2899600fd7501fb48b94dde1ed6e223bcf65809e99814bb83af0ba4204ce1386` |
+| `scripts/provision-primary-admin.mjs` | `8aa1fdd567de712823cfc5e6efd03661eb43077e2a67114c7bce62e110a7fec0` |
+| `docs/records/2026-11-15-isolated-admin-trial-plan.md` | `68e65baa5341f9c129359babfd5900126fb85c9361bcbf1a2b9e74189ce505de` |
+
+Isolated resource plan + rollback/current baselines: `docs/records/2026-11-15-isolated-admin-trial-plan.md`. Trial is **not** approved and was **not** created.
+
+Not verified here: staging browser QA, D1 apply, secret fill, staff-domain attach, Access onboarding, GitHub Actions on the new SHA, Workers Builds `41386f` (do not retry or cancel).
 
 ## Next action
 
-Parent independent review of the **new** SHA (not `6dcbc44d` / not `c8ad22c5` alone), then staging QA on the isolated staging overlay, then parent-only Vault CREATE. Do not treat source prep as production staff login.
+Parent rereview of the new HEAD. Isolated trial resources only after Mika approves the exact plan. Do not treat source prep as production staff login.

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -45,10 +45,9 @@ describe("main reconciliation invariants", () => {
     expect(wrangler).toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
   });
 
-  it("keeps additive primary-role migration isolated from 0004", () => {
-    const role = readFileSync(join(repoRoot, "migrations/0009_admin_primary_role.sql"), "utf8");
+  it("does not add a pretend DB role column on top of 0004", () => {
     const auth = readFileSync(join(repoRoot, "migrations/0004_admin_auth.sql"), "utf8");
-    expect(role).toMatch(/ADD COLUMN "role"/);
     expect(auth).not.toMatch(/\brole\b/);
+    expect(existsSync(join(repoRoot, "migrations/0009_admin_primary_role.sql"))).toBe(false);
   });
 });

@@ -1,35 +1,23 @@
-// Isolated STAGING upload overlay for official protected Kai Yue staging.
-// Official staging D1 043cd0ff / R2 kaiyue-offers-staging on account 33ecc.
-// This is the review overlay. Do NOT upload git wrangler.jsonc.
-// Do NOT copy production D1 06cf879d or R2 kaiyue-offers-production.
-// Do NOT copy obsolete D1 069aa442.
-//
-// Staging assets mode (do not copy the production overlay):
-//   run_worker_first = true
-// Production remains serve_directly / run_worker_first false.
-//
-// Omits UAT 6-char (ADMIN_STAGING_TEST_PASSWORD_MIN), TEMP_ADMIN_EXPIRES_AT
-// 2026-11-24, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, BETTER_AUTH_SECRET, and
-// Access bindings. Parent Vault after review. No upload in this increment.
+// PROTECTED OFFICIAL UAT BASELINE — not an upload overlay.
+// DO_NOT_UPLOAD. Uploading this file (especially keep_vars:true) would
+// bind Worker kaiyue-travel-staging, D1 043cd0ff, R2 kaiyue-offers-staging
+// and persist omitted UAT vars (6-char min, Nov 24 expiry, allowlist).
+// Canonical host kaiyue-travel-staging.kai-yue.workers.dev is in
+// PRODUCTION_HOSTS, so ENVIRONMENT=preview would not enable login there.
+// Preserve existing UAT credentials, data, and config until a separate
+// isolated trial Worker is approved. See wrangler.admin-trial-artifact.jsonc
+// and docs/records/2026-11-15-isolated-admin-trial-plan.md.
 {
+  "do_not_upload": true,
   "name": "kaiyue-travel-staging",
   "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
-  "main": "./entry.js",
-  "compatibility_date": "2026-09-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "no_bundle": true,
   "keep_vars": true,
-  "assets": {
-    "directory": "./dist-client",
-    "binding": "ASSETS",
-    "run_worker_first": true
-  },
+  "note": "Protected UAT baseline record only. Isolated trial uses wrangler.admin-trial-artifact.jsonc.",
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "kaiyue-travel-staging",
-      "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
-      "migrations_dir": "./migrations"
+      "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70"
     }
   ],
   "r2_buckets": [
@@ -38,12 +26,5 @@
       "bucket_name": "kaiyue-offers-staging"
     }
   ],
-  "vars": {
-    "ENVIRONMENT": "preview",
-    "PUBLIC_SITE_URL": "https://kaiyue-travel-staging.kai-yue.workers.dev",
-    "BUSINESS_TIMEZONE": "Asia/Macau",
-    "BOOKING_NOTICE_HOURS": "24",
-    "WHATSAPP_NUMBER": "+85328338882",
-    "DEV_ADMIN_BYPASS": "false"
-  }
+  "protected_host": "kaiyue-travel-staging.kai-yue.workers.dev"
 }

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { getPlatformProxy } from "wrangler";
 import { ACCESS_ADMIN_HOST } from "../../apps/web/src/lib/server/admin-gate.ts";
 import {
@@ -96,10 +96,13 @@ beforeAll(async () => {
     ADMIN_STAGING_TEST_PASSWORD_MIN: "6",
   };
   await execMigration(env, "../../migrations/0004_admin_auth.sql");
-  await execMigration(env, "../../migrations/0009_admin_primary_role.sql");
   expect((await signUp(env, primaryEmail, currentPassword)).status).toBe(200);
   expect((await signUp(env, staffEmail, currentPassword)).status).toBe(200);
 }, 30_000);
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 afterAll(async () => {
   await platform?.dispose();
@@ -157,6 +160,14 @@ describe("production dedicated admin host password login", () => {
       query: { disableCookieCache: true },
     });
     expect(otherWithoutCache).toBeNull();
+
+    const otherRequest = new Request(`${origin}/admin`, { headers: { cookie: other.cookie } });
+    const cacheExpiredAt = Date.now() + (ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS + 1) * 1000;
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(cacheExpiredAt);
+    await expect(requireAdmin(otherRequest, env)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    vi.useRealTimers();
+
     expect((await signIn(env, primaryEmail, currentPassword)).status).not.toBe(200);
   }, 30_000);
 
