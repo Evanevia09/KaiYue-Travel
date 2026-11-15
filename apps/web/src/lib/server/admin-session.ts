@@ -1,9 +1,56 @@
 import { AppError } from "@kaiyue/contracts";
 import { betterAuth } from "better-auth";
+import { resolveHostRole } from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
 
 export const ADMIN_PASSWORD_MIN_LENGTH = 12;
+export const ADMIN_STAGING_TEST_PASSWORD_FLOOR = 6;
 export const ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS = 60;
+
+function parseStagingTestPasswordMin(raw: string | undefined): number | null {
+  const trimmed = raw?.trim() ?? "";
+  if (!/^[0-9]+$/.test(trimmed)) {
+    return null;
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isInteger(parsed)) {
+    return null;
+  }
+  if (parsed < ADMIN_STAGING_TEST_PASSWORD_FLOOR || parsed >= ADMIN_PASSWORD_MIN_LENGTH) {
+    return null;
+  }
+  return parsed;
+}
+
+/**
+ * Production hosts stay at 12. A weaker floor is honored only on the
+ * staging-admin host when ADMIN_STAGING_TEST_PASSWORD_MIN is a whole number
+ * from 6 through 11. The var has no effect on production-admin or marketing
+ * hosts even if it is present. Host role is used; ENVIRONMENT is not.
+ */
+export function adminPasswordMinLength(env: AppEnv, request?: Request): number {
+  if (!request) {
+    return ADMIN_PASSWORD_MIN_LENGTH;
+  }
+  const role = resolveHostRole(env, request);
+  switch (role) {
+    case "staging-admin":
+      return (
+        parseStagingTestPasswordMin(env.ADMIN_STAGING_TEST_PASSWORD_MIN) ??
+        ADMIN_PASSWORD_MIN_LENGTH
+      );
+    case "production-admin":
+    case "production-marketing":
+    case "staging-marketing":
+    case "preview":
+    case "local":
+      return ADMIN_PASSWORD_MIN_LENGTH;
+    default: {
+      const exhaustive: never = role;
+      return exhaustive;
+    }
+  }
+}
 
 export function allowedAdminEmails(env: AppEnv): Set<string> {
   return new Set(
@@ -33,7 +80,7 @@ export function createAdminSessionAuth(env: AppEnv, allowSignup = false, request
     emailAndPassword: {
       enabled: true,
       disableSignUp: !allowSignup,
-      minPasswordLength: ADMIN_PASSWORD_MIN_LENGTH,
+      minPasswordLength: adminPasswordMinLength(env, request),
     },
     session: {
       expiresIn: 60 * 60 * 8,

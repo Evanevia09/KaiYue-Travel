@@ -7,11 +7,13 @@ export function ProfileSettings({
   email,
   role,
   passwordChangeAvailable,
+  passwordMinLength = 12,
 }: {
   locale: AdminLocale;
   email: string;
   role: "primary" | "staff";
   passwordChangeAvailable: boolean;
+  passwordMinLength?: number;
 }) {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -70,12 +72,12 @@ export function ProfileSettings({
               />
             </label>
             <label className="field">
-              {t(locale, "settings.newPassword")}
+              {t(locale, "settings.newPassword", { min: passwordMinLength })}
               <input
                 name="newPassword"
                 type="password"
                 autoComplete="new-password"
-                minLength={12}
+                minLength={passwordMinLength}
                 required
               />
             </label>
@@ -85,7 +87,7 @@ export function ProfileSettings({
                 name="confirmPassword"
                 type="password"
                 autoComplete="new-password"
-                minLength={12}
+                minLength={passwordMinLength}
                 required
               />
             </label>

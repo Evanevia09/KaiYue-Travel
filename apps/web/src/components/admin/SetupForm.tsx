@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 
-export function SetupForm({ locale }: { locale: AdminLocale }) {
+export function SetupForm({
+  locale,
+  passwordMinLength = 12,
+}: {
+  locale: AdminLocale;
+  passwordMinLength?: number;
+}) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -51,12 +57,12 @@ export function SetupForm({ locale }: { locale: AdminLocale }) {
         <input name="email" type="email" autoComplete="username" required />
       </label>
       <label className="field">
-        {t(locale, "setup.password")}
+        {t(locale, "setup.password", { min: passwordMinLength })}
         <input
           name="password"
           type="password"
           autoComplete="new-password"
-          minLength={12}
+          minLength={passwordMinLength}
           required
         />
       </label>

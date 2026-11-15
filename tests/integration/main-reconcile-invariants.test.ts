@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ACCESS_ADMIN_HOST,
   ADMIN_TRIAL_HOST,
+  HTML_WORKER_FIRST_PATHS,
   PRODUCTION_HOSTS,
   STAGING_ADMIN_HOST,
   STAGING_MARKETING_HOST,
@@ -26,14 +27,15 @@ describe("main reconciliation invariants", () => {
     expect(STAGING_MARKETING_HOST).toBe("staging.kaiyuemacau.com");
     expect(PRODUCTION_HOSTS).not.toContain(ADMIN_TRIAL_HOST);
     expect(PRODUCTION_HOSTS).not.toContain(STAGING_ADMIN_HOST);
+    expect(HTML_WORKER_FIRST_PATHS[0]).toBe("/*");
     const session = readFileSync(
       join(repoRoot, "apps/web/src/lib/server/admin-session.ts"),
       "utf8",
     );
     expect(session).toMatch(/ADMIN_PASSWORD_MIN_LENGTH = 12/);
-    expect(session).toMatch(/minPasswordLength:\s*ADMIN_PASSWORD_MIN_LENGTH/);
-    expect(session).not.toMatch(/adminPasswordMinLength/);
-    expect(session).not.toMatch(/ADMIN_STAGING_TEST_PASSWORD_MIN/);
+    expect(session).toMatch(/minPasswordLength:\s*adminPasswordMinLength\(env, request\)/);
+    expect(session).toMatch(/ADMIN_STAGING_TEST_PASSWORD_MIN/);
+    expect(session).not.toMatch(/env\.ENVIRONMENT/);
     expect(session).toMatch(/ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS = 60/);
   });
 

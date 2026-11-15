@@ -133,6 +133,12 @@ describe("admin error and label localization", () => {
     ).toBe("無法將狀態由查詢改為已完成。");
     expect(localizeAdminError({ code: "NOT_FOUND" }, "en")).toBe("Not found.");
     expect(localizeAdminError(undefined, "zh-Hant")).toBe("後台要求失敗。");
+    expect(
+      localizeAdminError({ message: "New password must be at least 12 characters." }, "zh-Hant"),
+    ).toBe("新密碼須至少 12 個字元。");
+    expect(
+      localizeAdminError({ message: "New password must be at least 6 characters." }, "en"),
+    ).toBe("New password must be at least 6 characters.");
   });
 
   it("localizes status and service labels used in the dashboard", () => {

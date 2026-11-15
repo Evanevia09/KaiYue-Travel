@@ -1,7 +1,7 @@
 import { AppError } from "@kaiyue/contracts";
 import { passwordAdminAllowed } from "./admin-gate.ts";
 import { adminProfilePayload, refuseRoleChange, rejectRoleMutation } from "./admin-primary.ts";
-import { ADMIN_PASSWORD_MIN_LENGTH, createAdminSessionAuth } from "./admin-session.ts";
+import { adminPasswordMinLength, createAdminSessionAuth } from "./admin-session.ts";
 import type { AdminIdentity } from "./auth.ts";
 import type { AppEnv } from "./env.ts";
 import { json, readJson } from "./http.ts";
@@ -24,7 +24,7 @@ function asNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function mapPasswordChangeError(error: unknown): never {
+function mapPasswordChangeError(error: unknown, minLength: number): never {
   const message =
     error && typeof error === "object" && "message" in error
       ? String((error as { message: unknown }).message)
@@ -35,7 +35,7 @@ function mapPasswordChangeError(error: unknown): never {
   if (/too short/i.test(message) || /PASSWORD_TOO_SHORT/i.test(message)) {
     throw new AppError(
       "VALIDATION_FAILED",
-      `New password must be at least ${ADMIN_PASSWORD_MIN_LENGTH} characters.`,
+      `New password must be at least ${minLength} characters.`,
     );
   }
   if (/too long/i.test(message) || /PASSWORD_TOO_LONG/i.test(message)) {
@@ -95,11 +95,12 @@ export async function changeOwnAdminPassword(
       fields: { confirmPassword: "Must match" },
     });
   }
-  if (newPassword.length < ADMIN_PASSWORD_MIN_LENGTH) {
+  const minLength = adminPasswordMinLength(env, request);
+  if (newPassword.length < minLength) {
     throw new AppError(
       "VALIDATION_FAILED",
-      `New password must be at least ${ADMIN_PASSWORD_MIN_LENGTH} characters.`,
-      { fields: { newPassword: `At least ${ADMIN_PASSWORD_MIN_LENGTH} characters` } },
+      `New password must be at least ${minLength} characters.`,
+      { fields: { newPassword: `At least ${minLength} characters` } },
     );
   }
 
@@ -116,7 +117,7 @@ export async function changeOwnAdminPassword(
     });
     if (!authResponse.ok) {
       const payload = (await authResponse.json().catch(() => ({}))) as { message?: string };
-      mapPasswordChangeError(payload);
+      mapPasswordChangeError(payload, minLength);
     }
     const response = json({ ok: true }, 200, requestId);
     for (const cookie of authResponse.headers.getSetCookie()) {
@@ -127,6 +128,6 @@ export async function changeOwnAdminPassword(
     if (error instanceof AppError) {
       throw error;
     }
-    mapPasswordChangeError(error);
+    mapPasswordChangeError(error, minLength);
   }
 }

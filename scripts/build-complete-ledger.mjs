@@ -3,8 +3,8 @@
  * production overlay. Run once per reviewed source SHA. Secrets are never
  * written. Refuses --env staging so this branch cannot emit the PR #26/#34
  * UAT overlay. Git wrangler.jsonc is used only for --dry-run bundling; the
- * zip wrangler.jsonc is the production overlay (06cf879d, run_worker_first
- * false). Do not upload git wrangler.jsonc.
+ * zip wrangler.jsonc is the production overlay (06cf879d, HTML Worker-first
+ * path array). Do not upload git wrangler.jsonc.
  *
  *   PUBLIC_SITE_URL=https://kaiyuemacau.com pnpm build
  *   node scripts/build-complete-ledger.mjs --env production
@@ -117,7 +117,7 @@ const wrangler = {
   assets: {
     directory: "./dist-client",
     binding: "ASSETS",
-    run_worker_first: false,
+    run_worker_first: overlay.assets?.run_worker_first ?? false,
   },
 };
 writeFileSync(join(outBase, "wrangler.jsonc"), `${JSON.stringify(wrangler, null, 2)}\n`);
@@ -141,8 +141,8 @@ const deployment = {
   account_id: "33ecc75158a1cdd23ba1a62eb70c5103",
   script: scriptName,
   compatibility_date_live_verified: "2026-09-01",
-  assets_serve_directly: true,
-  run_worker_first: false,
+  assets_serve_directly: "hashed /_astro /images favicon only",
+  run_worker_first: overlay.assets?.run_worker_first ?? false,
   public_site_url: publicSiteUrl,
   production_admin_gate:
     "fail-closed /admin /login 403 on apex/www/legacy; Access host unchanged from 9ff81925",
@@ -167,7 +167,7 @@ script ${scriptName}
 canonical ${publicSiteUrl}
 D1 ${d1Id}
 R2 ${r2Name}
-assets serve_directly=true run_worker_first=false
+HTML Worker-first; hashed assets asset-first
 rollback ${rollbackVersion}
 fail-closed /admin /login 403
 Do not upload git wrangler.jsonc. Use this folder's wrangler.jsonc / overlay.

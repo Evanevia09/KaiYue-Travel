@@ -7,9 +7,11 @@ import {
   PRODUCTION_MARKETING_HOSTS,
   STAGING_ADMIN_HOST,
   STAGING_MARKETING_HOST,
+  HTML_WORKER_FIRST_PATHS,
   accessBindingState,
   accessConfigured,
   assertLiveAdminSurface,
+  hostNavigationAction,
   isProtectedAdminPath,
   passwordAdminAllowed,
   resolveHostRole,
@@ -85,6 +87,76 @@ describe("host roles", () => {
     ).toBe("production-marketing");
     expect(resolveHostRole(preview, new Request(`https://${STAGING_MARKETING_HOST}/login`))).toBe(
       "staging-marketing",
+    );
+  });
+});
+
+describe("dedicated admin host root vs marketing host root", () => {
+  const env = createTestEnv(liveEnv);
+  const marketingRoots = [
+    "https://kaiyuemacau.com/",
+    "https://www.kaiyuemacau.com/",
+    `https://${STAGING_MARKETING_HOST}/`,
+  ];
+
+  it("redirects admin-host / and other marketing pages to /login when Access is absent", () => {
+    for (const host of [STAGING_ADMIN_HOST, PRODUCTION_ADMIN_HOST]) {
+      expect(hostNavigationAction(env, new Request(`https://${host}/`))).toBe("redirect-login");
+      expect(hostNavigationAction(env, new Request(`https://${host}`))).toBe("redirect-login");
+      expect(hostNavigationAction(env, new Request(`https://${host}/about`))).toBe(
+        "redirect-login",
+      );
+      expect(hostNavigationAction(env, new Request(`https://${host}/pt`))).toBe("redirect-login");
+      expect(hostNavigationAction(env, new Request(`https://${host}/special-offers`))).toBe(
+        "redirect-login",
+      );
+      expect(hostNavigationAction(env, new Request(`https://${host}/login`))).toBe("pass");
+      expect(hostNavigationAction(env, new Request(`https://${host}/admin`))).toBe("pass");
+      expect(hostNavigationAction(env, new Request(`https://${host}/_astro/login.js`))).toBe(
+        "pass",
+      );
+      expect(hostNavigationAction(env, new Request(`https://${host}/images/mark.svg`))).toBe(
+        "pass",
+      );
+    }
+    expect(HTML_WORKER_FIRST_PATHS).toEqual(["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"]);
+  });
+
+  it("leaves marketing-host / as the public site and keeps /login 403", () => {
+    for (const origin of marketingRoots) {
+      expect(hostNavigationAction(env, new Request(origin))).toBe("pass");
+      const login = new URL("/login", origin);
+      expect(hostNavigationAction(env, new Request(login))).toBe("pass");
+      expect(() => assertLiveAdminSurface(env, "/login", new Request(login))).toThrow(
+        /Admin access is not configured/,
+      );
+      expect(() =>
+        assertLiveAdminSurface(env, "/admin", new Request(new URL("/admin", origin))),
+      ).toThrow(/Admin access is not configured/);
+    }
+  });
+
+  it("fails closed on admin-host / when Access is partial", () => {
+    const partial = createTestEnv({
+      ...liveEnv,
+      ACCESS_TEAM_DOMAIN: "team.cloudflareaccess.com",
+    });
+    expect(hostNavigationAction(partial, new Request(`https://${STAGING_ADMIN_HOST}/`))).toBe(
+      "forbid",
+    );
+  });
+
+  it("sends Access-configured admin-host / to /admin rather than marketing HTML", () => {
+    const access = createTestEnv({
+      ...liveEnv,
+      ACCESS_TEAM_DOMAIN: "team.cloudflareaccess.com",
+      ACCESS_AUD: "admin-audience",
+    });
+    expect(hostNavigationAction(access, new Request(`https://${PRODUCTION_ADMIN_HOST}/`))).toBe(
+      "redirect-admin",
+    );
+    expect(hostNavigationAction(access, new Request(`https://${STAGING_ADMIN_HOST}/about`))).toBe(
+      "redirect-admin",
     );
   });
 });

@@ -5,8 +5,10 @@ import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
   accessConfigured,
   assertLiveAdminSurface,
+  dedicatedAdminPathAction,
   forbiddenResponse,
   isDedicatedAdminHostname,
+  isDedicatedAdminPassthroughPath,
   isProtectedAdminPath,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
@@ -21,6 +23,33 @@ const SECURITY_HEADERS: Record<string, string> = {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
+  if (
+    isDedicatedAdminHostname(context.url.hostname) &&
+    !isDedicatedAdminPassthroughPath(context.url.pathname)
+  ) {
+    let workerEnv: AppEnv | undefined;
+    try {
+      const { env } = await import("cloudflare:workers");
+      workerEnv = env;
+    } catch {
+      return forbiddenResponse();
+    }
+    const action = dedicatedAdminPathAction(workerEnv, context.url.pathname);
+    switch (action) {
+      case "pass":
+        break;
+      case "redirect-login":
+        return context.redirect("/login", 302);
+      case "redirect-admin":
+        return context.redirect("/admin", 302);
+      case "forbid":
+        return forbiddenResponse();
+      default: {
+        const exhaustive: never = action;
+        return exhaustive;
+      }
+    }
+  }
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
     let workerEnv: AppEnv | undefined;
     try {

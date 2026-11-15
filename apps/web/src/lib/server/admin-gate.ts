@@ -139,6 +139,77 @@ export function isProtectedAdminPath(pathname: string): boolean {
   );
 }
 
+/** Hashed UI assets and brand files the login/admin chrome needs. */
+export function isDedicatedAdminAssetPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/_astro/") ||
+    pathname.startsWith("/images/") ||
+    pathname === "/favicon.ico"
+  );
+}
+
+export function isDedicatedAdminPassthroughPath(pathname: string): boolean {
+  return isProtectedAdminPath(pathname) || isDedicatedAdminAssetPath(pathname);
+}
+
+export type DedicatedAdminPathAction = "pass" | "redirect-login" | "redirect-admin" | "forbid";
+
+/**
+ * Dedicated admin hosts are a staff surface only. Marketing HTML must not render.
+ * `/` and other public pages redirect to the password login, or to `/admin` when
+ * Access is fully configured (password `/login` is then 403).
+ */
+export function dedicatedAdminPathAction(
+  env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
+  pathname: string,
+): DedicatedAdminPathAction {
+  if (isDedicatedAdminPassthroughPath(pathname)) {
+    return "pass";
+  }
+  if (pathname.startsWith("/api/")) {
+    return "forbid";
+  }
+  const accessState = accessBindingState(env);
+  switch (accessState) {
+    case "partial":
+      return "forbid";
+    case "configured":
+      return "redirect-admin";
+    case "absent":
+      return "redirect-login";
+    default: {
+      const exhaustive: never = accessState;
+      return exhaustive;
+    }
+  }
+}
+
+export type HostNavigationAction = DedicatedAdminPathAction;
+
+export function hostNavigationAction(
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
+  request: Request,
+): HostNavigationAction {
+  const role = resolveHostRole(env, request);
+  switch (role) {
+    case "production-admin":
+    case "staging-admin":
+      return dedicatedAdminPathAction(env, new URL(request.url).pathname);
+    case "production-marketing":
+    case "staging-marketing":
+    case "preview":
+    case "local":
+      return "pass";
+    default: {
+      const exhaustive: never = role;
+      return exhaustive;
+    }
+  }
+}
+
+/** HTML hits the Worker first so admin-host `/` can redirect; hashed assets stay asset-first. */
+export const HTML_WORKER_FIRST_PATHS = ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"] as const;
+
 export function passwordAdminAllowed(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
   request: Request,

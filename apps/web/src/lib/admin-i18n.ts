@@ -55,7 +55,7 @@ export const adminEn = {
     "Create the first approved account using the setup token configured on the server. Setup closes after the first account.",
   "setup.name": "Name",
   "setup.email": "Approved email",
-  "setup.password": "Password · at least 12 characters",
+  "setup.password": "Password · at least {min} characters",
   "setup.token": "One-time setup token",
   "setup.submit": "Create operator account",
   "setup.creating": "Creating…",
@@ -76,7 +76,7 @@ export const adminEn = {
   "settings.accessOnly":
     "This session uses Cloudflare Access. Password change is not available for Access identities.",
   "settings.currentPassword": "Current password",
-  "settings.newPassword": "New password · at least 12 characters",
+  "settings.newPassword": "New password · at least {min} characters",
   "settings.confirmPassword": "Confirm new password",
   "settings.submit": "Change password",
   "settings.submitting": "Saving…",
@@ -463,7 +463,7 @@ export const adminEn = {
   "error.newPasswordRequired": "New password is required.",
   "error.confirmPasswordRequired": "Confirm the new password.",
   "error.passwordMismatch": "New password and confirmation do not match.",
-  "error.passwordMinLength": "New password must be at least 12 characters.",
+  "error.passwordMinLength": "New password must be at least {min} characters.",
   "error.passwordTooLong": "New password is too long.",
   "error.currentPasswordIncorrect": "Current password is incorrect.",
   "error.setupDisabledHost": "Operator setup is disabled on this host.",
@@ -536,7 +536,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "setup.help": "使用伺服器上的一次性設定代碼建立首個核准帳戶。建立後即關閉此頁。",
   "setup.name": "姓名",
   "setup.email": "核准電郵",
-  "setup.password": "密碼 · 至少 12 個字元",
+  "setup.password": "密碼 · 至少 {min} 個字元",
   "setup.token": "一次性設定代碼",
   "setup.submit": "建立營運帳戶",
   "setup.creating": "建立中…",
@@ -556,7 +556,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
     "只可更改自己的密碼。必須輸入目前密碼。其他工作階段會立即從資料庫撤銷。其他裝置上已簽署的工作階段 cookie 最多可能仍有效一分鐘。",
   "settings.accessOnly": "此工作階段使用 Cloudflare Access。Access 身分無法在此更改密碼。",
   "settings.currentPassword": "目前密碼",
-  "settings.newPassword": "新密碼 · 至少 12 個字元",
+  "settings.newPassword": "新密碼 · 至少 {min} 個字元",
   "settings.confirmPassword": "確認新密碼",
   "settings.submit": "更改密碼",
   "settings.submitting": "儲存中…",
@@ -941,7 +941,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "error.newPasswordRequired": "必須輸入新密碼。",
   "error.confirmPasswordRequired": "請確認新密碼。",
   "error.passwordMismatch": "新密碼與確認不符。",
-  "error.passwordMinLength": "新密碼須至少 12 個字元。",
+  "error.passwordMinLength": "新密碼須至少 {min} 個字元。",
   "error.passwordTooLong": "新密碼過長。",
   "error.currentPasswordIncorrect": "目前密碼不正確。",
   "error.setupDisabledHost": "此主機已停用營運帳戶設定。",
@@ -1120,7 +1120,6 @@ const EXACT_ERROR_MESSAGES: Record<string, AdminMessageKey> = {
   "New password is required.": "error.newPasswordRequired",
   "Confirm the new password.": "error.confirmPasswordRequired",
   "New password and confirmation do not match.": "error.passwordMismatch",
-  "New password must be at least 12 characters.": "error.passwordMinLength",
   "New password is too long.": "error.passwordTooLong",
   "Current password is incorrect.": "error.currentPasswordIncorrect",
   "Operator setup is disabled on this host.": "error.setupDisabledHost",
@@ -1169,6 +1168,10 @@ export function localizeAdminError(
         from: prefixedLabel(locale, "status", transition[1]),
         to: prefixedLabel(locale, "status", transition[2]),
       });
+    }
+    const passwordMin = /^New password must be at least (\d+) characters\.$/.exec(message);
+    if (passwordMin?.[1]) {
+      return t(locale, "error.passwordMinLength", { min: passwordMin[1] });
     }
   }
   if (error?.code && ERROR_CODE_KEYS[error.code]) {

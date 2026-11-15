@@ -12,7 +12,7 @@ type OverlayConfig = {
   keep_vars: boolean;
   d1_databases: Array<{ database_id: string }>;
   r2_buckets: Array<{ bucket_name: string }>;
-  assets: { run_worker_first: boolean };
+  assets: { run_worker_first: boolean | string[] };
   vars: Record<string, string>;
 };
 
@@ -35,7 +35,12 @@ describe("production overlay candidate", () => {
     expect(overlayConfig.account_id).toBe("33ecc75158a1cdd23ba1a62eb70c5103");
     expect(overlayConfig.d1_databases[0].database_id).toBe(productionD1);
     expect(overlayConfig.r2_buckets[0].bucket_name).toBe("kaiyue-offers-production");
-    expect(overlayConfig.assets.run_worker_first).toBe(false);
+    expect(overlayConfig.assets.run_worker_first).toEqual([
+      "/*",
+      "!/_astro/*",
+      "!/images/*",
+      "!/favicon.ico",
+    ]);
     expect(overlayConfig.vars.DEV_ADMIN_BYPASS).toBe("false");
     expect(overlayConfig.keep_vars).toBe(true);
     expect(overlayText).toMatch(/serve_directly = true/);
