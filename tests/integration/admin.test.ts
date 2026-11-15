@@ -79,4 +79,48 @@ describe("admin authorization and mutations", () => {
     }>();
     expect(events?.count).toBe(1);
   });
+
+  it("stores a staff manual enquiry without labelling it WhatsApp", async () => {
+    const env = createTestEnv();
+    const created = await handleApi(
+      new Request("http://localhost/api/v1/admin/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "http://localhost:4321",
+          "idempotency-key": crypto.randomUUID(),
+        },
+        body: JSON.stringify({
+          serviceType: "point_to_point",
+          pickupLocation: "Macau Tower",
+          destination: "Taipa",
+          pickupAt: futurePickup(),
+          passengerCount: 2,
+          communicationChannel: "admin",
+          contactName: "Desk guest",
+          phone: "+853 6234 5678",
+          message: "Called the office.",
+          sourcePage: "/admin/bookings",
+          sourceTrigger: "admin-manual",
+          sourceMode: "page",
+          locale: "en",
+        }),
+      }),
+      env,
+    );
+    expect(created.status).toBe(201);
+    const body = (await created.json()) as { reference: string };
+    const detail = await handleApi(
+      new Request(`http://localhost/api/v1/admin/bookings/${body.reference}`, {
+        headers: { origin: "http://localhost:4321" },
+      }),
+      env,
+    );
+    expect(detail.status).toBe(200);
+    const stored = (await detail.json()) as {
+      booking: { communicationChannel: string; sourceTrigger: string };
+    };
+    expect(stored.booking.communicationChannel).toBe("admin");
+    expect(stored.booking.sourceTrigger).toBe("admin-manual");
+  });
 });

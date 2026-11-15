@@ -3,6 +3,7 @@ import { AppError, createRequestId } from "@kaiyue/contracts";
 import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
+  ACCESS_ADMIN_HOST,
   assertLiveAdminSurface,
   forbiddenResponse,
   isProtectedAdminPath,
@@ -30,6 +31,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     } catch (error) {
       if (error instanceof AppError && (error.code === "FORBIDDEN" || error.status === 403)) {
         return forbiddenResponse(error.message);
+      }
+      if (context.url.hostname === ACCESS_ADMIN_HOST) {
+        return forbiddenResponse("Admin authentication is required.");
       }
       return context.redirect("/login", 302);
     }

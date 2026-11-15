@@ -1,0 +1,75 @@
+import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const overlayPath = fileURLToPath(
+  new URL("../../docs/records/wrangler.production-artifact.jsonc", import.meta.url),
+);
+type OverlayConfig = {
+  name: string;
+  account_id: string;
+  keep_vars: boolean;
+  d1_databases: Array<{ database_id: string }>;
+  r2_buckets: Array<{ bucket_name: string }>;
+  assets: { run_worker_first: boolean };
+  vars: Record<string, string>;
+};
+
+const overlayText = readFileSync(overlayPath, "utf8");
+const overlayConfig = JSON.parse(overlayText.replace(/^\s*\/\/.*$/gm, "")) as OverlayConfig;
+const gitWrangler = readFileSync(
+  fileURLToPath(new URL("../../wrangler.jsonc", import.meta.url)),
+  "utf8",
+);
+const ledgerPath = fileURLToPath(
+  new URL("../../scripts/build-complete-ledger.mjs", import.meta.url),
+);
+const productionD1 = "06cf879d-8fea-4088-8881-7d382e1b8c11";
+const stagingD1 = "043cd0ff-a1e6-4b5e-98c1-968c286e0c70";
+const obsoleteD1 = "069aa442-30c9-4454-ab3a-26eb372b3a1f";
+
+describe("production overlay candidate", () => {
+  it("uses production D1/R2, fail-closed vars, and serve-directly assets", () => {
+    expect(overlayConfig.name).toBe("kaiyue-travel");
+    expect(overlayConfig.account_id).toBe("33ecc75158a1cdd23ba1a62eb70c5103");
+    expect(overlayConfig.d1_databases[0].database_id).toBe(productionD1);
+    expect(overlayConfig.r2_buckets[0].bucket_name).toBe("kaiyue-offers-production");
+    expect(overlayConfig.assets.run_worker_first).toBe(false);
+    expect(overlayConfig.vars.DEV_ADMIN_BYPASS).toBe("false");
+    expect(overlayConfig.keep_vars).toBe(true);
+    expect(overlayText).toMatch(/serve_directly = true/);
+  });
+
+  it("does not encode staging bindings, temp-admin, 6-char, allowlist, or secrets", () => {
+    const vars = overlayConfig.vars;
+    expect(vars).not.toHaveProperty("ADMIN_STAGING_TEST_PASSWORD_MIN");
+    expect(vars).not.toHaveProperty("TEMP_ADMIN_EXPIRES_AT");
+    expect(vars).not.toHaveProperty("ADMIN_EMAILS");
+    expect(vars).not.toHaveProperty("BETTER_AUTH_SECRET");
+    expect(JSON.stringify(overlayConfig)).not.toContain(stagingD1);
+    expect(JSON.stringify(overlayConfig)).not.toContain(obsoleteD1);
+    expect(JSON.stringify(overlayConfig)).not.toContain("41386f");
+    expect(JSON.stringify(overlayConfig)).not.toContain("admin-test@kaiyue.test");
+    expect(JSON.stringify(overlayConfig)).not.toContain("uat-admin-20261114@kaiyue.test");
+    expect(JSON.stringify(overlayConfig)).not.toContain("daniel@kaiyuemacau.com");
+    expect(overlayConfig.assets.run_worker_first).not.toBe(true);
+  });
+
+  it("leaves git wrangler.jsonc on the live source blob and does not add staging D1", () => {
+    expect(gitWrangler).toContain(obsoleteD1);
+    expect(gitWrangler).not.toContain(stagingD1);
+    expect(gitWrangler).not.toContain(productionD1);
+    expect(gitWrangler).not.toContain("ADMIN_STAGING_TEST_PASSWORD_MIN");
+    expect(gitWrangler).not.toContain("TEMP_ADMIN_EXPIRES_AT");
+    expect(gitWrangler).not.toContain("BETTER_AUTH_SECRET");
+  });
+
+  it("refuses to freeze a staging ledger from this production-candidate script", () => {
+    const staging = spawnSync(process.execPath, [ledgerPath, "--env", "staging"], {
+      encoding: "utf8",
+    });
+    expect(staging.status).toBe(1);
+    expect(staging.stderr).toMatch(/--env production/);
+  });
+});

@@ -1,0 +1,53 @@
+// Sanitized PRODUCTION upload overlay for kaiyue-travel on account 33ecc only.
+// Live source SHA 9ff81925d722bb5f9fbdd2af3ef609d72ada8ecc (Worker 5b859f36).
+// This overlay is the upload config. Do NOT upload git wrangler.jsonc from
+// 9ff81925 / origin/main (those still name the live Worker and bind obsolete
+// D1 069aa442 plus ADMIN_EMAILS=admin-test@kaiyue.test).
+// Do not upload staging 8ed952a7, d8c8bd20, or dad60edf.
+//
+// Live assets mode (do not copy the staging overlay):
+//   serve_directly = true  (Asset Worker serves matching files first)
+//   run_worker_first = false
+// Wrangler 4 schema has run_worker_first, not a serve_directly key.
+//
+// Bindings: production D1 06cf879d / R2 kaiyue-offers-production.
+// No staging D1 043cd0ff. No ADMIN_EMAILS, TEMP_ADMIN_EXPIRES_AT,
+// ADMIN_STAGING_TEST_PASSWORD_MIN, or BETTER_AUTH_SECRET.
+// --keep-vars preserves live Worker vars/secrets. Do not add them here.
+// No upload in this prepare-only increment.
+{
+  "name": "kaiyue-travel",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "main": "./entry.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "keep_vars": true,
+  "assets": {
+    "directory": "./dist-client",
+    "binding": "ASSETS",
+    "run_worker_first": false
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-production",
+      "database_id": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-production"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "DEV_ADMIN_BYPASS": "false"
+  }
+}

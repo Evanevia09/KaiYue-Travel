@@ -1,6 +1,13 @@
 import { BOOKING_TRANSITIONS, type BookingStatus } from "@kaiyue/contracts";
 import { useEffect, useState } from "react";
-import { localizeCaughtError, prefixedLabel, t, type AdminLocale } from "../../lib/admin-i18n.ts";
+import {
+  bookingChannelLabel,
+  localizeCaughtError,
+  prefixedLabel,
+  t,
+  type AdminLocale,
+} from "../../lib/admin-i18n.ts";
+import { assignmentValidationError, emptyToNull } from "../../lib/assignment.ts";
 import {
   adminFetch,
   formatWhen,
@@ -87,7 +94,7 @@ export function BookingDetailPanel({
           <p className="muted">
             {t(locale, "detail.received", {
               when: formatWhen(booking.createdAt, locale),
-              channel: prefixedLabel(locale, "channel", booking.communicationChannel),
+              channel: bookingChannelLabel(locale, booking),
             })}
           </p>
         </div>
@@ -302,6 +309,19 @@ export function BookingDetailPanel({
               onSubmit={(event) => {
                 event.preventDefault();
                 const form = new FormData(event.currentTarget);
+                const next = {
+                  driverId: emptyToNull(form.get("driverId")),
+                  vehicleId: emptyToNull(form.get("vehicleId")),
+                };
+                const invalid = assignmentValidationError(
+                  { driverId: booking.driverId, vehicleId: booking.vehicleId },
+                  next,
+                );
+                if (invalid) {
+                  setNotice("");
+                  setError(localizeCaughtError({ message: invalid }, locale));
+                  return;
+                }
                 void action(
                   () =>
                     adminFetch(`/api/v1/admin/bookings/${reference}/assignment`, {
@@ -309,8 +329,7 @@ export function BookingDetailPanel({
                       locale,
                       body: JSON.stringify({
                         expectedUpdatedAt: booking.updatedAt,
-                        driverId: form.get("driverId") || null,
-                        vehicleId: form.get("vehicleId") || null,
+                        ...next,
                       }),
                     }),
                   t(locale, "detail.assignmentSaved"),

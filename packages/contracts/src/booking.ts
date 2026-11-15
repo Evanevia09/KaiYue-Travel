@@ -23,7 +23,7 @@ export const HOURLY_DURATION_MAX_HOURS = 12;
 export const BOOKING_SOURCE_MODES = ["embedded", "bottom-sheet", "page"] as const;
 export type BookingSourceMode = (typeof BOOKING_SOURCE_MODES)[number];
 
-export const COMMUNICATION_CHANNELS = ["whatsapp", "email"] as const;
+export const COMMUNICATION_CHANNELS = ["whatsapp", "email", "admin"] as const;
 export type CommunicationChannel = (typeof COMMUNICATION_CHANNELS)[number];
 
 export const MACAU_TOUR_GUIDE_PACKAGE_IDS = ["half-day", "full-day"] as const;
@@ -193,6 +193,14 @@ export const bookingCreateSchema = z
         code: "custom",
         path: ["phone"],
         message: "Enter your WhatsApp number.",
+      });
+    }
+
+    if (value.communicationChannel === "admin" && value.sourceTrigger !== "admin-manual") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["communicationChannel"],
+        message: "Choose a communication channel.",
       });
     }
 

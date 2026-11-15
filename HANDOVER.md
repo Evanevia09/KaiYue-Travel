@@ -2,6 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Prepare main reconciliation (not merge)
+
+- **Task:** `main-reconcile-dashboard-20261115`. Isolated branch from fresh `origin/main` `037b93ad`.
+- **Why PR #35 did not continue into `main`:** live Access-host fail-closed login (`aeacb04` / freeze `cd33cf8c`) diverges from `main`'s older public-host gate. Histories are 8 ahead / 10 behind. Blind-merge of PR #35 `5aa40dd` is not authorized.
+- **This branch takes:** live Access-host auth + freeze dashboard UX + overlay + all 41 photos (blobs already equal on `main` and live). Keeps `main` release records. Leaves git `wrangler.jsonc` unchanged (unsafe; overlay is the production upload config).
+- **Does not take:** staging 6-char UAT, notification plan/code, PR #35 as a merge, live site change.
+- **Not done:** merge, deploy, DNS/Access/secrets/D1, staff-domain attach, independent review, staging browser QA.
+- **Report:** `docs/records/2026-11-15-main-reconcile-dashboard.md`
+
 ## 2026-11-13 — Version 2 photos live on kaiyuemacau.com
 
 - **Live:** Kai Yue Worker `kaiyue-travel` version `5b859f36` at 100% (apex and www). Previous public build plus the final Version 2 photos; built from local, unpushed `cursor/public-photos-v2` (`9ff8192`).
