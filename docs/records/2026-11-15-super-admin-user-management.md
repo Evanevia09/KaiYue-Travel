@@ -71,7 +71,24 @@ Local synthetic `@example.invalid` fixtures only.
 
 ## Official-staging artifact
 
-Local packaging only. Existing runtime source `577012c` / deployed version `19ebb0b4` @100% deployment `4464865f` is **not** replaced by this agent. Packaged overlay vars remain the prior authoritative set; `keep_vars` false; HTML `run_worker_first` `["/*","!/_astro/*","!/images/*","!/favicon.ico"]`. No `--keep-vars`. No secrets or login passwords. Checksums for the corrected source SHA are recorded in the follow-up packaging commit on this PR.
+Local packaging only. Existing runtime source `577012c` / deployed version `19ebb0b4` @100% deployment `4464865f` is **not** replaced by this agent. Packaged overlay vars remain the prior authoritative set (`vars` JSON equal to the `577012c` / `1e62ce9` overlay); `keep_vars` false; HTML `run_worker_first` `["/*","!/_astro/*","!/images/*","!/favicon.ico"]`. No `--keep-vars`. No secrets or login passwords.
+
+| Item | Value |
+|---|---|
+| Source SHA | `927bf1db9496e2ec2cd6358621f92cf0adb551a7` |
+| Zip | `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging.zip` |
+| Zip SHA256 | `78c6942f20a129d9bcb2a4e4443fcab35e0c97ca18aa44263f03e5dc31c07e80` (10015931 bytes) |
+| entry.js SHA256 | `ab2ecb19481181fcd97f157ac47c2512c4e04567c2121a0a112ea98bce410e8f` |
+| wrangler.jsonc SHA256 | `750e901b27b3372042a3477a804f8291b354d1516c4f00c2ae81b30710b585a5` |
+| Overlay | `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging.wrangler.jsonc` |
+| Ledger dir | `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging/` |
+| `0009_admin_operator.sql` | `e90ac3cc28ff3efa39286c2b6b9c421d658e2d931b2f8b80e50e17c8916856aa` |
+| `0010_admin_operator_last_super.sql` | `8eb9f0a6bd18812232605154bbb64f9ca48db6a629b0e8d728dd941b8d5c3502` |
+| `preflight-staging-operators.sql` | `3d326647e3466c31262820037a1585fb1da07a6a3023b286efbfb3ba761566de` |
+| `provision-staging-operators.sql` | `46a3c5c01b5f66584e2c4ff68723cca9b323c06099160b27d2e2455014cd3338` |
+| `rollback-staging-operators.sql` | `715e3a72b1f930dd9a47cb5d525eb4affae5118cef1f31a7972495b6d552ac77` |
+
+Superseded package of `1e62ce9` (`8dac78db…`) must not be uploaded.
 
 Later operator upload (not this agent), from the unzipped folder:
 
@@ -95,3 +112,7 @@ Then apply `0009`, `0010`, and `scripts/provision-staging-operators.sql` on D1 `
 - CI/CD Workers Builds for production remain separate / pending staging credential. Do not enable production builds.
 - This agent does not upload or apply SQL.
 - Independent re-review of this correction is still required before any deployment approval.
+
+## Artifact checksums (package of `927bf1d`)
+
+See the table in **Official-staging artifact**. Zip SHA256 `78c6942f20a129d9bcb2a4e4443fcab35e0c97ca18aa44263f03e5dc31c07e80`. This packaging step did not upload.
