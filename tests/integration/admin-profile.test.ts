@@ -5,6 +5,7 @@ import { getPlatformProxy } from "wrangler";
 import { ACCESS_ADMIN_HOST } from "../../apps/web/src/lib/server/admin-gate.ts";
 import {
   ADMIN_PASSWORD_MIN_LENGTH,
+  ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS,
   createAdminSessionAuth,
 } from "../../apps/web/src/lib/server/admin-session.ts";
 import { requireAdmin } from "../../apps/web/src/lib/server/auth.ts";
@@ -21,10 +22,18 @@ const secret = "test-only-isolated-d1-secret-0123456789abcdef";
 let platform: Awaited<ReturnType<typeof getPlatformProxy>>;
 let env: AppEnv;
 
-function jsonHeaders(cookie?: string): HeadersInit {
+function cookieJar(response: Response): string {
+  return response.headers
+    .getSetCookie()
+    .map((part) => part.split(";")[0] ?? "")
+    .filter((part) => part.includes("="))
+    .join("; ");
+}
+
+function jsonHeaders(cookie?: string, origin = site): HeadersInit {
   return {
     "content-type": "application/json",
-    origin: site,
+    origin,
     ...(cookie ? { cookie } : {}),
   };
 }
@@ -52,8 +61,7 @@ async function signIn(
       body: JSON.stringify({ email, password }),
     }),
   );
-  const cookie = login.headers.get("set-cookie")?.split(";")[0];
-  return { status: login.status, cookie };
+  return { status: login.status, cookie: cookieJar(login) };
 }
 
 beforeAll(async () => {
@@ -154,6 +162,31 @@ describe("admin profile password change", () => {
     );
     expect(escalate.status).toBe(403);
 
+    const roleEscalate = await handleApi(
+      new Request(`${site}/api/v1/admin/profile/password`, {
+        method: "POST",
+        headers: jsonHeaders(cookie),
+        body: JSON.stringify({
+          currentPassword,
+          newPassword: nextPassword,
+          confirmPassword: nextPassword,
+          role: "primary",
+        }),
+      }),
+      env,
+    );
+    expect(roleEscalate.status).toBe(403);
+
+    const rolePost = await handleApi(
+      new Request(`${site}/api/v1/admin/profile/role`, {
+        method: "POST",
+        headers: jsonHeaders(cookie),
+        body: JSON.stringify({ role: "primary" }),
+      }),
+      env,
+    );
+    expect(rolePost.status).toBe(403);
+
     const mismatch = await handleApi(
       new Request(`${site}/api/v1/admin/profile/password`, {
         method: "POST",
@@ -181,10 +214,22 @@ describe("admin profile password change", () => {
       env,
     );
     expect(changed.status).toBe(200);
+    const currentJar = cookieJar(changed);
+    expect(currentJar).toContain("better-auth.session_token=");
 
-    await expect(
-      requireAdmin(new Request(`${site}/admin`, { headers: { cookie: otherCookie } }), env),
-    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    const currentIdentity = await requireAdmin(
+      new Request(`${site}/admin`, { headers: { cookie: currentJar } }),
+      env,
+    );
+    expect(currentIdentity.email).toBe(email);
+
+    expect(ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS).toBe(60);
+    const otherAuth = createAdminSessionAuth(env, false, new Request(`${site}/admin`));
+    const otherWithoutCache = await otherAuth.api.getSession({
+      headers: new Headers({ cookie: otherCookie }),
+      query: { disableCookieCache: true },
+    });
+    expect(otherWithoutCache).toBeNull();
 
     expect((await signIn(env, currentPassword)).status).not.toBe(200);
     const renewed = await signIn(env, nextPassword);

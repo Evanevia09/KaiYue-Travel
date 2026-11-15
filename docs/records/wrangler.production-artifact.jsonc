@@ -11,9 +11,11 @@
 // Wrangler 4 schema has run_worker_first, not a serve_directly key.
 //
 // Bindings: production D1 06cf879d / R2 kaiyue-offers-production.
-// No staging D1 043cd0ff. No ADMIN_EMAILS, TEMP_ADMIN_EXPIRES_AT,
-// ADMIN_STAGING_TEST_PASSWORD_MIN, or BETTER_AUTH_SECRET.
+// No staging D1 043cd0ff. No ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL,
+// TEMP_ADMIN_EXPIRES_AT, ADMIN_STAGING_TEST_PASSWORD_MIN, BETTER_AUTH_SECRET,
+// ACCESS_TEAM_DOMAIN, or ACCESS_AUD. Those stay Vault / dashboard after review.
 // --keep-vars preserves live Worker vars/secrets. Do not add them here.
+// Official live Worker versions at 2026-11-15 14:18 remain f3169afb / 71a66a99.
 // No upload in this prepare-only increment.
 {
   "name": "kaiyue-travel",

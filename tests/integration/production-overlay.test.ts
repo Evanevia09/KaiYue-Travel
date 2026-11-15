@@ -46,7 +46,10 @@ describe("production overlay candidate", () => {
     expect(vars).not.toHaveProperty("ADMIN_STAGING_TEST_PASSWORD_MIN");
     expect(vars).not.toHaveProperty("TEMP_ADMIN_EXPIRES_AT");
     expect(vars).not.toHaveProperty("ADMIN_EMAILS");
+    expect(vars).not.toHaveProperty("ADMIN_PRIMARY_EMAIL");
     expect(vars).not.toHaveProperty("BETTER_AUTH_SECRET");
+    expect(vars).not.toHaveProperty("ACCESS_TEAM_DOMAIN");
+    expect(vars).not.toHaveProperty("ACCESS_AUD");
     expect(JSON.stringify(overlayConfig)).not.toContain(stagingD1);
     expect(JSON.stringify(overlayConfig)).not.toContain(obsoleteD1);
     expect(JSON.stringify(overlayConfig)).not.toContain("41386f");

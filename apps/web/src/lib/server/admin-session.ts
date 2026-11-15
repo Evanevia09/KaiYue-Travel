@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import type { AppEnv } from "./env.ts";
 
 export const ADMIN_PASSWORD_MIN_LENGTH = 12;
+export const ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS = 60;
 
 export function allowedAdminEmails(env: AppEnv): Set<string> {
   return new Set(
@@ -39,7 +40,7 @@ export function createAdminSessionAuth(env: AppEnv, allowSignup = false, request
       updateAge: 60 * 60,
       // Preview admin POSTs were spending most of their 5 s on sequential Better Auth
       // D1 session reads. A short signed cookie cache skips those round trips.
-      cookieCache: { enabled: true, maxAge: 60 },
+      cookieCache: { enabled: true, maxAge: ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS },
     },
   });
 }

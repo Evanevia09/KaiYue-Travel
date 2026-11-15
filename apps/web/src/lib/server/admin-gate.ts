@@ -45,8 +45,24 @@ export function isPreviewRuntime(
   return host.endsWith(".workers.dev") && !PRODUCTION_HOSTS.includes(host);
 }
 
+export type AccessBindingState = "absent" | "partial" | "configured";
+
+export function accessBindingState(
+  env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
+): AccessBindingState {
+  const team = Boolean(env.ACCESS_TEAM_DOMAIN?.trim());
+  const audience = Boolean(env.ACCESS_AUD?.trim());
+  if (team && audience) {
+    return "configured";
+  }
+  if (team || audience) {
+    return "partial";
+  }
+  return "absent";
+}
+
 export function accessConfigured(env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">): boolean {
-  return Boolean(env.ACCESS_TEAM_DOMAIN?.trim() && env.ACCESS_AUD?.trim());
+  return accessBindingState(env) === "configured";
 }
 
 export function isProtectedAdminPath(pathname: string): boolean {
@@ -61,7 +77,7 @@ export function passwordAdminAllowed(
   request: Request,
 ): boolean {
   if (requestHost(request) === ACCESS_ADMIN_HOST) {
-    return !accessConfigured(env);
+    return accessBindingState(env) === "absent";
   }
   if (isLocalRuntime(env)) {
     return true;
@@ -80,7 +96,11 @@ export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: R
     return;
   }
   if (requestHost(request) === ACCESS_ADMIN_HOST) {
-    if (accessConfigured(env)) {
+    const accessState = accessBindingState(env);
+    if (accessState === "partial") {
+      throw new AppError("FORBIDDEN", "Admin access is not configured.");
+    }
+    if (accessState === "configured") {
       if (passwordAdminPath(pathname)) {
         throw new AppError("FORBIDDEN", "Admin access is not configured.");
       }

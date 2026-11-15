@@ -14,7 +14,7 @@ function listFiles(dir: string): string[] {
 }
 
 describe("main reconciliation invariants", () => {
-  it("keeps dedicated Access admin host and min password length 12", () => {
+  it("keeps dedicated admin host and min password length 12", () => {
     expect(ACCESS_ADMIN_HOST).toBe("admin.kaiyuemacau.com");
     const session = readFileSync(
       join(repoRoot, "apps/web/src/lib/server/admin-session.ts"),
@@ -24,6 +24,7 @@ describe("main reconciliation invariants", () => {
     expect(session).toMatch(/minPasswordLength:\s*ADMIN_PASSWORD_MIN_LENGTH/);
     expect(session).not.toMatch(/adminPasswordMinLength/);
     expect(session).not.toMatch(/ADMIN_STAGING_TEST_PASSWORD_MIN/);
+    expect(session).toMatch(/ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS = 60/);
   });
 
   it("keeps all 41 public photos", () => {
@@ -42,5 +43,12 @@ describe("main reconciliation invariants", () => {
     const wrangler = readFileSync(join(repoRoot, "wrangler.jsonc"), "utf8");
     expect(wrangler).not.toContain("ADMIN_STAGING_TEST_PASSWORD_MIN");
     expect(wrangler).toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
+  });
+
+  it("keeps additive primary-role migration isolated from 0004", () => {
+    const role = readFileSync(join(repoRoot, "migrations/0009_admin_primary_role.sql"), "utf8");
+    const auth = readFileSync(join(repoRoot, "migrations/0004_admin_auth.sql"), "utf8");
+    expect(role).toMatch(/ADD COLUMN "role"/);
+    expect(auth).not.toMatch(/\brole\b/);
   });
 });

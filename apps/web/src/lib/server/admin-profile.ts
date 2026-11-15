@@ -1,11 +1,24 @@
 import { AppError } from "@kaiyue/contracts";
 import { passwordAdminAllowed } from "./admin-gate.ts";
+import { adminProfilePayload, refuseRoleChange, rejectRoleMutation } from "./admin-primary.ts";
 import { ADMIN_PASSWORD_MIN_LENGTH, createAdminSessionAuth } from "./admin-session.ts";
 import type { AdminIdentity } from "./auth.ts";
 import type { AppEnv } from "./env.ts";
 import { json, readJson } from "./http.ts";
 
 const IDENTITY_FIELDS = ["userId", "id", "email", "targetEmail", "targetUserId"] as const;
+
+export async function readOwnAdminProfile(
+  env: AppEnv,
+  actor: AdminIdentity,
+  requestId: string,
+): Promise<Response> {
+  return json(await adminProfilePayload(actor, env), 200, requestId);
+}
+
+export function refuseAdminRoleChange(): never {
+  refuseRoleChange();
+}
 
 function asNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -52,6 +65,7 @@ export async function changeOwnAdminPassword(
     throw new AppError("VALIDATION_FAILED", "Send a JSON request.");
   }
   const record = body as Record<string, unknown>;
+  rejectRoleMutation(record);
   for (const field of IDENTITY_FIELDS) {
     if (field in record) {
       throw new AppError("FORBIDDEN", "You can only change your own password.");

@@ -17,8 +17,10 @@ type AppBindings = {
   DEV_ADMIN_BYPASS?: string;
   BETTER_AUTH_SECRET?: string;
   ADMIN_EMAILS?: string;
+  ADMIN_PRIMARY_EMAIL?: string;
   ADMIN_SETUP_TOKEN?: string;
   TEMP_ADMIN_EXPIRES_AT?: string;
+  ADMIN_STAGING_TEST_PASSWORD_MIN?: string;
 };
 
 declare namespace App {

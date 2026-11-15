@@ -38,8 +38,7 @@ export const adminEn = {
 
   "login.eyebrow": "Protected workspace",
   "login.heading": "Sign in",
-  "login.help":
-    "Preview test operators only. Production admin stays closed until Cloudflare Access is configured.",
+  "login.help": "Sign in with your operator email and password. Public website hosts stay closed.",
   "login.email": "Email",
   "login.password": "Password",
   "login.submit": "Sign in",
@@ -70,8 +69,10 @@ export const adminEn = {
   "settings.eyebrow": "Account",
   "settings.heading": "Profile settings",
   "settings.signedIn": "Signed in as {email}.",
+  "settings.rolePrimary": "Primary operator",
+  "settings.roleStaff": "Staff",
   "settings.passwordHelp":
-    "Change your own password. The current password is required. Other sessions are signed out after a successful change.",
+    "Change your own password. The current password is required. Other sessions are revoked in the database immediately. Signed session cookies on other devices may remain valid for up to one minute.",
   "settings.accessOnly":
     "This session uses Cloudflare Access. Password change is not available for Access identities.",
   "settings.currentPassword": "Current password",
@@ -520,7 +521,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
 
   "login.eyebrow": "受保護工作區",
   "login.heading": "登入",
-  "login.help": "僅供預覽測試人員登入。正式後台在設定 Cloudflare Access 前維持關閉。",
+  "login.help": "請使用營運電郵及密碼登入。公開網站主機維持關閉。",
   "login.email": "電郵",
   "login.password": "密碼",
   "login.submit": "登入",
@@ -549,8 +550,10 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "settings.eyebrow": "帳戶",
   "settings.heading": "帳戶設定",
   "settings.signedIn": "已登入為 {email}。",
+  "settings.rolePrimary": "主要營運者",
+  "settings.roleStaff": "職員",
   "settings.passwordHelp":
-    "只可更改自己的密碼。必須輸入目前密碼。更改成功後，其他工作階段會被登出。",
+    "只可更改自己的密碼。必須輸入目前密碼。其他工作階段會立即從資料庫撤銷。其他裝置上已簽署的工作階段 cookie 最多可能仍有效一分鐘。",
   "settings.accessOnly": "此工作階段使用 Cloudflare Access。Access 身分無法在此更改密碼。",
   "settings.currentPassword": "目前密碼",
   "settings.newPassword": "新密碼 · 至少 12 個字元",

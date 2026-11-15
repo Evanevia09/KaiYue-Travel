@@ -1,96 +1,121 @@
-# 2026-11-15 — Staff dashboard profile password (source prep only)
+# 2026-11-15 — Staff dashboard profile password + Mika corrections (source prep only)
 
-**Task:** fold profile change-password into isolated branch `cursor/admin-profile-password-2cad`, stacked on reconciliation PR #38.  
-**Status:** `checked` after local lint / typecheck / test / build. **Not** `user_accepted`, **not** merged, **not** deployed, **not** `released`.  
-**Does not:** write D1, seed credentials, set Worker secrets, attach DNS, onboard Access, merge `main`, overwrite staging, or publish queue/external messages.
+**Task:** stacked PR #39 on PR #38. Mika review of frozen `c8ad22c5` → `6dcbc44d` is corrected in a new SHA on the same writer/branch.  
+**Status:** source prep. **Not** `user_accepted`, **not** merged, **not** deployed, **not** `released`.  
+**Does not:** write D1, seed credentials, set Worker secrets, attach DNS, onboard Access, merge `main`, overwrite staging, send email, or make Paid Cloudflare changes.
 
-Independent review and staging browser QA remain parent-coordinated. Owner authorized functional staff-dashboard production work and Daniel as main operator; operational steps happen after review.
+Independent review and staging browser QA remain parent-coordinated. Owner authorized functional staff-dashboard production work and Daniel as the main operator; operational steps happen after review.
 
 ## Continuity
 
 | Item | Pointer |
 |---|---|
-| Reconciliation | PR #38 `cursor/main-reconcile-dashboard-2cad` `c8ad22c5c9da05949b985effcbd046a040c1d621` — left intact |
+| Reconciliation | PR #38 `cursor/main-reconcile-dashboard-2cad` `c8ad22c5c9da05949b985effcbd046a040c1d621` — **never trial or merge alone** |
+| Reviewed PR #39 SHA (Mika input) | `6dcbc44dec0d5ccfcbc812db6d4161b7dd522577` — superseded by the correction SHA on this branch |
 | Notification checkpoint | PR #36 `dd69a47d74a06f1119aca116451a1060fa4413ed` |
 | Live-release checkpoint | PR #35 `5aa40dd90db5388883133818e3da5acd4112528a` — never blind-merge |
 | Staging 6-char UAT | `61bc5a03` / PR #34 — **never** port to production |
+| Live Worker 14:18 | unchanged `f3169afb` / inactive `71a66a99` |
 | This branch | `cursor/admin-profile-password-2cad` (from PR #38 HEAD) |
 
-## Preflight: change-password
+## (1) PR #38 must not be trialed alone
+
+PR #38 restores the live Access-only dedicated-host gate (`passwordAdminAllowed` false on `admin.kaiyuemacau.com` whenever that host is used as an Access surface). That is the **unwanted** gate. Owner Nov 12: remove the extra Access requirement; keep Better Auth/D1.
+
+**Combined PR #39** restores owner password login when Access vars are **both absent**. Public apex/www stay 403. 41 photos stay.
+
+Do **not** wait on Cloudflare Access onboarding. Access not enabled on 33ecc is an observation, not a production blocker. Parent 14:03–14:06 Access-blocker framing is discarded.
+
+## (2) Access config is both-or-nothing
+
+`accessConfigured` is true only when **both** `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are non-empty. Domain-only or AUD-only is `partial` and fails closed (no password login, no Access JWT). Both absent is the valid normal password path. Both configured is the valid Access path. This does **not** enable Access as a requirement.
+
+## (3) Session revocation guarantee
+
+Better Auth `session.cookieCache.maxAge` is **60 seconds**. Password change calls `revokeOtherSessions: true` and forwards **all** `Set-Cookie` values.
+
+| Surface | Guarantee |
+|---|---|
+| D1 `session` rows for other devices | Deleted immediately |
+| Current browser jar from the change-password response | Continues |
+| Other complete cookie jars | Rejected when cookie cache is bypassed (`disableCookieCache`) |
+| Other devices with a signed cache cookie | May remain valid **up to 60 seconds** |
+
+Do not claim immediate other-device logout.
+
+## (4) Production dedicated-host tests
+
+Positive login + password change now run as `ENVIRONMENT=production` on `https://admin.kaiyuemacau.com`, not only localhost. Coverage also includes signup denial, cross-origin denial, unallowlisted identity, DEV_ADMIN_BYPASS non-bypass, public apex 403, and expired UAT timestamp ignored on this host. Production password policy stays min 12. `ADMIN_STAGING_TEST_PASSWORD_MIN=6` and `TEMP_ADMIN_EXPIRES_AT=2026-11-24` are not inherited.
+
+## (5) Primary operator — not an allowlist label
+
+Owner asked for Daniel as main admin. Review correctly found **no RBAC / super-admin** in the frozen SHA. This increment adds a minimal server-enforced primary:
+
+- Worker var `ADMIN_PRIMARY_EMAIL` (Vault, not overlay, not git).
+- Additive `migrations/0009_admin_primary_role.sql` (`user.role` default `staff`). **Not applied.**
+- Production dedicated host: only the env-named primary email may password-login. Staff / other allowlisted users are 403.
+- `POST /api/v1/admin/profile/role` is always 403. Password-change cannot set `role`.
+- Persisted `primary` is ignored unless env names that same email (default-deny escalation).
+- UI says “Primary operator”, not Super Admin.
+
+### Provisioning check (parent 14:18 production D1 read, no writes, no hashes)
 
 | Check | Result |
 |---|---|
-| Feature in prior tree | **Missing.** No profile settings page, no `changePassword` / change-password route, no tests. |
-| How it is tested now | `tests/integration/admin-profile.test.ts` (unauthenticated, wrong current password, short password, confirmation mismatch, `userId` escalation 403, success + other-session revoke, public apex 403, DEV_ADMIN_BYPASS cannot change password, Access-configured host 403). `tests/integration/admin-gate.test.ts` public-host 403 matrix unchanged. |
+| D1 | `06cf879d-8fea-4088-8881-7d382e1b8c11` `kaiyue-travel-production` |
+| Exact and case-insensitive `daniel@kaiyuemacau.com` user count | **0** |
+| Associated credential account count | **0** |
+| `user.email` UNIQUE | yes — do not insert a case variant |
+| `user` columns | id, name, email, emailVerified, image, createdAt, updatedAt |
+| role column / role table | **absent** (17 tables) |
+| Decision | **CREATE**, not password reset |
 
-## Production admin gate (source + parent 14:05)
+### Supported secret-safe CREATE path (parent after review)
 
-Public hosts stay fail-closed. This branch does **not** add `DEV_ADMIN_BYPASS` on production and does **not** invent Access values.
+Approved path is the existing Better Auth hasher used by `scripts/seed-preview-test-admin.mjs`, **not** that preview seeder itself (obsolete D1 `069aa442`, `INSERT OR REPLACE`, 16-char preview policy, prints SQL including hash). Browser `/setup-admin` and `/api/auth/sign-up/email` stay development-only; loopback against live D1 is not a production fill path. **No new public admin-create endpoint.**
 
-Source env names (from `apps/web/src/lib/server/env.ts` / `apps/web/src/env.d.ts`, not dashboard nicknames):
+Exact parent steps, no secrets in this packet:
 
-| Source name | Live 14:05 (parent, official 33ecc) |
-|---|---|
-| `ENVIRONMENT` | `production` |
-| `DEV_ADMIN_BYPASS` | `false` |
-| `PUBLIC_SITE_URL` | `https://kaiyuemacau.com` |
-| `ACCESS_TEAM_DOMAIN` | **absent** (do not invent) |
-| `ACCESS_AUD` | **absent** (do not invent; not `POLICY_AUD`) |
-| D1 | `06cf879d-8fea-4088-8881-7d382e1b8c11` — preserve |
-| R2 | `kaiyue-offers-production` — preserve |
+1. Generate a temporary password in Vault (length ≥ 12). Do not commit it.
+2. Apply additive `0009` to production D1 **after** reviewed code is on the Worker that understands a missing column.
+3. `PRIMARY_ADMIN_EMAIL` / `PRIMARY_ADMIN_PASSWORD` / `BETTER_AUTH_SECRET` in the local shell only.
+4. `node scripts/provision-primary-admin.mjs --write-sql --out <0600 file>` then `--stamp-role` after 0009. Stdout omits password and hash. Script does not call wrangler.
+5. Parent applies the SQL file with `wrangler d1 execute` against `06cf879d` only.
+6. Vault Worker vars: `BETTER_AUTH_SECRET` (≥32), `ADMIN_EMAILS` and `ADMIN_PRIMARY_EMAIL` = the verified Daniel address. Omit `ADMIN_STAGING_TEST_PASSWORD_MIN` and `TEMP_ADMIN_EXPIRES_AT`.
+7. Operator signs in on `admin.kaiyuemacau.com` and changes the password at `/admin/settings`.
 
-`POLICY_AUD` / `TEAM_DOMAIN` are **not** Worker binding names in this repository. Tests assert `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` and reject `POLICY_AUD`.
+Rejected: remote public signup, `/setup-admin` on production, inventing Access values, porting UAT 6-char / Nov 24 expiry, untargeted `UPDATE user SET role='primary'`.
 
-## Blocked: Cloudflare Access onboarding (production)
+## (6) Overlays — not git wrangler
 
-| Item | Official 33ecc read-only 14:05 | Implication |
-|---|---|---|
-| Admin hostname `admin.kaiyuemacau.com` | Unattached: no DNS, no custom domain, no Worker route | Staff host is not reachable yet. Do not attach in this step. |
-| Access apps / policies / identity providers | HTTP 403, code `9999`, `access.api.error.not_enabled` | Access product is **not onboarded**. |
-| Access org / group read | Missing `access-acct.read` | Cannot list Access policy from this writer. |
-| Live Access bindings | No `ACCESS_TEAM_DOMAIN`, no `ACCESS_AUD` | Password JWT Access path cannot run on live. Do **not** invent values to make tests look green in production. |
-| Billing / plan | May require billing info / Free plan selection | **Parent/owner decision later.** Not a browser bypass. |
+| Overlay | Worker | D1 | R2 | Assets |
+|---|---|---|---|---|
+| `docs/records/wrangler.production-artifact.jsonc` | `kaiyue-travel` | `06cf879d` | `kaiyue-offers-production` | `run_worker_first=false` |
+| `docs/records/wrangler.staging-artifact.jsonc` | `kaiyue-travel-staging` | official `043cd0ff` | `kaiyue-offers-staging` | `run_worker_first=true` |
 
-This blocked row is **not** a reason to stop source prep. It **is** a reason not to declare production staff login live.
+Neither overlay encodes allowlist, primary email, secrets, Access, 6-char, or Nov 24 expiry. Git `wrangler.jsonc` stays unsafe (obsolete `069aa442`) and must not be uploaded.
 
-When Access is later onboarded with real `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD`, this branch keeps password routes **disabled** on the dedicated host and keeps public apex/www 403. Password change is then unavailable for Access identities (settings page says so).
-
-Until Access is onboarded, dedicated-host password admin is allowed **only** on `admin.kaiyuemacau.com` and only because both Access source vars are absent. Public production hosts remain 403. Admin hostname still has no DNS — this is source prep, not a live login.
-
-## Identity, schema, Daniel
-
-There is **no RBAC / super-admin column**. Schema is Better Auth 1.7.5 (`migrations/0004_admin_auth.sql`): `user`, `session`, `account`, `verification`. Operator authorization is the `ADMIN_EMAILS` allowlist plus a Better Auth credential row. `/setup-admin` stays development-only.
-
-**Daniel identity (verified record, not a new guess):** owner t156u “daniel@” maps to historical `daniel@kaiyuemacau.com`. Trusted in-repo pointer: `tests/integration/production-overlay.test.ts` forbids that address in the production overlay so it is never baked into git Wrangler/overlay. This branch does **not** add the address to overlay, wrangler, or seed SQL.
-
-**Not done (parent after review, Vault/Secure Form only):**
-
-1. Keep live D1 `06cf879d` and R2 `kaiyue-offers-production`. No photo/contact wipe. Confirm migration `0004` on that D1 before any user row.
-2. Set Worker secrets/vars via Vault: `BETTER_AUTH_SECRET` (length ≥ 32), `ADMIN_EMAILS` = the Daniel address above. Do **not** put them in git, overlay, logs, or chat. Do **not** port `ADMIN_STAGING_TEST_PASSWORD_MIN`.
-3. Create the Better Auth user for that email with a temporary password **≥ 12 characters**, parent-generated, never `test123`, never committed.
-4. Operator then signs in on a **reviewed staff surface** (not public apex) and uses `/admin/settings` to change the password.
-5. Attach admin hostname / Access onboarding only after owner decision. Not this PR.
-
-## Auth / CSRF / rollback
+## Auth / CSRF / rollback (preserved)
 
 | Control | Behavior |
 |---|---|
-| Public `/admin` `/login` `/api/v1/admin/profile/password` | 403 JSON `Admin access is not configured.` |
-| `minPasswordLength` | **12** (`ADMIN_PASSWORD_MIN_LENGTH`). Longer passwords allowed. Policy not lowered. |
-| Change password | Own session only. Current password required. Confirmation required. Rejects `userId` / `email` / `id` fields. Better Auth hashes the secret; hashes are not returned. Other sessions revoked; new session cookie forwarded. |
-| CSRF | Existing `requireSameOrigin` on admin mutations. |
-| DEV_ADMIN_BYPASS | Local only; cannot change password. Not an apex shortcut. |
-| Git `wrangler.jsonc` | Unchanged, unsafe, do not upload. Overlay remains production D1/R2, `run_worker_first=false`, no TEMP/Access invented vars. |
-| Rollback | Previous live Worker versions (`f3169afb` / `71a66a99` as previously recorded). Do not restore by wiping D1. |
+| Public `/admin` `/login` `/api/v1/admin/*` | 403 JSON `Admin access is not configured.` |
+| `minPasswordLength` | **12** |
+| CSRF | `requireSameOrigin` on admin mutations; dedicated host origin is not the public site origin |
+| DEV_ADMIN_BYPASS | Local only; not an apex or dedicated-host shortcut |
+| Rollback | Previous live Worker versions (`f3169afb` / `71a66a99` as of 14:18). Do not restore by wiping D1. |
 
 ## Verification (this increment)
 
-Raw logs: `docs/records/2026-11-15-admin-profile-password-check-logs.txt`.
+Raw logs: `docs/records/2026-11-15-admin-profile-password-check-logs.txt`  
+SHA256: `361bce51b5e610f9610abaff3994630d2d42e4f9b15c5ae0e5a9095c9cae27a9`
 
-Expected: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
+Local: `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` **163/163** across **32** files; `pnpm build` complete.
 
-Not verified here: staging/live browser QA, D1 user row, staff-domain attach, Access onboarding, GitHub Actions, Workers Builds `41386f` (do not retry or cancel).
+Prior official Actions job `https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43684217704/job/132721152605` reviewed `6dcbc44d` (146 tests / 29 files) and is **not** release approval. Re-review this new SHA.
+
+Not verified here: staging/live browser QA, D1 apply of `0009`, Vault CREATE, staff-domain attach, Access onboarding, GitHub Actions on this SHA, Workers Builds `41386f` (do not retry or cancel).
 
 ## Next action
 
-Independent review of this PR (and PR #38). Parent-coordinated staging browser QA. Then parent-only operational provisioning. Do not treat source prep as production staff login.
+Parent independent review of the **new** SHA (not `6dcbc44d` / not `c8ad22c5` alone), then staging QA on the isolated staging overlay, then parent-only Vault CREATE. Do not treat source prep as production staff login.

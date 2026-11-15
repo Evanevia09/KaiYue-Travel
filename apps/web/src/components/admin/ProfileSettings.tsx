@@ -5,10 +5,12 @@ import { adminFetch } from "./api.ts";
 export function ProfileSettings({
   locale,
   email,
+  role,
   passwordChangeAvailable,
 }: {
   locale: AdminLocale;
   email: string;
+  role: "primary" | "staff";
   passwordChangeAvailable: boolean;
 }) {
   const [error, setError] = useState("");
@@ -20,6 +22,9 @@ export function ProfileSettings({
       <p className="admin-eyebrow">{t(locale, "settings.eyebrow")}</p>
       <h2>{t(locale, "settings.heading")}</h2>
       <p className="muted">{t(locale, "settings.signedIn", { email })}</p>
+      <p className="muted">
+        {role === "primary" ? t(locale, "settings.rolePrimary") : t(locale, "settings.roleStaff")}
+      </p>
       {passwordChangeAvailable ? (
         <>
           <p className="muted">{t(locale, "settings.passwordHelp")}</p>

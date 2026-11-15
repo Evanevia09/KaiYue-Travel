@@ -5,10 +5,12 @@ import { ProfileSettings } from "../../components/admin/ProfileSettings.tsx";
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import { adminLocaleFromCookies } from "../../lib/admin-i18n.ts";
 import { passwordAdminAllowed } from "../../lib/server/admin-gate.ts";
+import { adminProfilePayload } from "../../lib/server/admin-primary.ts";
 import { requireAdmin } from "../../lib/server/auth.ts";
 
 const locale = adminLocaleFromCookies(Astro.cookies);
 const actor = await requireAdmin(Astro.request, env);
+const profile = await adminProfilePayload(actor, env);
 const passwordChangeAvailable = passwordAdminAllowed(env, Astro.request);
 ---
 
@@ -16,7 +18,8 @@ const passwordChangeAvailable = passwordAdminAllowed(env, Astro.request);
   <ProfileSettings
     client:load
     locale={locale}
-    email={actor.email}
+    email={profile.email}
+    role={profile.role}
     passwordChangeAvailable={passwordChangeAvailable}
   />
 </AdminLayout>
