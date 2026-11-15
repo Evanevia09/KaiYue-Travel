@@ -95,21 +95,21 @@ Local packaging only. Existing runtime source `577012c` / deployed version `19eb
 
 | Item | Value |
 |---|---|
-| Source SHA | `SOURCE_SHA_PENDING` |
-| Zip | `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging.zip` |
-| Zip SHA256 | `ZIP_SHA_PENDING` |
-| entry.js SHA256 | `ENTRY_SHA_PENDING` |
-| wrangler.jsonc SHA256 | `WRANGLER_SHA_PENDING` |
-| Overlay | `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging.wrangler.jsonc` |
-| Ledger dir | `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging/` |
+| Source SHA | `4af0a5caf12b06eedaf41ea1f173263b4a56d433` |
+| Zip | `/opt/cursor/artifacts/kaiyue_host_role_4af0a5c_official_staging.zip` |
+| Zip SHA256 | `4760701f12494bcf275218ab7c0537662fa9b4a19a68b5e30dacd8b0e45f82f9` (9998987 bytes) |
+| entry.js SHA256 | `f2ccf8673fe9da65cd5d0b6681a5f617b6ac4b2134a6d3a408dcd3611eda0e63` |
+| wrangler.jsonc SHA256 | `3cebf4081a9a95270bfb9dd5ed09101a7a508e7965808690cff5a9cf2bb4b615` |
+| Overlay | `/opt/cursor/artifacts/kaiyue_host_role_4af0a5c_official_staging.wrangler.jsonc` |
+| Ledger dir | `/opt/cursor/artifacts/kaiyue_host_role_4af0a5c_official_staging/` |
 | `0009_admin_operator.sql` | `e90ac3cc28ff3efa39286c2b6b9c421d658e2d931b2f8b80e50e17c8916856aa` |
 | `0010_admin_operator_last_super.sql` | `8eb9f0a6bd18812232605154bbb64f9ca48db6a629b0e8d728dd941b8d5c3502` |
-| `preflight-staging-identity.sql` | `IDENTITY_SHA_PENDING` |
-| `preflight-staging-migrations.sql` | `MIGRATIONS_PREFLIGHT_SHA_PENDING` |
-| `preflight-staging-operators.sql` | `PREFLIGHT_SHA_PENDING` |
-| `provision-staging-operators.sql` | `PROVISION_SHA_PENDING` |
+| `preflight-staging-identity.sql` | `ffb70b696b95a1ebd4d9dd7f306c5470fa00b6d70c325eb540e6f4ebfb2d7fe4` |
+| `preflight-staging-migrations.sql` | `077f6f7230fa65c9430cac4e677db427bda6ec213fce7c415b20ccb3ee9162e4` |
+| `preflight-staging-operators.sql` | `c76f2c2ab23290f77284f04726fe17fa4166e69fe19ae564f8bbea379a8407a5` |
+| `provision-staging-operators.sql` | `883759c93e76e783b6f3deb8d25ef0e98573ed1667855b8ce404b074aaabf25c` |
 | `rollback-staging-operators.sql` | `715e3a72b1f930dd9a47cb5d525eb4affae5118cef1f31a7972495b6d552ac77` |
-| `staging-operator-bootstrap-order.json` | `ORDER_SHA_PENDING` |
+| `staging-operator-bootstrap-order.json` | `14d1ee69aa55f715625556761350e1e735edb055c041f7d60dd6ad6bf7cccb2a` |
 
 Later operator upload (not this agent), from the unzipped folder:
 
@@ -136,4 +136,4 @@ Then follow `scripts/staging-operator-bootstrap-order.json` on D1 `043cd0ff` onl
 
 ## Artifact checksums
 
-See the table in **Official-staging artifact**. This packaging step did not upload. Package of `94ee1ff` (`3ef4665a…`) is superseded.
+See the table in **Official-staging artifact**. Zip SHA256 `4760701f12494bcf275218ab7c0537662fa9b4a19a68b5e30dacd8b0e45f82f9`. This packaging step did not upload. Package of `94ee1ff` (`3ef4665a…`) is superseded.
