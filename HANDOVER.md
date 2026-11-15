@@ -4,12 +4,13 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 ## 2026-11-15 16:55 — Isolated trial D1/R2 + synthetic REST probes (docs closeout)
 
-- **Approval:** Evan 16:47 Asia/Macau existing widget t164s918. Scope: new empty official 33ecc D1/R2 + synthetic noncredential probes only. Infra 16:53; user result 16:55.
+- **Approval:** Evan 16:47 Asia/Macau existing widget t164s918. Scope: new empty official 33ecc D1/R2 + synthetic noncredential probes only. Infra 16:53; user result 16:55. Mika independently verified evidence hashes, JSON `00`–`11`, and that owner answer. No added operational authority.
 - **Created:** D1 `kaiyue-travel-admin-trial` `06aa844b-da6b-4c37-896c-fd13dd265fe6`. R2 `kaiyue-offers-admin-trial` `d937f5bc01e448afa679bdbf3769ed50` empty, private, r2.dev disabled.
-- **Probes:** A–E PASS on observed REST single `/query` semicolon-joined SQL only (including earlier DML + guard CREATE rollback on later CHECK). Interruption UNPROVEN. wrangler execute / binding batch / REST batch UNTESTED.
-- **Not done:** Worker create/upload, app migrations, real identity/secret fill, DNS/Access/mail/paid, prod/UAT writes, cleanup. Residual synth_user 2 / synth_account 1 left (no actual credentials).
+- **Probes:** A–E PASS on observed REST single `/query` semicolon-joined SQL only. Test E CHECK rollback of prior DML + guard CREATE supersedes blanket sequential-autocommit **only** for that observed mode. Provisioner is **not** fully validated. Upload/provisioning not inferred.
+- **Limits:** sanitized executor records are not live readback/raw HTTP; synth schema+marker ≠ exact provisioner; fresh-ID refusal ≠ same-file replay idempotency; interruption / binding batch / REST arrays / wrangler execute UNPROVEN.
+- **Not done:** Worker create/upload, app migrations, real identity/secret fill, DNS/Access/mail/paid, prod/UAT writes, cleanup. Residual synth_user 2 / synth_account 1 left (no actual credentials). Future timeout/error: target/state readback before retry; no fixture cleanup.
 - **Templates:** still **DO_NOT_DEPLOY** / UAT **DO_NOT_UPLOAD**. Freeze `74c30236` and metadata r2 zip `4e8011c9` / docs `2a758879` preserved.
-- **Evidence:** `docs/records/2026-11-15-admin-trial-safety-evidence/` (`REPORT.md` `ba1eed6e`, index `4a487034`). Independent Mika evidence review requested. Not `user_accepted` / not `released`.
+- **Evidence:** `docs/records/2026-11-15-admin-trial-safety-evidence/` (`REPORT.md` `ba1eed6e`, index `4a487034`). Open: secure-process fill, final actual-ID overlay hash, application-auth browser QA, scoped authority. Not `user_accepted` / not `released`.
 
 ## 2026-11-15 — Admin-prep package of freeze 74c3023 (ops hold)
 

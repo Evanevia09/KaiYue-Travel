@@ -18,7 +18,23 @@ Residual trial D1 state left in place (no wipe): `synth_user` 2 / `synth_account
 
 Evidence (parent hashcheck PASS): [`docs/records/2026-11-15-admin-trial-safety-evidence/`](2026-11-15-admin-trial-safety-evidence/REPORT.md) — `REPORT.md` SHA256 `ba1eed6e4d31afd63eee87f1d2e33546813a542bdd2c80d7e99c9f5bed0cc47a`; index `sha256sums.txt` SHA256 `4a487034a2c7aa7e90a2390968ea4a65e8aa79a2688e46e87c11cb2705300c07`.
 
-Still open: secure process credential fill, final bindings, dedicated-host browser QA, substituted overlay approval, Worker upload/activation. Independent Mika evidence review requested. No new owner question.
+Still open: secure process credential fill, final actual-ID overlay hash, application-auth browser QA, scoped upload/provisioning authority, Worker upload/activation. No new owner question. No added operational authority.
+
+## Accuracy 2026-11-15 (docs amendment; history `5087d96` not rewritten)
+
+Mika independently verified evidence hashes, JSON `00`–`11`, and the actual owner 16:47 widget answer. No extra operational authority.
+
+Narrow finding: **one** REST `POST /query` with **one** semicolon-joined `sql` string supports CHECK rollback of prior DML + guard CREATE in test E. That supersedes the blanket sequential-autocommit concern **only** for this observed mode. It does **not** validate the provisioner, and it does **not** infer upload or provisioning approval.
+
+Limits that remain:
+
+- Sanitized executor records are **not** independent live readback or raw HTTP.
+- Synthetic fixture schema + noncredential marker **differ** from the exact provisioner.
+- Fresh-ID refusal is **not** same-file replay idempotency.
+- Mid-request interruption, Worker `D1Database.batch()`, REST `{batch:[{sql},...]}`, and `wrangler d1 execute --file` remain **UNPROVEN / UNTESTED**.
+- Secure-process fill, final actual-ID overlay hash, and application-auth browser QA remain open.
+
+On any future timeout or error: read target identity and residual state **before** retry. Do **not** clean up fixtures.
 
 ## Why the previous staging overlay was unsafe
 

@@ -122,7 +122,7 @@ Mika verified the previous **163** local checks on `0e09ffe` / `9de0a9ae`. That 
 | `scripts/provision-primary-admin.mjs` | `8aa1fdd567de712823cfc5e6efd03661eb43077e2a67114c7bce62e110a7fec0` |
 | `docs/records/2026-11-15-isolated-admin-trial-plan.md` | `68e65baa5341f9c129359babfd5900126fb85c9361bcbf1a2b9e74189ce505de` |
 
-Isolated resource plan + rollback/current baselines: `docs/records/2026-11-15-isolated-admin-trial-plan.md`. Owner 16:47 Asia/Macau approved **only** new empty D1/R2 + synthetic probes. D1 `06aa844b-da6b-4c37-896c-fd13dd265fe6` and R2 `d937f5bc01e448afa679bdbf3769ed50` now exist; Worker still **not** created. Overlay templates remain **DO_NOT_DEPLOY** / UAT **DO_NOT_UPLOAD** until a substituted overlay is approved. Evidence: `docs/records/2026-11-15-admin-trial-safety-evidence/`.
+Isolated resource plan + rollback/current baselines: `docs/records/2026-11-15-isolated-admin-trial-plan.md`. Owner 16:47 Asia/Macau approved **only** new empty D1/R2 + synthetic probes (Mika independently verified hashes, JSON `00`–`11`, and that answer). D1 `06aa844b-da6b-4c37-896c-fd13dd265fe6` and R2 `d937f5bc01e448afa679bdbf3769ed50` now exist; Worker still **not** created. Overlay templates remain **DO_NOT_DEPLOY** / UAT **DO_NOT_UPLOAD** until a substituted overlay is approved. Observed REST single `/query` CHECK rollback (test E) supersedes blanket sequential-autocommit **only** in that mode. Provisioner not fully validated; upload/provisioning not inferred. Evidence: `docs/records/2026-11-15-admin-trial-safety-evidence/`.
 
 Not verified here: staging/dedicated-host browser QA, secret fill, final bindings, staff-domain attach, Access onboarding, GitHub Actions on the new SHA, Workers Builds `41386f` (do not retry or cancel).
 
@@ -139,4 +139,4 @@ Built from isolated worktree at `74c3023`. Original artifacts `/opt/cursor/artif
 
 ## Next action
 
-Ops hold. Independent Mika review of the 16:55 trial-resource evidence. Secure process credential fill, final bindings, and dedicated-host browser QA remain open. Repeat official 33ecc version readback before any apply. Do not upload while templates still carry the uncreated D1 sentinel.
+Ops hold. Secure-process fill, final actual-ID overlay hash, application-auth browser QA, and scoped upload/provisioning authority remain open. Repeat official 33ecc version readback before any apply. Do not upload while templates still carry the uncreated D1 sentinel. Future timeout/error: target/state readback before retry; no fixture cleanup.
