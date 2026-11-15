@@ -43,6 +43,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 23. [2026-11-15 main reconciliation (prepare only)](records/2026-11-15-main-reconcile-dashboard.md)
 24. [2026-11-15 staff profile password release packet (prepare only)](records/2026-11-15-admin-profile-password-release-packet.md)
 25. [2026-11-15 isolated admin trial resource plan (not approved, not created)](records/2026-11-15-isolated-admin-trial-plan.md)
+26. [2026-11-15 admin-prep package of freeze 74c3023 (ops hold)](records/2026-11-15-admin-prep-package.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

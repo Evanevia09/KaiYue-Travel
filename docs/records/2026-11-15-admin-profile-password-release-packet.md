@@ -126,6 +126,15 @@ Isolated resource plan + rollback/current baselines: `docs/records/2026-11-15-is
 
 Not verified here: staging browser QA, D1 apply, secret fill, staff-domain attach, Access onboarding, GitHub Actions on the new SHA, Workers Builds `41386f` (do not retry or cancel).
 
+## Prep package (runtime freeze intact)
+
+Built from isolated worktree at `74c3023`. Copied to `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_*`. Record: `docs/records/2026-11-15-admin-prep-package.md`.
+
+- Production zip SHA256 `483686e17141a24b12561169aaa51a0a9a7ccd91cba0e47703eb128f1fd24175` (entry + 41 photos, D1 `06cf879d`, R2 production, `run_worker_first=false`).
+- Trial overlay TEMPLATE labeled **DO_NOT_DEPLOY** until D1 exists and the ID is read back. R2 `kaiyue-offers-admin-trial`.
+- Standalone CREATE CLI SHA256 `e7f104973dcdaa16d2fb201d90eeea1abae48c78f5328589fd348f44e32a1e2d` (Better Auth 1.7.5, empty-box, fake trial fixture only).
+- No DNS, Worker create, D1 apply, or secret seed.
+
 ## Next action
 
-Parent rereview of the new HEAD. Isolated trial resources only after Mika approves the exact plan. Do not treat source prep as production staff login.
+Ops hold. Mika rereview of `74c3023` and exact isolated trial plan before any provision.

@@ -2,6 +2,13 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Admin-prep package of freeze 74c3023 (ops hold)
+
+- **Runtime freeze:** `74c30236a03583675f39d1a97b79c19a60d58da5` (reviewed code not changed).
+- **Package:** `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_production_complete.zip` plus standalone CREATE CLI. Record: `docs/records/2026-11-15-admin-prep-package.md`.
+- **Trial overlay:** DO_NOT_DEPLOY template; R2 `kaiyue-offers-admin-trial`; D1 ID uncreated sentinel.
+- **Not done:** DNS, Worker create, D1 apply, secret seed, Vault export, deploy.
+
 ## 2026-11-15 — Mika rereview source prep (not live, not trial)
 
 - **Branch:** `cursor/admin-profile-password-2cad` (PR #39 stacked on PR #38). PR #38 must never be trialed alone.
