@@ -1,0 +1,312 @@
+=== cwd /agent/repos/KaiYue-Travel ===
+=== HEAD 037b93ad704ce4ed45d0148ad22a7a05cf030a81 (pre-commit tree; SHA will change after commit) ===
+=== branch cursor/main-reconcile-dashboard-2cad ===
+=== date 2026-11-15T06:02:14Z ===
+
+===== pnpm lint =====
+
+> kaiyue-travel@ lint /agent/repos/KaiYue-Travel
+> prettier --check .
+
+Checking formatting...
+[warn] tests/integration/main-reconcile-invariants.test.ts
+[warn] Code style issues found in the above file. Run Prettier with --write to fix.
+ ELIFECYCLE  Command failed with exit code 1.
+lint_exit=1
+
+===== pnpm typecheck =====
+
+> kaiyue-travel@ typecheck /agent/repos/KaiYue-Travel
+> pnpm -r --if-present typecheck
+
+Scope: 2 of 3 workspace projects
+packages/contracts typecheck$ tsc --noEmit
+packages/contracts typecheck: Done
+apps/web typecheck$ astro check && tsc --noEmit
+apps/web typecheck: 06:02:22 [vite] Re-optimizing dependencies because vite config has changed
+apps/web typecheck: 06:02:22 [vite] Re-optimizing dependencies because vite config has changed
+apps/web typecheck: 06:02:22 [vite] Re-optimizing dependencies because vite config has changed
+apps/web typecheck: 06:02:23 [content] Syncing content
+apps/web typecheck: 06:02:23 [content] Synced content
+apps/web typecheck: 06:02:23 [types] Generated 1.17s
+apps/web typecheck: 06:02:23 [check] Getting diagnostics for Astro files in /agent/repos/KaiYue-Travel/apps/web...
+apps/web typecheck: [96msrc/components/admin/InventoryPanel.tsx[0m:[93m45[0m:[93m38[0m - [93mwarning[0m[90m ts(6385): [0m'FormEvent' is deprecated.
+apps/web typecheck: [7m45[0m   async function submit(event: React.FormEvent<HTMLFormElement>) {
+apps/web typecheck: [7m  [0m [93m                                     ~~~~~~~~~[0m
+apps/web typecheck: [96msrc/components/admin/OffersPanel.tsx[0m:[93m170[0m:[93m13[0m - [93mwarning[0m[90m ts(6385): [0m'returnValue' is deprecated.
+apps/web typecheck: [7m170[0m       event.returnValue = "";
+apps/web typecheck: [7m   [0m [93m            ~~~~~~~~~~~[0m
+apps/web typecheck: [96msrc/layouts/BaseLayout.astro[0m:[93m119[0m:[93m20[0m - [93mwarning[0m[90m ts(6133): [0m'media' is declared but its value is never read.
+apps/web typecheck: [7m119[0m       onload="this.media='all'"
+apps/web typecheck: [7m   [0m [93m                   ~~~~~[0m
+apps/web typecheck: Result (127 files): 
+apps/web typecheck: - 0 errors
+apps/web typecheck: - 0 warnings
+apps/web typecheck: - 3 hints
+apps/web typecheck: Done
+typecheck_exit=0
+
+===== pnpm test =====
+
+> kaiyue-travel@ test /agent/repos/KaiYue-Travel
+> vitest run
+
+
+ RUN  v3.2.7 /agent/repos/KaiYue-Travel
+
+(node:10797) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:10803) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > persists a valid booking once and replays matching idempotency keys
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-CEW7SEQY","requestId":"req_685de408a3204d81a98a","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.421Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > persists a valid booking once and replays matching idempotency keys
+{"level":"info","message":"booking_created","requestId":"req_685de408a3204d81a98a","reference":"KY-CEW7SEQY","notificationState":"skipped","ts":"2026-11-15T06:02:36.421Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > rejects reused idempotency keys with a different payload
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-P9UB9TLR","requestId":"req_5248ff2835a948bab4b2","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.429Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > rejects reused idempotency keys with a different payload
+{"level":"info","message":"booking_created","requestId":"req_5248ff2835a948bab4b2","reference":"KY-P9UB9TLR","notificationState":"skipped","ts":"2026-11-15T06:02:36.429Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores hourly duration in booking notes
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-ZQB2T6W4","requestId":"req_4829beae36e24c96b16a","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.444Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores hourly duration in booking notes
+{"level":"info","message":"booking_created","requestId":"req_4829beae36e24c96b16a","reference":"KY-ZQB2T6W4","notificationState":"skipped","ts":"2026-11-15T06:02:36.444Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a city tour package without a destination or return
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-KN2NR75C","requestId":"req_cccb6f06dfbb41c088a9","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.449Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a city tour package without a destination or return
+{"level":"info","message":"booking_created","requestId":"req_cccb6f06dfbb41c088a9","reference":"KY-KN2NR75C","notificationState":"skipped","ts":"2026-11-15T06:02:36.450Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > persists a WhatsApp enquiry and returns a formatted deep link
+{"level":"info","message":"booking_created","requestId":"req_e6a9acdfc4154fb8b424","reference":"KY-MUUMQ4MN","notificationState":"skipped","ts":"2026-11-15T06:02:36.463Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the pt WhatsApp request and confirmation
+{"level":"info","message":"booking_created","requestId":"req_6af55ba73bbe4c839cb4","reference":"KY-WR5CSBFA","notificationState":"skipped","ts":"2026-11-15T06:02:36.471Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the zh-Hant WhatsApp request and confirmation
+{"level":"info","message":"booking_created","requestId":"req_89d37a9e4f1440929213","reference":"KY-KGR4WRMH","notificationState":"skipped","ts":"2026-11-15T06:02:36.477Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > accepts an optional message and omits empty Message text from WhatsApp
+{"level":"info","message":"booking_created","requestId":"req_68eeea8bf1364367a11e","reference":"KY-TG6U6XRF","notificationState":"skipped","ts":"2026-11-15T06:02:36.484Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > accepts an email enquiry with an empty message
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-LR7VVJLA","requestId":"req_7290c4a23d3342f7902f","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.491Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > accepts an email enquiry with an empty message
+{"level":"info","message":"booking_created","requestId":"req_7290c4a23d3342f7902f","reference":"KY-LR7VVJLA","notificationState":"skipped","ts":"2026-11-15T06:02:36.491Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a published special offer id and title on the booking
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-XK2FY2S4","requestId":"req_83e963f458c945968745","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.496Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a published special offer id and title on the booking
+{"level":"info","message":"booking_created","requestId":"req_83e963f458c945968745","reference":"KY-XK2FY2S4","notificationState":"skipped","ts":"2026-11-15T06:02:36.497Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > labels a special-offer WhatsApp enquiry as special offer, not city tour
+{"level":"info","message":"booking_created","requestId":"req_1971a08260954e2fbc23","reference":"KY-S2MJTDRA","notificationState":"skipped","ts":"2026-11-15T06:02:36.504Z"}
+
+ ✓ tests/integration/offers.test.ts (7 tests) 103ms
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the pt special-offer WhatsApp service label
+{"level":"info","message":"booking_created","requestId":"req_3191609df57e49e0bc5d","reference":"KY-3P5ZZR5Z","notificationState":"skipped","ts":"2026-11-15T06:02:36.510Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > localizes the zh-Hant special-offer WhatsApp service label
+{"level":"info","message":"booking_created","requestId":"req_e3a1753f34b14193928d","reference":"KY-AKQNSSZ6","notificationState":"skipped","ts":"2026-11-15T06:02:36.515Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > keeps city tour on a City Tours WhatsApp enquiry
+{"level":"info","message":"booking_created","requestId":"req_36eda37e88014e118d17","reference":"KY-DGN5ZPPP","notificationState":"skipped","ts":"2026-11-15T06:02:36.520Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a half-day tour-guide preference and omits luggage
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-EMEHQ2CR","requestId":"req_cfcb074b021d4877b891","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.529Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > stores a half-day tour-guide preference and omits luggage
+{"level":"info","message":"booking_created","requestId":"req_cfcb074b021d4877b891","reference":"KY-EMEHQ2CR","notificationState":"skipped","ts":"2026-11-15T06:02:36.529Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > keeps luggage on a non-package journey and leaves tour-guide unset
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-655X2PJW","requestId":"req_76d3900978c24f8c884a","reason":"missing_resend_key","ts":"2026-11-15T06:02:36.533Z"}
+
+stdout | tests/integration/bookings.test.ts > POST /api/v1/bookings > keeps luggage on a non-package journey and leaves tour-guide unset
+{"level":"info","message":"booking_created","requestId":"req_76d3900978c24f8c884a","reference":"KY-655X2PJW","notificationState":"skipped","ts":"2026-11-15T06:02:36.533Z"}
+
+ ✓ tests/integration/bookings.test.ts (20 tests) 130ms
+(node:10865) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:10872) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ apps/web/src/lib/server/access-jwt.test.ts (4 tests) 50ms
+stdout | tests/integration/dispatch.test.ts > dispatch administration > protects inventory routes and validates assignments
+{"level":"info","message":"booking_created","requestId":"req_6125b27514c34d6eaa98","reference":"KY-6386W2PK","notificationState":"skipped","ts":"2026-11-15T06:02:36.991Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > records an audit event when an internal booking note is added
+{"level":"info","message":"booking_created","requestId":"req_d39fb34c33c4408692bc","reference":"KY-TMFFDER6","notificationState":"skipped","ts":"2026-11-15T06:02:37.001Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > edits details and paginates identical pickup times without dropping rows
+{"level":"info","message":"booking_created","requestId":"req_68762ed139e247d299e0","reference":"KY-SH4LBFGD","notificationState":"skipped","ts":"2026-11-15T06:02:37.008Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > edits details and paginates identical pickup times without dropping rows
+{"level":"info","message":"booking_created","requestId":"req_f752697bbf3d456d9043","reference":"KY-JAEZWGBH","notificationState":"skipped","ts":"2026-11-15T06:02:37.009Z"}
+
+stdout | tests/integration/dispatch.test.ts > dispatch administration > edits details and paginates identical pickup times without dropping rows
+{"level":"info","message":"booking_created","requestId":"req_24c57e0a4619419ea799","reference":"KY-GYR8T4YF","notificationState":"skipped","ts":"2026-11-15T06:02:37.009Z"}
+
+ ✓ tests/integration/dispatch.test.ts (4 tests) 49ms
+ ✓ apps/web/src/lib/offer-image.test.ts (3 tests) 22ms
+ ✓ tests/integration/production-overlay.test.ts (4 tests) 32ms
+(node:10968) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/admin.test.ts > admin authorization and mutations > allows the local development bypass and records audited status changes
+{"level":"info","message":"notification_skipped","kind":"booking","reference":"KY-SJLBQFWG","requestId":"req_d2d9e98e20a84330a6f5","reason":"missing_resend_key","ts":"2026-11-15T06:02:37.648Z"}
+
+(node:10969) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/admin.test.ts > admin authorization and mutations > allows the local development bypass and records audited status changes
+{"level":"info","message":"booking_created","requestId":"req_d2d9e98e20a84330a6f5","reference":"KY-SJLBQFWG","notificationState":"skipped","ts":"2026-11-15T06:02:37.649Z"}
+
+stdout | tests/integration/admin.test.ts > admin authorization and mutations > stores a staff manual enquiry without labelling it WhatsApp
+{"level":"info","message":"booking_created","requestId":"req_611faa4b543145c4865b","reference":"KY-X5KDCZNT","notificationState":"skipped","ts":"2026-11-15T06:02:37.659Z"}
+
+ ✓ tests/integration/admin.test.ts (3 tests) 31ms
+ ✓ tests/integration/admin-gate.test.ts (5 tests) 31ms
+ ✓ apps/web/src/lib/admin-i18n.test.ts (11 tests) 40ms
+ ✓ apps/web/src/components/admin/api.test.ts (2 tests) 12ms
+(node:11020) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+stdout | tests/integration/contacts.test.ts > POST /api/v1/contacts > stores a corporate inquiry
+{"level":"info","message":"notification_skipped","kind":"contact","reference":"INQ-65BW8YVN","requestId":"req_0fb54e4a66e04a0fb5b2","reason":"missing_resend_key","ts":"2026-11-15T06:02:38.109Z"}
+
+stdout | tests/integration/contacts.test.ts > POST /api/v1/contacts > stores a corporate inquiry
+{"level":"info","message":"contact_created","requestId":"req_0fb54e4a66e04a0fb5b2","reference":"INQ-65BW8YVN","notificationState":"skipped","ts":"2026-11-15T06:02:38.109Z"}
+
+ ✓ tests/integration/contacts.test.ts (2 tests) 19ms
+ ✓ apps/web/src/components/booking/datetime.test.ts (5 tests) 13ms
+ ✓ apps/web/src/lib/i18n.test.ts (12 tests) 14ms
+ ✓ packages/contracts/src/booking.test.ts (19 tests) 10ms
+ ✓ apps/web/src/lib/server/offers/images.test.ts (2 tests) 4ms
+ ✓ tests/integration/admin-session.test.ts (1 test) 1631ms
+   ✓ admin session on local D1 > rejects anonymous requests, then accepts a signed-in allowlisted account  1048ms
+ ✓ packages/contracts/src/offer.test.ts (5 tests) 5ms
+ ✓ apps/web/src/components/admin/offer-editor.test.ts (6 tests) 4ms
+ ✓ apps/web/src/lib/assignment.test.ts (5 tests) 3ms
+ ✓ tests/integration/main-reconcile-invariants.test.ts (3 tests) 4ms
+ ✓ packages/contracts/src/ids.test.ts (3 tests) 12ms
+ ✓ apps/web/src/lib/special-offer-copy.test.ts (1 test) 2ms
+ ✓ apps/web/src/lib/offer-card.test.ts (3 tests) 4ms
+ ✓ apps/web/src/components/admin/list-query.test.ts (2 tests) 2ms
+ ✓ packages/contracts/src/status.test.ts (4 tests) 3ms
+ ✓ apps/web/src/lib/server/offers/objects.test.ts (1 test) 2ms
+ ✓ packages/contracts/src/phone.test.ts (2 tests) 2ms
+ ✓ apps/web/src/components/booking/store.test.ts (1 test) 2ms
+
+ Test Files  28 passed (28)
+      Tests  140 passed (140)
+   Start at  06:02:35
+   Duration  3.92s (transform 691ms, setup 0ms, collect 5.06s, tests 2.23s, environment 3ms, prepare 1.33s)
+
+test_exit=0
+
+===== pnpm build =====
+
+> kaiyue-travel@ build /agent/repos/KaiYue-Travel
+> pnpm --filter @kaiyue/web build
+
+
+> @kaiyue/web@0.1.0 build /agent/repos/KaiYue-Travel/apps/web
+> astro build && node scripts/normalize-redirects.mjs
+
+06:02:42 [content] Syncing content
+06:02:42 [content] Synced content
+06:02:42 [types] Generated 855ms
+06:02:42 [build] output: "static"
+06:02:42 [build] mode: "server"
+06:02:42 [build] directory: /agent/repos/KaiYue-Travel/apps/web/dist/
+06:02:42 [build] adapter: @astrojs/cloudflare
+06:02:42 [build] Collecting build info...
+06:02:42 [build] ✓ Completed in 900ms.
+06:02:42 [build] Building server entrypoints...
+06:02:43 [vite] ✓ built in 898ms
+06:02:43 [vite] ✓ built in 484ms
+06:02:44 [vite] ✓ built in 171ms
+
+ prerendering static routes 
+06:02:44   ├─ /404.html (+147ms) 
+06:02:44   ├─ /about/index.html (+11ms) 
+06:02:44   ├─ /booking/confirmation/index.html (+3ms) 
+06:02:44   ├─ /business/hotels-resorts/index.html (+5ms) 
+06:02:44   ├─ /business/travel-agency/index.html (+4ms) 
+06:02:44   ├─ /contact/index.html (+4ms) 
+06:02:44   ├─ /corporate/index.html (+4ms) 
+06:02:44   ├─ /faq/index.html (+4ms) 
+06:02:44   ├─ /privacy/index.html (+3ms) 
+06:02:44   ├─ /services/city-tours/full-day/index.html (+4ms) 
+06:02:44   ├─ /services/city-tours/half-day/index.html (+2ms) 
+06:02:44   ├─ /services/city-tours/special-offer/index.html (+2ms) 
+06:02:44   ├─ /services/airport-transfer/index.html (+2ms) 
+06:02:44   ├─ /services/cross-border-rides/index.html (+2ms) 
+06:02:44   ├─ /services/local-transfers/index.html (+2ms) 
+06:02:44   ├─ /services/local-chauffeur/index.html (+3ms) 
+06:02:44   ├─ /services/weddings/index.html (+2ms) 
+06:02:44   ├─ /services/city-tours/index.html (+2ms) 
+06:02:44   ├─ /services/index.html (+0ms) (file not created, response body was empty)
+06:02:44   ├─ /terms/index.html (+2ms) 
+06:02:44   ├─ /pt/services/city-tours/full-day/index.html (+17ms) 
+06:02:44   ├─ /pt/services/city-tours/half-day/index.html (+8ms) 
+06:02:44   ├─ /pt/services/city-tours/special-offer/index.html (+5ms) 
+06:02:44   ├─ /zh-Hant/services/city-tours/full-day/index.html (+7ms) 
+06:02:44   ├─ /zh-Hant/services/city-tours/half-day/index.html (+5ms) 
+06:02:44   ├─ /zh-Hant/services/city-tours/special-offer/index.html (+5ms) 
+06:02:44   ├─ /pt/services/airport-transfer/index.html (+5ms) 
+06:02:44   ├─ /pt/services/cross-border-rides/index.html (+5ms) 
+06:02:44   ├─ /pt/services/local-transfers/index.html (+4ms) 
+06:02:44   ├─ /pt/services/local-chauffeur/index.html (+4ms) 
+06:02:44   ├─ /pt/services/weddings/index.html (+5ms) 
+06:02:44   ├─ /pt/services/city-tours/index.html (+3ms) 
+06:02:44   ├─ /zh-Hant/services/airport-transfer/index.html (+4ms) 
+06:02:44   ├─ /zh-Hant/services/cross-border-rides/index.html (+5ms) 
+06:02:44   ├─ /zh-Hant/services/local-transfers/index.html (+4ms) 
+06:02:44   ├─ /zh-Hant/services/local-chauffeur/index.html (+4ms) 
+06:02:44   ├─ /zh-Hant/services/weddings/index.html (+4ms) 
+06:02:44   ├─ /zh-Hant/services/city-tours/index.html (+2ms) 
+06:02:44   ├─ /pt/index.html (+4ms) 
+06:02:44   ├─ /pt/about/index.html (+3ms) 
+06:02:44   ├─ /pt/contact/index.html (+3ms) 
+06:02:44   ├─ /pt/corporate/index.html (+4ms) 
+06:02:44   ├─ /pt/business/travel-agency/index.html (+4ms) 
+06:02:44   ├─ /pt/business/hotels-resorts/index.html (+3ms) 
+06:02:44   ├─ /pt/faq/index.html (+2ms) 
+06:02:44   ├─ /pt/privacy/index.html (+3ms) 
+06:02:44   ├─ /pt/terms/index.html (+2ms) 
+06:02:44   ├─ /pt/booking/confirmation/index.html (+2ms) 
+06:02:44   ├─ /pt/404/index.html (+2ms) 
+06:02:44   ├─ /zh-Hant/index.html (+3ms) 
+06:02:44   ├─ /zh-Hant/about/index.html (+4ms) 
+06:02:44   ├─ /zh-Hant/contact/index.html (+3ms) 
+06:02:44   ├─ /zh-Hant/corporate/index.html (+3ms) 
+06:02:44   ├─ /zh-Hant/business/travel-agency/index.html (+3ms) 
+06:02:44   ├─ /zh-Hant/business/hotels-resorts/index.html (+3ms) 
+06:02:44   ├─ /zh-Hant/faq/index.html (+2ms) 
+06:02:44   ├─ /zh-Hant/privacy/index.html (+2ms) 
+06:02:44   ├─ /zh-Hant/terms/index.html (+2ms) 
+06:02:44   ├─ /zh-Hant/booking/confirmation/index.html (+2ms) 
+06:02:44   ├─ /zh-Hant/404/index.html (+2ms) 
+06:02:44   ├─ /index.html (+2ms) 
+06:02:44 ✓ Completed in 415ms.
+
+06:02:44 [build] Rearranging server assets...
+06:02:44 [build] ✓ Completed in 2.03s.
+06:02:44 [@astrojs/cloudflare] Injected immutable Cache-Control for /_astro/* into _headers.
+06:02:44 [@astrojs/sitemap] `sitemap-index.xml` created at `dist/client`
+06:02:44 [build] Server built in 2.96s
+06:02:44 [build] Complete!
+[redirects] normalised 2 rule(s) in dist/client/_redirects
+build_exit=0
+===== pnpm lint (after prettier) =====
+
+> kaiyue-travel@ lint /agent/repos/KaiYue-Travel
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+lint_retry_exit=0

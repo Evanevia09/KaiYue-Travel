@@ -95,10 +95,54 @@ describe("dispatch administration", () => {
     );
     expect(assigned.status).toBe(200);
     const assignedBody = (await assigned.json()) as {
-      booking: { driverId: string; vehicleId: string };
+      booking: { driverId: string; vehicleId: string; updatedAt: string };
     };
     expect(assignedBody.booking.driverId).toBe(driver.id);
     expect(assignedBody.booking.vehicleId).toBe(car.id);
+
+    const empty = await handleApi(
+      admin(`/api/v1/admin/bookings/${created.reference}/assignment`, "PATCH", {
+        driverId: null,
+        vehicleId: null,
+        expectedUpdatedAt: assignedBody.booking.updatedAt,
+      }),
+      env,
+    );
+    expect(empty.status).toBe(200);
+
+    const stillEmpty = await handleApi(admin(`/api/v1/admin/bookings/${created.reference}`), env);
+    const afterClear = (await stillEmpty.json()) as { booking: { updatedAt: string } };
+    const rejectedEmpty = await handleApi(
+      admin(`/api/v1/admin/bookings/${created.reference}/assignment`, "PATCH", {
+        driverId: null,
+        vehicleId: null,
+        expectedUpdatedAt: afterClear.booking.updatedAt,
+      }),
+      env,
+    );
+    expect(rejectedEmpty.status).toBe(422);
+    expect(((await rejectedEmpty.json()) as { error: { message: string } }).error.message).toBe(
+      "Choose a driver and a vehicle.",
+    );
+  });
+
+  it("records an audit event when an internal booking note is added", async () => {
+    const env = createTestEnv();
+    const created = await booking(env, futurePickup());
+    const added = await handleApi(
+      admin(`/api/v1/admin/bookings/${created.reference}/notes`, "POST", {
+        body: "Confirm pickup with the hotel desk.",
+      }),
+      env,
+    );
+    expect(added.status).toBe(201);
+    const detail = await handleApi(admin(`/api/v1/admin/bookings/${created.reference}`), env);
+    const body = (await detail.json()) as {
+      notes: Array<{ body: string }>;
+      events: Array<{ event_type: string }>;
+    };
+    expect(body.notes[0]?.body).toBe("Confirm pickup with the hotel desk.");
+    expect(body.events.some((event) => event.event_type === "note_added")).toBe(true);
   });
 
   it("edits details and paginates identical pickup times without dropping rows", async () => {

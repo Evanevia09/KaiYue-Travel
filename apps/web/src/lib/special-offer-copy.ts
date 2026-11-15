@@ -90,3 +90,16 @@ export const specialOfferCopy = {
 export function specialOfferUi(locale: Locale) {
   return specialOfferCopy[locale];
 }
+
+export const OFFER_CURRENCY = "MOP";
+
+export function formatOfferAmount(priceFrom: number): string {
+  if (Number.isInteger(priceFrom)) return String(priceFrom);
+  return priceFrom.toFixed(2).replace(/\.?0+$/, "");
+}
+
+export function formatOfferFromPrice(locale: Locale, priceFrom: number): string {
+  const amount = `${OFFER_CURRENCY} ${formatOfferAmount(priceFrom)}`;
+  const copy = specialOfferCopy[locale];
+  return locale === "zh-Hant" ? `${amount} ${copy.from}` : `${copy.from} ${amount}`;
+}

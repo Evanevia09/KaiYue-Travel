@@ -6,6 +6,7 @@ import {
   offerStatusBusyKey,
   offerStatusControl,
   takeInputFiles,
+  offerReadinessLabel,
   withMainPhoto,
   withOfferStatus,
   withoutPhoto,
@@ -104,5 +105,12 @@ describe("offer editor save target", () => {
       next: "draft",
       labelKey: "offers.unpublish",
     });
+  });
+
+  it("hides the ready-to-publish badge after an offer is published", () => {
+    expect(offerReadinessLabel("draft", true)).toBe("offers.ready");
+    expect(offerReadinessLabel("draft", false)).toBe("offers.incomplete");
+    expect(offerReadinessLabel("published", true)).toBeNull();
+    expect(offerReadinessLabel("published", false)).toBeNull();
   });
 });

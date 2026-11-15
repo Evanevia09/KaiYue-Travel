@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { ACCESS_ADMIN_HOST } from "./admin-gate.ts";
+import { requireAdmin } from "./auth.ts";
+import { createTestEnv } from "../../../../../tests/helpers/memory-d1.ts";
 import {
   accessIssuer,
   assertAccessClaims,
@@ -114,5 +117,17 @@ describe("Access JWT signature verification", () => {
     expect(first).toEqual({ id: "access-user-1", email: "ops@example.test" });
     expect(second.email).toBe("ops@example.test");
     expect(fetches).toBe(1);
+    const request = new Request(`https://${ACCESS_ADMIN_HOST}/admin`, {
+      headers: { "cf-access-jwt-assertion": token },
+    });
+    const env = createTestEnv({
+      ENVIRONMENT: "production",
+      ACCESS_TEAM_DOMAIN: "https://team.cloudflareaccess.com",
+      ACCESS_AUD: "preview-aud",
+    });
+    await expect(requireAdmin(request, env)).resolves.toEqual(first);
+    await expect(requireAdmin(request, { ...env, ACCESS_AUD: "different-app" })).rejects.toThrow(
+      /not allowed/,
+    );
   });
 });
