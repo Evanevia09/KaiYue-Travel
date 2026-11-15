@@ -29,8 +29,9 @@ function findBinding(bindings, type, name) {
   return bindings.filter((row) => row && row.type === type && row.name === name);
 }
 
-function extractRunWorkerFirst(version, assetsBinding) {
+export function extractRunWorkerFirst(version, assetsBinding) {
   const candidates = [
+    version?.resources?.script_runtime?.assets?.raw_run_worker_first,
     assetsBinding?.run_worker_first,
     assetsBinding?.config?.run_worker_first,
     version?.resources?.assets?.run_worker_first,
@@ -41,6 +42,19 @@ function extractRunWorkerFirst(version, assetsBinding) {
     version?.assets?.config?.run_worker_first,
   ];
   return candidates.find((value) => value !== undefined);
+}
+
+export function versionsViewArgv(constants, versionId) {
+  return [
+    "versions",
+    "view",
+    versionId,
+    "--name",
+    constants.worker_name,
+    "--config",
+    OVERLAY_PATH,
+    "--json",
+  ];
 }
 
 function parseJsonPayload(text) {
@@ -214,18 +228,12 @@ function main() {
   }
   const result = spawnSync(
     process.execPath,
-    [
-      wranglerBin(),
-      "versions",
-      "view",
-      versionId,
-      "--name",
-      constants.worker_name,
-      "--config",
-      OVERLAY_PATH,
-      "--json",
-    ],
-    { encoding: "utf8", cwd: REPO_ROOT, env: process.env },
+    [wranglerBin(), ...versionsViewArgv(constants, versionId)],
+    {
+      encoding: "utf8",
+      cwd: REPO_ROOT,
+      env: process.env,
+    },
   );
   if (result.status !== 0) {
     fail(

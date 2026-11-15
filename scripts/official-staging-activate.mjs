@@ -42,6 +42,31 @@ export function evaluateActivationReadback(deployment, expectedVersionId) {
   return errors;
 }
 
+export function versionsDeployArgv(constants, versionId) {
+  return [
+    "versions",
+    "deploy",
+    `${versionId}@100%`,
+    "--name",
+    constants.worker_name,
+    "--config",
+    OVERLAY_PATH,
+    "-y",
+  ];
+}
+
+export function deploymentsStatusArgv(constants) {
+  return [
+    "deployments",
+    "status",
+    "--name",
+    constants.worker_name,
+    "--config",
+    OVERLAY_PATH,
+    "--json",
+  ];
+}
+
 function wranglerJson(args) {
   return spawnSync(process.execPath, [wranglerBin(), ...args], {
     encoding: "utf8",
@@ -51,16 +76,7 @@ function wranglerJson(args) {
 }
 
 function readLatestDeployment(constants) {
-  const result = wranglerJson([
-    "versions",
-    "deployments",
-    "status",
-    "--name",
-    constants.worker_name,
-    "--config",
-    OVERLAY_PATH,
-    "--json",
-  ]);
+  const result = wranglerJson(deploymentsStatusArgv(constants));
   if (result.status !== 0) {
     return {
       ok: false,
@@ -92,16 +108,7 @@ function main() {
     fail("activation fail-closed: WORKER_VERSION_ID missing or not a UUID");
   }
 
-  const deploy = wranglerJson([
-    "versions",
-    "deploy",
-    `${versionId}@100%`,
-    "--name",
-    constants.worker_name,
-    "--config",
-    OVERLAY_PATH,
-    "-y",
-  ]);
+  const deploy = wranglerJson(versionsDeployArgv(constants, versionId));
   process.stdout.write(deploy.stdout);
   process.stderr.write(deploy.stderr);
 

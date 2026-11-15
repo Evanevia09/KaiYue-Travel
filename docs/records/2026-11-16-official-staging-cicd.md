@@ -4,7 +4,7 @@
 **Owner:** 2026-11-16 07:05 Asia/Macau complete CI/CD after frozen staging activation; 07:17 ops activation; later browser QA; Worker-token docs confirmation; Mika HOLD at `8964c428` / base `61805431` (B1 job-scoped token, B2 substring + Worker secret-list gates)  
 **Branch / PR:** `cursor/official-staging-cicd-a72c` stacked on PR #41 head `6180543` (same PR #42 / sole writer)  
 **Base:** `cursor/host-role-admin-gate-a72c` (not `main`, not `staging`, not `official-staging`)  
-**Status:** source blockers B1/B2 addressed on the same PR. **CI/CD is not connected.** Mika HOLD is not operations approval. `official-staging` was not pushed. Production automation remains fail-closed and unconnected. Not `user_accepted`. Not `released`. Do not auto-run operations after green checks.
+**Status:** B1 remains closed. Four bounded CD defects from independent HOLD of `e03e643d` addressed on the same PR (pnpm packageManager pin, recorded `raw_run_worker_first` extractor, `deployments status --json`, staging `PUBLIC_SITE_URL` on both builds). **CI/CD is not connected.** Review artifacts are evidence, not operations approval. `official-staging` was not pushed. Production automation remains fail-closed and unconnected. Not `user_accepted`. Not `released`. Do not auto-run operations after green checks.
 
 This increment does not merge, does not push `official-staging` or `main`, does not create GitHub environments or Cloudflare tokens, does not read secrets, does not change Workers Builds, DNS, email, or Access, and does not touch production Worker `kaiyue-travel` version `71a66a99-0605-401f-9997-e6d3c3e9561b` / deployment `f3169afb-ccb7-4c52-9fde-b043cd15854d`.
 
@@ -20,10 +20,10 @@ This increment does not merge, does not push `official-staging` or `main`, does 
 
 Automatic official-staging Worker activation after green checks **only** on git branch `official-staging` (not obsolete git branch `staging`, not `main`). GitHub Environment name is **`staging`**, with allowed branch pattern `official-staging` and **no** required reviewer / per-run manual approval (owner asked auto after green checks).
 
-1. `checks` — lint, typecheck, tests, staging-URL build, overlay guard, schema **contract**. No Cloudflare token.
-2. `upload` — install/build **without** the token; `wrangler versions upload --strict --config deploy/official-staging/wrangler.jsonc` is the only credentialed step. Creates an inactive version. Not traffic.
-3. `verify` — schema contract (no token). Then structured uploaded-version candidate check (`wrangler versions view VERSION --json`): exact `DB`/`d1`/`043cd0ff…`, `OFFERS_BUCKET`/`r2_bucket`/`kaiyue-offers-staging`, `ASSETS` plus Worker-first path array, overlay `plain_text` vars, `compatibility_date` + `nodejs_compat`, `BETTER_AUTH_SECRET` `secret_text` **name/type only**. Rejects malformed/missing/wrong candidate, Access/temp/password/Resend names, production/obsolete/trial D1. Current-Worker `secret list` is **not** this gate.
-4. `activate` — `wrangler versions deploy VERSION@100% -y` on `kaiyue-travel-staging`, then `versions deployments status --json` readback of deployment id / version / 100% **before** smoke. Command failure is fail-stop: the command may have committed remotely; remote traffic is unknown until readback; no blind retry; no claim that previous traffic remains.
+1. `checks` — lint, typecheck, tests, staging-URL build (`PUBLIC_SITE_URL=https://staging.kaiyuemacau.com`; runtime vars cannot repair built artifacts), overlay guard. `pnpm/action-setup` uses root `packageManager` `pnpm@10.15.0` with no explicit version override. No Cloudflare token.
+2. `upload` — install/build **without** the token and with the same staging `PUBLIC_SITE_URL`; `wrangler versions upload --strict --config deploy/official-staging/wrangler.jsonc` is the only credentialed step. Creates an inactive version. Not traffic.
+3. `verify` — schema contract (no token). Then structured uploaded-version candidate check (`wrangler versions view VERSION --json`): exact `DB`/`d1`/`043cd0ff…`, `OFFERS_BUCKET`/`r2_bucket`/`kaiyue-offers-staging`, `ASSETS` name/type, Worker-first from recorded `resources.script_runtime.assets.raw_run_worker_first`, overlay `plain_text` vars, `compatibility_date` + `nodejs_compat`, `BETTER_AUTH_SECRET` `secret_text` **name/type only**. Rejects malformed/missing/wrong candidate, Access/temp/password/Resend names, production/obsolete/trial D1. Current-Worker `secret list` is **not** this gate.
+4. `activate` — `wrangler versions deploy VERSION@100% -y` on `kaiyue-travel-staging`, then pinned Wrangler 4.132.0 `deployments status --json` (not `versions deployments status`) readback of deployment id / version / 100% **before** smoke. Command failure is fail-stop: the command may have committed remotely; remote traffic is unknown until readback; no blind retry; no claim that previous traffic remains.
 5. `smoke` — public `https://staging.kaiyuemacau.com` 200, public `/login` 403, `https://admin-staging.kaiyuemacau.com/login` 200 Admin sign-in. Admin-host `/` is **not** asserted. No D1 query/migrate/bootstrap. No permission widening.
 
 `workflow_dispatch` or any ref other than `refs/heads/official-staging` fails closed (`refuse-other-refs`). Concurrency does not cancel an in-flight activation.
@@ -79,9 +79,10 @@ No production token is planned. GitHub Environment `production` should require a
 
 ## Verification performed
 
-- Source/YAML/security guards: overlay `--check`, schema contract (including not-tamperproof declaration), `official-staging-guard.mjs` (job-scoped token forbidden), Vitest `tests/integration/official-staging-cicd.test.ts` including behavioral candidate/activation fixtures.
-- Lint, typecheck, and the existing test suite on this branch.
-- **Not** verified: GitHub environment exists, token exists, token actually has Specified-Workers Editor, first Actions run, live uploaded-version JSON from Cloudflare, live D1 schema at CD time, staff-session revocation, admin-host `/` cache, production protections, Workers Builds absence. Green checks are not operations approval.
+- Source/YAML/security guards: overlay `--check`, schema contract (including not-tamperproof declaration), `official-staging-guard.mjs` (job-scoped token forbidden; packageManager pnpm; staging build URL; `deployments status` argv).
+- Vitest `tests/integration/official-staging-cicd.test.ts`: recorded `raw_run_worker_first` fixture, activation fixture, and pinned Wrangler 4.132.0 `--help`/argv construction (no credentials, no remote ops).
+- Lint, typecheck, full test suite, and `PUBLIC_SITE_URL=https://staging.kaiyuemacau.com pnpm build` on this branch.
+- **Not** verified: GitHub environment exists, token exists, token actually has Specified-Workers Editor, first Actions run of `official-staging.yml`, live uploaded-version JSON from Cloudflare, live D1 schema at CD time, staff-session revocation, admin-host `/` cache, production protections, Workers Builds absence. Green checks are not operations approval.
 
 ## Not done
 

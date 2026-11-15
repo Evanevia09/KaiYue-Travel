@@ -13,7 +13,10 @@ import {
   loadOverlay,
   loadSchemaContract,
 } from "./official-staging-lib.mjs";
+import { deploymentsStatusArgv, versionsDeployArgv } from "./official-staging-activate.mjs";
+import { versionsViewArgv } from "./official-staging-candidate-check.mjs";
 import { renderOverlay } from "./official-staging-overlay.mjs";
+import { versionsUploadArgv } from "./official-staging-upload.mjs";
 
 const constants = loadConstants();
 const overlay = loadOverlay();
@@ -123,21 +126,37 @@ check(
 check(!/reviewers:/.test(workflow), "staging CD must not encode per-run environment approval");
 check(workflow.includes("contents: read"), "workflow permissions must be contents: read");
 {
-  const upload = readFileSync(join(REPO_ROOT, "scripts/official-staging-upload.mjs"), "utf8");
-  const candidate = readFileSync(
-    join(REPO_ROOT, "scripts/official-staging-candidate-check.mjs"),
-    "utf8",
-  );
+  const uploadArgv = versionsUploadArgv(constants);
+  const viewArgv = versionsViewArgv(constants, "72e580d0-aeb1-4766-935a-0cb9a27631a4");
+  const deployArgv = versionsDeployArgv(constants, "72e580d0-aeb1-4766-935a-0cb9a27631a4");
+  const statusArgv = deploymentsStatusArgv(constants);
   const activate = readFileSync(join(REPO_ROOT, "scripts/official-staging-activate.mjs"), "utf8");
-  check(upload.includes("versions"), "upload script must call versions upload");
-  check(upload.includes("upload"), "upload script must call versions upload");
-  check(upload.includes("worker_version_id="), "upload script must emit worker_version_id");
-  check(candidate.includes("versions"), "candidate check must view the uploaded version");
-  check(candidate.includes("view"), "candidate check must view the uploaded version");
-  check(candidate.includes("--json"), "candidate check must parse structured JSON");
-  check(activate.includes("versions"), "activate script must call versions deploy");
-  check(activate.includes("deploy"), "activate script must call versions deploy");
-  check(activate.includes("deployments"), "activate script must read back deployments status");
+  check(
+    uploadArgv[0] === "versions" && uploadArgv[1] === "upload",
+    "upload argv must be versions upload",
+  );
+  check(uploadArgv.includes("--strict"), "upload argv must pass --strict");
+  check(
+    readFileSync(join(REPO_ROOT, "scripts/official-staging-upload.mjs"), "utf8").includes(
+      "worker_version_id=",
+    ),
+    "upload script must emit worker_version_id",
+  );
+  check(
+    viewArgv[0] === "versions" && viewArgv[1] === "view",
+    "candidate argv must be versions view",
+  );
+  check(viewArgv.includes("--json"), "candidate argv must request JSON");
+  check(
+    deployArgv[0] === "versions" && deployArgv[1] === "deploy",
+    "activate argv must be versions deploy",
+  );
+  check(
+    statusArgv[0] === "deployments" && statusArgv[1] === "status",
+    "readback argv must be deployments status, not versions deployments status",
+  );
+  check(statusArgv.includes("--json"), "readback argv must request JSON");
+  check(statusArgv[0] !== "versions", "readback must not use the versions namespace");
   check(
     !/previous traffic remains/.test(activate),
     "activate must not assert that previous traffic remains",
@@ -146,6 +165,32 @@ check(workflow.includes("contents: read"), "workflow permissions must be content
     activate.includes("may have committed remotely"),
     "activate must treat command failure as possibly committed",
   );
+}
+check(packageJson.packageManager === "pnpm@10.15.0", "packageManager must remain pnpm@10.15.0");
+{
+  const pnpmSetups = [
+    ...workflow.matchAll(
+      /uses: pnpm\/action-setup@[^\n]+\n(?:        with:\n(?:          .+\n)+)?/g,
+    ),
+  ];
+  check(pnpmSetups.length === 4, "official-staging workflow must set up pnpm four times");
+  for (const match of pnpmSetups) {
+    check(
+      !/version:/.test(match[0]),
+      "pnpm/action-setup must not override packageManager with an explicit version",
+    );
+  }
+}
+{
+  const buildSteps = workflow.split(/\n {6}- /).filter((step) => /run: pnpm build\b/.test(step));
+  check(buildSteps.length === 2, "checks and upload must each run pnpm build once");
+  for (const step of buildSteps) {
+    check(
+      step.includes(`PUBLIC_SITE_URL: ${constants.public_site_url}`),
+      "staging build must set PUBLIC_SITE_URL; runtime vars cannot repair built artifacts",
+    );
+    check(!step.includes("CLOUDFLARE_API_TOKEN"), "staging build must remain token-free");
+  }
 }
 check(
   workflow.includes("official-staging-candidate-check.mjs"),

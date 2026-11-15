@@ -5,8 +5,18 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { HTML_WORKER_FIRST_PATHS } from "../../apps/web/src/lib/server/admin-gate.ts";
-import { evaluateActivationReadback } from "../../scripts/official-staging-activate.mjs";
-import { evaluateCandidate } from "../../scripts/official-staging-candidate-check.mjs";
+import {
+  deploymentsStatusArgv,
+  evaluateActivationReadback,
+  versionsDeployArgv,
+} from "../../scripts/official-staging-activate.mjs";
+import {
+  evaluateCandidate,
+  extractRunWorkerFirst,
+  versionsViewArgv,
+} from "../../scripts/official-staging-candidate-check.mjs";
+import { wranglerBin } from "../../scripts/official-staging-lib.mjs";
+import { versionsUploadArgv } from "../../scripts/official-staging-upload.mjs";
 import {
   evaluateSchemaContract,
   hashMigrationFiles,
@@ -57,6 +67,7 @@ type StagingConstants = {
   d1_name: string;
   worker_name: string;
   account_id: string;
+  public_site_url: string;
   r2_bucket: string;
   production_d1: string;
   obsolete_d1: string;
@@ -83,6 +94,7 @@ const ciWorkflow = readFileSync(ciWorkflowPath, "utf8");
 const gitWrangler = readFileSync(gitWranglerPath, "utf8");
 const schemaCheck = readFileSync(schemaCheckPath, "utf8");
 const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8")) as {
+  packageManager: string;
   devDependencies: { wrangler: string };
 };
 
@@ -116,6 +128,33 @@ describe("official staging CI/CD source", () => {
     expect(workflow).not.toContain("official-staging-secret-check");
     expect(workflow).not.toContain("secret list");
     expect(upload).toContain("worker_version_id=");
+    expect(versionsUploadArgv(constants)[0]).toBe("versions");
+    expect(versionsUploadArgv(constants)[1]).toBe("upload");
+  });
+
+  it("uses packageManager pnpm@10.15.0 and does not override it in official-staging.yml", () => {
+    expect(packageJson.packageManager).toBe("pnpm@10.15.0");
+    expect(workflow).not.toMatch(/version:\s*["']?10\.28\.0/);
+    const pnpmSetups = [
+      ...workflow.matchAll(/uses: pnpm\/action-setup@[^\n]+\n(?: {8}with:\n(?: {10}.+\n)+)?/g),
+    ];
+    expect(pnpmSetups).toHaveLength(4);
+    for (const match of pnpmSetups) {
+      expect(match[0]).not.toMatch(/version:/);
+    }
+  });
+
+  it("builds checks and upload with the staging PUBLIC_SITE_URL and without the token", () => {
+    const astroConfig = readFileSync(join(repoRoot, "apps/web/astro.config.mjs"), "utf8");
+    expect(constants.public_site_url).toBe("https://staging.kaiyuemacau.com");
+    expect(astroConfig).toContain("process.env.PUBLIC_SITE_URL");
+    expect(astroConfig).toContain("http://localhost:4321");
+    const buildSteps = workflow.split(/\n {6}- /).filter((step) => /run: pnpm build\b/.test(step));
+    expect(buildSteps).toHaveLength(2);
+    for (const step of buildSteps) {
+      expect(step).toContain(`PUBLIC_SITE_URL: ${constants.public_site_url}`);
+      expect(step).not.toContain("CLOUDFLARE_API_TOKEN");
+    }
   });
 
   it("limits CLOUDFLARE_API_TOKEN to upload, candidate-check, and activate steps", () => {
@@ -322,38 +361,49 @@ describe("official staging schema contract tamper guards", () => {
 
 const CANDIDATE_VERSION_ID = "72e580d0-aeb1-4766-935a-0cb9a27631a4";
 const ACTIVATION_DEPLOYMENT_ID = "28f8b40b-0ffa-45aa-ba82-601f9e429e0f";
+const recordedVersionPath = join(repoRoot, "tests/fixtures/official-staging-version-72e580d0.json");
+const recordedDeploymentPath = join(
+  repoRoot,
+  "tests/fixtures/official-staging-deployment-28f8b40b.json",
+);
 
-function validCandidate() {
-  return {
-    id: CANDIDATE_VERSION_ID,
-    resources: {
-      script_runtime: {
-        compatibility_date: constants.compatibility_date,
-        compatibility_flags: ["nodejs_compat"],
-      },
-      assets: {
-        config: {
-          run_worker_first: [...constants.html_worker_first_paths] as string[] | boolean,
-        },
-      },
-      bindings: [
-        { type: "d1", name: "DB", id: constants.d1_id, database_name: constants.d1_name },
-        { type: "r2_bucket", name: "OFFERS_BUCKET", bucket_name: constants.r2_bucket },
-        { type: "assets", name: "ASSETS" },
-        ...Object.entries(constants.vars).map(([name, text]) => ({
-          type: "plain_text",
-          name,
-          text,
-        })),
-        { type: "secret_text", name: "BETTER_AUTH_SECRET" },
-      ] as Array<Record<string, unknown>>,
-    },
+type RecordedVersion = {
+  id: string;
+  resources: {
+    script_runtime: {
+      compatibility_date: string;
+      compatibility_flags: string[];
+      assets?: { raw_run_worker_first?: string[] | boolean };
+    };
+    assets?: unknown;
+    bindings: Array<Record<string, unknown>>;
   };
+};
+
+function validCandidate(): RecordedVersion {
+  return structuredClone(JSON.parse(readFileSync(recordedVersionPath, "utf8")) as RecordedVersion);
 }
 
 describe("official staging uploaded-version candidate gate", () => {
-  it("accepts exact official binding names/types/IDs, vars, compatibility, Worker-first, and BetterAuth name/type only", () => {
-    expect(evaluateCandidate(validCandidate(), constants, CANDIDATE_VERSION_ID)).toEqual([]);
+  it("accepts the recorded versions-view shape with raw_run_worker_first and ASSETS name/type only", () => {
+    const recorded = validCandidate();
+    expect(recorded.id).toBe(CANDIDATE_VERSION_ID);
+    expect(recorded.resources.assets).toBeUndefined();
+    expect(recorded.resources.script_runtime.assets?.raw_run_worker_first).toEqual([
+      ...HTML_WORKER_FIRST_PATHS,
+    ]);
+    expect(recorded.resources.bindings.find((row) => row.name === "ASSETS")).toEqual({
+      type: "assets",
+      name: "ASSETS",
+    });
+    expect(recorded.resources.bindings.find((row) => row.name === "BETTER_AUTH_SECRET")).toEqual({
+      type: "secret_text",
+      name: "BETTER_AUTH_SECRET",
+    });
+    expect(extractRunWorkerFirst(recorded, { type: "assets", name: "ASSETS" })).toEqual([
+      ...HTML_WORKER_FIRST_PATHS,
+    ]);
+    expect(evaluateCandidate(recorded, constants, CANDIDATE_VERSION_ID)).toEqual([]);
   });
 
   it("rejects a D1 UUID on the wrong binding name", () => {
@@ -388,15 +438,18 @@ describe("official staging uploaded-version candidate gate", () => {
 
   it("rejects boolean run_worker_first instead of the Worker-first path array", () => {
     const version = validCandidate();
-    version.resources.assets.config.run_worker_first = true;
+    if (!version.resources.script_runtime.assets) {
+      throw new Error("fixture missing script_runtime.assets");
+    }
+    version.resources.script_runtime.assets.raw_run_worker_first = true;
     expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
       /Worker-first/,
     );
   });
 
-  it("rejects a missing Worker-first path array", () => {
+  it("rejects a missing Worker-first path array on the recorded shape", () => {
     const version = validCandidate();
-    delete (version.resources as { assets?: unknown }).assets;
+    delete version.resources.script_runtime.assets;
     expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
       /Worker-first/,
     );
@@ -495,15 +548,11 @@ describe("official staging uploaded-version candidate gate", () => {
 
 describe("official staging activation readback", () => {
   it("records deployment/version/100% and rejects split or wrong-version traffic", () => {
-    expect(
-      evaluateActivationReadback(
-        {
-          id: ACTIVATION_DEPLOYMENT_ID,
-          versions: [{ version_id: CANDIDATE_VERSION_ID, percentage: 100 }],
-        },
-        CANDIDATE_VERSION_ID,
-      ),
-    ).toEqual([]);
+    const recordedDeployment = JSON.parse(readFileSync(recordedDeploymentPath, "utf8")) as {
+      id: string;
+      versions: Array<{ version_id: string; percentage: number }>;
+    };
+    expect(evaluateActivationReadback(recordedDeployment, CANDIDATE_VERSION_ID)).toEqual([]);
 
     expect(
       evaluateActivationReadback(
@@ -537,5 +586,63 @@ describe("official staging activation readback", () => {
     expect(activate).toMatch(/Do not retry blindly/);
     expect(activate).toMatch(/activation readback: worker/);
     expect(activate).toMatch(/@100%/);
+  });
+});
+
+describe("official staging pinned Wrangler 4.132.0 command construction", () => {
+  function wranglerHelp(args: string[]) {
+    return spawnSync(process.execPath, [wranglerBin(), ...args, "--help"], {
+      encoding: "utf8",
+      cwd: repoRoot,
+      env: { ...process.env, CLOUDFLARE_API_TOKEN: "", CLOUDFLARE_ACCOUNT_ID: "" },
+    });
+  }
+
+  it("registers deployments status --json and versions view/upload/deploy on the pin", () => {
+    expect(packageJson.devDependencies.wrangler).toBe("4.132.0");
+    const wranglerPkg = JSON.parse(
+      readFileSync(join(repoRoot, "node_modules/wrangler/package.json"), "utf8"),
+    ) as { version: string };
+    expect(wranglerPkg.version).toBe("4.132.0");
+
+    const statusHelp = wranglerHelp(["deployments", "status"]);
+    expect(statusHelp.status, statusHelp.stderr).toBe(0);
+    expect(statusHelp.stdout).toMatch(/wrangler deployments status/);
+    expect(statusHelp.stdout).toMatch(/--json/);
+
+    const versionsHelp = wranglerHelp(["versions"]);
+    expect(versionsHelp.status, versionsHelp.stderr).toBe(0);
+    expect(versionsHelp.stdout).toMatch(/wrangler versions view/);
+    expect(versionsHelp.stdout).toMatch(/wrangler versions upload/);
+    expect(versionsHelp.stdout).toMatch(/wrangler versions deploy/);
+    expect(versionsHelp.stdout).not.toMatch(/wrangler versions deployments/);
+
+    const nested = wranglerHelp(["versions", "deployments", "status"]);
+    expect(nested.stdout).not.toMatch(/wrangler versions deployments status/);
+    expect(nested.stdout).toMatch(/wrangler versions/);
+  });
+
+  it("builds argv that match those registered commands", () => {
+    const uploadArgv = versionsUploadArgv(constants);
+    const viewArgv = versionsViewArgv(constants, CANDIDATE_VERSION_ID);
+    const deployArgv = versionsDeployArgv(constants, CANDIDATE_VERSION_ID);
+    const statusArgv = deploymentsStatusArgv(constants);
+
+    expect(uploadArgv.slice(0, 2)).toEqual(["versions", "upload"]);
+    expect(viewArgv.slice(0, 3)).toEqual(["versions", "view", CANDIDATE_VERSION_ID]);
+    expect(viewArgv).toContain("--json");
+    expect(deployArgv.slice(0, 3)).toEqual(["versions", "deploy", `${CANDIDATE_VERSION_ID}@100%`]);
+    expect(statusArgv.slice(0, 2)).toEqual(["deployments", "status"]);
+    expect(statusArgv[0]).not.toBe("versions");
+    expect(statusArgv).toContain("--json");
+    expect(statusArgv).toEqual([
+      "deployments",
+      "status",
+      "--name",
+      constants.worker_name,
+      "--config",
+      overlayPath,
+      "--json",
+    ]);
   });
 });

@@ -1,0 +1,86 @@
+{
+  "id": "72e580d0-aeb1-4766-935a-0cb9a27631a4",
+  "number": 1,
+  "metadata": {
+    "created_on": "2026-11-15T23:17:00.000Z",
+    "source": "wrangler",
+    "author_email": "sanitized@example.invalid"
+  },
+  "annotations": {
+    "workers/triggered_by": "wrangler"
+  },
+  "resources": {
+    "script": {
+      "handlers": ["fetch"],
+      "last_deployed_from": "wrangler"
+    },
+    "script_runtime": {
+      "compatibility_date": "2026-09-01",
+      "compatibility_flags": ["nodejs_compat"],
+      "usage_model": "standard",
+      "assets": {
+        "raw_run_worker_first": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"]
+      }
+    },
+    "bindings": [
+      {
+        "type": "d1",
+        "name": "DB",
+        "id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70"
+      },
+      {
+        "type": "r2_bucket",
+        "name": "OFFERS_BUCKET",
+        "bucket_name": "kaiyue-offers-staging"
+      },
+      {
+        "type": "assets",
+        "name": "ASSETS"
+      },
+      {
+        "type": "plain_text",
+        "name": "ENVIRONMENT",
+        "text": "production"
+      },
+      {
+        "type": "plain_text",
+        "name": "PUBLIC_SITE_URL",
+        "text": "https://staging.kaiyuemacau.com"
+      },
+      {
+        "type": "plain_text",
+        "name": "BUSINESS_TIMEZONE",
+        "text": "Asia/Macau"
+      },
+      {
+        "type": "plain_text",
+        "name": "BOOKING_NOTICE_HOURS",
+        "text": "24"
+      },
+      {
+        "type": "plain_text",
+        "name": "WHATSAPP_NUMBER",
+        "text": "+85328338882"
+      },
+      {
+        "type": "plain_text",
+        "name": "DEV_ADMIN_BYPASS",
+        "text": "false"
+      },
+      {
+        "type": "plain_text",
+        "name": "ADMIN_STAGING_TEST_PASSWORD_MIN",
+        "text": "6"
+      },
+      {
+        "type": "plain_text",
+        "name": "ADMIN_EMAILS",
+        "text": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com"
+      },
+      {
+        "type": "secret_text",
+        "name": "BETTER_AUTH_SECRET"
+      }
+    ]
+  }
+}
