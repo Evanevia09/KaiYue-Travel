@@ -53,7 +53,26 @@ Local synthetic `@example.invalid` fixtures only.
 
 ## Official-staging artifact
 
-Filled after local packaging of this commit. See the checksum block at the end of this file after the package commit. Existing runtime source `577012c` / deployed version `19ebb0b4` @100% deployment `4464865f` is **not** replaced by this agent. Packaged overlay vars remain the prior authoritative set; `keep_vars` false; HTML `run_worker_first` `["/*","!/_astro/*","!/images/*","!/favicon.ico"]`.
+Local packaging only. Existing runtime source `577012c` / deployed version `19ebb0b4` @100% deployment `4464865f` is **not** replaced by this agent. Packaged overlay vars remain the prior authoritative set (`wrangler.jsonc` SHA256 matches the `577012c` overlay); `keep_vars` false; HTML `run_worker_first` `["/*","!/_astro/*","!/images/*","!/favicon.ico"]`. No `--keep-vars`. No secrets or login passwords.
+
+| Item | Value |
+|---|---|
+| Source SHA | `1e62ce9f1e1b301ddda523dfa2ed4809cd71e2e3` |
+| Zip | `/opt/cursor/artifacts/kaiyue_host_role_1e62ce9_official_staging.zip` |
+| Zip SHA256 | `8dac78db2198a325a0300dcd4f892a1d9685800f95285da40bab2e7e8583d119` (10013272 bytes) |
+| entry.js SHA256 | `973ba7cd3cd7c270c883398edf5b43e50d531fad177558472a7be2e9603de94c` |
+| wrangler.jsonc SHA256 | `0e481753648f1b03f5b111b1d1c60f70cf2391b235232bc17c1e9d6b54722c2f` |
+| Overlay | `/opt/cursor/artifacts/kaiyue_host_role_1e62ce9_official_staging.wrangler.jsonc` |
+| Ledger dir | `/opt/cursor/artifacts/kaiyue_host_role_1e62ce9_official_staging/` |
+| `0009_admin_operator.sql` | `e90ac3cc28ff3efa39286c2b6b9c421d658e2d931b2f8b80e50e17c8916856aa` |
+| `provision-staging-operators.sql` | `fc2e3d20251e41d560d6d332b3cf56ae743d14ccbce246cbdd7a07be76cbc364` |
+| `rollback-staging-operators.sql` | `2254e2ba1faef7ade6f7c7df44016b14cedce2879c4a2262d517d3be6949f12c` |
+
+Later operator upload (not this agent), from the unzipped folder:
+
+`npx wrangler versions upload --no-bundle --strict --name kaiyue-travel-staging`
+
+Then apply `migrations/0009_admin_operator.sql` and `scripts/provision-staging-operators.sql` on D1 `043cd0ff` only after the email+id preflight. Do not `wrangler deploy`. Do not touch LIVE `71a66a99` / `f3169afb`.
 
 ## Distinctions
 
@@ -71,6 +90,6 @@ Filled after local packaging of this commit. See the checksum block at the end o
 - CI/CD Workers Builds for production remain separate / pending staging credential. Do not enable production builds.
 - This agent does not upload or apply SQL.
 
-## Artifact checksums (package commit)
+## Artifact checksums (package of `1e62ce9`)
 
-_To be filled after local wrangler dry-run packaging of this source SHA._
+See the table in **Official-staging artifact**. Zip SHA256 `8dac78db2198a325a0300dcd4f892a1d9685800f95285da40bab2e7e8583d119`. This packaging step did not upload.
