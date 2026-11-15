@@ -187,6 +187,12 @@ describe("admin profile password change", () => {
     );
     expect(rolePost.status).toBe(403);
 
+    const unprovisionedUsers = await handleApi(
+      new Request(`${site}/api/v1/admin/users`, { headers: jsonHeaders(cookie) }),
+      env,
+    );
+    expect(unprovisionedUsers.status).toBe(403);
+
     const mismatch = await handleApi(
       new Request(`${site}/api/v1/admin/profile/password`, {
         method: "POST",

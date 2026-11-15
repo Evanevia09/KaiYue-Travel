@@ -61,5 +61,22 @@ describe("main reconciliation invariants", () => {
     const auth = readFileSync(join(repoRoot, "migrations/0004_admin_auth.sql"), "utf8");
     expect(auth).not.toMatch(/\brole\b/);
     expect(existsSync(join(repoRoot, "migrations/0009_admin_primary_role.sql"))).toBe(false);
+    const operator = readFileSync(join(repoRoot, "migrations/0009_admin_operator.sql"), "utf8");
+    expect(operator).toMatch(/CHECK \(role IN \('super_admin', 'staff'\)\)/);
+    expect(operator).not.toMatch(/ALTER TABLE "user"/);
+    const authSource = readFileSync(join(repoRoot, "apps/web/src/lib/server/auth.ts"), "utf8");
+    expect(authSource).not.toMatch(/scalingsmb@gmail.com/);
+    expect(authSource).not.toMatch(/first.?user/i);
+    const provision = readFileSync(
+      join(repoRoot, "scripts/provision-staging-operators.sql"),
+      "utf8",
+    );
+    expect(provision).toMatch(/STAGING-ONLY/);
+    expect(provision).toMatch(/043cd0ff-a1e6-4b5e-98c1-968c286e0c70/);
+    expect(provision).toMatch(/06cf879d-8fea-4088-8881-7d382e1b8c11/);
+    expect(provision).toMatch(/f0af3b28-7b2c-47d5-b619-9239a29c41f9/);
+    expect(provision).toMatch(/scalingsmb@gmail.com/);
+    expect(provision).not.toMatch(/INSERT INTO "account"/);
+    expect(provision).not.toMatch(/"password"/);
   });
 });

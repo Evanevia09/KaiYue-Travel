@@ -7,6 +7,11 @@ import {
   passwordAdminAllowed,
   resolveHostRole,
 } from "./admin-gate.ts";
+import {
+  attachOperatorRole,
+  operatorsProvisioned,
+  type AdminOperatorRole,
+} from "./admin-operator.ts";
 import { assertPrimaryOperator, temporaryAdminExpiryApplies } from "./admin-primary.ts";
 import { allowedAdminEmails, createAdminSessionAuth } from "./admin-session.ts";
 import type { AppEnv } from "./env.ts";
@@ -14,6 +19,7 @@ import type { AppEnv } from "./env.ts";
 export type AdminIdentity = {
   id: string;
   email: string;
+  operatorRole?: AdminOperatorRole | null;
 };
 
 export async function requireAdmin(request: Request, env: AppEnv): Promise<AdminIdentity> {
@@ -45,38 +51,50 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     }
     const accessIdentity = await verifyAccessJwt(accessToken, env);
     assertPrimaryOperator(accessIdentity, env, request);
-    return accessIdentity;
+    return await attachOperatorRole(env.DB, accessIdentity);
   }
 
   if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true" && !isDedicatedAdminHost(request)) {
-    return { id: "dev-admin", email: "dev-admin@localhost" };
+    return { id: "dev-admin", email: "dev-admin@localhost", operatorRole: null };
   }
 
   const token = request.headers.get("cf-access-jwt-assertion");
   if (token && accessState === "configured") {
     const accessIdentity = await verifyAccessJwt(token, env);
     assertPrimaryOperator(accessIdentity, env, request);
-    return accessIdentity;
+    return await attachOperatorRole(env.DB, accessIdentity);
   }
 
   if (!passwordAdminAllowed(env, request)) {
     throw new AppError("FORBIDDEN", "Admin access is not configured.");
   }
 
-  const allowed = allowedAdminEmails(env);
-  if (allowed.size === 0) throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   if (temporaryAdminExpiryApplies(env, request) && env.TEMP_ADMIN_EXPIRES_AT) {
     const expiresAt = Date.parse(env.TEMP_ADMIN_EXPIRES_AT);
     if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
       throw new AppError("UNAUTHORIZED", "Temporary admin access has expired.");
     }
   }
-  const auth = createAdminSessionAuth(env, false, request);
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session || !allowed.has(session.user.email.toLowerCase())) {
+
+  const provisioned = await operatorsProvisioned(env.DB);
+  const allowed = allowedAdminEmails(env);
+  if (!provisioned && allowed.size === 0) {
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
-  const identity = { id: session.user.id, email: session.user.email };
+
+  const auth = createAdminSessionAuth(env, false, request);
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) {
+    throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
+  }
+
+  const identity = await attachOperatorRole(env.DB, {
+    id: session.user.id,
+    email: session.user.email,
+  });
+  if (identity.operatorRole == null && !allowed.has(session.user.email.toLowerCase())) {
+    throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
+  }
   assertPrimaryOperator(identity, env, request);
   return identity;
 }

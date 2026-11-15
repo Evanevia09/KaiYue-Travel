@@ -127,7 +127,10 @@ describe("Access JWT signature verification", () => {
       ADMIN_PRIMARY_EMAIL: "ops@example.test",
       ADMIN_EMAILS: "ops@example.test",
     });
-    await expect(requireAdmin(request, env)).resolves.toEqual(first);
+    await expect(requireAdmin(request, env)).resolves.toEqual({
+      ...first,
+      operatorRole: null,
+    });
     await expect(requireAdmin(request, { ...env, ACCESS_AUD: "different-app" })).rejects.toThrow(
       /not allowed/,
     );

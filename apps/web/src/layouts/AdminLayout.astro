@@ -1,7 +1,9 @@
 ---
 import "../styles/global.css";
 import { env } from "cloudflare:workers";
+import { isSuperAdmin } from "../lib/server/admin-operator.ts";
 import { accessConfigured, isDedicatedAdminHostname } from "../lib/server/admin-gate.ts";
+import { requireAdmin } from "../lib/server/auth.ts";
 import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SignOutButton } from "../components/admin/SignOutButton.tsx";
 import {
@@ -24,6 +26,13 @@ const locale = Astro.props.locale ?? adminLocaleFromCookies(Astro.cookies);
 const title = t(locale, Astro.props.titleKey, Astro.props.titleVars);
 const path = Astro.url.pathname;
 const usesAccess = isDedicatedAdminHostname(Astro.url.hostname) && accessConfigured(env);
+let canManageUsers = false;
+try {
+  const actor = await requireAdmin(Astro.request, env);
+  canManageUsers = isSuperAdmin(actor);
+} catch {
+  canManageUsers = false;
+}
 const links: Array<{ href: string; key: AdminMessageKey }> = [
   { href: "/admin", key: "nav.dashboard" },
   { href: "/admin/bookings", key: "nav.bookings" },
@@ -31,6 +40,7 @@ const links: Array<{ href: string; key: AdminMessageKey }> = [
   { href: "/admin/inventory", key: "nav.inventory" },
   { href: "/admin/contacts", key: "nav.contacts" },
   { href: "/admin/offers", key: "nav.offers" },
+  ...(canManageUsers ? [{ href: "/admin/users", key: "nav.users" as const }] : []),
   { href: "/admin/settings", key: "nav.settings" },
 ];
 const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";

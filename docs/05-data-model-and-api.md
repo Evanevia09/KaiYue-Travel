@@ -53,6 +53,12 @@ Indexes: `(status, created_at)` and `created_at`.
 
 `key_hash`, `request_hash`, `response_reference`, `expires_at`, `created_at`. Use if idempotency is not stored directly on the booking/contact record.
 
+### `admin_operator` (sidecar, `migrations/0009_admin_operator.sql`)
+
+`user_id` (FK to Better Auth `"user"`), `role` (`super_admin` or `staff` only), `enabled` (0/1), `created_at`, `updated_at`, `updated_by`. No password hashes. Empty table is not implicit super-admin elevation. Operator mutations write `operator_audit_events`, not the booking/contact `audit_events` table.
+
+Staging-only provision: `scripts/provision-staging-operators.sql` for official UAT D1 `043cd0ff`. Rollback: `scripts/rollback-staging-operators.sql`. Do not apply to production D1 `06cf879d`.
+
 ## State rules
 
 - New public booking → `enquiry`.
@@ -101,6 +107,12 @@ Returns non-sensitive form configuration such as approved service types and book
 | Method and route | Purpose |
 |---|---|
 | `GET /api/v1/admin/summary` | Counts and upcoming/recent items |
+| `GET /api/v1/admin/profile` | Signed-in email and displayed role |
+| `POST /api/v1/admin/profile/password` | Own password change |
+| `GET /api/v1/admin/users` | Super-admin list of operators (no hashes) |
+| `POST /api/v1/admin/users` | Super-admin create staff (no email invite) |
+| `PATCH /api/v1/admin/users/:id` | Super-admin role or enabled flag |
+| `POST /api/v1/admin/users/:id/password` | Super-admin credential reset |
 | `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service |
 | `POST /api/v1/admin/bookings` | Add a manually entered booking enquiry |
 | `GET /api/v1/admin/bookings/:reference` | Booking detail, notes, safe event history |

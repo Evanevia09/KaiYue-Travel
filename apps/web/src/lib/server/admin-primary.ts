@@ -1,4 +1,5 @@
 import { AppError } from "@kaiyue/contracts";
+import type { AdminOperatorRole } from "./admin-operator.ts";
 import {
   isDedicatedAdminHost,
   isProductionHost,
@@ -80,10 +81,15 @@ export function assertPrimaryOperator(
   }
 }
 
+export type DisplayedAdminRole = AdminRole | AdminOperatorRole;
+
 export function adminProfilePayload(
-  actor: { id: string; email: string },
+  actor: { id: string; email: string; operatorRole?: AdminOperatorRole | null },
   env: Pick<AppEnv, "ADMIN_PRIMARY_EMAIL">,
-): { email: string; role: AdminRole } {
+): { email: string; role: DisplayedAdminRole } {
+  if (actor.operatorRole === "super_admin" || actor.operatorRole === "staff") {
+    return { email: actor.email, role: actor.operatorRole };
+  }
   return {
     email: actor.email,
     role: effectiveAdminRole(actor.email, env),

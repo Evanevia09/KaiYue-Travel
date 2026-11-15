@@ -11,6 +11,12 @@ import {
 } from "./admin.ts";
 import { assertLiveAdminSurface } from "./admin-gate.ts";
 import {
+  handleCreateStaff,
+  handleListOperators,
+  handlePatchOperator,
+  handleResetOperatorPassword,
+} from "./admin-operator.ts";
+import {
   changeOwnAdminPassword,
   readOwnAdminProfile,
   refuseAdminRoleChange,
@@ -112,6 +118,31 @@ export async function handleApi(
 
       if (request.method === "POST" && pathname === "/api/v1/admin/profile/password") {
         return await changeOwnAdminPassword(request, env, actor, requestId);
+      }
+
+      if (pathname === "/api/v1/admin/users") {
+        if (request.method === "GET") {
+          return await handleListOperators(env, actor, requestId);
+        }
+        if (request.method === "POST") {
+          return await handleCreateStaff(request, env, actor, requestId);
+        }
+      }
+
+      const userParams = match(pathname, "/api/v1/admin/users/:id");
+      if (request.method === "PATCH" && userParams) {
+        return await handlePatchOperator(request, env, actor, userParams.id!, requestId);
+      }
+
+      const userPasswordParams = match(pathname, "/api/v1/admin/users/:id/password");
+      if (request.method === "POST" && userPasswordParams) {
+        return await handleResetOperatorPassword(
+          request,
+          env,
+          actor,
+          userPasswordParams.id!,
+          requestId,
+        );
       }
 
       if (request.method === "GET" && pathname === "/api/v1/admin/bookings") {

@@ -2,6 +2,21 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-15 23:40 Asia/Macau
+
+- **task_id:** `super-admin-user-management-20261115`
+- **Writer:** this PR #41 agent only, branch `cursor/host-role-admin-gate-a72c`
+- **Implemented / tested / pushed:** super-admin-only users settings; roles `super_admin` and `staff`; APIs list/create staff, edit role, enable/disable, reset credentials; last-super-admin lockout protection; session revoke; no hashes/emails
+- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` (SHA256 filled after the package commit)
+- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Staging bootstrap SQL is prepared, not applied. Cache-purge for admin-host `/` still pending PM.
+
+## 2026-11-15 — Super-admin user management (source only)
+
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/41
+- **Change:** `0009_admin_operator.sql` sidecar; `/admin/users`; `/api/v1/admin/users`. Staging-only `scripts/provision-staging-operators.sql` for existing `scalingsmb@gmail.com` / `f0af3b28-7b2c-47d5-b619-9239a29c41f9`.
+- **Verified:** local tests 183/183. No remote D1 apply, no deploy, no owner password change.
+- **Not done:** official-staging upload, production, DNS, mail, CI production builds.
+
 ## 2026-11-15 16:55 — Isolated trial D1/R2 + synthetic REST probes (docs closeout)
 
 - **Approval:** Evan 16:47 Asia/Macau existing widget t164s918. Scope: new empty official 33ecc D1/R2 + synthetic noncredential probes only. Infra 16:53; user result 16:55. Mika independently verified evidence hashes, JSON `00`–`11`, and that owner answer. No added operational authority.

@@ -65,6 +65,15 @@ export type AdminDriver = {
   active: boolean;
   updatedAt: string;
 };
+export type AdminOperator = {
+  id: string;
+  email: string;
+  name: string;
+  role: "super_admin" | "staff";
+  enabled: boolean;
+  updatedAt: string;
+};
+
 export type AdminVehicle = {
   id: string;
   plateNumber: string;
