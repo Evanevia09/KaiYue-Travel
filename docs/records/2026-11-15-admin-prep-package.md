@@ -1,7 +1,9 @@
 # 2026-11-15 — Admin-prep package (runtime freeze intact, ops hold)
 
 **Runtime freeze:** `74c30236a03583675f39d1a97b79c19a60d58da5`  
-**Docs HEAD at package time:** `deb293c8319a89b388f4bc738287a209f3c0accc`  
+**Original package record:** `f78d585606cb77fb7f5cf01715dd5624c94a5ef5`  
+**Original zip SHA256:** `483686e17141a24b12561169aaa51a0a9a7ccd91cba0e47703eb128f1fd24175` (immutable)  
+**Metadata r2:** prefix `kaiyue_admin_prep_74c3023_metadata_r2_` — metadata-only supersession of catalogs/config wording. Runtime/entry/photos/CLI bytes unchanged.  
 **Status:** reversible packaging only. **Not** `user_accepted`, **not** deployed, **not** `released`.  
 **Does not:** DNS, Worker create, D1 apply, secret seed, Vault export, public endpoint, staging overwrite.
 
@@ -80,6 +82,28 @@ Vault cannot export a generated login password into this CLI or write Worker bin
 Index: `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_sha256sums.txt`  
 Transfer note: `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_transfer_manifest.txt`
 
+Original `transfer_manifest.txt` (immutable) embeds a stale primary-sums line `253a8ae0…  2986` while the delivered `sha256sums.txt` is `2c4c1b0a…  3264`. That catalog is circular/stale and is **not** rewritten. Metadata r2 uses a new prefix and acyclic catalogs instead.
+
+## Metadata r2 (catalogs/config only)
+
+Original artifacts stay immutable. New prefix `kaiyue_admin_prep_74c3023_metadata_r2_`. No `pnpm build`. Zip member diff: only `DEPLOYMENT-CONFIG.json` and `OPERATOR-CLI-PLAN.txt` changed; 154 other members including `entry.js` and 41 photos unchanged.
+
+| Item | SHA256 |
+|---|---|
+| Original zip (immutable) | `483686e17141a24b12561169aaa51a0a9a7ccd91cba0e47703eb128f1fd24175` |
+| r2 production zip | `4e8011c9a76fe936253a0197b8fc700ef4faaaee37bffd4f36ff6a46fd77e18c` |
+| r2 supplement zip | `7fcd640f874d2f3b830cc262d9bd196e568af52a97a55e99a04ff9b677510122` |
+| r2 primary sha256sums (hashes the two zips only; not itself) | `712dc89dcfab4363ab3a60f3d1ef1a66141f7332ff37ffbcdb73d59c7b671444` |
+| entry.js (unchanged) | `b4241b58214a13ff67f44b70b82192fb868ff496f953a8b30b63a41bd4be41ee` |
+| assets ledger (unchanged) | `19df8de4dd5467896098954e4b1040f2fbef3490dc7e2dd3da1c616f4e7fdd02` |
+| standalone CLI (unchanged) | `e7f104973dcdaa16d2fb201d90eeea1abae48c78f5328589fd348f44e32a1e2d` |
+
+DEPLOYMENT-CONFIG r2: dedicated host `admin.kaiyuemacau.com` Better Auth password path when **both** Access vars are absent; partial Access fails closed; public apex/www 403; host not yet attached/live. Current rollback target from 33ecc read-only 2026-11-15 14:52:49 Asia/Macau: version `71a66a99-0605-401f-9997-e6d3c3e9561b` @100%, deployment `f3169afb-ccb7-4c52-9fde-b043cd15854d`, annotation `cd33cf8c` / live `9ff81925`. Repeat readback before any apply. `5b859f36` retained as labelled prior-release history only. Overlay `keep_vars` omissions are **not** final bindings approval.
+
+Operational HOLD: allowlist / primary ENV / secrets / readback / browser QA / D1 atomicity (Worker `DB.batch()` documents transactional rollback; REST / `d1 execute --file` sequential auto-commit is not a conclusive transaction; executor probe gate unchanged; no new implementation). Trial overlay remains DO_NOT_DEPLOY. Official UAT overlay remains DO_NOT_UPLOAD. Not release / not staging acceptance.
+
+Acyclic catalogs: r2 transfer_manifest lists data files and does **not** embed the primary-sums digest. Primary sums hash the two r2 zips only and do **not** hash themselves. This committed record pins the primary-sums digest `712dc89dcfab4363ab3a60f3d1ef1a66141f7332ff37ffbcdb73d59c7b671444`.
+
 ## Next
 
-Ops remain on hold. Parent: Mika rereview of `74c3023` plus exact trial plan approval before any provision.
+Ops remain on hold. Parent: Mika rereview of `74c3023` plus exact trial plan approval before any provision. Repeat official 33ecc version readback before any apply.

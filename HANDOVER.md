@@ -4,10 +4,11 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 ## 2026-11-15 — Admin-prep package of freeze 74c3023 (ops hold)
 
-- **Runtime freeze:** `74c30236a03583675f39d1a97b79c19a60d58da5` (reviewed code not changed).
-- **Package:** `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_production_complete.zip` plus standalone CREATE CLI. Record: `docs/records/2026-11-15-admin-prep-package.md`.
-- **Trial overlay:** DO_NOT_DEPLOY template; R2 `kaiyue-offers-admin-trial`; D1 ID uncreated sentinel.
-- **Not done:** DNS, Worker create, D1 apply, secret seed, Vault export, deploy.
+- **Runtime freeze:** `74c30236a03583675f39d1a97b79c19a60d58da5` (reviewed code not changed). Mika source+byte/static PASS pins original package `f78d5856` / zip `483686e1` (immutable).
+- **Metadata r2:** prefix `kaiyue_admin_prep_74c3023_metadata_r2_`. Corrects dedicated-host Better Auth wording and live rollback `71a66a99`@100% / `f3169afb` from 33ecc 14:52:49 Asia/Macau. `5b859f36` is labelled prior-release history. Acyclic catalogs. Record: `docs/records/2026-11-15-admin-prep-package.md`.
+- **Package:** original `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_production_complete.zip` plus r2 zip. Standalone CREATE CLI bytes unchanged.
+- **Trial overlay:** DO_NOT_DEPLOY template; R2 `kaiyue-offers-admin-trial`; D1 ID uncreated sentinel. UAT DO_NOT_UPLOAD.
+- **Not done:** DNS, Worker create, D1 apply, secret seed, Vault export, deploy, browser QA, bindings approval.
 
 ## 2026-11-15 — Mika rereview source prep (not live, not trial)
 

@@ -128,13 +128,15 @@ Not verified here: staging browser QA, D1 apply, secret fill, staff-domain attac
 
 ## Prep package (runtime freeze intact)
 
-Built from isolated worktree at `74c3023`. Copied to `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_*`. Record: `docs/records/2026-11-15-admin-prep-package.md`.
+Built from isolated worktree at `74c3023`. Original artifacts `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_*` are immutable (zip `483686e1`, record `f78d5856`). Metadata r2 prefix `kaiyue_admin_prep_74c3023_metadata_r2_` corrects catalogs/config only. Record: `docs/records/2026-11-15-admin-prep-package.md`.
 
-- Production zip SHA256 `483686e17141a24b12561169aaa51a0a9a7ccd91cba0e47703eb128f1fd24175` (entry + 41 photos, D1 `06cf879d`, R2 production, `run_worker_first=false`).
-- Trial overlay TEMPLATE labeled **DO_NOT_DEPLOY** until D1 exists and the ID is read back. R2 `kaiyue-offers-admin-trial`.
-- Standalone CREATE CLI SHA256 `e7f104973dcdaa16d2fb201d90eeea1abae48c78f5328589fd348f44e32a1e2d` (Better Auth 1.7.5, empty-box, fake trial fixture only).
-- No DNS, Worker create, D1 apply, or secret seed.
+- Original production zip SHA256 `483686e17141a24b12561169aaa51a0a9a7ccd91cba0e47703eb128f1fd24175` (entry + 41 photos, D1 `06cf879d`, R2 production, `run_worker_first=false`).
+- r2 production zip SHA256 `4e8011c9a76fe936253a0197b8fc700ef4faaaee37bffd4f36ff6a46fd77e18c` (same entry/photos; DEPLOYMENT-CONFIG + operator plan only).
+- Dedicated host intended Better Auth password path when both Access vars are absent; public 403; host not attached/live. Live rollback target `71a66a99`@100% / `f3169afb` (repeat readback before apply).
+- Trial overlay TEMPLATE labeled **DO_NOT_DEPLOY**. Official UAT **DO_NOT_UPLOAD**.
+- Standalone CREATE CLI SHA256 `e7f104973dcdaa16d2fb201d90eeea1abae48c78f5328589fd348f44e32a1e2d` (unchanged).
+- Overlay `keep_vars` omissions are not final bindings approval. No DNS, Worker create, D1 apply, or secret seed.
 
 ## Next action
 
-Ops hold. Mika rereview of `74c3023` and exact isolated trial plan before any provision.
+Ops hold. Mika rereview of `74c3023` and exact isolated trial plan before any provision. Repeat official 33ecc version readback before any apply.
