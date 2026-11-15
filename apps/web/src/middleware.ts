@@ -3,10 +3,10 @@ import { AppError, createRequestId } from "@kaiyue/contracts";
 import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
-  ACCESS_ADMIN_HOST,
   accessConfigured,
   assertLiveAdminSurface,
   forbiddenResponse,
+  isDedicatedAdminHostname,
   isProtectedAdminPath,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
@@ -37,7 +37,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         return forbiddenResponse(error.message);
       }
       if (
-        context.url.hostname === ACCESS_ADMIN_HOST &&
+        isDedicatedAdminHostname(context.url.hostname) &&
         (!workerEnv || accessConfigured(workerEnv))
       ) {
         return forbiddenResponse("Admin authentication is required.");

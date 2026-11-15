@@ -1,12 +1,11 @@
 import { AppError } from "@kaiyue/contracts";
 import { verifyAccessJwt } from "./access-jwt.ts";
 import {
-  ACCESS_ADMIN_HOST,
   accessBindingState,
+  isDedicatedAdminHost,
   isLocalRuntime,
-  isProductionHost,
   passwordAdminAllowed,
-  requestHost,
+  resolveHostRole,
 } from "./admin-gate.ts";
 import { assertPrimaryOperator, temporaryAdminExpiryApplies } from "./admin-primary.ts";
 import { allowedAdminEmails, createAdminSessionAuth } from "./admin-session.ts";
@@ -23,11 +22,23 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     throw new AppError("FORBIDDEN", "Admin access is not configured.");
   }
 
-  const accessHost = requestHost(request) === ACCESS_ADMIN_HOST;
-  if (isProductionHost(request) || (accessHost && accessState === "configured")) {
-    if (accessState !== "configured") {
+  const role = resolveHostRole(env, request);
+  switch (role) {
+    case "production-marketing":
+    case "staging-marketing":
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
+    case "production-admin":
+    case "staging-admin":
+    case "preview":
+    case "local":
+      break;
+    default: {
+      const exhaustive: never = role;
+      throw exhaustive;
     }
+  }
+
+  if (isDedicatedAdminHost(request) && accessState === "configured") {
     const accessToken = request.headers.get("cf-access-jwt-assertion");
     if (!accessToken) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
@@ -37,7 +48,7 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     return accessIdentity;
   }
 
-  if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true") {
+  if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true" && !isDedicatedAdminHost(request)) {
     return { id: "dev-admin", email: "dev-admin@localhost" };
   }
 
@@ -78,7 +89,7 @@ export function requireSameOrigin(request: Request, env: AppEnv): void {
   const site = env.PUBLIC_SITE_URL;
   const requestOrigin = new URL(request.url).origin;
   const allowed = new Set<string>();
-  if (site && requestHost(request) !== ACCESS_ADMIN_HOST) allowed.add(new URL(site).origin);
+  if (site && !isDedicatedAdminHost(request)) allowed.add(new URL(site).origin);
   allowed.add(requestOrigin);
   if (origin && !allowed.has(origin)) {
     throw new AppError("FORBIDDEN", "Cross-origin admin mutations are not allowed.");

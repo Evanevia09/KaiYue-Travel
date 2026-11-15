@@ -1,5 +1,10 @@
 import { AppError } from "@kaiyue/contracts";
-import { ACCESS_ADMIN_HOST, isProductionHost, requestHost } from "./admin-gate.ts";
+import {
+  isDedicatedAdminHost,
+  isProductionHost,
+  PRODUCTION_ADMIN_HOST,
+  requestHost,
+} from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
 
 export const ADMIN_ROLE_STAFF = "staff";
@@ -35,7 +40,7 @@ export function productionDedicatedHostRequiresPrimary(
   request: Request,
 ): boolean {
   return (
-    requestHost(request) === ACCESS_ADMIN_HOST &&
+    requestHost(request) === PRODUCTION_ADMIN_HOST &&
     (env.ENVIRONMENT ?? "").trim().toLowerCase() === "production"
   );
 }
@@ -48,10 +53,10 @@ export function liveAdminRequiresPrimary(
 }
 
 export function temporaryAdminExpiryApplies(
-  env: Pick<AppEnv, "ENVIRONMENT">,
+  _env: Pick<AppEnv, "ENVIRONMENT">,
   request: Request,
 ): boolean {
-  return !productionDedicatedHostRequiresPrimary(env, request);
+  return !isDedicatedAdminHost(request);
 }
 
 export function effectiveAdminRole(

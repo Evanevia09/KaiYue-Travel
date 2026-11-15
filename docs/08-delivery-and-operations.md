@@ -117,6 +117,19 @@ Cloudflare references include [D1 import and export](https://developers.cloudfla
 
 ### Kai Yue public and admin hostnames
 
+Owner-approved simpler layout (source/code host roles; DNS, Worker routes, and deploys are out of scope for the host-role PR):
+
+| Address | Role | Intended use |
+|---|---|---|
+| `kaiyuemacau.com`, `www.kaiyuemacau.com` | Production marketing | Live public site. `/admin` and `/login` stay 403. |
+| `admin.kaiyuemacau.com` | Production admin | Future staff host. Code supports password login when Access vars are absent. Do not attach or treat a host-role PR as a production release. |
+| `staging.kaiyuemacau.com` | Staging marketing | Public marketing for team testing. Staff login is not offered. |
+| `admin-staging.kaiyuemacau.com` | Staging admin | Staff sign-in and dashboard for team testing. |
+| `kaiyue-travel-staging.kai-yue.workers.dev` | Production-protected marketing | Official staging workers.dev remains fail-closed. Do not use it as the staff login URL. |
+| `kaiyue-travel-admin-trial.kai-yue.workers.dev` | Isolated trial (not a product host) | Must not be added to any production-host list. |
+
+Staging email notifications and GitHub continuous deployment for these custom hosts are separate work. Password policy stays minimum 12 characters; do not inherit `ADMIN_STAGING_TEST_PASSWORD_MIN=6` or UAT `TEMP_ADMIN_EXPIRES_AT`.
+
 The custom-hostname release uses a separate Kai Yue Worker and production-only D1 and private R2 bindings. The fresh staging database is for synthetic checks. Keep the production database empty until cutover unless a separately approved data migration is executed.
 
 1. Verify the active `kaiyuemacau.com` zone, assigned nameservers, edge certificate, current apex and `www` web records, and Workspace MX/TXT records. Capture the existing apex target and proxy state for rollback. Bind the apex only after the new deployment and release checks pass.

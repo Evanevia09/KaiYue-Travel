@@ -2,7 +2,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { ACCESS_ADMIN_HOST } from "../../apps/web/src/lib/server/admin-gate.ts";
+import {
+  ACCESS_ADMIN_HOST,
+  ADMIN_TRIAL_HOST,
+  PRODUCTION_HOSTS,
+  STAGING_ADMIN_HOST,
+  STAGING_MARKETING_HOST,
+} from "../../apps/web/src/lib/server/admin-gate.ts";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -16,6 +22,10 @@ function listFiles(dir: string): string[] {
 describe("main reconciliation invariants", () => {
   it("keeps dedicated admin host and min password length 12", () => {
     expect(ACCESS_ADMIN_HOST).toBe("admin.kaiyuemacau.com");
+    expect(STAGING_ADMIN_HOST).toBe("admin-staging.kaiyuemacau.com");
+    expect(STAGING_MARKETING_HOST).toBe("staging.kaiyuemacau.com");
+    expect(PRODUCTION_HOSTS).not.toContain(ADMIN_TRIAL_HOST);
+    expect(PRODUCTION_HOSTS).not.toContain(STAGING_ADMIN_HOST);
     const session = readFileSync(
       join(repoRoot, "apps/web/src/lib/server/admin-session.ts"),
       "utf8",
