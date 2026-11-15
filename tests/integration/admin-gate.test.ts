@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   ACCESS_ADMIN_HOST,
+  accessBindingState,
+  accessConfigured,
   assertLiveAdminSurface,
   passwordAdminAllowed,
   isProtectedAdminPath,
@@ -61,11 +63,60 @@ describe("dedicated Access admin hostname", () => {
     ACCESS_AUD: "admin-audience",
   };
 
+  it("allows password admin on the dedicated host only when Access vars are absent", () => {
+    const env = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
+    const adminRequest = new Request(`${origin}/admin/offers`);
+    expect(accessBindingState(env)).toBe("absent");
+    expect(accessConfigured(env)).toBe(false);
+    expect(() => assertLiveAdminSurface(env, "/admin/offers", adminRequest)).not.toThrow();
+    expect(() =>
+      assertLiveAdminSurface(env, "/login", new Request(`${origin}/login`)),
+    ).not.toThrow();
+    expect(passwordAdminAllowed(env, adminRequest)).toBe(true);
+    expect(() =>
+      assertLiveAdminSurface(env, "/setup-admin", new Request(`${origin}/setup-admin`)),
+    ).toThrow(/Operator setup is disabled on this host/);
+  });
+
+  it("fails closed when only ACCESS_TEAM_DOMAIN is set", () => {
+    const env = createTestEnv({
+      ENVIRONMENT: "production",
+      DEV_ADMIN_BYPASS: "false",
+      ACCESS_TEAM_DOMAIN: "team.cloudflareaccess.com",
+    });
+    expect(accessBindingState(env)).toBe("partial");
+    expect(accessConfigured(env)).toBe(false);
+    const request = new Request(`${origin}/login`);
+    expect(passwordAdminAllowed(env, request)).toBe(false);
+    expect(() => assertLiveAdminSurface(env, "/login", request)).toThrow(
+      /Admin access is not configured/,
+    );
+    expect(() => assertLiveAdminSurface(env, "/admin", new Request(`${origin}/admin`))).toThrow(
+      /Admin access is not configured/,
+    );
+  });
+
+  it("fails closed when only ACCESS_AUD is set", () => {
+    const env = createTestEnv({
+      ENVIRONMENT: "production",
+      DEV_ADMIN_BYPASS: "false",
+      ACCESS_AUD: "admin-audience",
+    });
+    expect(accessBindingState(env)).toBe("partial");
+    expect(accessConfigured(env)).toBe(false);
+    const request = new Request(`${origin}/api/auth/sign-in/email`);
+    expect(passwordAdminAllowed(env, request)).toBe(false);
+    expect(() => assertLiveAdminSurface(env, "/api/auth/sign-in/email", request)).toThrow(
+      /Admin access is not configured/,
+    );
+  });
+
   it("requires Access configuration and disables password routes", () => {
     const path = "/admin/offers";
     const request = new Request(origin + path);
-    expect(() => assertLiveAdminSurface(createTestEnv(), path, request)).toThrow();
     const env = createTestEnv({ ...access, ENVIRONMENT: "development", DEV_ADMIN_BYPASS: "true" });
+    expect(accessBindingState(env)).toBe("configured");
+    expect(accessConfigured(env)).toBe(true);
     expect(() => assertLiveAdminSurface(env, path, request)).not.toThrow();
     expect(passwordAdminAllowed(env, request)).toBe(false);
     for (const passwordPath of ["/login", "/setup-admin", "/api/auth/sign-in/email"]) {

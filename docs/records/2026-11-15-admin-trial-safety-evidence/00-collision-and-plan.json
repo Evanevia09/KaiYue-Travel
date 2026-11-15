@@ -1,0 +1,59 @@
+{
+  "event": "readonly_collision_and_plan_inventory",
+  "at_utc": "2026-11-15T08:49:55.091Z",
+  "at_asia_macau": "2026-11-15 16:49:55.091 Asia/Macau",
+  "method": "GET /accounts/33ecc75158a1cdd23ba1a62eb70c5103 ; GET .../d1/database (paginated + name=kaiyue-travel-admin-trial); GET .../r2/buckets; GET .../workers/scripts; GET .../workers/scripts/kaiyue-travel-admin-trial/script-settings; GET .../workers/account-settings; GET .../subscriptions (denied)",
+  "account": {
+    "id": "33ecc75158a1cdd23ba1a62eb70c5103",
+    "name": "Kai Yue"
+  },
+  "account_mismatch": false,
+  "old_account_41386f_queried": false,
+  "d1_count": 2,
+  "d1_databases_existing": [
+    {
+      "uuid": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+      "name": "kaiyue-travel-production",
+      "created_at": "2026-11-05T09:33:58.248Z",
+      "note": "production; not used as probe target"
+    },
+    {
+      "uuid": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+      "name": "kaiyue-travel-staging",
+      "created_at": "2026-11-05T09:32:17.493Z",
+      "note": "official staging/UAT; not used as probe target"
+    }
+  ],
+  "d1_name_query_hits_for_kaiyue-travel-admin-trial": [],
+  "d1_collision": [],
+  "r2_count": 2,
+  "r2_existing": [
+    {
+      "name": "kaiyue-offers-production",
+      "creation_date": "2026-11-05T09:37:55.721Z"
+    },
+    {
+      "name": "kaiyue-offers-staging",
+      "creation_date": "2026-11-05T09:37:53.314Z"
+    }
+  ],
+  "r2_collision": [],
+  "worker_names": [
+    "kaiyue-travel",
+    "kaiyue-travel-staging"
+  ],
+  "planned_worker_kaiyue-travel-admin-trial": {
+    "list_hits": [],
+    "direct_get": "HTTP 404 code 10007 This Worker does not exist on your account. Ray a5ad015e1f5f9e28-IAD",
+    "created": false
+  },
+  "billing": {
+    "subscriptions_endpoint": "GET /accounts/.../subscriptions HTTP 403 code 10000 Authentication error; no OAuth scope; Ray a5ad0154fb969e28-IAD; not retried via another path",
+    "workers_account_settings": {
+      "default_usage_model": "standard"
+    },
+    "products_already_enabled": "Account already had 2 D1 databases and 2 R2 buckets before create. D1 Free max is 10 databases; Paid includes first 100,000. R2 first 100,000 buckets included. Creating one additional empty D1 and one empty Standard R2 with minimal {name} did not require a paid upgrade or checkout. No credit-card/checkout attempted.",
+    "paid_upgrade_or_checkout": false
+  },
+  "clear_to_create": true
+}

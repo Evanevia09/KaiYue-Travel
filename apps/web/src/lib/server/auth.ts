@@ -2,12 +2,13 @@ import { AppError } from "@kaiyue/contracts";
 import { verifyAccessJwt } from "./access-jwt.ts";
 import {
   ACCESS_ADMIN_HOST,
-  accessConfigured,
+  accessBindingState,
   isLocalRuntime,
   isProductionHost,
   passwordAdminAllowed,
   requestHost,
 } from "./admin-gate.ts";
+import { assertPrimaryOperator, temporaryAdminExpiryApplies } from "./admin-primary.ts";
 import { allowedAdminEmails, createAdminSessionAuth } from "./admin-session.ts";
 import type { AppEnv } from "./env.ts";
 
@@ -17,15 +18,23 @@ export type AdminIdentity = {
 };
 
 export async function requireAdmin(request: Request, env: AppEnv): Promise<AdminIdentity> {
-  if (isProductionHost(request) || requestHost(request) === ACCESS_ADMIN_HOST) {
-    if (!accessConfigured(env)) {
+  const accessState = accessBindingState(env);
+  if (accessState === "partial") {
+    throw new AppError("FORBIDDEN", "Admin access is not configured.");
+  }
+
+  const accessHost = requestHost(request) === ACCESS_ADMIN_HOST;
+  if (isProductionHost(request) || (accessHost && accessState === "configured")) {
+    if (accessState !== "configured") {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
     const accessToken = request.headers.get("cf-access-jwt-assertion");
     if (!accessToken) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    return verifyAccessJwt(accessToken, env);
+    const accessIdentity = await verifyAccessJwt(accessToken, env);
+    assertPrimaryOperator(accessIdentity, env, request);
+    return accessIdentity;
   }
 
   if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true") {
@@ -33,8 +42,10 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
   }
 
   const token = request.headers.get("cf-access-jwt-assertion");
-  if (token && accessConfigured(env)) {
-    return verifyAccessJwt(token, env);
+  if (token && accessState === "configured") {
+    const accessIdentity = await verifyAccessJwt(token, env);
+    assertPrimaryOperator(accessIdentity, env, request);
+    return accessIdentity;
   }
 
   if (!passwordAdminAllowed(env, request)) {
@@ -43,7 +54,7 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
 
   const allowed = allowedAdminEmails(env);
   if (allowed.size === 0) throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
-  if (env.TEMP_ADMIN_EXPIRES_AT) {
+  if (temporaryAdminExpiryApplies(env, request) && env.TEMP_ADMIN_EXPIRES_AT) {
     const expiresAt = Date.parse(env.TEMP_ADMIN_EXPIRES_AT);
     if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
       throw new AppError("UNAUTHORIZED", "Temporary admin access has expired.");
@@ -54,7 +65,9 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
   if (!session || !allowed.has(session.user.email.toLowerCase())) {
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
-  return { id: session.user.id, email: session.user.email };
+  const identity = { id: session.user.id, email: session.user.email };
+  assertPrimaryOperator(identity, env, request);
+  return identity;
 }
 
 export function requireSameOrigin(request: Request, env: AppEnv): void {

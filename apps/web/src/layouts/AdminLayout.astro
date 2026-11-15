@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
-import { ACCESS_ADMIN_HOST } from "../lib/server/admin-gate.ts";
+import { env } from "cloudflare:workers";
+import { ACCESS_ADMIN_HOST, accessConfigured } from "../lib/server/admin-gate.ts";
 import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SignOutButton } from "../components/admin/SignOutButton.tsx";
 import {
@@ -22,7 +23,7 @@ type Props = {
 const locale = Astro.props.locale ?? adminLocaleFromCookies(Astro.cookies);
 const title = t(locale, Astro.props.titleKey, Astro.props.titleVars);
 const path = Astro.url.pathname;
-const usesAccess = Astro.url.hostname === ACCESS_ADMIN_HOST;
+const usesAccess = Astro.url.hostname === ACCESS_ADMIN_HOST && accessConfigured(env);
 const links: Array<{ href: string; key: AdminMessageKey }> = [
   { href: "/admin", key: "nav.dashboard" },
   { href: "/admin/bookings", key: "nav.bookings" },
@@ -30,6 +31,7 @@ const links: Array<{ href: string; key: AdminMessageKey }> = [
   { href: "/admin/inventory", key: "nav.inventory" },
   { href: "/admin/contacts", key: "nav.contacts" },
   { href: "/admin/offers", key: "nav.offers" },
+  { href: "/admin/settings", key: "nav.settings" },
 ];
 const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
 ---

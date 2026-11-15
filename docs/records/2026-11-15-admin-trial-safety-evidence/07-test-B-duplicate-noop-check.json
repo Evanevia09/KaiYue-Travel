@@ -1,0 +1,41 @@
+{
+  "test": "B_duplicate_existing_credential_noop_check_failure",
+  "verdict": "PASS",
+  "started_utc": "2026-11-15T08:52:02.802Z",
+  "started_asia_macau": "2026-11-15 16:52:02.802 Asia/Macau",
+  "mutation_at_utc": "2026-11-15T08:52:02.879Z",
+  "mutation_at_asia_macau": "2026-11-15 16:52:02.879 Asia/Macau",
+  "readback_at_utc": "2026-11-15T08:52:02.939Z",
+  "readback_at_asia_macau": "2026-11-15 16:52:02.939 Asia/Macau",
+  "identity_requery_before_sql": true,
+  "identity_match": true,
+  "method": "POST /accounts/33ecc75158a1cdd23ba1a62eb70c5103/d1/database/06aa844b-da6b-4c37-896c-fd13dd265fe6/query  body={sql: <6 semicolon-joined statements>}",
+  "expected_sql": "INSERT INTO \"synth_user\" (\"id\",\"name\",\"email\",\"emailVerified\",\"image\",\"createdAt\",\"updatedAt\") SELECT '00000000-0000-4000-a000-000000000002','SYNTHETIC_NONCREDENTIAL_PROBE_USER','synth-atomicity-positive@kaiyue.test',0,NULL,'1763201510000','1763201510000' WHERE NOT EXISTS (SELECT 1 FROM \"synth_user\" WHERE lower(\"email\") = lower('synth-atomicity-positive@kaiyue.test'));\nINSERT INTO \"synth_account\" (\"id\",\"accountId\",\"providerId\",\"userId\",\"accessToken\",\"refreshToken\",\"idToken\",\"accessTokenExpiresAt\",\"refreshTokenExpiresAt\",\"scope\",\"password\",\"createdAt\",\"updatedAt\") SELECT '00000000-0000-4000-a000-000000000102','00000000-0000-4000-a000-000000000002','credential','00000000-0000-4000-a000-000000000002',NULL,NULL,NULL,NULL,NULL,NULL,'SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD','1763201510000','1763201510000' WHERE EXISTS (SELECT 1 FROM \"synth_user\" WHERE \"id\" = '00000000-0000-4000-a000-000000000002') AND NOT EXISTS (SELECT 1 FROM \"synth_account\" AS a JOIN \"synth_user\" AS u ON u.\"id\" = a.\"userId\" WHERE lower(u.\"email\") = lower('synth-atomicity-positive@kaiyue.test') AND a.\"providerId\" = 'credential');\nCREATE TABLE IF NOT EXISTS \"_synth_create_guard\" (ok INTEGER NOT NULL CHECK (ok = 1));\nDELETE FROM \"_synth_create_guard\";\nINSERT INTO \"_synth_create_guard\" (\"ok\") SELECT CASE WHEN ((SELECT COUNT(*) FROM \"synth_user\" WHERE \"id\" = '00000000-0000-4000-a000-000000000002' AND lower(\"email\") = lower('synth-atomicity-positive@kaiyue.test')) = 1 AND (SELECT COUNT(*) FROM \"synth_account\" WHERE \"id\" = '00000000-0000-4000-a000-000000000102' AND \"userId\" = '00000000-0000-4000-a000-000000000002' AND \"providerId\" = 'credential' AND \"password\" = 'SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD') = 1 AND (SELECT COUNT(*) FROM \"synth_user\" WHERE lower(\"email\") = lower('synth-atomicity-positive@kaiyue.test')) = 1 AND (SELECT COUNT(*) FROM \"synth_account\" AS a JOIN \"synth_user\" AS u ON u.\"id\" = a.\"userId\" WHERE lower(u.\"email\") = lower('synth-atomicity-positive@kaiyue.test') AND a.\"providerId\" = 'credential') = 1) THEN 1 ELSE 0 END;\nDROP TABLE \"_synth_create_guard\";",
+  "mutation": {
+    "threw": true,
+    "http": 400,
+    "ray": "a5ad047d8dead79d-IAD",
+    "api_result": [],
+    "error": {
+      "code": 7500,
+      "message": "CHECK constraint failed: ok = 1: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_CHECK)"
+    }
+  },
+  "readback_immediately_after_error": true,
+  "readback": {
+    "success": true,
+    "tables": [
+      "_cf_KV",
+      "synth_account",
+      "synth_user"
+    ],
+    "guard_table_present": false,
+    "counts": {
+      "synth_user": 1,
+      "synth_account": 1
+    },
+    "new_ids_0002_0102_present": false,
+    "only_original_positive_rows": true
+  },
+  "scope_note": "Postcondition CHECK refused a silent no-op/duplicate. User/account statements were no-ops so this test alone does not prove DML rollback of earlier successful writes. The guard table created earlier in the same request was also absent after the error, which is consistent with request-level rollback of that schema write because DROP could not have run after the failed INSERT."
+}

@@ -1,0 +1,32 @@
+{
+  "event": "GET_r2_metadata_privacy_objects",
+  "at_utc": "2026-11-15T08:50:54.875Z",
+  "finished_utc": "2026-11-15T08:50:56.453Z",
+  "at_asia_macau": "2026-11-15 16:50:54.875 Asia/Macau",
+  "finished_asia_macau": "2026-11-15 16:50:56.453 Asia/Macau",
+  "methods": [
+    "GET /accounts/33ecc75158a1cdd23ba1a62eb70c5103/r2/buckets/kaiyue-offers-admin-trial",
+    "GET /accounts/33ecc75158a1cdd23ba1a62eb70c5103/r2/buckets/kaiyue-offers-admin-trial/domains/managed",
+    "GET /accounts/33ecc75158a1cdd23ba1a62eb70c5103/r2/buckets/kaiyue-offers-admin-trial/domains/custom",
+    "GET /accounts/33ecc75158a1cdd23ba1a62eb70c5103/r2/buckets/kaiyue-offers-admin-trial/objects?per_page=100"
+  ],
+  "get_success": true,
+  "name": "kaiyue-offers-admin-trial",
+  "creation_date": "2026-11-15T08:50:47.719Z",
+  "location": "ENAM",
+  "storage_class": "Standard",
+  "jurisdiction": "default",
+  "managed": {
+    "enabled": false,
+    "bucketId": "d937f5bc01e448afa679bdbf3769ed50",
+    "domain": "pub-d937f5bc01e448afa679bdbf3769ed50.r2.dev",
+    "note": "Cloudflare reserves an r2.dev hostname for the bucket; public access remains disabled. This work did not enable r2.dev or add a custom domain."
+  },
+  "custom_domains": [],
+  "custom_count": 0,
+  "objects": {
+    "count": 0,
+    "keys": []
+  },
+  "left_empty_and_private": true
+}

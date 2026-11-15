@@ -1,0 +1,23 @@
+{
+  "event": "POST_create_r2",
+  "started_utc": "2026-11-15T08:50:47.188Z",
+  "started_asia_macau": "2026-11-15 16:50:47.188 Asia/Macau",
+  "finished_utc": "2026-11-15T08:50:47.882Z",
+  "finished_asia_macau": "2026-11-15 16:50:47.882 Asia/Macau",
+  "method": "POST /accounts/33ecc75158a1cdd23ba1a62eb70c5103/r2/buckets",
+  "request_body": {
+    "name": "kaiyue-offers-admin-trial"
+  },
+  "success": true,
+  "result": {
+    "name": "kaiyue-offers-admin-trial",
+    "creation_date": "2026-11-15T08:50:47.719Z",
+    "creation_date_asia_macau": "2026-11-15 16:50:47.719 Asia/Macau",
+    "location": "ENAM",
+    "storage_class": "Standard",
+    "jurisdiction": "default"
+  },
+  "public_access_enabled": false,
+  "dns_or_custom_domain_added": false,
+  "objects_written": false
+}

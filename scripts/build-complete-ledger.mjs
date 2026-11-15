@@ -34,7 +34,7 @@ const envName = (() => {
 })();
 if (envName !== "production") {
   console.error(
-    "This production-candidate ledger only accepts --env production.\nDo not freeze staging from this branch (PR #34 holds the live staging package).",
+    "This production-candidate ledger only accepts --env production.\nDo not freeze official UAT or the unapproved admin-trial overlay from this branch.",
   );
   process.exit(1);
 }

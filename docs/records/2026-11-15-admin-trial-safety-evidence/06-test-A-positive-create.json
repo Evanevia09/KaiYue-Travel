@@ -1,0 +1,62 @@
+{
+  "test": "A_positive_create",
+  "verdict": "PASS",
+  "started_utc": "2026-11-15T08:51:50.777Z",
+  "started_asia_macau": "2026-11-15 16:51:50.777 Asia/Macau",
+  "mutation_at_utc": "2026-11-15T08:51:50.862Z",
+  "mutation_at_asia_macau": "2026-11-15 16:51:50.862 Asia/Macau",
+  "readback_at_utc": "2026-11-15T08:51:50.924Z",
+  "readback_at_asia_macau": "2026-11-15 16:51:50.924 Asia/Macau",
+  "identity_requery_before_sql": true,
+  "identity_match": true,
+  "method": "POST /accounts/33ecc75158a1cdd23ba1a62eb70c5103/d1/database/06aa844b-da6b-4c37-896c-fd13dd265fe6/query  body={sql: <6 semicolon-joined statements>}",
+  "expected_sql": "INSERT INTO \"synth_user\" (\"id\",\"name\",\"email\",\"emailVerified\",\"image\",\"createdAt\",\"updatedAt\") SELECT '00000000-0000-4000-a000-000000000001','SYNTHETIC_NONCREDENTIAL_PROBE_USER','synth-atomicity-positive@kaiyue.test',0,NULL,'1763201497000','1763201497000' WHERE NOT EXISTS (SELECT 1 FROM \"synth_user\" WHERE lower(\"email\") = lower('synth-atomicity-positive@kaiyue.test'));\nINSERT INTO \"synth_account\" (\"id\",\"accountId\",\"providerId\",\"userId\",\"accessToken\",\"refreshToken\",\"idToken\",\"accessTokenExpiresAt\",\"refreshTokenExpiresAt\",\"scope\",\"password\",\"createdAt\",\"updatedAt\") SELECT '00000000-0000-4000-a000-000000000101','00000000-0000-4000-a000-000000000001','credential','00000000-0000-4000-a000-000000000001',NULL,NULL,NULL,NULL,NULL,NULL,'SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD','1763201497000','1763201497000' WHERE EXISTS (SELECT 1 FROM \"synth_user\" WHERE \"id\" = '00000000-0000-4000-a000-000000000001') AND NOT EXISTS (SELECT 1 FROM \"synth_account\" AS a JOIN \"synth_user\" AS u ON u.\"id\" = a.\"userId\" WHERE lower(u.\"email\") = lower('synth-atomicity-positive@kaiyue.test') AND a.\"providerId\" = 'credential');\nCREATE TABLE IF NOT EXISTS \"_synth_create_guard\" (ok INTEGER NOT NULL CHECK (ok = 1));\nDELETE FROM \"_synth_create_guard\";\nINSERT INTO \"_synth_create_guard\" (\"ok\") SELECT CASE WHEN ((SELECT COUNT(*) FROM \"synth_user\" WHERE \"id\" = '00000000-0000-4000-a000-000000000001' AND lower(\"email\") = lower('synth-atomicity-positive@kaiyue.test')) = 1 AND (SELECT COUNT(*) FROM \"synth_account\" WHERE \"id\" = '00000000-0000-4000-a000-000000000101' AND \"userId\" = '00000000-0000-4000-a000-000000000001' AND \"providerId\" = 'credential' AND \"password\" = 'SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD') = 1 AND (SELECT COUNT(*) FROM \"synth_user\" WHERE lower(\"email\") = lower('synth-atomicity-positive@kaiyue.test')) = 1 AND (SELECT COUNT(*) FROM \"synth_account\" AS a JOIN \"synth_user\" AS u ON u.\"id\" = a.\"userId\" WHERE lower(u.\"email\") = lower('synth-atomicity-positive@kaiyue.test') AND a.\"providerId\" = 'credential') = 1) THEN 1 ELSE 0 END;\nDROP TABLE \"_synth_create_guard\";",
+  "mutation": {
+    "threw": false,
+    "success": true,
+    "errors": [],
+    "statement_changes": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      0
+    ],
+    "notes": "Six statements all success: user insert changes=1; account insert changes=1; CREATE guard; DELETE 0; INSERT guard ok=1 changes=1; DROP guard. size_after returned to 28672 after DROP."
+  },
+  "readback": {
+    "success": true,
+    "tables": [
+      "_cf_KV",
+      "synth_account",
+      "synth_user"
+    ],
+    "guard_table_present": false,
+    "counts": {
+      "synth_user": 1,
+      "synth_account": 1
+    },
+    "synth_user": [
+      {
+        "id": "00000000-0000-4000-a000-000000000001",
+        "name": "SYNTHETIC_NONCREDENTIAL_PROBE_USER",
+        "email": "synth-atomicity-positive@kaiyue.test",
+        "emailVerified": 0,
+        "createdAt": "1763201497000",
+        "updatedAt": "1763201497000"
+      }
+    ],
+    "synth_account": [
+      {
+        "id": "00000000-0000-4000-a000-000000000101",
+        "accountId": "00000000-0000-4000-a000-000000000001",
+        "providerId": "credential",
+        "userId": "00000000-0000-4000-a000-000000000001",
+        "password": "SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD",
+        "createdAt": "1763201497000",
+        "updatedAt": "1763201497000"
+      }
+    ]
+  }
+}

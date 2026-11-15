@@ -1,0 +1,30 @@
+// PROTECTED OFFICIAL UAT BASELINE — not an upload overlay.
+// DO_NOT_UPLOAD. Uploading this file (especially keep_vars:true) would
+// bind Worker kaiyue-travel-staging, D1 043cd0ff, R2 kaiyue-offers-staging
+// and persist omitted UAT vars (6-char min, Nov 24 expiry, allowlist).
+// Canonical host kaiyue-travel-staging.kai-yue.workers.dev is in
+// PRODUCTION_HOSTS, so ENVIRONMENT=preview would not enable login there.
+// Preserve existing UAT credentials, data, and config until a separate
+// isolated trial Worker is approved. See wrangler.admin-trial-artifact.jsonc
+// and docs/records/2026-11-15-isolated-admin-trial-plan.md.
+{
+  "do_not_upload": true,
+  "name": "kaiyue-travel-staging",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "keep_vars": true,
+  "note": "Protected UAT baseline record only. Isolated trial uses wrangler.admin-trial-artifact.jsonc.",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-staging",
+      "database_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-staging"
+    }
+  ],
+  "protected_host": "kaiyue-travel-staging.kai-yue.workers.dev"
+}

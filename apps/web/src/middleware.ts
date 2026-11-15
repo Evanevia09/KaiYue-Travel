@@ -4,11 +4,13 @@ import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
   ACCESS_ADMIN_HOST,
+  accessConfigured,
   assertLiveAdminSurface,
   forbiddenResponse,
   isProtectedAdminPath,
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
+import type { AppEnv } from "./lib/server/env.ts";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
@@ -20,9 +22,11 @@ const SECURITY_HEADERS: Record<string, string> = {
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
+    let workerEnv: AppEnv | undefined;
     try {
       // Static pages are prerendered in Node, where the Worker-only module is unavailable.
       const { env } = await import("cloudflare:workers");
+      workerEnv = env;
       assertLiveAdminSurface(env, context.url.pathname, context.request);
       if (context.url.pathname === "/login" || context.url.pathname === "/setup-admin") {
         return next();
@@ -32,7 +36,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
       if (error instanceof AppError && (error.code === "FORBIDDEN" || error.status === 403)) {
         return forbiddenResponse(error.message);
       }
-      if (context.url.hostname === ACCESS_ADMIN_HOST) {
+      if (
+        context.url.hostname === ACCESS_ADMIN_HOST &&
+        (!workerEnv || accessConfigured(workerEnv))
+      ) {
         return forbiddenResponse("Admin authentication is required.");
       }
       return context.redirect("/login", 302);

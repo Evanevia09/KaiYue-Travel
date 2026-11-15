@@ -2,11 +2,13 @@
 
 ## Goal and access
 
-The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*`. The current local development alternative uses Better Auth email/password sessions in D1, with an explicit `ADMIN_EMAILS` allowlist. Admin UI pages and API handlers both require a valid identity. Production access policy and operator provisioning still require owner review.
+The admin area is a small operational workspace, not a CRM. Public production hosts (`kaiyuemacau.com`, `www.kaiyuemacau.com`, listed workers.dev hosts) stay fail-closed 403 for `/admin`, `/login`, `/setup-admin`, and admin APIs. The dedicated staff host is `admin.kaiyuemacau.com`. Owner direction is ordinary Better Auth email/password there; Cloudflare Access is **not** a login requirement. Access JWT is used only when **both** `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are set. Either var alone is treated as broken config and fails closed. Both absent is the supported production password path.
 
-Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up.
+An `ADMIN_EMAILS` allowlist is not a super-admin role. Primary operator authority is Worker env `ADMIN_PRIMARY_EMAIL` (plus `ADMIN_EMAILS` on the password path), not a D1 role column. Live D1 06cf879d at 2026-11-15 14:18 had no role column; a persisted `user.role` would be unused metadata, so there is no `0009` migration. `requireAdmin` enforces the env primary on password sessions and Cloudflare Access JWTs. There is no staff-management API and no self-service role change.
 
-Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. `TEMP_ADMIN_EXPIRES_AT` can close temporary local dashboard access at a fixed timestamp without deleting records or changing the secret. This does not provision a production operator or replace Cloudflare Access.
+Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up. `/admin/settings` lets a signed-in password operator change their own password (current password required, minimum 12 characters, confirmation). Other sessions are deleted in D1 immediately; signed Better Auth cookie-cache tokens on other devices may remain valid for up to 60 seconds. Cloudflare Access identities do not use this form.
+
+Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. `/setup-admin` and `/api/auth/sign-up/email` are not production provisioners. Production CREATE uses `scripts/provision-primary-admin.mjs` after a fresh preflight (exclusive 0600 SQL, CHECK(ok = 1) postcondition, no wrangler). Cloudflare Vault cannot export a generated login password into that CLI or write Worker bindings. A later native user-secret request may place a user-provided password in the local process. Parent configures Worker secrets after the package route is validated. `TEMP_ADMIN_EXPIRES_AT` can close temporary local or preview dashboard access. It does not apply on the production dedicated admin host and must not inherit the staging UAT 2026-11-24 expiry or 6-character password minimum. Isolated admin trial uses a separate Worker/D1/R2 plan, never official UAT `043cd0ff`.
 
 ## Navigation
 
@@ -15,6 +17,7 @@ Local first-account setup requires a one-time token and is disabled outside `ENV
 - **Calendar** — booking schedule.
 - **Contacts** — general/corporate inquiries.
 - **Drivers & vehicles** — staff-managed dispatch inventory and contact details.
+- **Profile** — signed-in account and password change. `/admin/settings`.
 - **Special Offers** — draft/publish catalogue with photos. `/admin/offers`. Phone photos up to 25 MB are copied from the file input (or a drop) before the input is cleared, then resized in the browser. The stored file must stay under 5 MB; a resize failure is shown as an error and the original is not uploaded. The editor shows upload progress and applies main-photo, delete, and publish changes immediately, rolling back if the server rejects them. Publish/unpublish button labels follow the target action (`Publishing…` / `Unpublishing…`), not the optimistic status. Mutating admin fetches use `keepalive`, and a leave warning is shown while a write is in flight. Publish writes the status update and audit in one D1 batch and skips a second load. `/admin` and `/admin/offers` render their first payload on the server so the island does not wait on a second round trip. Updated timestamps use Asia/Macau so server HTML and hydration match.
 
 ## Dashboard
@@ -78,10 +81,11 @@ Booking workflow: `enquiry` → `assigned` → `completed`, with `cancelled` ava
 
 ## Authorization and audit
 
-- Proposed Release 1 role: one `staff` access group with the same operational permissions. Add roles only when a real separation-of-duties need is confirmed.
-- Capture Access user identifier, action, entity, old/new status, timestamp, and request ID for changes.
+- Release 1 operator model: one env-configured primary operator (`ADMIN_PRIMARY_EMAIL`) on live admin hosts. Dashboard operational permissions are unchanged. This is not a staff directory, invite flow, or a DB RBAC platform. The profile page shows “Primary operator” from env match, not from a D1 role.
+- Default deny: non-primary identities cannot password-login on the production dedicated host; `POST /api/v1/admin/profile/role` is always 403; password-change bodies cannot set `role`.
+- Capture operator identifier, action, entity, old/new status, timestamp, and request ID for changes.
 - Do not place customer data in URLs, client logs, analytics, or broad error reports.
-- Session timeout, offboarding, and allowed identity domains are Cloudflare Access configuration decisions requiring owner approval.
+- Session timeout uses Better Auth (8 hours, 60-second signed cookie cache). Offboarding is D1 session delete plus password change; other devices may remain valid for the cache window.
 
 ## Admin UX requirements
 

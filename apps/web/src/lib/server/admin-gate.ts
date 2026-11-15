@@ -45,8 +45,24 @@ export function isPreviewRuntime(
   return host.endsWith(".workers.dev") && !PRODUCTION_HOSTS.includes(host);
 }
 
+export type AccessBindingState = "absent" | "partial" | "configured";
+
+export function accessBindingState(
+  env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
+): AccessBindingState {
+  const team = Boolean(env.ACCESS_TEAM_DOMAIN?.trim());
+  const audience = Boolean(env.ACCESS_AUD?.trim());
+  if (team && audience) {
+    return "configured";
+  }
+  if (team || audience) {
+    return "partial";
+  }
+  return "absent";
+}
+
 export function accessConfigured(env: Pick<AppEnv, "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">): boolean {
-  return Boolean(env.ACCESS_TEAM_DOMAIN?.trim() && env.ACCESS_AUD?.trim());
+  return accessBindingState(env) === "configured";
 }
 
 export function isProtectedAdminPath(pathname: string): boolean {
@@ -57,11 +73,11 @@ export function isProtectedAdminPath(pathname: string): boolean {
 }
 
 export function passwordAdminAllowed(
-  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
   request: Request,
 ): boolean {
   if (requestHost(request) === ACCESS_ADMIN_HOST) {
-    return false;
+    return accessBindingState(env) === "absent";
   }
   if (isLocalRuntime(env)) {
     return true;
@@ -80,10 +96,20 @@ export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: R
     return;
   }
   if (requestHost(request) === ACCESS_ADMIN_HOST) {
-    if (accessConfigured(env) && !passwordAdminPath(pathname)) {
+    const accessState = accessBindingState(env);
+    if (accessState === "partial") {
+      throw new AppError("FORBIDDEN", "Admin access is not configured.");
+    }
+    if (accessState === "configured") {
+      if (passwordAdminPath(pathname)) {
+        throw new AppError("FORBIDDEN", "Admin access is not configured.");
+      }
       return;
     }
-    throw new AppError("FORBIDDEN", "Admin access is not configured.");
+    if (pathname === "/setup-admin" || pathname.startsWith("/setup-admin/")) {
+      throw new AppError("FORBIDDEN", "Operator setup is disabled on this host.");
+    }
+    return;
   }
   if (isLocalRuntime(env)) {
     return;
