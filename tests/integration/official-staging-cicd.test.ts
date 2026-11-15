@@ -5,6 +5,10 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { HTML_WORKER_FIRST_PATHS } from "../../apps/web/src/lib/server/admin-gate.ts";
+import {
+  evaluateSchemaContract,
+  hashMigrationFiles,
+} from "../../scripts/official-staging-schema-check.mjs";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const overlayPath = join(repoRoot, "deploy/official-staging/wrangler.jsonc");
@@ -33,23 +37,35 @@ const overlay = parseJsonc(overlayText) as {
   vars: Record<string, string>;
   assets: { run_worker_first: string[] };
 };
-const constants = JSON.parse(readFileSync(constantsPath, "utf8")) as {
+
+type SchemaContract = {
+  kind: string;
+  live_d1_query: boolean;
+  not_a_live_d1_readback: boolean;
+  target: { d1_id: string; worker_name: string; account_id: string };
+  attested_applied: { migration_files: string[] };
+  required_migration_files: Array<{ file: string; sha256: string }>;
+  required_objects: string[];
+  ci_must_not: string[];
+};
+
+type StagingConstants = {
   d1_id: string;
   worker_name: string;
+  account_id: string;
   wrangler_version: string;
+  github_environment: string;
+  github_environment_required_reviewers: boolean;
+  production_github_environment_required_reviewers: boolean;
+  attested_applied_migrations: string[];
   required_schema_migrations: string[];
   required_schema_tables: string[];
   github_secret_names: string[];
   forbidden_github_secret_names: string[];
 };
-const contract = JSON.parse(readFileSync(contractPath, "utf8")) as {
-  live_d1_query: boolean;
-  not_a_live_d1_readback: boolean;
-  target: { d1_id: string; worker_name: string };
-  required_migration_files: Array<{ file: string; sha256: string }>;
-  required_objects: string[];
-  ci_must_not: string[];
-};
+
+const constants = JSON.parse(readFileSync(constantsPath, "utf8")) as StagingConstants;
+const contract = JSON.parse(readFileSync(contractPath, "utf8")) as SchemaContract;
 const workflow = readFileSync(workflowPath, "utf8");
 const productionWorkflow = readFileSync(productionWorkflowPath, "utf8");
 const ciWorkflow = readFileSync(ciWorkflowPath, "utf8");
@@ -108,6 +124,18 @@ describe("official staging CI/CD source", () => {
     expect(ciWorkflow).not.toContain("CLOUDFLARE_API_TOKEN");
   });
 
+  it("uses GitHub environment staging with no per-run approval; production stays fail-closed", () => {
+    expect(constants.github_environment).toBe("staging");
+    expect(constants.github_environment_required_reviewers).toBe(false);
+    expect(constants.production_github_environment_required_reviewers).toBe(true);
+    expect(workflow).toContain("environment: staging");
+    expect(workflow).not.toContain("environment: official-staging");
+    expect(workflow).not.toContain("reviewers:");
+    expect(productionWorkflow).toMatch(/owner reviewer/i);
+    expect(productionWorkflow).toContain("fail-closed");
+    expect(productionWorkflow).not.toContain("CLOUDFLARE_");
+  });
+
   it("keeps Worker secrets off GitHub and only names Cloudflare token secrets", () => {
     for (const name of constants.github_secret_names) {
       expect(workflow).toContain(`secrets.${name}`);
@@ -128,7 +156,25 @@ describe("official staging CI/CD source", () => {
     const disk = readdirSync(migrationsDir)
       .filter((name) => name.endsWith(".sql"))
       .sort();
-    expect(contract.required_migration_files.map((row) => row.file).sort()).toEqual(disk);
+    expect(constants.attested_applied_migrations).toEqual([
+      "0001_init.sql",
+      "0002_booking_communication_workflow.sql",
+      "0003_dispatch_inventory.sql",
+      "0004_admin_auth.sql",
+      "0005_special_offers.sql",
+      "0006_offer_photo_variants.sql",
+      "0007_booking_offer.sql",
+      "0008_booking_tour_guide.sql",
+      "0009_admin_operator.sql",
+      "0010_admin_operator_last_super.sql",
+    ]);
+    expect(contract.required_migration_files.map((row) => row.file)).toEqual(
+      constants.attested_applied_migrations,
+    );
+    expect(contract.attested_applied.migration_files).toEqual(
+      constants.attested_applied_migrations,
+    );
+    expect(disk).toEqual(constants.attested_applied_migrations);
     for (const row of contract.required_migration_files) {
       const digest = createHash("sha256")
         .update(readFileSync(join(migrationsDir, row.file)))
@@ -181,5 +227,52 @@ describe("official staging CI/CD source", () => {
       },
     );
     expect(guard.status, guard.stderr).toBe(0);
+  });
+});
+
+describe("official staging schema contract tamper guards", () => {
+  function baseInput() {
+    const diskFiles = readdirSync(migrationsDir)
+      .filter((name) => name.endsWith(".sql"))
+      .sort();
+    return {
+      contract: structuredClone(contract),
+      constants: structuredClone(constants),
+      diskFiles,
+      fileHashes: hashMigrationFiles(migrationsDir, diskFiles),
+      workflowText: workflow,
+    };
+  }
+
+  it("accepts the attested 0001–0010 contract and rejects live-D1 or list/hash tampers", () => {
+    expect(evaluateSchemaContract(baseInput())).toEqual([]);
+
+    const liveQuery = baseInput();
+    liveQuery.contract.live_d1_query = true;
+    expect(evaluateSchemaContract(liveQuery).join("\n")).toMatch(/not a live D1 readback/);
+
+    const hashTamper = baseInput();
+    hashTamper.contract.required_migration_files[0].sha256 = "0".repeat(64);
+    expect(evaluateSchemaContract(hashTamper).join("\n")).toMatch(/hash/);
+
+    const dropFile = baseInput();
+    dropFile.contract.required_migration_files = dropFile.contract.required_migration_files.slice(
+      0,
+      9,
+    );
+    dropFile.contract.attested_applied.migration_files =
+      dropFile.contract.attested_applied.migration_files.slice(0, 9);
+    expect(evaluateSchemaContract(dropFile).join("\n")).toMatch(/0001/);
+
+    const extraFile = baseInput();
+    extraFile.diskFiles = [...extraFile.diskFiles, "0011_extra.sql"];
+    expect(evaluateSchemaContract(extraFile).join("\n")).toMatch(/0011_extra/);
+
+    const reorder = baseInput();
+    const files = [...reorder.contract.required_migration_files];
+    [files[8], files[9]] = [files[9], files[8]];
+    reorder.contract.required_migration_files = files;
+    reorder.contract.attested_applied.migration_files = files.map((row) => row.file);
+    expect(evaluateSchemaContract(reorder).join("\n")).toMatch(/order/);
   });
 });

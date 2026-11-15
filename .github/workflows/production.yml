@@ -22,7 +22,7 @@ jobs:
         run: |
           echo "Production automation is fail-closed and unconnected."
           echo "This workflow has no Cloudflare credentials and does not invoke the Cloudflare CLI."
-          echo "Do not enable a production deploy route until GitHub environment production"
-          echo "has independently configured required reviewers and an owner-approved immutable release."
+          echo "GitHub environment production must require an owner reviewer in the UI."
+          echo "This workflow stays disabled and fail-closed with no credentials."
           echo "Do not add production credentials, merge or push main, or rewire Workers Builds."
           exit 1

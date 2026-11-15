@@ -103,10 +103,24 @@ check(
   workflow.includes(`github.ref == 'refs/heads/${constants.release_branch}'`),
   "jobs must no-op off official-staging",
 );
+check(constants.github_environment === "staging", "GitHub environment name must be staging");
+check(
+  constants.github_environment_required_reviewers === false,
+  "staging env has no required reviewers",
+);
+check(
+  constants.production_github_environment_required_reviewers === true,
+  "production GitHub environment must require an owner reviewer in UI",
+);
 check(
   workflow.includes(`environment: ${constants.github_environment}`),
-  "upload/activate must use GitHub environment",
+  "upload/activate must use GitHub environment staging",
 );
+check(
+  !workflow.includes("environment: official-staging"),
+  "workflow must not use a GitHub environment named official-staging",
+);
+check(!/reviewers:/.test(workflow), "staging CD must not encode per-run environment approval");
 check(workflow.includes("contents: read"), "workflow permissions must be contents: read");
 check(workflow.includes("versions upload"), "workflow must upload a version");
 check(
@@ -141,10 +155,19 @@ check(existsSync(SCHEMA_CONTRACT_PATH), "schema compatibility contract must exis
 {
   const contract = loadSchemaContract();
   check(contract.live_d1_query === false, "schema contract must not query live D1");
+  check(
+    contract.not_a_live_d1_readback === true,
+    "schema contract must not claim live D1 readback",
+  );
   check(contract.target?.d1_id === constants.d1_id, "schema contract D1 id mismatch");
   check(
     (contract.ci_must_not ?? []).includes("d1 execute"),
     "schema contract must forbid d1 execute",
+  );
+  check(
+    JSON.stringify(contract.attested_applied?.migration_files) ===
+      JSON.stringify(constants.attested_applied_migrations),
+    "schema contract must attest exact applied 0001–0010",
   );
 }
 check(!workflow.includes("branches: [main]"), "official-staging workflow must not trigger on main");
@@ -185,6 +208,10 @@ check(/exit 1/.test(productionWorkflow), "production workflow must fail closed")
 check(
   productionWorkflow.includes("environment: production") && /if: false/.test(productionWorkflow),
   "production GitHub environment is reserved and must not activate",
+);
+check(
+  /owner reviewer/i.test(productionWorkflow),
+  "production workflow must document required owner reviewer without enabling deploy",
 );
 
 const workflowNames = readdirSync(join(REPO_ROOT, ".github/workflows")).filter((name) =>

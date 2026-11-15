@@ -1,9 +1,10 @@
-# Official staging CD. Trigger: push to official-staging after green checks.
-# Sequence: versions upload (no traffic) then binding/secret/schema-contract gates
-# then versions deploy VERSION@100%. Upload is not traffic. Schema is a
-# source contract, not a live D1 query. Do not push official-staging until PM review.
-# GitHub environment official-staging is not connected in this PR. Worker secrets
-# stay on the Worker, never GitHub.
+# Official staging CD. Trigger: push to git branch official-staging after green checks.
+# GitHub Environment name is staging (allowed branch pattern official-staging).
+# No per-run manual approval on that environment — owner asked automatic staging
+# after green checks. Sequence: versions upload (no traffic) then
+# binding/secret/schema-contract gates then versions deploy VERSION@100%. Schema is a
+# source contract, not a live D1 query. Do not push official-staging until Mika review
+# and credential connection are verified. Environment staging is not connected in this PR.
 name: Official staging
 
 on:
@@ -57,7 +58,7 @@ jobs:
     needs: checks
     if: github.ref == 'refs/heads/official-staging'
     runs-on: ubuntu-latest
-    environment: official-staging
+    environment: staging
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -81,7 +82,7 @@ jobs:
     needs: upload
     if: github.ref == 'refs/heads/official-staging'
     runs-on: ubuntu-latest
-    environment: official-staging
+    environment: staging
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -102,7 +103,7 @@ jobs:
     needs: [upload, verify]
     if: github.ref == 'refs/heads/official-staging'
     runs-on: ubuntu-latest
-    environment: official-staging
+    environment: staging
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

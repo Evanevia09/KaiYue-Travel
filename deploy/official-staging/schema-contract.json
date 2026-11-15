@@ -12,7 +12,19 @@
     "authority": "owner-authorized frozen staging rollout 2026-11-16 07:17 Asia/Macau",
     "worker_version": "72e580d0-aeb1-4766-935a-0cb9a27631a4",
     "deployment": "28f8b40b-0ffa-45aa-ba82-601f9e429e0f",
-    "note": "Ops applied 0009 and 0010 on D1 043cd0ff out of band. CI must not apply migrations or query D1. A Worker-only Specified-Workers Editor token cannot query D1; this contract is the fail-closed substitute. Updating this file asserts that source SQL still matches that remote schema. Live drift after attestation is undetected until a reviewed contract update."
+    "migration_files": [
+      "0001_init.sql",
+      "0002_booking_communication_workflow.sql",
+      "0003_dispatch_inventory.sql",
+      "0004_admin_auth.sql",
+      "0005_special_offers.sql",
+      "0006_offer_photo_variants.sql",
+      "0007_booking_offer.sql",
+      "0008_booking_tour_guide.sql",
+      "0009_admin_operator.sql",
+      "0010_admin_operator_last_super.sql"
+    ],
+    "note": "Attests the exact applied set 0001–0010 on D1 043cd0ff (0001–0008 already present; 0009/0010 applied 07:17). This file is a source contract, not a live D1 readback. CI must not apply migrations or query D1. Remote drift after attestation is undetected until a reviewed contract update. Tampering with the file list, order, or hashes must fail closed."
   },
   "required_migration_files": [
     {
