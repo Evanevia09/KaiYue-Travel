@@ -57,11 +57,11 @@ export function isProtectedAdminPath(pathname: string): boolean {
 }
 
 export function passwordAdminAllowed(
-  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
   request: Request,
 ): boolean {
   if (requestHost(request) === ACCESS_ADMIN_HOST) {
-    return false;
+    return !accessConfigured(env);
   }
   if (isLocalRuntime(env)) {
     return true;
@@ -80,10 +80,16 @@ export function assertLiveAdminSurface(env: AppEnv, pathname: string, request: R
     return;
   }
   if (requestHost(request) === ACCESS_ADMIN_HOST) {
-    if (accessConfigured(env) && !passwordAdminPath(pathname)) {
+    if (accessConfigured(env)) {
+      if (passwordAdminPath(pathname)) {
+        throw new AppError("FORBIDDEN", "Admin access is not configured.");
+      }
       return;
     }
-    throw new AppError("FORBIDDEN", "Admin access is not configured.");
+    if (pathname === "/setup-admin" || pathname.startsWith("/setup-admin/")) {
+      throw new AppError("FORBIDDEN", "Operator setup is disabled on this host.");
+    }
+    return;
   }
   if (isLocalRuntime(env)) {
     return;

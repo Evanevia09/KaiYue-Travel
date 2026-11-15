@@ -4,7 +4,7 @@
 
 The admin area is a small operational workspace, not a CRM. Cloudflare Access remains the preferred production identity gate for `/admin/*`. The current local development alternative uses Better Auth email/password sessions in D1, with an explicit `ADMIN_EMAILS` allowlist. Admin UI pages and API handlers both require a valid identity. Production access policy and operator provisioning still require owner review.
 
-Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up.
+Staff chrome is English or Traditional Chinese (`zh-Hant`). A language switch on `/login`, `/setup-admin`, and the admin header persists the choice in the `kaiyue-admin-locale` cookie (and localStorage). Default is English. Public offer titles stay as staff entered them; bilingual offer fields are a follow-up. `/admin/settings` lets a signed-in password operator change their own password (current password required, minimum 12 characters, confirmation, other sessions revoked). Cloudflare Access identities do not use this form. Public production hosts stay fail-closed 403.
 
 Local first-account setup requires a one-time token and is disabled outside `ENVIRONMENT=development`; remove the token after setup. `TEMP_ADMIN_EXPIRES_AT` can close temporary local dashboard access at a fixed timestamp without deleting records or changing the secret. This does not provision a production operator or replace Cloudflare Access.
 
@@ -15,6 +15,7 @@ Local first-account setup requires a one-time token and is disabled outside `ENV
 - **Calendar** — booking schedule.
 - **Contacts** — general/corporate inquiries.
 - **Drivers & vehicles** — staff-managed dispatch inventory and contact details.
+- **Profile** — signed-in account and password change. `/admin/settings`.
 - **Special Offers** — draft/publish catalogue with photos. `/admin/offers`. Phone photos up to 25 MB are copied from the file input (or a drop) before the input is cleared, then resized in the browser. The stored file must stay under 5 MB; a resize failure is shown as an error and the original is not uploaded. The editor shows upload progress and applies main-photo, delete, and publish changes immediately, rolling back if the server rejects them. Publish/unpublish button labels follow the target action (`Publishing…` / `Unpublishing…`), not the optimistic status. Mutating admin fetches use `keepalive`, and a leave warning is shown while a write is in flight. Publish writes the status update and audit in one D1 batch and skips a second load. `/admin` and `/admin/offers` render their first payload on the server so the island does not wait on a second round trip. Updated timestamps use Asia/Macau so server HTML and hydration match.
 
 ## Dashboard

@@ -61,10 +61,22 @@ describe("dedicated Access admin hostname", () => {
     ACCESS_AUD: "admin-audience",
   };
 
+  it("allows password admin on the dedicated host only when Access vars are absent", () => {
+    const env = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
+    const adminRequest = new Request(`${origin}/admin/offers`);
+    expect(() => assertLiveAdminSurface(env, "/admin/offers", adminRequest)).not.toThrow();
+    expect(() =>
+      assertLiveAdminSurface(env, "/login", new Request(`${origin}/login`)),
+    ).not.toThrow();
+    expect(passwordAdminAllowed(env, adminRequest)).toBe(true);
+    expect(() =>
+      assertLiveAdminSurface(env, "/setup-admin", new Request(`${origin}/setup-admin`)),
+    ).toThrow(/Operator setup is disabled on this host/);
+  });
+
   it("requires Access configuration and disables password routes", () => {
     const path = "/admin/offers";
     const request = new Request(origin + path);
-    expect(() => assertLiveAdminSurface(createTestEnv(), path, request)).toThrow();
     const env = createTestEnv({ ...access, ENVIRONMENT: "development", DEV_ADMIN_BYPASS: "true" });
     expect(() => assertLiveAdminSurface(env, path, request)).not.toThrow();
     expect(passwordAdminAllowed(env, request)).toBe(false);

@@ -17,7 +17,8 @@ export type AdminIdentity = {
 };
 
 export async function requireAdmin(request: Request, env: AppEnv): Promise<AdminIdentity> {
-  if (isProductionHost(request) || requestHost(request) === ACCESS_ADMIN_HOST) {
+  const accessHost = requestHost(request) === ACCESS_ADMIN_HOST;
+  if (isProductionHost(request) || (accessHost && accessConfigured(env))) {
     if (!accessConfigured(env)) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }

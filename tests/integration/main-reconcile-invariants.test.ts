@@ -20,7 +20,8 @@ describe("main reconciliation invariants", () => {
       join(repoRoot, "apps/web/src/lib/server/admin-session.ts"),
       "utf8",
     );
-    expect(session).toMatch(/minPasswordLength:\s*12/);
+    expect(session).toMatch(/ADMIN_PASSWORD_MIN_LENGTH = 12/);
+    expect(session).toMatch(/minPasswordLength:\s*ADMIN_PASSWORD_MIN_LENGTH/);
     expect(session).not.toMatch(/adminPasswordMinLength/);
     expect(session).not.toMatch(/ADMIN_STAGING_TEST_PASSWORD_MIN/);
   });
@@ -28,6 +29,13 @@ describe("main reconciliation invariants", () => {
   it("keeps all 41 public photos", () => {
     const files = listFiles(join(repoRoot, "apps/web/public/images"));
     expect(files).toHaveLength(41);
+  });
+
+  it("uses source Access env names ACCESS_TEAM_DOMAIN and ACCESS_AUD", () => {
+    const envSource = readFileSync(join(repoRoot, "apps/web/src/lib/server/env.ts"), "utf8");
+    expect(envSource).toMatch(/ACCESS_TEAM_DOMAIN\?: string/);
+    expect(envSource).toMatch(/ACCESS_AUD\?: string/);
+    expect(envSource).not.toMatch(/POLICY_AUD/);
   });
 
   it("does not encode staging 6-char UAT in git wrangler", () => {

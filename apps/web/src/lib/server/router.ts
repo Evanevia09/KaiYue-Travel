@@ -10,6 +10,7 @@ import {
   handleAdminContactStatus,
 } from "./admin.ts";
 import { assertLiveAdminSurface } from "./admin-gate.ts";
+import { changeOwnAdminPassword } from "./admin-profile.ts";
 import { requireAdmin, requireSameOrigin } from "./auth.ts";
 import { createBooking, getBookingByReference } from "./bookings.ts";
 import { createContact } from "./contacts.ts";
@@ -95,6 +96,10 @@ export async function handleApi(
 
       if (request.method === "GET" && pathname === "/api/v1/admin/summary") {
         return json(await adminSummary(env), 200, requestId);
+      }
+
+      if (request.method === "POST" && pathname === "/api/v1/admin/profile/password") {
+        return await changeOwnAdminPassword(request, env, actor, requestId);
       }
 
       if (request.method === "GET" && pathname === "/api/v1/admin/bookings") {

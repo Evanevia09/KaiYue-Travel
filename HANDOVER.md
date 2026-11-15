@@ -2,6 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 — Staff profile password source prep (not live)
+
+- **Branch:** `cursor/admin-profile-password-2cad` from reconciliation `c8ad22c` / PR #38 (PR #38 left intact).
+- **Change:** `/admin/settings` own-password change; public hosts stay 403; min length 12; no staging 6-char; no Access values invented; no D1 seed.
+- **Daniel record:** `daniel@kaiyuemacau.com` from owner t156u + overlay exclusion test. Provisioning is parent/Vault after review.
+- **Blocked:** 33ecc Access not enabled (403/9999); admin hostname unattached. Packet: `docs/records/2026-11-15-admin-profile-password-release-packet.md`.
+- **Not done:** merge, deploy, DNS, Access onboarding, credential write, staging overwrite, browser QA.
+
 ## 2026-11-15 — Prepare main reconciliation (not merge)
 
 - **Task:** `main-reconcile-dashboard-20261115`. Isolated branch from fresh `origin/main` `037b93ad`.

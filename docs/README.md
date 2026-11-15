@@ -41,6 +41,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 21. [Promote optional Macau tour guide to main](handover/promote-tour-guide-to-main.md)
 22. [Booking time picker, required WhatsApp, language labels](handover/booking-time-whatsapp-lang.md)
 23. [2026-11-15 main reconciliation (prepare only)](records/2026-11-15-main-reconcile-dashboard.md)
+24. [2026-11-15 staff profile password release packet (prepare only)](records/2026-11-15-admin-profile-password-release-packet.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
