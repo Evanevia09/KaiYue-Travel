@@ -13,7 +13,7 @@ Independent review and staging browser QA remain parent-coordinated. Owner autho
 | Reconciliation | PR #38 `cursor/main-reconcile-dashboard-2cad` `c8ad22c5c9da05949b985effcbd046a040c1d621` — **never trial or merge alone** |
 | Reviewed PR #39 SHA (Mika input) | `6dcbc44dec0d5ccfcbc812db6d4161b7dd522577` — superseded |
 | Mika rereview freeze | `0e09ffe6d20cf812fa7548fc9da73aaf2fbba986` / docs `9de0a9ae1ca33f72206589e990c02bebf60698b0` |
-| This increment | new HEAD on `cursor/admin-profile-password-2cad` after rereview fixes |
+| This increment | `74c30236a03583675f39d1a97b79c19a60d58da5` |
 | Notification checkpoint | PR #36 `dd69a47d74a06f1119aca116451a1060fa4413ed` |
 | Live-release checkpoint | PR #35 `5aa40dd90db5388883133818e3da5acd4112528a` — never blind-merge |
 | Staging 6-char UAT | `61bc5a03` / PR #34 — **never** port to production |
@@ -109,7 +109,7 @@ SHA256: `79ada0887ae11cfe562d1981de247100d0c725afe8a2a2b1e6776916bcf8749d`
 
 Local: `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` **165/165** across **32** files; `pnpm build` complete.
 
-Mika verified the previous **163** local checks on `0e09ffe` / `9de0a9ae`. That is **not** staging or provisioner sign-off. This increment is a **new** source SHA (recorded in the follow-up docs commit after this tree is hashed).
+Mika verified the previous **163** local checks on `0e09ffe` / `9de0a9ae`. That is **not** staging or provisioner sign-off. Re-review **`74c30236a03583675f39d1a97b79c19a60d58da5`** (full HEAD on `cursor/admin-profile-password-2cad`).
 
 | Artifact | SHA256 |
 |---|---|
