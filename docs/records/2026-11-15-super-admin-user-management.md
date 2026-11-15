@@ -91,17 +91,17 @@ Local packaging only. Existing runtime source `577012c` / deployed version `19eb
 
 | Item | Value |
 |---|---|
-| Source SHA | `SOURCE_SHA_PENDING` |
-| Zip | `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging.zip` |
-| Zip SHA256 | `ZIP_SHA_PENDING` |
-| entry.js SHA256 | `ENTRY_SHA_PENDING` |
-| wrangler.jsonc SHA256 | `WRangler_SHA_PENDING` |
-| Overlay | `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging.wrangler.jsonc` |
-| Ledger dir | `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging/` |
+| Source SHA | `94ee1ff448cd6246550508a6e36f1c20fa20c8c1` |
+| Zip | `/opt/cursor/artifacts/kaiyue_host_role_94ee1ff_official_staging.zip` |
+| Zip SHA256 | `3ef4665a6decf6e5d3577974f6ad8647d27d2a6d5f74829373bc9418f8715f06` (9996674 bytes) |
+| entry.js SHA256 | `70a849d75faf017e42ddba9b4d60ec44814d8c21ad70d37c6e8b1263ce938290` |
+| wrangler.jsonc SHA256 | `a65d67c22e8276db9ad8847ce3064c1cb08206e1d80e740d6a3493f27bb1557f` |
+| Overlay | `/opt/cursor/artifacts/kaiyue_host_role_94ee1ff_official_staging.wrangler.jsonc` |
+| Ledger dir | `/opt/cursor/artifacts/kaiyue_host_role_94ee1ff_official_staging/` |
 | `0009_admin_operator.sql` | `e90ac3cc28ff3efa39286c2b6b9c421d658e2d931b2f8b80e50e17c8916856aa` |
 | `0010_admin_operator_last_super.sql` | `8eb9f0a6bd18812232605154bbb64f9ca48db6a629b0e8d728dd941b8d5c3502` |
-| `preflight-staging-operators.sql` | `PREFLIGHT_SHA_PENDING` |
-| `provision-staging-operators.sql` | `PROVISION_SHA_PENDING` |
+| `preflight-staging-operators.sql` | `608d84b523deb891f08a9ace5ad2f2fa08d177be837abbdeedd9de6f5fa42698` |
+| `provision-staging-operators.sql` | `703baa52d477fe586595bd118130678e54b62eab423c9baa3429b57f28134009` |
 | `rollback-staging-operators.sql` | `715e3a72b1f930dd9a47cb5d525eb4affae5118cef1f31a7972495b6d552ac77` |
 
 Later operator upload (not this agent), from the unzipped folder:
@@ -129,4 +129,4 @@ Then apply `0009`, `0010`, SELECT-only preflight (abort unless identity matches 
 
 ## Artifact checksums
 
-See the table in **Official-staging artifact**. This packaging step did not upload.
+See the table in **Official-staging artifact**. Zip SHA256 `3ef4665a6decf6e5d3577974f6ad8647d27d2a6d5f74829373bc9418f8715f06`. This packaging step did not upload. Package of `927bf1d` (`78c6942f…`) is superseded.
