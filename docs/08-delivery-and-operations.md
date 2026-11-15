@@ -13,7 +13,7 @@ Never share D1 databases, email recipients, or secrets across production and non
 
 Workers Builds for this repository run from the repo root `wrangler.jsonc`. `wrangler versions upload` uses the top-level config (not `env.preview`) unless `--env` or `CLOUDFLARE_ENV` is set. `npx wrangler preview` uses the `previews` block and does not inherit top-level D1/R2. The dashboard root directory can stay at the repository root; changing it to `apps/web` is a dashboard change and is not required. On the current staging branch, both production and preview bind D1 `kaiyue-travel-staging` (`069aa442-30c9-4454-ab3a-26eb372b3a1f`) and R2 `kaiyue-offers-staging`. Do not merge those bindings to `main`.
 
-Production runtime uploads use `docs/records/wrangler.production-artifact.jsonc`: account `33ecc`, D1 `06cf879d-8fea-4088-8881-7d382e1b8c11`, R2 `kaiyue-offers-production`, `run_worker_first=false` (assets serve-directly). Official UAT (`kaiyue-travel-staging`, D1 `043cd0ff`, R2 `kaiyue-offers-staging`) is recorded as **DO_NOT_UPLOAD** in `docs/records/wrangler.staging-artifact.jsonc`. Isolated admin trial, if later approved, uses a **new** Worker/D1/R2 (`docs/records/wrangler.admin-trial-artifact.jsonc` and `docs/records/2026-11-15-isolated-admin-trial-plan.md`) — not UAT, not production. Do **not** upload git `wrangler.jsonc`. Staging `61bc5a03` / PR #34 6-char UAT policy must never port to production overlays. GitHub Actions CI does not run wrangler. Do not retry or cancel Workers Builds `41386f`. Compact reconcile map: `docs/records/2026-11-15-main-reconcile-dashboard.md`.
+Production runtime uploads use `docs/records/wrangler.production-artifact.jsonc`: account `33ecc`, D1 `06cf879d-8fea-4088-8881-7d382e1b8c11`, R2 `kaiyue-offers-production`, HTML Worker-first (`run_worker_first` path array so dedicated-admin `/` can redirect; hashed assets stay asset-first). Official UAT (`kaiyue-travel-staging`, D1 `043cd0ff`, R2 `kaiyue-offers-staging`) is recorded as **DO_NOT_UPLOAD** in `docs/records/wrangler.staging-artifact.jsonc`. Isolated admin trial, if later approved, uses a **new** Worker/D1/R2 (`docs/records/wrangler.admin-trial-artifact.jsonc` and `docs/records/2026-11-15-isolated-admin-trial-plan.md`) — not UAT, not production. Do **not** upload git `wrangler.jsonc`. Production password minimum stays 12; `ADMIN_STAGING_TEST_PASSWORD_MIN` must not appear in production overlays and has no effect on production hosts even if present. GitHub Actions CI does not run wrangler. Do not retry or cancel Workers Builds `41386f`. Compact reconcile map: `docs/records/2026-11-15-main-reconcile-dashboard.md`. Super-admin user management (`0009_admin_operator.sql`, `0010_admin_operator_last_super.sql`, plus staging-only preflight/provision SQL) is source-prepared on PR #41; do not apply those SQL files to production D1 `06cf879d`, and do not apply them from an agent. Record: `docs/records/2026-11-15-super-admin-user-management.md`.
 
 ## Configuration and secrets
 
@@ -116,6 +116,19 @@ The 2026-11-05 migration targets the separate Kai Yue Cloudflare account. Use th
 Cloudflare references include [D1 import and export](https://developers.cloudflare.com/d1/best-practices/import-export-data/), [Workers Builds branch settings](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/), and [Worker Previews](https://developers.cloudflare.com/workers/previews/).
 
 ### Kai Yue public and admin hostnames
+
+Owner-approved simpler layout (source/code host roles; DNS, Worker routes, and deploys are out of scope for the host-role PR):
+
+| Address | Role | Intended use |
+|---|---|---|
+| `kaiyuemacau.com`, `www.kaiyuemacau.com` | Production marketing | Live public site. `/admin` and `/login` stay 403. |
+| `admin.kaiyuemacau.com` | Production admin | Future staff host. Code supports password login when Access vars are absent. Do not attach or treat a host-role PR as a production release. |
+| `staging.kaiyuemacau.com` | Staging marketing | Public marketing for team testing. Staff login is not offered. |
+| `admin-staging.kaiyuemacau.com` | Staging admin | Staff sign-in and dashboard for team testing. |
+| `kaiyue-travel-staging.kai-yue.workers.dev` | Production-protected marketing | Official staging workers.dev remains fail-closed. Do not use it as the staff login URL. |
+| `kaiyue-travel-admin-trial.kai-yue.workers.dev` | Isolated trial (not a product host) | Must not be added to any production-host list. |
+
+Staging email notifications and GitHub continuous deployment for these custom hosts are separate work. Password policy stays minimum 12 characters; do not inherit `ADMIN_STAGING_TEST_PASSWORD_MIN=6` or UAT `TEMP_ADMIN_EXPIRES_AT`.
 
 The custom-hostname release uses a separate Kai Yue Worker and production-only D1 and private R2 bindings. The fresh staging database is for synthetic checks. Keep the production database empty until cutover unless a separately approved data migration is executed.
 

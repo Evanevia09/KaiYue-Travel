@@ -22,6 +22,9 @@
   "assets": {
     "directory": "./apps/web/dist/client",
     "binding": "ASSETS",
+    // HTML runs the Worker first so dedicated admin hosts can redirect `/`
+    // to `/login`. Hashed assets stay asset-first.
+    "run_worker_first": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"],
   },
   "d1_databases": [
     {

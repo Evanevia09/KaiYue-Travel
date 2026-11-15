@@ -4,9 +4,11 @@ import { env } from "cloudflare:workers";
 import { AdminLocaleSwitch } from "../components/admin/AdminLocaleSwitch.tsx";
 import { SetupForm } from "../components/admin/SetupForm.tsx";
 import { adminLocaleFromCookies, t } from "../lib/admin-i18n.ts";
+import { adminPasswordMinLength } from "../lib/server/admin-session.ts";
 import "../styles/global.css";
 
 const locale = adminLocaleFromCookies(Astro.cookies);
+const passwordMinLength = adminPasswordMinLength(env, Astro.request);
 if (env.ENVIRONMENT !== "development") {
   return new Response(t(locale, "setup.disabled"), {
     status: 403,
@@ -40,7 +42,7 @@ const htmlLang = locale === "zh-Hant" ? "zh-Hant" : "en";
         {t(locale, "setup.eyebrow")}
       </p><h1>{t(locale, "setup.heading")}</h1><p class="muted">
         {t(locale, "setup.help")}
-      </p><SetupForm client:load locale={locale} /><p>
+      </p><SetupForm client:load locale={locale} passwordMinLength={passwordMinLength} /><p>
         <a href="/login">{t(locale, "setup.back")}</a>
       </p>
     </main></body

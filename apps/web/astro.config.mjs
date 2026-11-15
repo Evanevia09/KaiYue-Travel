@@ -34,6 +34,7 @@ const SERVER_OPTIMIZE_DEPS = [
   "@kaiyue/contracts",
   "resend",
   "better-auth",
+  "better-auth/crypto",
   "astro/logger/console",
   "astro/assets/services/noop",
 ];

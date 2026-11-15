@@ -1,5 +1,11 @@
 import { AppError } from "@kaiyue/contracts";
-import { ACCESS_ADMIN_HOST, isProductionHost, requestHost } from "./admin-gate.ts";
+import type { AdminOperatorRole } from "./admin-operator.ts";
+import {
+  isDedicatedAdminHost,
+  isProductionHost,
+  PRODUCTION_ADMIN_HOST,
+  requestHost,
+} from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
 
 export const ADMIN_ROLE_STAFF = "staff";
@@ -35,7 +41,7 @@ export function productionDedicatedHostRequiresPrimary(
   request: Request,
 ): boolean {
   return (
-    requestHost(request) === ACCESS_ADMIN_HOST &&
+    requestHost(request) === PRODUCTION_ADMIN_HOST &&
     (env.ENVIRONMENT ?? "").trim().toLowerCase() === "production"
   );
 }
@@ -48,10 +54,10 @@ export function liveAdminRequiresPrimary(
 }
 
 export function temporaryAdminExpiryApplies(
-  env: Pick<AppEnv, "ENVIRONMENT">,
+  _env: Pick<AppEnv, "ENVIRONMENT">,
   request: Request,
 ): boolean {
-  return !productionDedicatedHostRequiresPrimary(env, request);
+  return !isDedicatedAdminHost(request);
 }
 
 export function effectiveAdminRole(
@@ -75,10 +81,15 @@ export function assertPrimaryOperator(
   }
 }
 
+export type DisplayedAdminRole = AdminRole | AdminOperatorRole;
+
 export function adminProfilePayload(
-  actor: { id: string; email: string },
+  actor: { id: string; email: string; operatorRole?: AdminOperatorRole | null },
   env: Pick<AppEnv, "ADMIN_PRIMARY_EMAIL">,
-): { email: string; role: AdminRole } {
+): { email: string; role: DisplayedAdminRole } {
+  if (actor.operatorRole === "super_admin" || actor.operatorRole === "staff") {
+    return { email: actor.email, role: actor.operatorRole };
+  }
   return {
     email: actor.email,
     role: effectiveAdminRole(actor.email, env),

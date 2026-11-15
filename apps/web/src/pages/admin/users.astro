@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+import { env } from "cloudflare:workers";
+import { UsersPanel } from "../../components/admin/UsersPanel.tsx";
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { adminLocaleFromCookies } from "../../lib/admin-i18n.ts";
+import { forbiddenResponse } from "../../lib/server/admin-gate.ts";
+import { adminPasswordMinLength } from "../../lib/server/admin-session.ts";
+import { requireAdmin } from "../../lib/server/auth.ts";
+
+const locale = adminLocaleFromCookies(Astro.cookies);
+const actor = await requireAdmin(Astro.request, env);
+if (actor.operatorRole !== "super_admin") {
+  return forbiddenResponse("User management is restricted to super admins.");
+}
+const passwordMinLength = adminPasswordMinLength(env, Astro.request);
+---
+
+<AdminLayout titleKey="title.users" locale={locale}>
+  <UsersPanel client:load locale={locale} passwordMinLength={passwordMinLength} />
+</AdminLayout>

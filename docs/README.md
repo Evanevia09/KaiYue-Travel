@@ -45,6 +45,8 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 25. [2026-11-15 isolated admin trial resource plan (not approved, not created)](records/2026-11-15-isolated-admin-trial-plan.md)
 26. [2026-11-15 admin-prep package of freeze 74c3023 (ops hold)](records/2026-11-15-admin-prep-package.md)
 27. [2026-11-15 isolated trial D1/R2 + REST probe evidence (docs closeout)](records/2026-11-15-admin-trial-safety-evidence/REPORT.md)
+28. [2026-11-15 host-role admin gate (source only)](records/2026-11-15-host-role-admin-gate.md)
+29. [2026-11-15 super-admin user management (source only)](records/2026-11-15-super-admin-user-management.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

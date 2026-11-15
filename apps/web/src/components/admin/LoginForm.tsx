@@ -2,7 +2,13 @@ import { useState } from "react";
 import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { authClient } from "./auth-client.ts";
 
-export function LoginForm({ locale }: { locale: AdminLocale }) {
+export function LoginForm({
+  locale,
+  passwordMinLength = 12,
+}: {
+  locale: AdminLocale;
+  passwordMinLength?: number;
+}) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
@@ -32,7 +38,13 @@ export function LoginForm({ locale }: { locale: AdminLocale }) {
       </label>
       <label className="field">
         {t(locale, "login.password")}
-        <input name="password" type="password" autoComplete="current-password" required />
+        <input
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          minLength={passwordMinLength}
+          required
+        />
       </label>
       {error && (
         <p role="alert" className="admin-feedback admin-feedback--error">

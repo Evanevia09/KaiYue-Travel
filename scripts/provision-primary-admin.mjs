@@ -161,7 +161,7 @@ function printPlan() {
     "Decision at 14:18: CREATE user + credential. That snapshot is not perpetual.",
     "Authority is Worker env ADMIN_PRIMARY_EMAIL + ADMIN_EMAILS, not a DB role column.",
     "No migrations/0009. A persisted role would be unused metadata, not a single-primary lock.",
-    "Password policy: Better Auth minPasswordLength 12. Do not inherit ADMIN_STAGING_TEST_PASSWORD_MIN=6 or TEMP_ADMIN_EXPIRES_AT 2026-11-24.",
+    "Password policy: production CREATE stays Better Auth minPasswordLength 12. ADMIN_STAGING_TEST_PASSWORD_MIN is ignored on production hosts and by this provisioner.",
     "Cloudflare Vault cannot export a generated login password into this CLI or write Worker bindings.",
     "A later native user-secret request may put a user-provided password in PRIMARY_ADMIN_PASSWORD for this process.",
     "Parent configures Worker secrets after the package route is validated. This script never calls wrangler.",

@@ -5,9 +5,10 @@
 // D1 069aa442 plus ADMIN_EMAILS=admin-test@kaiyue.test).
 // Do not upload staging 8ed952a7, d8c8bd20, or dad60edf.
 //
-// Live assets mode (do not copy the staging overlay):
-//   serve_directly = true  (Asset Worker serves matching files first)
-//   run_worker_first = false
+// Live assets mode:
+//   hashed /_astro, /images, and favicon stay asset-first (serve_directly = true)
+//   HTML runs the Worker first so dedicated admin hosts can redirect `/`
+//   to `/login` instead of serving the prerendered marketing homepage.
 // Wrangler 4 schema has run_worker_first, not a serve_directly key.
 //
 // Bindings: production D1 06cf879d / R2 kaiyue-offers-production.
@@ -28,7 +29,7 @@
   "assets": {
     "directory": "./dist-client",
     "binding": "ASSETS",
-    "run_worker_first": false
+    "run_worker_first": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"]
   },
   "d1_databases": [
     {

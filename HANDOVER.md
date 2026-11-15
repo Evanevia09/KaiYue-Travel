@@ -2,6 +2,33 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-15 security correction
+
+- **task_id:** `super-admin-user-management-20261115`
+- **Writer:** this PR #41 agent only, branch `cursor/host-role-admin-gate-a72c`
+- **Implemented / tested / pushed:** frozen runtime `4af0a5ca` unchanged. Raw staging-URL build evidence captured (exit 0). Residual PATCH is state-CAS, not ABA-proof versioning. Wrangler `4.132.0` `d1 execute --file` is D1 import API, not query API; not authorized to run.
+- **Runtime source SHA:** `4af0a5caf12b06eedaf41ea1f173263b4a56d433`
+- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `f431c2b52d7d803401dc77e11999f7600afc9fa1f6a18307a174bf3e3258d3a2`
+- **Build log:** `/opt/cursor/artifacts/kaiyue_4af0a5c_staging_url_build_20261115T170212Z.log` SHA256 `0f8a92260d23ed8d2a2c083e50620c9b2d33c84196cb98ca9902fe0b12f59695` (not uploaded)
+- **Package:** frozen zip SHA256 `4760701f…` unchanged; not rebuilt; not uploaded.
+- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM.
+
+## 2026-11-15 — Super-admin user-management security correction (source only)
+
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/41
+- **Change:** DB-atomic last-enabled-super-admin trigger; revocation-aware password authorization; batched fail-closed operator mutations; gated staging provision; SELECT-only preflight; rollback no longer DROP tables.
+- **Verified:** local lint/typecheck; `pnpm test` 192/192; staging `PUBLIC_SITE_URL` build. No remote D1 apply, no deploy, no owner password change.
+- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging.zip` SHA256 `78c6942f20a129d9bcb2a4e4443fcab35e0c97ca18aa44263f03e5dc31c07e80` (not uploaded; superseded by the PATCH/bootstrap follow-up package, do not upload).
+- **Not done:** official-staging upload, production, DNS, mail, CI production builds.
+
+## 2026-11-15 — Super-admin user management (source only)
+
+- **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/41
+- **Change:** `0009_admin_operator.sql` sidecar; `/admin/users`; `/api/v1/admin/users`. Staging-only `scripts/provision-staging-operators.sql` for existing `scalingsmb@gmail.com` / `f0af3b28-7b2c-47d5-b619-9239a29c41f9`.
+- **Verified:** local tests 183/183. No remote D1 apply, no deploy, no owner password change.
+- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_1e62ce9_official_staging.zip` SHA256 `8dac78db2198a325a0300dcd4f892a1d9685800f95285da40bab2e7e8583d119` (not uploaded; superseded by the security-correction package, do not upload).
+- **Not done:** official-staging upload, production, DNS, mail, CI production builds.
+
 ## 2026-11-15 16:55 — Isolated trial D1/R2 + synthetic REST probes (docs closeout)
 
 - **Approval:** Evan 16:47 Asia/Macau existing widget t164s918. Scope: new empty official 33ecc D1/R2 + synthetic noncredential probes only. Infra 16:53; user result 16:55. Mika independently verified evidence hashes, JSON `00`–`11`, and that owner answer. No added operational authority.

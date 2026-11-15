@@ -1,17 +1,36 @@
 import { useState } from "react";
-import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
+import { t, type AdminLocale, type AdminMessageKey } from "../../lib/admin-i18n.ts";
 import { adminFetch } from "./api.ts";
+
+type ProfileRole = "primary" | "staff" | "super_admin";
+
+function roleMessageKey(role: ProfileRole): AdminMessageKey {
+  switch (role) {
+    case "super_admin":
+      return "settings.roleSuperAdmin";
+    case "primary":
+      return "settings.rolePrimary";
+    case "staff":
+      return "settings.roleStaff";
+    default: {
+      const exhaustive: never = role;
+      return exhaustive;
+    }
+  }
+}
 
 export function ProfileSettings({
   locale,
   email,
   role,
   passwordChangeAvailable,
+  passwordMinLength = 12,
 }: {
   locale: AdminLocale;
   email: string;
-  role: "primary" | "staff";
+  role: ProfileRole;
   passwordChangeAvailable: boolean;
+  passwordMinLength?: number;
 }) {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -22,9 +41,7 @@ export function ProfileSettings({
       <p className="admin-eyebrow">{t(locale, "settings.eyebrow")}</p>
       <h2>{t(locale, "settings.heading")}</h2>
       <p className="muted">{t(locale, "settings.signedIn", { email })}</p>
-      <p className="muted">
-        {role === "primary" ? t(locale, "settings.rolePrimary") : t(locale, "settings.roleStaff")}
-      </p>
+      <p className="muted">{t(locale, roleMessageKey(role))}</p>
       {passwordChangeAvailable ? (
         <>
           <p className="muted">{t(locale, "settings.passwordHelp")}</p>
@@ -70,12 +87,12 @@ export function ProfileSettings({
               />
             </label>
             <label className="field">
-              {t(locale, "settings.newPassword")}
+              {t(locale, "settings.newPassword", { min: passwordMinLength })}
               <input
                 name="newPassword"
                 type="password"
                 autoComplete="new-password"
-                minLength={12}
+                minLength={passwordMinLength}
                 required
               />
             </label>
@@ -85,7 +102,7 @@ export function ProfileSettings({
                 name="confirmPassword"
                 type="password"
                 autoComplete="new-password"
-                minLength={12}
+                minLength={passwordMinLength}
                 required
               />
             </label>

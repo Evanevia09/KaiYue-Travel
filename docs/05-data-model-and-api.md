@@ -53,6 +53,12 @@ Indexes: `(status, created_at)` and `created_at`.
 
 `key_hash`, `request_hash`, `response_reference`, `expires_at`, `created_at`. Use if idempotency is not stored directly on the booking/contact record.
 
+### `admin_operator` (sidecar, `migrations/0009_admin_operator.sql`)
+
+`user_id` (FK to Better Auth `"user"`), `role` (`super_admin` or `staff` only), `enabled` (0/1), `created_at`, `updated_at`, `updated_by`. No password hashes. Empty table is not implicit super-admin elevation. Operator mutations write `operator_audit_events`, not the booking/contact `audit_events` table. `migrations/0010_admin_operator_last_super.sql` installs BEFORE UPDATE/DELETE triggers that `RAISE(ABORT)` if the change would remove the last enabled `super_admin`.
+
+Staging-only provision executor (source: `scripts/staging-operator-bootstrap-order.json`): identity SELECT `scripts/preflight-staging-identity.sql`, migration-list SELECT `scripts/preflight-staging-migrations.sql`, wrangler D1 migrations apply `0009` then `0010`, operator SELECT `scripts/preflight-staging-operators.sql` (`supported_prestate`), then the entire `scripts/provision-staging-operators.sql` file. Pinned Wrangler `4.132.0` `d1 execute --file` uses the D1 import API, not the query API; it is not equivalent to a verified REST `/query` grouping or Worker `batch()`. Import-API interruption/atomicity remain UNPROVEN. This does not authorize remote apply. The data `INSERT…SELECT` is gated to empty `admin_operator` or that owner already being the only enabled matching `super_admin`; unsupported prestate fails closed with no new operator rows. Partial PATCH of operators is field-specific state-CAS on observed `role`/`enabled`/`updated_at` (not ABA-proof versioning) and owns audit/session revoke with a unique `updated_by` write token (not clock equality). Rollback: `scripts/rollback-staging-operators.sql` deletes bootstrap rows and does not DROP sidecar or audit tables. Do not apply to production D1 `06cf879d`. Not applied remotely in this increment.
+
 ## State rules
 
 - New public booking → `enquiry`.
@@ -101,6 +107,12 @@ Returns non-sensitive form configuration such as approved service types and book
 | Method and route | Purpose |
 |---|---|
 | `GET /api/v1/admin/summary` | Counts and upcoming/recent items |
+| `GET /api/v1/admin/profile` | Signed-in email and displayed role |
+| `POST /api/v1/admin/profile/password` | Own password change |
+| `GET /api/v1/admin/users` | Super-admin list of operators (no hashes) |
+| `POST /api/v1/admin/users` | Super-admin create staff (no email invite) |
+| `PATCH /api/v1/admin/users/:id` | Super-admin role and/or enabled flag; field-specific CAS |
+| `POST /api/v1/admin/users/:id/password` | Super-admin credential reset |
 | `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service |
 | `POST /api/v1/admin/bookings` | Add a manually entered booking enquiry |
 | `GET /api/v1/admin/bookings/:reference` | Booking detail, notes, safe event history |
