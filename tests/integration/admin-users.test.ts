@@ -121,6 +121,15 @@ async function cachedSession(cookie: string, disableCookieCache = false) {
   });
 }
 
+async function expectUnauthorizedCookie(cookie: string): Promise<void> {
+  await expect(
+    requireAdmin(
+      new Request(`${site}/api/v1/admin/summary`, { headers: jsonHeaders(cookie) }),
+      env,
+    ),
+  ).rejects.toMatchObject({ status: 401 });
+}
+
 beforeAll(async () => {
   platform = await getPlatformProxy({
     configPath: fileURLToPath(new URL("../../apps/web/wrangler.jsonc", import.meta.url)),
@@ -143,6 +152,14 @@ beforeAll(async () => {
   await execSql(
     readFileSync(
       fileURLToPath(new URL("../../migrations/0009_admin_operator.sql", import.meta.url)),
+      "utf8",
+    ),
+  );
+  await execSql(
+    readFileSync(
+      fileURLToPath(
+        new URL("../../migrations/0010_admin_operator_last_super.sql", import.meta.url),
+      ),
       "utf8",
     ),
   );
@@ -298,6 +315,8 @@ describe("super-admin user management", () => {
       .first<{ role: string }>();
     expect(persisted?.role).toBe("super_admin");
     expect(await d1Session(staffId)).toBe(0);
+    await expectUnauthorizedCookie(firstStaffSession.cookie);
+    await expectUnauthorizedCookie(secondStaffSession.cookie);
     expect(await cachedSession(firstStaffSession.cookie, true)).toBeNull();
     expect(await cachedSession(secondStaffSession.cookie, true)).toBeNull();
 
@@ -321,20 +340,10 @@ describe("super-admin user management", () => {
     });
     expect(disabled.status).toBe(200);
     expect(await d1Session(staffId)).toBe(0);
+    await expectUnauthorizedCookie(liveStaff.cookie);
+    await expectUnauthorizedCookie(otherStaff.cookie);
     expect(await cachedSession(liveStaff.cookie, true)).toBeNull();
     expect(await cachedSession(otherStaff.cookie, true)).toBeNull();
-    await expect(
-      requireAdmin(
-        new Request(`${site}/api/v1/admin/summary`, { headers: jsonHeaders(liveStaff.cookie) }),
-        env,
-      ),
-    ).rejects.toMatchObject({ status: 401 });
-    await expect(
-      requireAdmin(
-        new Request(`${site}/api/v1/admin/summary`, { headers: jsonHeaders(otherStaff.cookie) }),
-        env,
-      ),
-    ).rejects.toMatchObject({ status: 401 });
     const disabledLogin = await signIn(staffEmail, staffPassword);
     expect(disabledLogin.status).toBe(200);
     await expect(
@@ -361,6 +370,7 @@ describe("super-admin user management", () => {
     expect(reset.status).toBe(200);
     expect(JSON.stringify(await reset.json())).not.toMatch(/"password"\s*:/i);
     expect(await d1Session(staffId)).toBe(0);
+    await expectUnauthorizedCookie(beforeReset.cookie);
     expect(await cachedSession(beforeReset.cookie, true)).toBeNull();
     const oldPassword = await signIn(staffEmail, staffPassword);
     expect(oldPassword.status).not.toBe(200);
@@ -368,5 +378,82 @@ describe("super-admin user management", () => {
     expect(newPassword.status).toBe(200);
     expect((await api("/api/v1/admin/profile", { cookie: newPassword.cookie })).status).toBe(200);
     expect((await api("/api/v1/admin/users", { cookie: newPassword.cookie })).status).toBe(403);
+  }, 30_000);
+
+  it("revokes normal cookie-cache authorization across promote, demote, disable, and re-enable", async () => {
+    const cookieEmail = "cookie-lifecycle-staff@example.invalid";
+    const cookiePassword = "local-only-cookie-lifecycle-2026";
+    const superUser = await signIn(superEmail, superPassword);
+    expect(superUser.status).toBe(200);
+    const created = await api("/api/v1/admin/users", {
+      method: "POST",
+      cookie: superUser.cookie,
+      body: {
+        name: "Cookie Staff",
+        email: cookieEmail,
+        password: cookiePassword,
+        confirmPassword: cookiePassword,
+      },
+    });
+    expect(created.status).toBe(201);
+    const createdBody = (await created.json()) as { item: { id: string } };
+    const cookieUserId = createdBody.item.id;
+
+    const staffCookie = await signIn(cookieEmail, cookiePassword);
+    expect(staffCookie.status).toBe(200);
+    const staffActor = await requireAdmin(
+      new Request(`${site}/api/v1/admin/profile`, { headers: jsonHeaders(staffCookie.cookie) }),
+      env,
+    );
+    expect(staffActor.operatorRole).toBe("staff");
+
+    const promote = await api(`/api/v1/admin/users/${cookieUserId}`, {
+      method: "PATCH",
+      cookie: superUser.cookie,
+      body: { role: "super_admin" },
+    });
+    expect(promote.status).toBe(200);
+    expect(await d1Session(cookieUserId)).toBe(0);
+    await expectUnauthorizedCookie(staffCookie.cookie);
+    const promotedLogin = await signIn(cookieEmail, cookiePassword);
+    expect(promotedLogin.status).toBe(200);
+    const promotedActor = await requireAdmin(
+      new Request(`${site}/api/v1/admin/users`, { headers: jsonHeaders(promotedLogin.cookie) }),
+      env,
+    );
+    expect(promotedActor.operatorRole).toBe("super_admin");
+
+    const demote = await api(`/api/v1/admin/users/${cookieUserId}`, {
+      method: "PATCH",
+      cookie: superUser.cookie,
+      body: { role: "staff" },
+    });
+    expect(demote.status).toBe(200);
+    await expectUnauthorizedCookie(promotedLogin.cookie);
+
+    const restoredStaff = await signIn(cookieEmail, cookiePassword);
+    expect(restoredStaff.status).toBe(200);
+    const disable = await api(`/api/v1/admin/users/${cookieUserId}`, {
+      method: "PATCH",
+      cookie: superUser.cookie,
+      body: { enabled: false },
+    });
+    expect(disable.status).toBe(200);
+    await expectUnauthorizedCookie(restoredStaff.cookie);
+
+    const reenable = await api(`/api/v1/admin/users/${cookieUserId}`, {
+      method: "PATCH",
+      cookie: superUser.cookie,
+      body: { enabled: true },
+    });
+    expect(reenable.status).toBe(200);
+    await expectUnauthorizedCookie(restoredStaff.cookie);
+    const afterEnable = await signIn(cookieEmail, cookiePassword);
+    expect(afterEnable.status).toBe(200);
+    const reenabledActor = await requireAdmin(
+      new Request(`${site}/api/v1/admin/profile`, { headers: jsonHeaders(afterEnable.cookie) }),
+      env,
+    );
+    expect(reenabledActor.operatorRole).toBe("staff");
   }, 30_000);
 });

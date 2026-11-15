@@ -88,10 +88,19 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
 
-  const identity = await attachOperatorRole(env.DB, {
-    id: session.user.id,
-    email: session.user.email,
-  });
+  const sessionId = session.session?.id;
+  if (typeof sessionId !== "string" || sessionId.length === 0) {
+    throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
+  }
+
+  const identity = await attachOperatorRole(
+    env.DB,
+    {
+      id: session.user.id,
+      email: session.user.email,
+    },
+    { id: sessionId },
+  );
   if (identity.operatorRole == null && !allowed.has(session.user.email.toLowerCase())) {
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }

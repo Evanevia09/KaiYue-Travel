@@ -55,9 +55,9 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ### `admin_operator` (sidecar, `migrations/0009_admin_operator.sql`)
 
-`user_id` (FK to Better Auth `"user"`), `role` (`super_admin` or `staff` only), `enabled` (0/1), `created_at`, `updated_at`, `updated_by`. No password hashes. Empty table is not implicit super-admin elevation. Operator mutations write `operator_audit_events`, not the booking/contact `audit_events` table.
+`user_id` (FK to Better Auth `"user"`), `role` (`super_admin` or `staff` only), `enabled` (0/1), `created_at`, `updated_at`, `updated_by`. No password hashes. Empty table is not implicit super-admin elevation. Operator mutations write `operator_audit_events`, not the booking/contact `audit_events` table. `migrations/0010_admin_operator_last_super.sql` installs BEFORE UPDATE/DELETE triggers that `RAISE(ABORT)` if the change would remove the last enabled `super_admin`.
 
-Staging-only provision: `scripts/provision-staging-operators.sql` for official UAT D1 `043cd0ff`. Rollback: `scripts/rollback-staging-operators.sql`. Do not apply to production D1 `06cf879d`.
+Staging-only provision: SELECT-only `scripts/preflight-staging-operators.sql`, then `scripts/provision-staging-operators.sql` (one gated `INSERT…SELECT`) for official UAT D1 `043cd0ff`. Rollback: `scripts/rollback-staging-operators.sql` deletes bootstrap rows and does not DROP sidecar or audit tables. Do not apply to production D1 `06cf879d`.
 
 ## State rules
 

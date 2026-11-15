@@ -78,5 +78,20 @@ describe("main reconciliation invariants", () => {
     expect(provision).toMatch(/scalingsmb@gmail.com/);
     expect(provision).not.toMatch(/INSERT INTO "account"/);
     expect(provision).not.toMatch(/"password"/);
+    expect(provision).toMatch(/UNION ALL/);
+    expect(provision).toMatch(/AND EXISTS \(/);
+    const lastSuper = readFileSync(
+      join(repoRoot, "migrations/0010_admin_operator_last_super.sql"),
+      "utf8",
+    );
+    expect(lastSuper).toMatch(/RAISE\(ABORT, 'last enabled super admin'\)/);
+    const rollback = readFileSync(join(repoRoot, "scripts/rollback-staging-operators.sql"), "utf8");
+    expect(rollback).not.toMatch(/DROP TABLE IF EXISTS admin_operator/);
+    expect(rollback).not.toMatch(/DROP TABLE IF EXISTS operator_audit_events/);
+    expect(rollback).toMatch(/updated_by = 'staging-bootstrap'/);
+    expect(existsSync(join(repoRoot, "scripts/preflight-staging-operators.sql"))).toBe(true);
+    const authRequire = readFileSync(join(repoRoot, "apps/web/src/lib/server/auth.ts"), "utf8");
+    expect(authRequire).toMatch(/session\.session\?\.id/);
+    expect(authRequire).toMatch(/\{ id: sessionId \}/);
   });
 });

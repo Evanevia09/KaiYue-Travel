@@ -1,13 +1,15 @@
 import { AppError } from "@kaiyue/contracts";
 import { hashPassword } from "better-auth/crypto";
 import { adminPasswordMinLength } from "./admin-session.ts";
-import type { AppEnv, D1Database } from "./env.ts";
+import type { AppEnv, D1Database, D1QueryResult, D1Statement } from "./env.ts";
 import { json, readJson } from "./http.ts";
 
 export const ADMIN_OPERATOR_ROLES = ["super_admin", "staff"] as const;
 export type AdminOperatorRole = (typeof ADMIN_OPERATOR_ROLES)[number];
 
 export const ADMIN_PASSWORD_MAX_LENGTH = 128;
+export const LAST_ENABLED_SUPER_ADMIN_MESSAGE =
+  "The last enabled super admin cannot be demoted or disabled.";
 
 export type OperatorActor = {
   id: string;
@@ -42,6 +44,11 @@ type ListedOperatorRow = {
 function isMissingOperatorTable(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /no such table:\s*(admin_operator|operator_audit_events)/i.test(message);
+}
+
+function isLastSuperAdminGuardError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /last enabled super admin/i.test(message);
 }
 
 function asNonEmptyString(value: unknown): string | null {
@@ -128,10 +135,31 @@ export async function loadOperator(
   }
 }
 
+export async function assertLivePasswordSession(
+  db: D1Database,
+  userId: string,
+  sessionId: string,
+): Promise<void> {
+  if (!sessionId) {
+    throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
+  }
+  const row = await db
+    .prepare('SELECT id FROM "session" WHERE id = ? AND "userId" = ?')
+    .bind(sessionId, userId)
+    .first<{ id: string }>();
+  if (!row) {
+    throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
+  }
+}
+
 export async function attachOperatorRole<T extends { id: string }>(
   db: D1Database,
   identity: T,
+  livePasswordSession?: { id: string } | null,
 ): Promise<T & { operatorRole: AdminOperatorRole | null }> {
+  if (livePasswordSession) {
+    await assertLivePasswordSession(db, identity.id, livePasswordSession.id);
+  }
   if (!(await operatorsProvisioned(db))) {
     return { ...identity, operatorRole: null };
   }
@@ -142,27 +170,7 @@ export async function attachOperatorRole<T extends { id: string }>(
   return { ...identity, operatorRole: operator.role };
 }
 
-async function countEnabledSuperAdmins(db: D1Database, excludingUserId?: string): Promise<number> {
-  const row = excludingUserId
-    ? await db
-        .prepare(
-          "SELECT COUNT(*) AS n FROM admin_operator WHERE role = 'super_admin' AND enabled = 1 AND user_id != ?",
-        )
-        .bind(excludingUserId)
-        .first<{ n: number }>()
-    : await db
-        .prepare(
-          "SELECT COUNT(*) AS n FROM admin_operator WHERE role = 'super_admin' AND enabled = 1",
-        )
-        .first<{ n: number }>();
-  return Number(row?.n ?? 0);
-}
-
-async function revokeSessions(db: D1Database, userId: string): Promise<void> {
-  await db.prepare('DELETE FROM "session" WHERE "userId" = ?').bind(userId).run();
-}
-
-async function recordOperatorAudit(
+function auditStatement(
   db: D1Database,
   event: {
     userId: string;
@@ -172,8 +180,8 @@ async function recordOperatorAudit(
     toValue: string | null;
     requestId: string;
   },
-): Promise<void> {
-  await db
+): D1Statement {
+  return db
     .prepare(
       `INSERT INTO operator_audit_events
         (id, user_id, event_type, actor_id, from_value, to_value, request_id, created_at)
@@ -188,8 +196,35 @@ async function recordOperatorAudit(
       event.toValue,
       event.requestId,
       new Date().toISOString(),
+    );
+}
+
+function revokeSessionsStatement(db: D1Database, userId: string): D1Statement {
+  return db.prepare('DELETE FROM "session" WHERE "userId" = ?').bind(userId);
+}
+
+async function countOtherEnabledSuperAdmins(db: D1Database, userId: string): Promise<number> {
+  const row = await db
+    .prepare(
+      "SELECT COUNT(*) AS n FROM admin_operator WHERE role = 'super_admin' AND enabled = 1 AND user_id != ?",
     )
-    .run();
+    .bind(userId)
+    .first<{ n: number }>();
+  return Number(row?.n ?? 0);
+}
+
+async function commitOperatorSecurityBatch(
+  db: D1Database,
+  statements: D1Statement[],
+): Promise<D1QueryResult[]> {
+  try {
+    return await db.batch(statements);
+  } catch (error) {
+    if (isLastSuperAdminGuardError(error)) {
+      throw new AppError("FORBIDDEN", LAST_ENABLED_SUPER_ADMIN_MESSAGE);
+    }
+    throw error;
+  }
 }
 
 function validateEmail(email: string): string {
@@ -318,7 +353,7 @@ export async function handleCreateStaff(
   const userId = crypto.randomUUID();
   const accountId = crypto.randomUUID();
   const passwordHash = await hashPassword(nextPassword);
-  await env.DB.batch([
+  await commitOperatorSecurityBatch(env.DB, [
     env.DB.prepare(
       `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
        VALUES (?, ?, ?, 1, NULL, ?, ?)`,
@@ -333,15 +368,15 @@ export async function handleCreateStaff(
       `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
        VALUES (?, 'staff', 1, ?, ?, ?)`,
     ).bind(userId, now, now, actor.id),
+    auditStatement(env.DB, {
+      userId,
+      eventType: "operator_created",
+      actorId: actor.id,
+      fromValue: null,
+      toValue: "staff:enabled",
+      requestId,
+    }),
   ]);
-  await recordOperatorAudit(env.DB, {
-    userId,
-    eventType: "operator_created",
-    actorId: actor.id,
-    fromValue: null,
-    toValue: "staff:enabled",
-    requestId,
-  });
   const item = await getPublicOperator(env.DB, userId);
   return json({ item }, 201, requestId);
 }
@@ -388,48 +423,57 @@ export async function handlePatchOperator(
     nextEnabled = body.enabled;
   }
 
-  const lastSuperAdmin =
+  const roleChanged = nextRole !== current.role;
+  const enabledChanged = nextEnabled !== current.enabled;
+  if (!roleChanged && !enabledChanged) {
+    return json({ item: await getPublicOperator(env.DB, userId) }, 200, requestId);
+  }
+
+  const wouldRemoveLastSuperAdmin =
     current.role === "super_admin" &&
     current.enabled &&
-    (await countEnabledSuperAdmins(env.DB, userId)) === 0;
-  const wouldRemoveLastSuperAdmin =
-    lastSuperAdmin && (nextRole !== "super_admin" || nextEnabled === false);
+    (nextRole !== "super_admin" || nextEnabled === false) &&
+    (await countOtherEnabledSuperAdmins(env.DB, userId)) === 0;
   if (wouldRemoveLastSuperAdmin) {
-    throw new AppError("FORBIDDEN", "The last enabled super admin cannot be demoted or disabled.");
+    throw new AppError("FORBIDDEN", LAST_ENABLED_SUPER_ADMIN_MESSAGE);
   }
 
   const now = new Date().toISOString();
-  await env.DB.prepare(
-    "UPDATE admin_operator SET role = ?, enabled = ?, updated_at = ?, updated_by = ? WHERE user_id = ?",
-  )
-    .bind(nextRole, nextEnabled ? 1 : 0, now, actor.id, userId)
-    .run();
-
-  const roleChanged = nextRole !== current.role;
-  const enabledChanged = nextEnabled !== current.enabled;
+  const nextEnabledFlag = nextEnabled ? 1 : 0;
+  const statements: D1Statement[] = [
+    env.DB.prepare(
+      `UPDATE admin_operator
+       SET role = ?, enabled = ?, updated_at = ?, updated_by = ?
+       WHERE user_id = ?`,
+    ).bind(nextRole, nextEnabledFlag, now, actor.id, userId),
+  ];
   if (roleChanged) {
-    await recordOperatorAudit(env.DB, {
-      userId,
-      eventType: "operator_role_changed",
-      actorId: actor.id,
-      fromValue: current.role,
-      toValue: nextRole,
-      requestId,
-    });
+    statements.push(
+      auditStatement(env.DB, {
+        userId,
+        eventType: "operator_role_changed",
+        actorId: actor.id,
+        fromValue: current.role,
+        toValue: nextRole,
+        requestId,
+      }),
+    );
   }
   if (enabledChanged) {
-    await recordOperatorAudit(env.DB, {
-      userId,
-      eventType: nextEnabled ? "operator_enabled" : "operator_disabled",
-      actorId: actor.id,
-      fromValue: current.enabled ? "enabled" : "disabled",
-      toValue: nextEnabled ? "enabled" : "disabled",
-      requestId,
-    });
+    statements.push(
+      auditStatement(env.DB, {
+        userId,
+        eventType: nextEnabled ? "operator_enabled" : "operator_disabled",
+        actorId: actor.id,
+        fromValue: current.enabled ? "enabled" : "disabled",
+        toValue: nextEnabled ? "enabled" : "disabled",
+        requestId,
+      }),
+    );
   }
-  if (roleChanged || enabledChanged) {
-    await revokeSessions(env.DB, userId);
-  }
+  statements.push(revokeSessionsStatement(env.DB, userId));
+
+  await commitOperatorSecurityBatch(env.DB, statements);
   return json({ item: await getPublicOperator(env.DB, userId) }, 200, requestId);
 }
 
@@ -470,17 +514,21 @@ export async function handleResetOperatorPassword(
   }
   const passwordHash = await hashPassword(nextPassword);
   const now = new Date().toISOString();
-  await env.DB.prepare('UPDATE "account" SET "password" = ?, "updatedAt" = ? WHERE "id" = ?')
-    .bind(passwordHash, now, account.id)
-    .run();
-  await revokeSessions(env.DB, userId);
-  await recordOperatorAudit(env.DB, {
-    userId,
-    eventType: "operator_password_reset",
-    actorId: actor.id,
-    fromValue: null,
-    toValue: "reset",
-    requestId,
-  });
+  await commitOperatorSecurityBatch(env.DB, [
+    env.DB.prepare('UPDATE "account" SET "password" = ?, "updatedAt" = ? WHERE "id" = ?').bind(
+      passwordHash,
+      now,
+      account.id,
+    ),
+    revokeSessionsStatement(env.DB, userId),
+    auditStatement(env.DB, {
+      userId,
+      eventType: "operator_password_reset",
+      actorId: actor.id,
+      fromValue: null,
+      toValue: "reset",
+      requestId,
+    }),
+  ]);
   return json({ ok: true }, 200, requestId);
 }
