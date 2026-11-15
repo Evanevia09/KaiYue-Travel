@@ -11,7 +11,8 @@ Independent review and staging browser QA remain parent-coordinated. Owner autho
 | Item | Pointer |
 |---|---|
 | Reconciliation | PR #38 `cursor/main-reconcile-dashboard-2cad` `c8ad22c5c9da05949b985effcbd046a040c1d621` — **never trial or merge alone** |
-| Reviewed PR #39 SHA (Mika input) | `6dcbc44dec0d5ccfcbc812db6d4161b7dd522577` — superseded by the correction SHA on this branch |
+| Reviewed PR #39 SHA (Mika input) | `6dcbc44dec0d5ccfcbc812db6d4161b7dd522577` — superseded |
+| Correction SHA (this increment) | `0e09ffe6d20cf812fa7548fc9da73aaf2fbba986` |
 | Notification checkpoint | PR #36 `dd69a47d74a06f1119aca116451a1060fa4413ed` |
 | Live-release checkpoint | PR #35 `5aa40dd90db5388883133818e3da5acd4112528a` — never blind-merge |
 | Staging 6-char UAT | `61bc5a03` / PR #34 — **never** port to production |
@@ -112,7 +113,7 @@ SHA256: `361bce51b5e610f9610abaff3994630d2d42e4f9b15c5ae0e5a9095c9cae27a9`
 
 Local: `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` **163/163** across **32** files; `pnpm build` complete.
 
-Prior official Actions job `https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43684217704/job/132721152605` reviewed `6dcbc44d` (146 tests / 29 files) and is **not** release approval. Re-review this new SHA.
+Prior official Actions job `https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43684217704/job/132721152605` reviewed `6dcbc44d` (146 tests / 29 files) and is **not** release approval. Re-review **`0e09ffe6d20cf812fa7548fc9da73aaf2fbba986`**.
 
 Not verified here: staging/live browser QA, D1 apply of `0009`, Vault CREATE, staff-domain attach, Access onboarding, GitHub Actions on this SHA, Workers Builds `41386f` (do not retry or cancel).
 

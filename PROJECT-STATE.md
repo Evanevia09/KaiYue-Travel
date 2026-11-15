@@ -243,7 +243,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 - Changed: fail-closed partial Access config; full cookie-jar + 60s cache revocation tests; production-mode dedicated-host login/password-change tests; server-enforced primary operator (`ADMIN_PRIMARY_EMAIL`, additive `0009` not applied); secret-safe CREATE helper; staging overlay `043cd0ff` vs production overlay `06cf879d`; packet no longer treats Access onboarding as a go-live blocker. PR #38 remains untrialed alone.
 - Decision/evidence: Independent Mika review of `c8ad22c5` → `6dcbc44d`. Owner: Better Auth on `admin.kaiyuemacau.com`, Daniel as main admin, no Access requirement. Parent 14:18 D1 read: Daniel user/credential counts 0, no role column. CREATE not reset.
-- Verified: local `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 163/163; `pnpm build` complete. Log SHA256 `361bce51b5e610f9610abaff3994630d2d42e4f9b15c5ae0e5a9095c9cae27a9`. No D1 apply, no Vault, no deploy.
+- Verified: local `pnpm lint` clean; `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 163/163; `pnpm build` complete. Correction SHA `0e09ffe6d20cf812fa7548fc9da73aaf2fbba986`. Log SHA256 `361bce51b5e610f9610abaff3994630d2d42e4f9b15c5ae0e5a9095c9cae27a9`. No D1 apply, no Vault, no deploy.
 - Not verified or follow-up: parent review of the new SHA, staging QA, parent Vault CREATE, DNS, live login. `user_accepted` / `released` not claimed.
 
 ### 2026-11-15 — Staff profile password source prep
