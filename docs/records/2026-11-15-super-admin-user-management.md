@@ -6,7 +6,29 @@
 **Base:** `cursor/admin-profile-password-2cad` (not `main`)  
 **Status:** implemented / tested / pushed on this PR. **Not** staged, **not** `user_accepted`, **not** `released`.
 
-This increment does not merge, deploy, upload, apply D1, bootstrap, rollback, create real accounts, change DNS/mail/main, or touch production Worker `kaiyue-travel` version `71a66a99` / deployment `f3169afb`. Mika verified previous CI 206 green; that is not acceptance. Independent re-review of this write-token fix is still required. Review file `/workspace/kaiyue-pr41-r3/REVIEW.md` was not read on this VM; the full finding in the owner message was independently verified against frozen `94ee1ff4` and then fixed.
+This increment does not merge, deploy, upload, apply D1, bootstrap, rollback, create real accounts, change DNS/mail/main, or touch production Worker `kaiyue-travel` version `71a66a99` / deployment `f3169afb`. Static review of frozen `4af0a5ca` resolved prior blockers; no new source feature/fix in this closeout. Mika verified previous CI 206 green; that is not acceptance.
+
+## Staging-URL build evidence (operational gate)
+
+Exact command, frozen runtime `4af0a5caf12b06eedaf41ea1f173263b4a56d433`, environment URL `https://staging.kaiyuemacau.com`. No secret env dump.
+
+| Item | Value |
+|---|---|
+| Raw log | `/opt/cursor/artifacts/kaiyue_4af0a5c_staging_url_build_20261115T170212Z.log` |
+| Log SHA256 | `0f8a92260d23ed8d2a2c083e50620c9b2d33c84196cb98ca9902fe0b12f59695` (6588 bytes) |
+| Exit | `0` |
+| `PUBLIC_SITE_URL` | `https://staging.kaiyuemacau.com` |
+| Git HEAD at capture | `f6b758c380284244acecb6caf85a4a1d4a923cc3` (docs-only vs frozen runtime) |
+| Runtime tree vs `4af0a5c` | unchanged (`apps` / `migrations` / `packages` / `scripts`) |
+| Frozen zip | unchanged SHA256 `4760701f…`; not rebuilt |
+| `dist/client` vs zip | 141 files, 0 changed |
+| True blocker | none |
+
+`dist/server/entry.mjs` is the Astro server entry. Zip `entry.js` is the prior wrangler `--dry-run` Worker bundle of the same frozen source (`f2ccf867…`). Those paths are not byte-identical by design; client assets matched the zip, so the zip was not replaced.
+
+## Residual CAS semantics
+
+Operator PATCH is **state-CAS** on the observed `(role, enabled, updated_at)` triple. The unique `updated_by` write token owns **this mutation's** audit INSERT and session DELETE so a failed CAS cannot attach to another write at the same clock. It is **not** ABA-proof versioning: a later writer that restores the same triple can make a stale PATCH match. No monotonic version column was added. Last-super `RAISE(ABORT)` triggers remain the last-enabled-super invariant.
 
 ## What shipped in source
 
@@ -49,7 +71,7 @@ Target D1: official UAT `kaiyue-travel-staging` `043cd0ff-a1e6-4b5e-98c1-968c286
 2. SELECT-only `scripts/preflight-staging-migrations.sql` (`sqlite_master` only). If `admin_operator_table` or last-super triggers are 0, apply migrations next.
 3. `wrangler d1 migrations apply` for `migrations/0009_admin_operator.sql` then `migrations/0010_admin_operator_last_super.sql`.
 4. SELECT-only `scripts/preflight-staging-operators.sql`. Abort unless identity still matches **and** `supported_prestate = 1`. This statement reads `admin_operator` and must not run before step 3.
-5. Apply the **entire** `scripts/provision-staging-operators.sql` as one `wrangler d1 execute --file` (or one REST `sql` body) so the leading prestate CHECK is not skipped. Do not claim a trailing CHECK rolls back a prior committed INSERT; the data INSERT is gated to 0 rows under unsupported prestate. Interrupted / binding batch / wrangler execute remain UNPROVEN remotely.
+5. Intended later apply (not authorized from this increment): the **entire** `scripts/provision-staging-operators.sql`. Pinned Wrangler `4.132.0` `d1 execute --file` uses the D1 **import** API (`action: init` + file upload + poll), not the D1 **query** API used by `d1 execute --command`. Do **not** equate `--file` with a verified REST `/query` semicolon-joined body, Worker `D1Database.batch()`, or the locally observed REST CHECK-rollback path. Import-API interruption and grouping atomicity remain UNPROVEN. The data INSERT is gated to 0 rows under unsupported prestate; that SQL gating is not a substitute for an observed import-API transaction. This does not authorize execution.
 6. Confirm `SELECT role, enabled FROM admin_operator JOIN "user" ...`.
 7. Do **not** apply to production D1 `06cf879d-8fea-4088-8881-7d382e1b8c11`, trial `06aa844b`, or obsolete `069aa442`.
 
@@ -115,7 +137,7 @@ Later operator upload (not this agent), from the unzipped folder:
 
 `npx wrangler versions upload --no-bundle --strict --name kaiyue-travel-staging`
 
-Then follow `scripts/staging-operator-bootstrap-order.json` on D1 `043cd0ff` only: identity precheck, migration-list precheck, apply `0009`/`0010`, operator preflight (`supported_prestate=1`), entire provision file as one invocation. Do not `wrangler deploy`. Do not touch LIVE `71a66a99` / `f3169afb`.
+Do not upload, `wrangler deploy`, or apply SQL from this increment. Later operator work, if separately authorized, still must not treat Wrangler `4.132.0` `d1 execute --file` as the verified REST `/query` grouping. Do not touch LIVE `71a66a99` / `f3169afb`. Destructive `DROP TABLE` rollback remains unapproved.
 
 ## Distinctions
 
@@ -133,7 +155,8 @@ Then follow `scripts/staging-operator-bootstrap-order.json` on D1 `043cd0ff` onl
 - CI/CD Workers Builds for production remain separate / pending staging credential. Do not enable production builds.
 - This agent does not upload or apply SQL. HOLD all upload/deploy/D1/bootstrap/rollback.
 - Independent re-review of this write-token fix is still required before any deployment approval. Mika verified previous CI 206 green; that is not acceptance.
+- Wrangler `4.132.0` `d1 execute --file` is D1 import API, not query API. Do not execute it from this increment. Do not treat it as proven atomic with REST `/query`.
 
 ## Artifact checksums
 
-See the table in **Official-staging artifact**. Zip SHA256 `4760701f12494bcf275218ab7c0537662fa9b4a19a68b5e30dacd8b0e45f82f9`. This packaging step did not upload. Package of `94ee1ff` (`3ef4665a…`) is superseded.
+Frozen zip of runtime `4af0a5c` was not rebuilt. New evidence is the staging-URL build log above. This step did not upload.

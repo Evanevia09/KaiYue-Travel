@@ -6,11 +6,12 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 - **task_id:** `super-admin-user-management-20261115`
 - **Writer:** this PR #41 agent only, branch `cursor/host-role-admin-gate-a72c`
-- **Implemented / tested / pushed:** remaining MEDIUM CAS clock side-effect on frozen `94ee1ff4` corrected: unique `updated_by` write-token ownership for audit/revoke; bootstrap executor identity → migrations → operator preflight → single-file provision. Stale-field overwrite, last-super trigger, live session row, and fail-closed batches remain.
-- **Source SHA:** `4af0a5caf12b06eedaf41ea1f173263b4a56d433`
-- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `cc00120f7e23437d3d788302c7a1138a953b505172dc56a9a9dcc75e9d845aa7`
-- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_4af0a5c_official_staging.zip` SHA256 `4760701f12494bcf275218ab7c0537662fa9b4a19a68b5e30dacd8b0e45f82f9` (not uploaded). Package of `94ee1ff` (`3ef4665a…`) is superseded and must not be uploaded.
-- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM. Mika verified previous CI 206 green; that is not acceptance. Independent re-review of this write-token fix is required.
+- **Implemented / tested / pushed:** frozen runtime `4af0a5ca` unchanged. Raw staging-URL build evidence captured (exit 0). Residual PATCH is state-CAS, not ABA-proof versioning. Wrangler `4.132.0` `d1 execute --file` is D1 import API, not query API; not authorized to run.
+- **Runtime source SHA:** `4af0a5caf12b06eedaf41ea1f173263b4a56d433`
+- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `f431c2b52d7d803401dc77e11999f7600afc9fa1f6a18307a174bf3e3258d3a2`
+- **Build log:** `/opt/cursor/artifacts/kaiyue_4af0a5c_staging_url_build_20261115T170212Z.log` SHA256 `0f8a92260d23ed8d2a2c083e50620c9b2d33c84196cb98ca9902fe0b12f59695` (not uploaded)
+- **Package:** frozen zip SHA256 `4760701f…` unchanged; not rebuilt; not uploaded.
+- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM.
 
 ## 2026-11-15 — Super-admin user-management security correction (source only)
 
