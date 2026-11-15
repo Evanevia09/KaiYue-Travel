@@ -1,0 +1,60 @@
+{
+  "test": "E_earlier_write_then_forced_check_failure",
+  "verdict": "PASS_observed_rest_query_rollback",
+  "started_utc": "2026-11-15T08:52:51.292Z",
+  "started_asia_macau": "2026-11-15 16:52:51.292 Asia/Macau",
+  "mutation_at_utc": "2026-11-15T08:52:51.377Z",
+  "mutation_at_asia_macau": "2026-11-15 16:52:51.377 Asia/Macau",
+  "readback_at_utc": "2026-11-15T08:52:51.440Z",
+  "readback_at_asia_macau": "2026-11-15 16:52:51.440 Asia/Macau",
+  "identity_requery_before_sql": true,
+  "identity_match": true,
+  "method": "POST /accounts/33ecc75158a1cdd23ba1a62eb70c5103/d1/database/06aa844b-da6b-4c37-896c-fd13dd265fe6/query  body={sql: <6 semicolon-joined statements>}; NOT Worker D1Database.batch(); NOT request-body batch array",
+  "expected_sql": "INSERT INTO \"synth_user\" (\"id\",\"name\",\"email\",\"emailVerified\",\"image\",\"createdAt\",\"updatedAt\") SELECT '00000000-0000-4000-a000-000000000006','SYNTHETIC_NONCREDENTIAL_PROBE_USER','synth-atomicity-rollback@kaiyue.test',0,NULL,'1763201560000','1763201560000' WHERE NOT EXISTS (SELECT 1 FROM \"synth_user\" WHERE lower(\"email\") = lower('synth-atomicity-rollback@kaiyue.test'));\nINSERT INTO \"synth_account\" (\"id\",\"accountId\",\"providerId\",\"userId\",\"accessToken\",\"refreshToken\",\"idToken\",\"accessTokenExpiresAt\",\"refreshTokenExpiresAt\",\"scope\",\"password\",\"createdAt\",\"updatedAt\") SELECT '00000000-0000-4000-a000-000000000106','00000000-0000-4000-a000-000000000006','credential','00000000-0000-4000-a000-000000000006',NULL,NULL,NULL,NULL,NULL,NULL,'SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD','1763201560000','1763201560000' WHERE EXISTS (SELECT 1 FROM \"synth_user\" WHERE \"id\" = '00000000-0000-4000-a000-000000000006') AND NOT EXISTS (SELECT 1 FROM \"synth_account\" AS a JOIN \"synth_user\" AS u ON u.\"id\" = a.\"userId\" WHERE lower(u.\"email\") = lower('synth-atomicity-rollback@kaiyue.test') AND a.\"providerId\" = 'credential');\nCREATE TABLE IF NOT EXISTS \"_synth_create_guard\" (ok INTEGER NOT NULL CHECK (ok = 1));\nDELETE FROM \"_synth_create_guard\";\nINSERT INTO \"_synth_create_guard\" (\"ok\") SELECT 0;\nDROP TABLE \"_synth_create_guard\";",
+  "design": "First two statements are provisioner-shaped conditional INSERTs expected to write a new user and account. Later statement INSERT INTO guard SELECT 0 is a deliberate CHECK (ok=1) failure after those writes. Immediate readonly readback determines whether the earlier writes persisted.",
+  "mutation": {
+    "threw": true,
+    "http": 400,
+    "ray": "a5ad05acbb37d65c-IAD",
+    "api_result": [],
+    "error": {
+      "code": 7500,
+      "message": "CHECK constraint failed: ok = 1: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_CHECK)"
+    }
+  },
+  "readback_immediately_after_error": true,
+  "readback": {
+    "success": true,
+    "tables": [
+      "_cf_KV",
+      "synth_account",
+      "synth_user"
+    ],
+    "guard_table_present": false,
+    "counts": {
+      "synth_user": 2,
+      "synth_account": 1
+    },
+    "rollback_user_present_0006": 0,
+    "rollback_account_present_0106": 0,
+    "rollback_email_present": false,
+    "size_after": 28672,
+    "last_row_id_still_2": true,
+    "remaining_rows": [
+      "00000000-0000-4000-a000-000000000001 synth-atomicity-positive@kaiyue.test",
+      "00000000-0000-4000-a000-000000000004 synth-atomicity-useronly@kaiyue.test (no account)",
+      "account 00000000-0000-4000-a000-000000000101 only"
+    ]
+  },
+  "atomicity_scope": {
+    "observed": "A single REST POST /query with one sql string of multiple semicolon-joined statements rolled back earlier INSERTs and the guard CREATE when a later statement failed CHECK. No partial rows or leftover guard table were visible on immediate readonly readback.",
+    "not_a_published_contract": "Official D1 docs document whole-sequence rollback for Worker binding D1Database.batch(), and do not restate that guarantee for REST /query or wrangler d1 execute --file (they say statements are executed as a batch). This is observed executor evidence on this database, region ENAM/IAD, served_by v3-prod, at this time. It must not be substituted as a documented Cloudflare REST contract, and it is not evidence for Worker batch().",
+    "not_tested": [
+      "Worker D1Database.batch() (no Worker upload authorized)",
+      "REST request body {batch:[{sql}...]}",
+      "wrangler d1 execute --file",
+      "intentional mid-request interruption/crash (explicitly UNPROVEN; no shell-kill or random API interruption was performed)"
+    ]
+  },
+  "stop_after_unexpected_partial": "Not applicable; no unexpected partial writes were observed, so later cleanup was not required and was not performed."
+}

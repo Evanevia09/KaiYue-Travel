@@ -2,12 +2,21 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## 2026-11-15 16:55 — Isolated trial D1/R2 + synthetic REST probes (docs closeout)
+
+- **Approval:** Evan 16:47 Asia/Macau existing widget t164s918. Scope: new empty official 33ecc D1/R2 + synthetic noncredential probes only. Infra 16:53; user result 16:55.
+- **Created:** D1 `kaiyue-travel-admin-trial` `06aa844b-da6b-4c37-896c-fd13dd265fe6`. R2 `kaiyue-offers-admin-trial` `d937f5bc01e448afa679bdbf3769ed50` empty, private, r2.dev disabled.
+- **Probes:** A–E PASS on observed REST single `/query` semicolon-joined SQL only (including earlier DML + guard CREATE rollback on later CHECK). Interruption UNPROVEN. wrangler execute / binding batch / REST batch UNTESTED.
+- **Not done:** Worker create/upload, app migrations, real identity/secret fill, DNS/Access/mail/paid, prod/UAT writes, cleanup. Residual synth_user 2 / synth_account 1 left (no actual credentials).
+- **Templates:** still **DO_NOT_DEPLOY** / UAT **DO_NOT_UPLOAD**. Freeze `74c30236` and metadata r2 zip `4e8011c9` / docs `2a758879` preserved.
+- **Evidence:** `docs/records/2026-11-15-admin-trial-safety-evidence/` (`REPORT.md` `ba1eed6e`, index `4a487034`). Independent Mika evidence review requested. Not `user_accepted` / not `released`.
+
 ## 2026-11-15 — Admin-prep package of freeze 74c3023 (ops hold)
 
 - **Runtime freeze:** `74c30236a03583675f39d1a97b79c19a60d58da5` (reviewed code not changed). Mika source+byte/static PASS pins original package `f78d5856` / zip `483686e1` (immutable).
 - **Metadata r2:** prefix `kaiyue_admin_prep_74c3023_metadata_r2_`. Corrects dedicated-host Better Auth wording and live rollback `71a66a99`@100% / `f3169afb` from 33ecc 14:52:49 Asia/Macau. `5b859f36` is labelled prior-release history. Acyclic catalogs. Record: `docs/records/2026-11-15-admin-prep-package.md`.
 - **Package:** original `/opt/cursor/artifacts/kaiyue_admin_prep_74c3023_production_complete.zip` plus r2 zip. Standalone CREATE CLI bytes unchanged.
-- **Trial overlay:** DO_NOT_DEPLOY template; R2 `kaiyue-offers-admin-trial`; D1 ID uncreated sentinel. UAT DO_NOT_UPLOAD.
+- **Trial overlay:** DO_NOT_DEPLOY template (sentinel not substituted in this package). UAT DO_NOT_UPLOAD. Account D1/R2 later created 16:50; see 16:55 closeout.
 - **Not done:** DNS, Worker create, D1 apply, secret seed, Vault export, deploy, browser QA, bindings approval.
 
 ## 2026-11-15 — Mika rereview source prep (not live, not trial)

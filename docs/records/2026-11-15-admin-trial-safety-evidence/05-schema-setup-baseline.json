@@ -1,0 +1,49 @@
+{
+  "event": "synthetic_fixture_schema_and_empty_baseline",
+  "at_utc": "2026-11-15T08:51:37.621Z",
+  "at_asia_macau": "2026-11-15 16:51:37.621 Asia/Macau",
+  "identity_requery_before_sql": true,
+  "identity_match": true,
+  "uuid": "06aa844b-da6b-4c37-896c-fd13dd265fe6",
+  "name": "kaiyue-travel-admin-trial",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "method": "POST /accounts/33ecc75158a1cdd23ba1a62eb70c5103/d1/database/06aa844b-da6b-4c37-896c-fd13dd265fe6/query",
+  "setup_sql": "CREATE TABLE synth_user (id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, email TEXT NOT NULL, emailVerified INTEGER NOT NULL, image TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);\nCREATE TABLE synth_account (id TEXT PRIMARY KEY NOT NULL, accountId TEXT NOT NULL, providerId TEXT NOT NULL, userId TEXT NOT NULL, accessToken TEXT, refreshToken TEXT, idToken TEXT, accessTokenExpiresAt TEXT, refreshTokenExpiresAt TEXT, scope TEXT, password TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);",
+  "setup_success": true,
+  "setup_statement_metas": [
+    {
+      "success": true,
+      "changed_db": true,
+      "rows_written": 3,
+      "size_after": 20480,
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "IAD"
+    },
+    {
+      "success": true,
+      "changed_db": true,
+      "rows_written": 3,
+      "size_after": 28672,
+      "served_by": "v3-prod",
+      "served_by_region": "ENAM",
+      "served_by_colo": "IAD"
+    }
+  ],
+  "readback_sql": "SELECT name, type FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name;\nSELECT 'synth_user' AS tbl, COUNT(*) AS n FROM synth_user UNION ALL SELECT 'synth_account', COUNT(*) FROM synth_account;\nSELECT id, name, email, emailVerified, createdAt, updatedAt FROM synth_user ORDER BY email, id;\nSELECT id, accountId, providerId, userId, password, createdAt, updatedAt FROM synth_account ORDER BY id;",
+  "readback_success": true,
+  "tables": [
+    "_cf_KV",
+    "synth_account",
+    "synth_user"
+  ],
+  "counts": {
+    "synth_user": 0,
+    "synth_account": 0
+  },
+  "rows": {
+    "synth_user": [],
+    "synth_account": []
+  },
+  "note": "Isolated synthetic fixture tables only. Migrations 0001-0008 were not applied. No real app identity seeded."
+}

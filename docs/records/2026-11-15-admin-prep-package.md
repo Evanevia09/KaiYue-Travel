@@ -100,10 +100,12 @@ Original artifacts stay immutable. New prefix `kaiyue_admin_prep_74c3023_metadat
 
 DEPLOYMENT-CONFIG r2: dedicated host `admin.kaiyuemacau.com` Better Auth password path when **both** Access vars are absent; partial Access fails closed; public apex/www 403; host not yet attached/live. Current rollback target from 33ecc read-only 2026-11-15 14:52:49 Asia/Macau: version `71a66a99-0605-401f-9997-e6d3c3e9561b` @100%, deployment `f3169afb-ccb7-4c52-9fde-b043cd15854d`, annotation `cd33cf8c` / live `9ff81925`. Repeat readback before any apply. `5b859f36` retained as labelled prior-release history only. Overlay `keep_vars` omissions are **not** final bindings approval.
 
-Operational HOLD: allowlist / primary ENV / secrets / readback / browser QA / D1 atomicity (Worker `DB.batch()` documents transactional rollback; REST / `d1 execute --file` sequential auto-commit is not a conclusive transaction; executor probe gate unchanged; no new implementation). Trial overlay remains DO_NOT_DEPLOY. Official UAT overlay remains DO_NOT_UPLOAD. Not release / not staging acceptance.
+Operational HOLD: allowlist / primary ENV / secrets / readback / browser QA. Trial overlay remains **DO_NOT_DEPLOY** (sentinel not substituted). Official UAT overlay remains **DO_NOT_UPLOAD**. Not release / not staging acceptance.
+
+Later 16:55 Asia/Macau resource+probe closeout (docs only; this package zip unchanged): official trial D1 `06aa844b-da6b-4c37-896c-fd13dd265fe6` and R2 `d937f5bc01e448afa679bdbf3769ed50` exist; Worker not created. Observed REST single `/query` semicolon-joined SQL probes A–E PASS on that D1; mid-request interruption UNPROVEN; `wrangler d1 execute --file` / binding batch / REST batch array UNTESTED. Evidence: `docs/records/2026-11-15-admin-trial-safety-evidence/` (`REPORT.md` `ba1eed6e`, index `4a487034`). Runtime freeze `74c30236` and metadata r2 zip `4e8011c9` preserved.
 
 Acyclic catalogs: r2 transfer_manifest lists data files and does **not** embed the primary-sums digest. Primary sums hash the two r2 zips only and do **not** hash themselves. This committed record pins the primary-sums digest `712dc89dcfab4363ab3a60f3d1ef1a66141f7332ff37ffbcdb73d59c7b671444`.
 
 ## Next
 
-Ops remain on hold. Parent: Mika rereview of `74c3023` plus exact trial plan approval before any provision. Repeat official 33ecc version readback before any apply.
+Ops remain on hold. Independent Mika review of the 16:55 trial-resource evidence. Do not upload while trial overlay still carries the uncreated D1 sentinel. Secure process credential fill, final bindings, and dedicated-host browser QA remain open. Repeat official 33ecc version readback before any apply.

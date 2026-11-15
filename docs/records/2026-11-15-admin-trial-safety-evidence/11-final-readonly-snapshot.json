@@ -1,0 +1,68 @@
+{
+  "event": "final_readonly_snapshot",
+  "at_utc": "2026-11-15T08:53:15.087Z",
+  "at_asia_macau": "2026-11-15 16:53:15.087 Asia/Macau",
+  "d1_identity_match": true,
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "d1": {
+    "uuid": "06aa844b-da6b-4c37-896c-fd13dd265fe6",
+    "name": "kaiyue-travel-admin-trial",
+    "created_at": "2026-11-15T08:50:38.957Z",
+    "version": "production",
+    "file_size": 28672,
+    "num_tables": 2
+  },
+  "tables": [
+    "_cf_KV",
+    "synth_account",
+    "synth_user"
+  ],
+  "counts": {
+    "synth_user": 2,
+    "synth_account": 1
+  },
+  "synth_user": [
+    {
+      "id": "00000000-0000-4000-a000-000000000001",
+      "name": "SYNTHETIC_NONCREDENTIAL_PROBE_USER",
+      "email": "synth-atomicity-positive@kaiyue.test",
+      "emailVerified": 0,
+      "createdAt": "1763201497000",
+      "updatedAt": "1763201497000"
+    },
+    {
+      "id": "00000000-0000-4000-a000-000000000004",
+      "name": "SYNTHETIC_NONCREDENTIAL_USERONLY_FIXTURE",
+      "email": "synth-atomicity-useronly@kaiyue.test",
+      "emailVerified": 0,
+      "createdAt": "1763201540000",
+      "updatedAt": "1763201540000"
+    }
+  ],
+  "synth_account": [
+    {
+      "id": "00000000-0000-4000-a000-000000000101",
+      "accountId": "00000000-0000-4000-a000-000000000001",
+      "providerId": "credential",
+      "userId": "00000000-0000-4000-a000-000000000001",
+      "password": "SYNTHETIC_NONCREDENTIAL_MARKER_NOT_A_PASSWORD",
+      "createdAt": "1763201497000",
+      "updatedAt": "1763201497000"
+    }
+  ],
+  "cleanup_or_deletion_performed": false,
+  "r2": {
+    "name": "kaiyue-offers-admin-trial",
+    "creation_date": "2026-11-15T08:50:47.719Z",
+    "location": "ENAM",
+    "storage_class": "Standard",
+    "jurisdiction": "default",
+    "managed_enabled": false,
+    "managed_domain": "pub-d937f5bc01e448afa679bdbf3769ed50.r2.dev",
+    "managed_bucketId": "d937f5bc01e448afa679bdbf3769ed50",
+    "custom_count": 0,
+    "object_count": 0,
+    "object_keys": [],
+    "left_empty_and_private": true
+  }
+}

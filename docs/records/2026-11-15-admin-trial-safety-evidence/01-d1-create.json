@@ -1,0 +1,23 @@
+{
+  "event": "POST_create_d1",
+  "started_utc": "2026-11-15T08:50:38.528Z",
+  "started_asia_macau": "2026-11-15 16:50:38.528 Asia/Macau",
+  "finished_utc": "2026-11-15T08:50:39.001Z",
+  "finished_asia_macau": "2026-11-15 16:50:39.001 Asia/Macau",
+  "method": "POST /accounts/33ecc75158a1cdd23ba1a62eb70c5103/d1/database",
+  "request_body": {
+    "name": "kaiyue-travel-admin-trial"
+  },
+  "note_prior_attempt": "An earlier execute call failed locally with parser error Unexpected token '||' before any successful request was issued; no D1 was created on that attempt. Retry used simpler request code against the same official endpoint, unchanged scope.",
+  "success": true,
+  "result": {
+    "uuid": "06aa844b-da6b-4c37-896c-fd13dd265fe6",
+    "name": "kaiyue-travel-admin-trial",
+    "created_at": "2026-11-15T08:50:38.957Z",
+    "created_at_asia_macau": "2026-11-15 16:50:38.957 Asia/Macau",
+    "version": "production",
+    "file_size": 8192,
+    "num_tables": 0
+  },
+  "not_prod_or_uat": true
+}

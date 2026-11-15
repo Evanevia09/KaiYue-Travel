@@ -122,9 +122,9 @@ Mika verified the previous **163** local checks on `0e09ffe` / `9de0a9ae`. That 
 | `scripts/provision-primary-admin.mjs` | `8aa1fdd567de712823cfc5e6efd03661eb43077e2a67114c7bce62e110a7fec0` |
 | `docs/records/2026-11-15-isolated-admin-trial-plan.md` | `68e65baa5341f9c129359babfd5900126fb85c9361bcbf1a2b9e74189ce505de` |
 
-Isolated resource plan + rollback/current baselines: `docs/records/2026-11-15-isolated-admin-trial-plan.md`. Trial is **not** approved and was **not** created.
+Isolated resource plan + rollback/current baselines: `docs/records/2026-11-15-isolated-admin-trial-plan.md`. Owner 16:47 Asia/Macau approved **only** new empty D1/R2 + synthetic probes. D1 `06aa844b-da6b-4c37-896c-fd13dd265fe6` and R2 `d937f5bc01e448afa679bdbf3769ed50` now exist; Worker still **not** created. Overlay templates remain **DO_NOT_DEPLOY** / UAT **DO_NOT_UPLOAD** until a substituted overlay is approved. Evidence: `docs/records/2026-11-15-admin-trial-safety-evidence/`.
 
-Not verified here: staging browser QA, D1 apply, secret fill, staff-domain attach, Access onboarding, GitHub Actions on the new SHA, Workers Builds `41386f` (do not retry or cancel).
+Not verified here: staging/dedicated-host browser QA, secret fill, final bindings, staff-domain attach, Access onboarding, GitHub Actions on the new SHA, Workers Builds `41386f` (do not retry or cancel).
 
 ## Prep package (runtime freeze intact)
 
@@ -133,10 +133,10 @@ Built from isolated worktree at `74c3023`. Original artifacts `/opt/cursor/artif
 - Original production zip SHA256 `483686e17141a24b12561169aaa51a0a9a7ccd91cba0e47703eb128f1fd24175` (entry + 41 photos, D1 `06cf879d`, R2 production, `run_worker_first=false`).
 - r2 production zip SHA256 `4e8011c9a76fe936253a0197b8fc700ef4faaaee37bffd4f36ff6a46fd77e18c` (same entry/photos; DEPLOYMENT-CONFIG + operator plan only).
 - Dedicated host intended Better Auth password path when both Access vars are absent; public 403; host not attached/live. Live rollback target `71a66a99`@100% / `f3169afb` (repeat readback before apply).
-- Trial overlay TEMPLATE labeled **DO_NOT_DEPLOY**. Official UAT **DO_NOT_UPLOAD**.
+- Trial overlay TEMPLATE labeled **DO_NOT_DEPLOY** (sentinel not substituted). Official UAT **DO_NOT_UPLOAD**. Account now has empty trial D1 `06aa844b` / R2 `d937f5bc`; that is **not** overlay approval or Worker upload.
 - Standalone CREATE CLI SHA256 `e7f104973dcdaa16d2fb201d90eeea1abae48c78f5328589fd348f44e32a1e2d` (unchanged).
-- Overlay `keep_vars` omissions are not final bindings approval. No DNS, Worker create, D1 apply, or secret seed.
+- Overlay `keep_vars` omissions are not final bindings approval. No DNS, Worker create, secret seed, or upload.
 
 ## Next action
 
-Ops hold. Mika rereview of `74c3023` and exact isolated trial plan before any provision. Repeat official 33ecc version readback before any apply.
+Ops hold. Independent Mika review of the 16:55 trial-resource evidence. Secure process credential fill, final bindings, and dedicated-host browser QA remain open. Repeat official 33ecc version readback before any apply. Do not upload while templates still carry the uncreated D1 sentinel.
