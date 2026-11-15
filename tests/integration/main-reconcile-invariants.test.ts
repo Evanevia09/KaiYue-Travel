@@ -88,6 +88,19 @@ describe("main reconciliation invariants", () => {
     );
     expect(preflight).toMatch(/supported_prestate/);
     expect(preflight).not.toMatch(/\b(INSERT|UPDATE|DELETE|DROP|CREATE)\b/i);
+    const identity = readFileSync(join(repoRoot, "scripts/preflight-staging-identity.sql"), "utf8");
+    expect(identity).toMatch(/identity_ok/);
+    expect(identity).not.toMatch(/admin_operator/);
+    const order = JSON.parse(
+      readFileSync(join(repoRoot, "scripts/staging-operator-bootstrap-order.json"), "utf8"),
+    ) as { steps: Array<{ id: string }> };
+    expect(order.steps.map((step) => step.id)).toEqual([
+      "identity",
+      "migration-list",
+      "migrate",
+      "operator-preflight",
+      "bootstrap",
+    ]);
     const lastSuper = readFileSync(
       join(repoRoot, "migrations/0010_admin_operator_last_super.sql"),
       "utf8",

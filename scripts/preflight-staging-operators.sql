@@ -1,8 +1,12 @@
--- SELECT-only preflight for official UAT D1 043cd0ff-a1e6-4b5e-98c1-968c286e0c70.
--- No DML. Abort provision unless user_id still maps to scalingsmb@gmail.com
--- and supported_prestate = 1 (empty admin_operator, or that owner is already
--- the only enabled super_admin). Do NOT run against production D1
--- 06cf879d-8fea-4088-8881-7d382e1b8c11, trial D1 06aa844b, or obsolete 069aa442.
+-- SELECT-only operator preflight for official UAT D1
+--   043cd0ff-a1e6-4b5e-98c1-968c286e0c70
+-- Run AFTER identity precheck, migration-list precheck, and migrations
+-- 0009/0010. This statement reads admin_operator and will fail if that
+-- table does not exist. Abort provision unless user_id still maps to
+-- scalingsmb@gmail.com and supported_prestate = 1 (empty admin_operator,
+-- or that owner is already the only enabled super_admin). Do NOT run
+-- against production D1 06cf879d-8fea-4088-8881-7d382e1b8c11, trial D1
+-- 06aa844b, or obsolete 069aa442.
 
 SELECT
   u."id" AS user_id,

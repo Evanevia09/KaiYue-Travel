@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   OPERATOR_CONFLICT_MESSAGE,
   handlePatchOperator,
@@ -45,6 +45,22 @@ const ownerSkipProvisionSql = readFileSync(
   fileURLToPath(new URL("../fixtures/owner-skip-regardless-provision.sql", import.meta.url)),
   "utf8",
 );
+const identityPreflightSql = readFileSync(
+  fileURLToPath(new URL("../../scripts/preflight-staging-identity.sql", import.meta.url)),
+  "utf8",
+);
+const migrationPreflightSql = readFileSync(
+  fileURLToPath(new URL("../../scripts/preflight-staging-migrations.sql", import.meta.url)),
+  "utf8",
+);
+const bootstrapOrder = JSON.parse(
+  readFileSync(
+    fileURLToPath(new URL("../../scripts/staging-operator-bootstrap-order.json", import.meta.url)),
+    "utf8",
+  ),
+) as {
+  steps: Array<{ id: string; file?: string; files?: string[]; mode: string }>;
+};
 
 function sqlStatements(sql: string): string[] {
   return sql
@@ -301,11 +317,56 @@ describe("last-enabled super-admin DB invariant", () => {
 });
 
 describe("staging bootstrap sequential auto-commit", () => {
-  it("keeps preflight SELECT-only and reports supported_prestate", () => {
+  it("encodes identity then migrations then operator preflight then single-file bootstrap", () => {
+    expect(bootstrapOrder.steps.map((step) => step.id)).toEqual([
+      "identity",
+      "migration-list",
+      "migrate",
+      "operator-preflight",
+      "bootstrap",
+    ]);
+    expect(bootstrapOrder.steps[0]?.file).toBe("scripts/preflight-staging-identity.sql");
+    expect(bootstrapOrder.steps[1]?.file).toBe("scripts/preflight-staging-migrations.sql");
+    expect(bootstrapOrder.steps[2]?.files).toEqual([
+      "migrations/0009_admin_operator.sql",
+      "migrations/0010_admin_operator_last_super.sql",
+    ]);
+    expect(bootstrapOrder.steps[3]?.file).toBe("scripts/preflight-staging-operators.sql");
+    expect(bootstrapOrder.steps[4]?.mode).toBe("wrangler-d1-execute-file-single-invocation");
+    expect(identityPreflightSql).not.toMatch(/admin_operator/);
+    expect(identityPreflightSql).not.toMatch(/\b(INSERT|UPDATE|DELETE|DROP|CREATE)\b/i);
+    expect(migrationPreflightSql).toMatch(/sqlite_master/);
+    expect(migrationPreflightSql).not.toMatch(/FROM admin_operator/);
+    expect(migrationPreflightSql).not.toMatch(/\b(INSERT|UPDATE|DELETE|DROP|CREATE)\b/i);
+    expect(gatedProvisionSql).toMatch(/staging-operator-bootstrap-order\.json/);
+  });
+
+  it("runs identity and migration-list prechecks before the operator table exists", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    db.exec("DROP TABLE admin_operator");
+    db.exec("DROP TABLE operator_audit_events");
+    const identity = db.prepare(sqlStatements(identityPreflightSql)[0]!).get() as {
+      identity_ok: number;
+      email: string;
+    };
+    expect(Number(identity.identity_ok)).toBe(1);
+    expect(identity.email).toBe(ownerEmail);
+    const migrationList = db.prepare(sqlStatements(migrationPreflightSql)[0]!).get() as {
+      admin_operator_table: number;
+      last_super_update_trigger: number;
+    };
+    expect(Number(migrationList.admin_operator_table)).toBe(0);
+    expect(Number(migrationList.last_super_update_trigger)).toBe(0);
+    expect(() => db.prepare(sqlStatements(preflightSql)[0]!).get()).toThrow(/no such table/i);
+  });
+
+  it("keeps operator preflight SELECT-only and reports supported_prestate", () => {
     expect(preflightSql).toMatch(/SELECT[\s\S]*u\."id" AS user_id/);
     expect(preflightSql).toMatch(/supported_prestate/);
     expect(preflightSql).toMatch(/operator_count/);
     expect(preflightSql).toMatch(/enabled_super_count/);
+    expect(preflightSql).toMatch(/AFTER identity precheck/);
     expect(preflightSql).not.toMatch(/\b(INSERT|UPDATE|DELETE|DROP|CREATE)\b/i);
   });
 
@@ -509,6 +570,10 @@ describe("fail-closed operator security batches", () => {
 });
 
 describe("partial PATCH field-specific CAS", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("lets naive SET-both undo a concurrent disable, while field-specific CAS leaves it disabled", () => {
     const snapshotAt = "2026-11-15T00:00:00.000Z";
     const naive = new DatabaseSync(":memory:");
@@ -755,6 +820,211 @@ describe("partial PATCH field-specific CAS", () => {
       .first<{ role: string; enabled: number }>();
     expect(stored?.role).toBe("staff");
     expect(Number(stored?.enabled)).toBe(1);
+    const sessions = await env.DB.prepare('SELECT COUNT(*) AS n FROM "session" WHERE "userId" = ?')
+      .bind("staff-1")
+      .first<{ n: number }>();
+    expect(Number(sessions?.n)).toBe(1);
+    const audits = await env.DB.prepare("SELECT COUNT(*) AS n FROM operator_audit_events").first<{
+      n: number;
+    }>();
+    expect(Number(audits?.n)).toBe(0);
+  });
+
+  it("lets equal-timestamp audit match steal a concurrent write, while write-token ownership does not", () => {
+    const t = "2026-11-15T12:00:00.000Z";
+    const naive = new DatabaseSync(":memory:");
+    naive.exec(authSql);
+    naive.exec(operatorSql);
+    naive.exec(lastSuperSql);
+    naive
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'A', 'a@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-a", t, t);
+    naive
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'B', 'b@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-b", t, t);
+    naive
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'super_admin', 1, ?, ?, 'test')`,
+      )
+      .run("user-a", t, t);
+    naive
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'staff', 1, ?, ?, 'test')`,
+      )
+      .run("user-b", t, t);
+    naive
+      .prepare(
+        `INSERT INTO "session" ("id", "expiresAt", "token", "createdAt", "updatedAt", "ipAddress", "userAgent", "userId")
+         VALUES (?, ?, 'tok', ?, ?, NULL, NULL, ?)`,
+      )
+      .run("session-b", t, t, t, "user-b");
+    naive
+      .prepare(
+        "UPDATE admin_operator SET enabled = 0, updated_at = ?, updated_by = ? WHERE user_id = ?",
+      )
+      .run(t, "writer-b", "user-b");
+    const stale = naive
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, updated_at = ?, updated_by = ?
+         WHERE user_id = ? AND role = ? AND enabled = ? AND updated_at = ?`,
+      )
+      .run("super_admin", t, "writer-a", "user-b", "staff", 1, t);
+    expect(Number(stale.changes)).toBe(0);
+    naive
+      .prepare(
+        `INSERT INTO operator_audit_events
+           (id, user_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+         SELECT ?, ?, 'operator_role_changed', 'super-1', 'staff', 'super_admin', 'req-a', ?
+         WHERE EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_at = ?)`,
+      )
+      .run("audit-naive", "user-b", t, "user-b", t);
+    naive
+      .prepare(
+        `DELETE FROM "session"
+         WHERE "userId" = ?
+           AND EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_at = ?)`,
+      )
+      .run("user-b", "user-b", t);
+    expect(
+      Number(
+        (naive.prepare("SELECT COUNT(*) AS n FROM operator_audit_events").get() as { n: number }).n,
+      ),
+    ).toBe(1);
+    expect(
+      Number(
+        (
+          naive.prepare('SELECT COUNT(*) AS n FROM "session" WHERE "userId" = ?').get("user-b") as {
+            n: number;
+          }
+        ).n,
+      ),
+    ).toBe(0);
+
+    const owned = new DatabaseSync(":memory:");
+    owned.exec(authSql);
+    owned.exec(operatorSql);
+    owned.exec(lastSuperSql);
+    owned
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'A', 'a@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-a", t, t);
+    owned
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'B', 'b@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-b", t, t);
+    owned
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'super_admin', 1, ?, ?, 'test')`,
+      )
+      .run("user-a", t, t);
+    owned
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'staff', 1, ?, ?, 'test')`,
+      )
+      .run("user-b", t, t);
+    owned
+      .prepare(
+        `INSERT INTO "session" ("id", "expiresAt", "token", "createdAt", "updatedAt", "ipAddress", "userAgent", "userId")
+         VALUES (?, ?, 'tok', ?, ?, NULL, NULL, ?)`,
+      )
+      .run("session-b", t, t, t, "user-b");
+    owned
+      .prepare(
+        "UPDATE admin_operator SET enabled = 0, updated_at = ?, updated_by = ? WHERE user_id = ?",
+      )
+      .run(t, "writer-b", "user-b");
+    const ownedStale = owned
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, updated_at = ?, updated_by = ?
+         WHERE user_id = ? AND role = ? AND enabled = ? AND updated_at = ?`,
+      )
+      .run("super_admin", t, "writer-a", "user-b", "staff", 1, t);
+    expect(Number(ownedStale.changes)).toBe(0);
+    owned
+      .prepare(
+        `INSERT INTO operator_audit_events
+           (id, user_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+         SELECT ?, ?, 'operator_role_changed', 'super-1', 'staff', 'super_admin', 'req-a', ?
+         WHERE EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_by = ?)`,
+      )
+      .run("audit-owned", "user-b", t, "user-b", "writer-a");
+    owned
+      .prepare(
+        `DELETE FROM "session"
+         WHERE "userId" = ?
+           AND EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_by = ?)`,
+      )
+      .run("user-b", "user-b", "writer-a");
+    expect(
+      Number(
+        (owned.prepare("SELECT COUNT(*) AS n FROM operator_audit_events").get() as { n: number }).n,
+      ),
+    ).toBe(0);
+    expect(
+      Number(
+        (
+          owned.prepare('SELECT COUNT(*) AS n FROM "session" WHERE "userId" = ?').get("user-b") as {
+            n: number;
+          }
+        ).n,
+      ),
+    ).toBe(1);
+    const ownedRow = owned
+      .prepare("SELECT role, enabled FROM admin_operator WHERE user_id = ?")
+      .get("user-b") as { role: string; enabled: number };
+    expect(ownedRow.role).toBe("staff");
+    expect(Number(ownedRow.enabled)).toBe(0);
+  });
+
+  it("returns CONFLICT without audit or revoke when a concurrent write reuses the frozen clock", async () => {
+    const frozen = "2026-11-15T12:00:00.000Z";
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(frozen));
+    const env = createTestEnv();
+    await insertMemoryOperator(env, "super-1", "super@example.invalid", "super_admin");
+    await insertMemoryOperator(env, "staff-1", "staff@example.invalid", "staff");
+    await insertMemorySession(env, "staff-1", "session-staff-1");
+    setD1BeforeBatch(env.DB, (sqlite) => {
+      sqlite
+        .prepare(
+          "UPDATE admin_operator SET enabled = 0, updated_at = ?, updated_by = ? WHERE user_id = ?",
+        )
+        .run(frozen, "concurrent-b", "staff-1");
+    });
+    await expect(
+      handlePatchOperator(
+        patchRequest({ role: "super_admin" }),
+        env,
+        { id: "super-1", email: "super@example.invalid", operatorRole: "super_admin" },
+        "staff-1",
+        "req-frozen-clock",
+      ),
+    ).rejects.toMatchObject({ code: "CONFLICT", message: OPERATOR_CONFLICT_MESSAGE });
+    const stored = await env.DB.prepare(
+      "SELECT role, enabled, updated_at, updated_by FROM admin_operator WHERE user_id = ?",
+    )
+      .bind("staff-1")
+      .first<{ role: string; enabled: number; updated_at: string; updated_by: string }>();
+    expect(stored?.role).toBe("staff");
+    expect(Number(stored?.enabled)).toBe(0);
+    expect(stored?.updated_at).toBe(frozen);
+    expect(stored?.updated_by).toBe("concurrent-b");
     const sessions = await env.DB.prepare('SELECT COUNT(*) AS n FROM "session" WHERE "userId" = ?')
       .bind("staff-1")
       .first<{ n: number }>();

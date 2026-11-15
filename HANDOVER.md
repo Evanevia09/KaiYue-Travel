@@ -6,11 +6,11 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 - **task_id:** `super-admin-user-management-20261115`
 - **Writer:** this PR #41 agent only, branch `cursor/host-role-admin-gate-a72c`
-- **Implemented / tested / pushed:** remaining MEDIUM on frozen `927bf1db` / head `4466c586` corrected: field-specific CAS PATCH; empty-or-validated-owner bootstrap; SELECT-only `supported_prestate`. Original HIGHs remain in source (`0010` last-super trigger, live `"session"` row, fail-closed D1 batches).
-- **Source SHA:** `94ee1ff448cd6246550508a6e36f1c20fa20c8c1`
-- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `d3727a75de99524968bdfa8a980a7e48ebe7d69992b1a601f0cf9334f57d8cee`
-- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_94ee1ff_official_staging.zip` SHA256 `3ef4665a6decf6e5d3577974f6ad8647d27d2a6d5f74829373bc9418f8715f06` (not uploaded). Package of `927bf1d` (`78c6942f…`) is superseded and must not be uploaded.
-- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM. Mika verified the previous report and CI 192 green; that is not approval. Independent re-review of this narrow fix is required.
+- **Implemented / tested / pushed:** remaining MEDIUM CAS clock side-effect on frozen `94ee1ff4` corrected: unique `updated_by` write-token ownership for audit/revoke; bootstrap executor identity → migrations → operator preflight → single-file provision. Stale-field overwrite, last-super trigger, live session row, and fail-closed batches remain.
+- **Source SHA:** `SOURCE_SHA_PENDING`
+- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `REPORT_SHA_PENDING`
+- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging.zip` SHA256 `ZIP_SHA_PENDING` (not uploaded). Package of `94ee1ff` (`3ef4665a…`) is superseded and must not be uploaded.
+- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM. Mika verified previous CI 206 green; that is not acceptance. Independent re-review of this write-token fix is required.
 
 ## 2026-11-15 — Super-admin user-management security correction (source only)
 

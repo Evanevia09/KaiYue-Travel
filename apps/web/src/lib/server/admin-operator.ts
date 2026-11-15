@@ -205,8 +205,12 @@ function revokeSessionsStatement(db: D1Database, userId: string): D1Statement {
   return db.prepare('DELETE FROM "session" WHERE "userId" = ?').bind(userId);
 }
 
-const WRITE_MATCHED_SQL =
-  "EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_at = ?)";
+const WRITE_OWNED_SQL =
+  "EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_by = ?)";
+
+function mutationWriteToken(actorId: string): string {
+  return `${actorId}/${crypto.randomUUID()}`;
+}
 
 function auditIfWriteStatement(
   db: D1Database,
@@ -218,6 +222,7 @@ function auditIfWriteStatement(
     toValue: string | null;
     requestId: string;
     writeAt: string;
+    writeToken: string;
   },
 ): D1Statement {
   return db
@@ -225,7 +230,7 @@ function auditIfWriteStatement(
       `INSERT INTO operator_audit_events
         (id, user_id, event_type, actor_id, from_value, to_value, request_id, created_at)
        SELECT ?, ?, ?, ?, ?, ?, ?, ?
-       WHERE ${WRITE_MATCHED_SQL}`,
+       WHERE ${WRITE_OWNED_SQL}`,
     )
     .bind(
       crypto.randomUUID(),
@@ -237,22 +242,22 @@ function auditIfWriteStatement(
       event.requestId,
       event.writeAt,
       event.userId,
-      event.writeAt,
+      event.writeToken,
     );
 }
 
 function revokeSessionsIfWriteStatement(
   db: D1Database,
   userId: string,
-  writeAt: string,
+  writeToken: string,
 ): D1Statement {
   return db
     .prepare(
       `DELETE FROM "session"
        WHERE "userId" = ?
-         AND ${WRITE_MATCHED_SQL}`,
+         AND ${WRITE_OWNED_SQL}`,
     )
-    .bind(userId, userId, writeAt);
+    .bind(userId, userId, writeToken);
 }
 
 const OPERATOR_CAS_SQL = "WHERE user_id = ? AND role = ? AND enabled = ? AND updated_at = ?";
@@ -261,8 +266,8 @@ function patchOperatorUpdateStatement(
   db: D1Database,
   input: {
     userId: string;
-    actorId: string;
     writeAt: string;
+    writeToken: string;
     currentRole: AdminOperatorRole;
     currentEnabled: boolean;
     currentUpdatedAt: string;
@@ -285,7 +290,13 @@ function patchOperatorUpdateStatement(
          SET role = ?, enabled = ?, updated_at = ?, updated_by = ?
          ${OPERATOR_CAS_SQL}`,
       )
-      .bind(input.nextRole, input.nextEnabled ? 1 : 0, input.writeAt, input.actorId, ...casValues);
+      .bind(
+        input.nextRole,
+        input.nextEnabled ? 1 : 0,
+        input.writeAt,
+        input.writeToken,
+        ...casValues,
+      );
   }
   if (input.hasRole) {
     return db
@@ -294,7 +305,7 @@ function patchOperatorUpdateStatement(
          SET role = ?, updated_at = ?, updated_by = ?
          ${OPERATOR_CAS_SQL}`,
       )
-      .bind(input.nextRole, input.writeAt, input.actorId, ...casValues);
+      .bind(input.nextRole, input.writeAt, input.writeToken, ...casValues);
   }
   if (!input.hasEnabled) {
     throw new AppError("VALIDATION_FAILED", "Provide a role or enabled flag.");
@@ -305,7 +316,7 @@ function patchOperatorUpdateStatement(
        SET enabled = ?, updated_at = ?, updated_by = ?
        ${OPERATOR_CAS_SQL}`,
     )
-    .bind(input.nextEnabled ? 1 : 0, input.writeAt, input.actorId, ...casValues);
+    .bind(input.nextEnabled ? 1 : 0, input.writeAt, input.writeToken, ...casValues);
 }
 
 async function countOtherEnabledSuperAdmins(db: D1Database, userId: string): Promise<number> {
@@ -544,11 +555,12 @@ export async function handlePatchOperator(
   }
 
   const now = new Date().toISOString();
+  const writeToken = mutationWriteToken(actor.id);
   const statements: D1Statement[] = [
     patchOperatorUpdateStatement(env.DB, {
       userId,
-      actorId: actor.id,
       writeAt: now,
+      writeToken,
       currentRole: current.role,
       currentEnabled: current.enabled,
       currentUpdatedAt: current.updatedAt,
@@ -568,6 +580,7 @@ export async function handlePatchOperator(
         toValue: nextRole,
         requestId,
         writeAt: now,
+        writeToken,
       }),
     );
   }
@@ -581,10 +594,11 @@ export async function handlePatchOperator(
         toValue: nextEnabled ? "enabled" : "disabled",
         requestId,
         writeAt: now,
+        writeToken,
       }),
     );
   }
-  statements.push(revokeSessionsIfWriteStatement(env.DB, userId, now));
+  statements.push(revokeSessionsIfWriteStatement(env.DB, userId, writeToken));
 
   const results = await commitOperatorSecurityBatch(env.DB, statements);
   if ((results[0]?.meta.changes ?? 0) === 0) {

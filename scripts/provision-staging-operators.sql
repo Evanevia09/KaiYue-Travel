@@ -3,7 +3,14 @@
 -- Do NOT apply to production D1 06cf879d-8fea-4088-8881-7d382e1b8c11
 --   or trial D1 06aa844b-da6b-4c37-896c-fd13dd265fe6
 --   or obsolete D1 069aa442-30c9-4454-ab3a-26eb372b3a1f.
--- Apply 0009_admin_operator.sql and 0010_admin_operator_last_super.sql first.
+-- Executor order is source in scripts/staging-operator-bootstrap-order.json:
+--   1. SELECT-only scripts/preflight-staging-identity.sql (no admin_operator)
+--   2. SELECT-only scripts/preflight-staging-migrations.sql (sqlite_master)
+--   3. wrangler d1 migrations apply: 0009_admin_operator.sql then 0010
+--   4. SELECT-only scripts/preflight-staging-operators.sql (supported_prestate)
+--   5. this whole file as one wrangler d1 execute --file / one REST sql body
+-- Do not run the operator preflight before 0009/0010; that statement reads
+-- admin_operator. Do not skip the leading prestate CHECK in this file.
 -- This file does not create users, change passwords, send mail, or print secrets.
 -- Target: existing user f0af3b28-7b2c-47d5-b619-9239a29c41f9 must be
 -- scalingsmb@gmail.com; that account becomes the only enabled super_admin.
@@ -18,11 +25,7 @@
 -- prior committed INSERT; the data INSERT itself is gated to 0 rows unless
 -- prestate is supported.
 --
--- Executor grouping (local sequential-exec evidence): run SELECT-only
--- preflight first and abort unless identity matches and supported_prestate=1.
--- Then apply this whole file as one wrangler d1 execute --file (or one REST
--- sql body) so the leading prestate CHECK is not skipped. Do not apply
--- remotely from this increment.
+-- Local sequential-exec evidence only. Do not apply remotely from this increment.
 
 CREATE TABLE IF NOT EXISTS "_staging_operator_bootstrap_prestate" (
   ok INTEGER NOT NULL CHECK (ok = 1)

@@ -1,0 +1,43 @@
+{
+  "do_not_apply_remotely": true,
+  "task_id": "super-admin-user-management-20261115",
+  "target_d1": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
+  "forbidden_d1": [
+    "06cf879d-8fea-4088-8881-7d382e1b8c11",
+    "06aa844b-da6b-4c37-896c-fd13dd265fe6",
+    "069aa442-30c9-4454-ab3a-26eb372b3a1f"
+  ],
+  "steps": [
+    {
+      "id": "identity",
+      "file": "scripts/preflight-staging-identity.sql",
+      "mode": "select-only",
+      "abort_unless": "identity_ok = 1"
+    },
+    {
+      "id": "migration-list",
+      "file": "scripts/preflight-staging-migrations.sql",
+      "mode": "select-only",
+      "abort_unless": "counts are readable; apply 0009/0010 when any is 0"
+    },
+    {
+      "id": "migrate",
+      "files": [
+        "migrations/0009_admin_operator.sql",
+        "migrations/0010_admin_operator_last_super.sql"
+      ],
+      "mode": "wrangler-d1-migrations-apply"
+    },
+    {
+      "id": "operator-preflight",
+      "file": "scripts/preflight-staging-operators.sql",
+      "mode": "select-only",
+      "abort_unless": "supported_prestate = 1"
+    },
+    {
+      "id": "bootstrap",
+      "file": "scripts/provision-staging-operators.sql",
+      "mode": "wrangler-d1-execute-file-single-invocation"
+    }
+  ]
+}
