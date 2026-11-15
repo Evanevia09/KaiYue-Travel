@@ -2,6 +2,16 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-16 official staging CI/CD source (not connected)
+
+- **task_id:** `official-staging-cicd-20261116`
+- **Writer:** stacked branch `cursor/official-staging-cicd-a72c` from PR #41 head `6180543`. PR #41 source and frozen runtime `4af0a5c` unchanged.
+- **Staged:** Worker `kaiyue-travel-staging` `72e580d0` @100% / deployment `28f8b40b` (ops 07:17 Asia/Macau). Production still `71a66a99` / `f3169afb`.
+- **Browser-checked (partial):** sign-in; desktop/mobile dashboard + Users for owner super-admin and UAT staff; profile / min-6 UI; no app JS errors; no mutations. Staff-session revocation untested. Admin-host `/` cached marketing unresolved. Not all QA pass. Not accepted / not released.
+- **CI/CD:** source only. Overlay + schema contract + gated upload-then-activate workflow. GitHub environment and Specified-Workers Editor token are PM UI follow-up. `official-staging` not pushed. Production workflow fail-closed, no production token.
+- **Record:** `docs/records/2026-11-16-official-staging-cicd.md`
+- **Do not:** merge, push `official-staging`/`main`, create tokens, claim connected, query D1 from CI, apply migrations from CI, rewire Workers Builds.
+
 ## Current state — 2026-11-15 security correction
 
 - **task_id:** `super-admin-user-management-20261115`

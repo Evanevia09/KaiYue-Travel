@@ -1,0 +1,208 @@
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import {
+  CI_WORKFLOW_PATH,
+  OVERLAY_PATH,
+  PRODUCTION_WORKFLOW_PATH,
+  REPO_ROOT,
+  SCHEMA_CONTRACT_PATH,
+  WORKFLOW_PATH,
+  fail,
+  loadConstants,
+  loadGitWrangler,
+  loadOverlay,
+  loadSchemaContract,
+} from "./official-staging-lib.mjs";
+import { renderOverlay } from "./official-staging-overlay.mjs";
+
+const constants = loadConstants();
+const overlay = loadOverlay();
+const gitWrangler = loadGitWrangler();
+const overlayText = readFileSync(OVERLAY_PATH, "utf8");
+const workflow = readFileSync(WORKFLOW_PATH, "utf8");
+const productionWorkflow = readFileSync(PRODUCTION_WORKFLOW_PATH, "utf8");
+const ciWorkflow = readFileSync(CI_WORKFLOW_PATH, "utf8");
+const wranglerPkg = JSON.parse(
+  readFileSync(join(REPO_ROOT, "node_modules/wrangler/package.json"), "utf8"),
+);
+const packageJson = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
+
+const errors = [];
+
+function check(condition, message) {
+  if (!condition) {
+    errors.push(message);
+  }
+}
+
+check(overlayText === renderOverlay(constants), "overlay must be generated from constants.json");
+check(overlay.name === constants.worker_name, `overlay name must be ${constants.worker_name}`);
+check(overlay.account_id === constants.account_id, "overlay account_id mismatch");
+check(overlay.keep_vars === false, "overlay keep_vars must be false");
+check(overlay.d1_databases?.[0]?.database_id === constants.d1_id, "overlay D1 id mismatch");
+check(overlay.d1_databases?.[0]?.database_name === constants.d1_name, "overlay D1 name mismatch");
+check(overlay.r2_buckets?.[0]?.bucket_name === constants.r2_bucket, "overlay R2 mismatch");
+check(
+  overlay.vars?.PUBLIC_SITE_URL === constants.public_site_url,
+  "overlay PUBLIC_SITE_URL mismatch",
+);
+check(overlay.vars?.DEV_ADMIN_BYPASS === "false", "overlay DEV_ADMIN_BYPASS must be false");
+check(overlay.main === constants.overlay_main, "overlay main must be Astro server entry");
+check(
+  JSON.stringify(overlay.assets?.run_worker_first) ===
+    JSON.stringify(constants.html_worker_first_paths),
+  "overlay run_worker_first paths mismatch",
+);
+check(
+  !("BETTER_AUTH_SECRET" in (overlay.vars ?? {})),
+  "overlay must not contain BETTER_AUTH_SECRET",
+);
+check(!("ACCESS_AUD" in (overlay.vars ?? {})), "overlay must not contain ACCESS_AUD");
+check(
+  !("ACCESS_TEAM_DOMAIN" in (overlay.vars ?? {})),
+  "overlay must not contain ACCESS_TEAM_DOMAIN",
+);
+check(!("RESEND_API_KEY" in (overlay.vars ?? {})), "overlay must not contain RESEND_API_KEY");
+check(!overlayText.includes(constants.production_d1), "overlay must not mention production D1");
+check(!overlayText.includes(constants.obsolete_d1), "overlay must not mention obsolete D1");
+check(!overlayText.includes(constants.trial_d1), "overlay must not mention trial D1");
+check(!overlayText.includes("--keep-vars"), "overlay comments must not instruct --keep-vars");
+check(
+  !("no_bundle" in overlay),
+  "source overlay must bundle from Astro dist, not frozen zip entry.js",
+);
+
+check(
+  gitWrangler.name === "kaiyue-travel",
+  "git wrangler.jsonc remains the non-upload Worker name",
+);
+check(
+  gitWrangler.d1_databases?.[0]?.database_id === constants.obsolete_d1,
+  "git wrangler.jsonc still binds obsolete D1 and must never be uploaded",
+);
+
+check(
+  wranglerPkg.version === constants.wrangler_version,
+  `wrangler must be pinned ${constants.wrangler_version}`,
+);
+check(
+  packageJson.devDependencies.wrangler === constants.wrangler_version,
+  `package.json wrangler must be exactly ${constants.wrangler_version}`,
+);
+
+check(
+  workflow.includes(`branches: [${constants.release_branch}]`),
+  "workflow must trigger on official-staging only",
+);
+check(workflow.includes("workflow_dispatch:"), "workflow must allow manual dispatch");
+check(
+  workflow.includes(`github.ref != 'refs/heads/${constants.release_branch}'`),
+  "non-release refs must fail closed",
+);
+check(
+  workflow.includes(`github.ref == 'refs/heads/${constants.release_branch}'`),
+  "jobs must no-op off official-staging",
+);
+check(
+  workflow.includes(`environment: ${constants.github_environment}`),
+  "upload/activate must use GitHub environment",
+);
+check(workflow.includes("contents: read"), "workflow permissions must be contents: read");
+check(workflow.includes("versions upload"), "workflow must upload a version");
+check(
+  workflow.includes("versions deploy"),
+  "workflow must activate with versions deploy after gates",
+);
+check(
+  workflow.includes("11bd71901bbe5b1630ceea73d27597364c9af683"),
+  "checkout action must be pinned SHA",
+);
+check(
+  workflow.includes("49933ea5288caeca8642d1e84afbd3f7d6820020"),
+  "setup-node action must be pinned SHA",
+);
+check(
+  workflow.includes("a7487c7e89a18df4991f7f222e4898a00d66ddda"),
+  "pnpm/action-setup must be pinned SHA",
+);
+check(
+  !/\bwrangler deploy\b/.test(workflow),
+  "workflow must not use wrangler deploy (upload+traffic)",
+);
+check(!/d1 migrations apply/.test(workflow), "workflow must not apply D1 migrations");
+check(!/d1 execute/.test(workflow), "workflow must not query D1 (Worker-only Editor cannot)");
+check(!/wrangler d1/.test(workflow), "workflow must not invoke wrangler d1");
+check(!/provision-staging-operators/.test(workflow), "workflow must not bootstrap operators");
+check(
+  workflow.includes("official-staging-schema-check.mjs"),
+  "workflow must run the schema compatibility contract before activation",
+);
+check(existsSync(SCHEMA_CONTRACT_PATH), "schema compatibility contract must exist");
+{
+  const contract = loadSchemaContract();
+  check(contract.live_d1_query === false, "schema contract must not query live D1");
+  check(contract.target?.d1_id === constants.d1_id, "schema contract D1 id mismatch");
+  check(
+    (contract.ci_must_not ?? []).includes("d1 execute"),
+    "schema contract must forbid d1 execute",
+  );
+}
+check(!workflow.includes("branches: [main]"), "official-staging workflow must not trigger on main");
+check(
+  !workflow.includes("branches: [staging]"),
+  "official-staging workflow must not trigger on staging",
+);
+check(
+  !workflow.includes("cloudflare/wrangler-action"),
+  "workflow must use lockfile wrangler, not wrangler-action",
+);
+check(!ciWorkflow.includes("wrangler"), "ci.yml must remain check-only");
+check(!ciWorkflow.includes("CLOUDFLARE_API_TOKEN"), "ci.yml must not take Cloudflare credentials");
+
+for (const name of constants.github_secret_names) {
+  check(workflow.includes(`secrets.${name}`), `workflow must read GitHub secret ${name}`);
+}
+for (const name of constants.forbidden_github_secret_names) {
+  check(!workflow.includes(`secrets.${name}`), `workflow must not read GitHub secret ${name}`);
+}
+
+check(existsSync(PRODUCTION_WORKFLOW_PATH), "fail-closed production workflow must exist");
+check(
+  !/CLOUDFLARE_/.test(productionWorkflow),
+  "production workflow must not reference Cloudflare credentials",
+);
+check(!/\bwrangler\b/.test(productionWorkflow), "production workflow must not invoke wrangler");
+check(
+  !productionWorkflow.includes("branches: [main]"),
+  "production workflow must not trigger on main",
+);
+check(
+  !productionWorkflow.includes("branches: [staging]"),
+  "production workflow must not trigger on staging",
+);
+check(productionWorkflow.includes("fail-closed"), "production workflow must declare fail-closed");
+check(/exit 1/.test(productionWorkflow), "production workflow must fail closed");
+check(
+  productionWorkflow.includes("environment: production") && /if: false/.test(productionWorkflow),
+  "production GitHub environment is reserved and must not activate",
+);
+
+const workflowNames = readdirSync(join(REPO_ROOT, ".github/workflows")).filter((name) =>
+  name.endsWith(".yml"),
+);
+for (const name of workflowNames) {
+  const text = readFileSync(join(REPO_ROOT, ".github/workflows", name), "utf8");
+  if (name === "ci.yml") {
+    continue;
+  }
+  check(
+    !/branches:\s*\[main\]/.test(text) || !/wrangler/.test(text),
+    `${name} must not combine main push with wrangler`,
+  );
+}
+
+if (errors.length > 0) {
+  fail(`official-staging guard failed:\n- ${errors.join("\n- ")}`);
+}
+
+console.log("official-staging guard passed");
