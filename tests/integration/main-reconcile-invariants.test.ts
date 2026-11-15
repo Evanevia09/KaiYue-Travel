@@ -80,6 +80,14 @@ describe("main reconciliation invariants", () => {
     expect(provision).not.toMatch(/"password"/);
     expect(provision).toMatch(/UNION ALL/);
     expect(provision).toMatch(/AND EXISTS \(/);
+    expect(provision).toMatch(/_staging_operator_bootstrap_prestate/);
+    expect(provision).toMatch(/\(SELECT COUNT\(\*\) FROM admin_operator\) = 0/);
+    const preflight = readFileSync(
+      join(repoRoot, "scripts/preflight-staging-operators.sql"),
+      "utf8",
+    );
+    expect(preflight).toMatch(/supported_prestate/);
+    expect(preflight).not.toMatch(/\b(INSERT|UPDATE|DELETE|DROP|CREATE)\b/i);
     const lastSuper = readFileSync(
       join(repoRoot, "migrations/0010_admin_operator_last_super.sql"),
       "utf8",

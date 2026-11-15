@@ -8,10 +8,46 @@
 -- Target: existing user f0af3b28-7b2c-47d5-b619-9239a29c41f9 must be
 -- scalingsmb@gmail.com; that account becomes the only enabled super_admin.
 -- Every other existing "user" row becomes staff, and only when that owner
--- id+email match. One INSERT…SELECT: a mismatched owner email inserts 0 rows
--- (staff are not written independently). Idempotent on those ids.
--- D1 REST sequential auto-commit of later CHECK failure therefore cannot
--- leave staff rows without the matching super_admin.
+-- id+email match.
+--
+-- Supported prestate (fail-closed otherwise, including owner already present
+-- as staff/disabled or an extra super): admin_operator is empty, OR that
+-- owner is already the only enabled super_admin. Replay of a complete valid
+-- state inserts 0 rows and the trailing CHECK passes. Fresh empty is the
+-- intended first apply. This file does not claim a failed CHECK rolls back a
+-- prior committed INSERT; the data INSERT itself is gated to 0 rows unless
+-- prestate is supported.
+--
+-- Executor grouping (local sequential-exec evidence): run SELECT-only
+-- preflight first and abort unless identity matches and supported_prestate=1.
+-- Then apply this whole file as one wrangler d1 execute --file (or one REST
+-- sql body) so the leading prestate CHECK is not skipped. Do not apply
+-- remotely from this increment.
+
+CREATE TABLE IF NOT EXISTS "_staging_operator_bootstrap_prestate" (
+  ok INTEGER NOT NULL CHECK (ok = 1)
+);
+DELETE FROM "_staging_operator_bootstrap_prestate";
+INSERT INTO "_staging_operator_bootstrap_prestate" ("ok")
+SELECT CASE
+  WHEN (SELECT COUNT(*) FROM admin_operator) = 0 THEN 1
+  WHEN (
+    (
+      SELECT COUNT(*) FROM admin_operator AS o
+      JOIN "user" AS u ON u."id" = o.user_id
+      WHERE o.user_id = 'f0af3b28-7b2c-47d5-b619-9239a29c41f9'
+        AND o.role = 'super_admin'
+        AND o.enabled = 1
+        AND lower(u."email") = 'scalingsmb@gmail.com'
+    ) = 1
+    AND (
+      SELECT COUNT(*) FROM admin_operator
+      WHERE role = 'super_admin' AND enabled = 1
+    ) = 1
+  ) THEN 1
+  ELSE 0
+END;
+DROP TABLE "_staging_operator_bootstrap_prestate";
 
 INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
 SELECT src.user_id, src.role, 1, datetime('now'), datetime('now'), 'staging-bootstrap'
@@ -32,6 +68,23 @@ FROM (
 ) AS src
 WHERE NOT EXISTS (
   SELECT 1 FROM admin_operator AS o WHERE o.user_id = src.user_id
+)
+AND (
+  (SELECT COUNT(*) FROM admin_operator) = 0
+  OR (
+    (
+      SELECT COUNT(*) FROM admin_operator AS o
+      JOIN "user" AS u ON u."id" = o.user_id
+      WHERE o.user_id = 'f0af3b28-7b2c-47d5-b619-9239a29c41f9'
+        AND o.role = 'super_admin'
+        AND o.enabled = 1
+        AND lower(u."email") = 'scalingsmb@gmail.com'
+    ) = 1
+    AND (
+      SELECT COUNT(*) FROM admin_operator
+      WHERE role = 'super_admin' AND enabled = 1
+    ) = 1
+  )
 );
 
 CREATE TABLE IF NOT EXISTS "_staging_operator_bootstrap_guard" (

@@ -7,7 +7,9 @@ import type { AppEnv, D1Database, D1QueryResult } from "../../apps/web/src/lib/s
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 type StatementFailure = ((sql: string) => boolean) | null;
+type BatchHook = ((sqlite: DatabaseSync) => void) | null;
 const injectedFailures = new WeakMap<object, StatementFailure>();
+const injectedBatchHooks = new WeakMap<object, BatchHook>();
 
 export function setD1StatementFailure(db: D1Database, failIf: StatementFailure): void {
   if (failIf) {
@@ -15,6 +17,14 @@ export function setD1StatementFailure(db: D1Database, failIf: StatementFailure):
     return;
   }
   injectedFailures.delete(db);
+}
+
+export function setD1BeforeBatch(db: D1Database, hook: BatchHook): void {
+  if (hook) {
+    injectedBatchHooks.set(db, hook);
+    return;
+  }
+  injectedBatchHooks.delete(db);
 }
 
 class MemoryPreparedStatement {
@@ -77,6 +87,7 @@ class MemoryD1 {
   async batch<T = unknown>(
     statements: MemoryPreparedStatement[],
   ): Promise<Array<D1QueryResult<T>>> {
+    injectedBatchHooks.get(this)?.(this.db);
     this.db.exec("BEGIN IMMEDIATE");
     try {
       const results: Array<D1QueryResult<T>> = [];

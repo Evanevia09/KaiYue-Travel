@@ -6,18 +6,18 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 - **task_id:** `super-admin-user-management-20261115`
 - **Writer:** this PR #41 agent only, branch `cursor/host-role-admin-gate-a72c`
-- **Implemented / tested / pushed:** review blockers on frozen `1e62ce9` / `df35d278` corrected: `0010` last-super trigger, live `"session"` row after cookie-cache `getSession`, fail-closed D1 batches, gated one-INSERT provision, non-destructive rollback
-- **Source SHA:** `927bf1db9496e2ec2cd6358621f92cf0adb551a7`
-- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `3b01537f560d3d040ac4699e5294ed0335ba54c3a1d161d94e7089e11ec68df5`
-- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging.zip` SHA256 `78c6942f20a129d9bcb2a4e4443fcab35e0c97ca18aa44263f03e5dc31c07e80` (not uploaded)
-- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM.
+- **Implemented / tested / pushed:** remaining MEDIUM on frozen `927bf1db` / head `4466c586` corrected: field-specific CAS PATCH; empty-or-validated-owner bootstrap; SELECT-only `supported_prestate`. Original HIGHs remain in source (`0010` last-super trigger, live `"session"` row, fail-closed D1 batches).
+- **Source SHA:** `SOURCE_SHA_PENDING`
+- **Report:** `docs/records/2026-11-15-super-admin-user-management.md` SHA256 `REPORT_SHA_PENDING`
+- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_SOURCE_SHORT_official_staging.zip` SHA256 `ZIP_SHA_PENDING` (not uploaded). Package of `927bf1d` (`78c6942f…`) is superseded and must not be uploaded.
+- **Not staged / not accepted / not released.** LIVE must stay version `71a66a99` / deployment `f3169afb`. Do not merge to `main`. Do not upload, apply D1, bootstrap, or rollback. Cache-purge for admin-host `/` still pending PM. Mika verified the previous report and CI 192 green; that is not approval. Independent re-review of this narrow fix is required.
 
 ## 2026-11-15 — Super-admin user-management security correction (source only)
 
 - **PR:** https://github.com/Evanevia09/KaiYue-Travel/pull/41
 - **Change:** DB-atomic last-enabled-super-admin trigger; revocation-aware password authorization; batched fail-closed operator mutations; gated staging provision; SELECT-only preflight; rollback no longer DROP tables.
 - **Verified:** local lint/typecheck; `pnpm test` 192/192; staging `PUBLIC_SITE_URL` build. No remote D1 apply, no deploy, no owner password change.
-- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging.zip` SHA256 `78c6942f20a129d9bcb2a4e4443fcab35e0c97ca18aa44263f03e5dc31c07e80` (not uploaded).
+- **Package:** `/opt/cursor/artifacts/kaiyue_host_role_927bf1d_official_staging.zip` SHA256 `78c6942f20a129d9bcb2a4e4443fcab35e0c97ca18aa44263f03e5dc31c07e80` (not uploaded; superseded by the PATCH/bootstrap follow-up package, do not upload).
 - **Not done:** official-staging upload, production, DNS, mail, CI production builds.
 
 ## 2026-11-15 — Super-admin user management (source only)

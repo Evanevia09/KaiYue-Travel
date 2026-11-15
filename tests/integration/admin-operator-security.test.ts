@@ -3,11 +3,12 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  OPERATOR_CONFLICT_MESSAGE,
   handlePatchOperator,
   handleResetOperatorPassword,
 } from "../../apps/web/src/lib/server/admin-operator.ts";
 import type { AppEnv } from "../../apps/web/src/lib/server/env.ts";
-import { createTestEnv, setD1StatementFailure } from "../helpers/memory-d1.ts";
+import { createTestEnv, setD1BeforeBatch, setD1StatementFailure } from "../helpers/memory-d1.ts";
 
 const ownerId = "f0af3b28-7b2c-47d5-b619-9239a29c41f9";
 const ownerEmail = "scalingsmb@gmail.com";
@@ -38,6 +39,10 @@ const rollbackSql = readFileSync(
 );
 const preflightSql = readFileSync(
   fileURLToPath(new URL("../../scripts/preflight-staging-operators.sql", import.meta.url)),
+  "utf8",
+);
+const ownerSkipProvisionSql = readFileSync(
+  fileURLToPath(new URL("../fixtures/owner-skip-regardless-provision.sql", import.meta.url)),
   "utf8",
 );
 
@@ -74,6 +79,39 @@ function seedUsers(db: DatabaseSync, ownerEmailValue: string): void {
     `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
      VALUES (?, ?, ?, 1, NULL, ?, ?)`,
   ).run(extraUserId, "Extra", "extra-staff@example.invalid", now, now);
+}
+
+function seedOperator(
+  db: DatabaseSync,
+  userId: string,
+  role: "super_admin" | "staff",
+  enabled: number,
+  updatedAt = "2026-11-15T00:00:00.000Z",
+): void {
+  db.prepare(
+    `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+     VALUES (?, ?, ?, ?, ?, 'test')`,
+  ).run(userId, role, enabled, updatedAt, updatedAt);
+}
+
+function preflightRow(db: DatabaseSync): {
+  user_id: string;
+  email: string;
+  owner_role: string | null;
+  owner_enabled: number | null;
+  operator_count: number;
+  enabled_super_count: number;
+  supported_prestate: number;
+} {
+  return db.prepare(sqlStatements(preflightSql)[0]!).get() as {
+    user_id: string;
+    email: string;
+    owner_role: string | null;
+    owner_enabled: number | null;
+    operator_count: number;
+    enabled_super_count: number;
+    supported_prestate: number;
+  };
 }
 
 function operatorCounts(db: DatabaseSync): { supers: number; staff: number; total: number } {
@@ -263,9 +301,19 @@ describe("last-enabled super-admin DB invariant", () => {
 });
 
 describe("staging bootstrap sequential auto-commit", () => {
-  it("keeps preflight SELECT-only", () => {
-    expect(preflightSql).toMatch(/SELECT u\."id"/);
+  it("keeps preflight SELECT-only and reports supported_prestate", () => {
+    expect(preflightSql).toMatch(/SELECT[\s\S]*u\."id" AS user_id/);
+    expect(preflightSql).toMatch(/supported_prestate/);
+    expect(preflightSql).toMatch(/operator_count/);
+    expect(preflightSql).toMatch(/enabled_super_count/);
     expect(preflightSql).not.toMatch(/\b(INSERT|UPDATE|DELETE|DROP|CREATE)\b/i);
+  });
+
+  it("gates INSERT on empty or owner-only-enabled-matching-super prestate", () => {
+    expect(gatedProvisionSql).toMatch(/_staging_operator_bootstrap_prestate/);
+    expect(gatedProvisionSql).toMatch(/\(SELECT COUNT\(\*\) FROM admin_operator\) = 0/);
+    expect(gatedProvisionSql).toMatch(/wrangler d1 execute --file/);
+    expect(gatedProvisionSql).toMatch(/Fresh empty is the/);
   });
 
   it("leaves staff rows when the legacy two-INSERT script hits a CHECK failure", () => {
@@ -300,6 +348,94 @@ describe("staging bootstrap sequential auto-commit", () => {
       )
       .all() as Array<{ name: string }>;
     expect(tables.map((row) => row.name)).toEqual(["admin_operator", "operator_audit_events"]);
+  });
+
+  it("succeeds on fresh empty operator prestate (not a previously proven failure)", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    db.exec(lastSuperSql);
+    const preflight = preflightRow(db);
+    expect(Number(preflight.operator_count)).toBe(0);
+    expect(Number(preflight.supported_prestate)).toBe(1);
+    const provisioned = execSequential(db, gatedProvisionSql);
+    expect(provisioned.error).toBeUndefined();
+    expect(operatorCounts(db)).toEqual({ supers: 1, staff: 1, total: 2 });
+  });
+
+  it("replays a complete valid state with zero new writes", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    db.exec(lastSuperSql);
+    expect(execSequential(db, gatedProvisionSql).error).toBeUndefined();
+    expect(operatorCounts(db)).toEqual({ supers: 1, staff: 1, total: 2 });
+    const replayPreflight = preflightRow(db);
+    expect(Number(replayPreflight.supported_prestate)).toBe(1);
+    expect(Number(replayPreflight.operator_count)).toBe(2);
+    expect(execSequential(db, gatedProvisionSql).error).toBeUndefined();
+    expect(operatorCounts(db)).toEqual({ supers: 1, staff: 1, total: 2 });
+  });
+
+  it("writes nothing when the existing owner row has the wrong role", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    seedOperator(db, ownerId, "staff", 1);
+    expect(Number(preflightRow(db).supported_prestate)).toBe(0);
+    const before = operatorCounts(db);
+    const result = execSequential(db, gatedProvisionSql);
+    expect(result.error).toMatch(/CHECK constraint failed/i);
+    expect(result.failedAt).toMatch(/_staging_operator_bootstrap_prestate/);
+    expect(operatorCounts(db)).toEqual(before);
+    expect(operatorCounts(db)).toEqual({ supers: 0, staff: 1, total: 1 });
+  });
+
+  it("writes nothing when the existing owner super_admin is disabled", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    seedOperator(db, ownerId, "super_admin", 0);
+    expect(Number(preflightRow(db).supported_prestate)).toBe(0);
+    const result = execSequential(db, gatedProvisionSql);
+    expect(result.error).toMatch(/CHECK constraint failed/i);
+    expect(operatorCounts(db)).toEqual({ supers: 0, staff: 0, total: 1 });
+    const owner = db
+      .prepare("SELECT role, enabled FROM admin_operator WHERE user_id = ?")
+      .get(ownerId) as { role: string; enabled: number };
+    expect(owner.role).toBe("super_admin");
+    expect(Number(owner.enabled)).toBe(0);
+  });
+
+  it("writes nothing when an extra enabled super_admin already exists", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    seedOperator(db, ownerId, "super_admin", 1);
+    seedOperator(db, extraUserId, "super_admin", 1);
+    expect(Number(preflightRow(db).enabled_super_count)).toBe(2);
+    expect(Number(preflightRow(db).supported_prestate)).toBe(0);
+    const result = execSequential(db, gatedProvisionSql);
+    expect(result.error).toMatch(/CHECK constraint failed/i);
+    expect(operatorCounts(db)).toEqual({ supers: 2, staff: 0, total: 2 });
+  });
+
+  it("writes nothing on interrupted prestate where staff exists and the owner row is missing", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    seedOperator(db, extraUserId, "staff", 1);
+    expect(Number(preflightRow(db).supported_prestate)).toBe(0);
+    const result = execSequential(db, gatedProvisionSql);
+    expect(result.error).toMatch(/CHECK constraint failed/i);
+    expect(operatorCounts(db)).toEqual({ supers: 0, staff: 1, total: 1 });
+    const owner = db
+      .prepare("SELECT COUNT(*) AS n FROM admin_operator WHERE user_id = ?")
+      .get(ownerId) as { n: number };
+    expect(Number(owner.n)).toBe(0);
+  });
+
+  it("shows the 927bf1d owner-skip INSERT can add staff before CHECK fails", () => {
+    const db = new DatabaseSync(":memory:");
+    seedUsers(db, ownerEmail);
+    seedOperator(db, ownerId, "staff", 1);
+    const result = execSequential(db, ownerSkipProvisionSql);
+    expect(result.error).toMatch(/CHECK constraint failed/i);
+    expect(operatorCounts(db)).toEqual({ supers: 0, staff: 2, total: 2 });
   });
 });
 
@@ -369,5 +505,263 @@ describe("fail-closed operator security batches", () => {
       .bind("staff-1")
       .first<{ n: number }>();
     expect(Number(sessions?.n)).toBe(1);
+  });
+});
+
+describe("partial PATCH field-specific CAS", () => {
+  it("lets naive SET-both undo a concurrent disable, while field-specific CAS leaves it disabled", () => {
+    const snapshotAt = "2026-11-15T00:00:00.000Z";
+    const naive = new DatabaseSync(":memory:");
+    naive.exec(authSql);
+    naive.exec(operatorSql);
+    naive.exec(lastSuperSql);
+    const now = snapshotAt;
+    naive
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'A', 'a@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-a", now, now);
+    naive
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'B', 'b@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-b", now, now);
+    naive
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'super_admin', 1, ?, ?, 'test')`,
+      )
+      .run("user-a", now, now);
+    naive
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'staff', 1, ?, ?, 'test')`,
+      )
+      .run("user-b", now, now);
+    naive
+      .prepare("UPDATE admin_operator SET enabled = 0, updated_at = ? WHERE user_id = ?")
+      .run("2026-11-15T00:00:01.000Z", "user-b");
+    naive
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, enabled = ?, updated_at = ?, updated_by = ?
+         WHERE user_id = ?`,
+      )
+      .run("super_admin", 1, "2026-11-15T00:00:02.000Z", "stale", "user-b");
+    const naiveRow = naive
+      .prepare("SELECT role, enabled FROM admin_operator WHERE user_id = ?")
+      .get("user-b") as { role: string; enabled: number };
+    expect(naiveRow.role).toBe("super_admin");
+    expect(Number(naiveRow.enabled)).toBe(1);
+
+    const cas = new DatabaseSync(":memory:");
+    cas.exec(authSql);
+    cas.exec(operatorSql);
+    cas.exec(lastSuperSql);
+    cas
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'A', 'a@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-a", now, now);
+    cas
+      .prepare(
+        `INSERT INTO "user" ("id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt")
+         VALUES (?, 'B', 'b@example.invalid', 1, NULL, ?, ?)`,
+      )
+      .run("user-b", now, now);
+    cas
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'super_admin', 1, ?, ?, 'test')`,
+      )
+      .run("user-a", now, now);
+    cas
+      .prepare(
+        `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+         VALUES (?, 'staff', 1, ?, ?, 'test')`,
+      )
+      .run("user-b", now, now);
+    cas
+      .prepare("UPDATE admin_operator SET enabled = 0, updated_at = ? WHERE user_id = ?")
+      .run("2026-11-15T00:00:01.000Z", "user-b");
+    const casResult = cas
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, updated_at = ?, updated_by = ?
+         WHERE user_id = ? AND role = ? AND enabled = ? AND updated_at = ?`,
+      )
+      .run("super_admin", "2026-11-15T00:00:02.000Z", "stale", "user-b", "staff", 1, snapshotAt);
+    expect(Number(casResult.changes)).toBe(0);
+    const casRow = cas
+      .prepare("SELECT role, enabled FROM admin_operator WHERE user_id = ?")
+      .get("user-b") as { role: string; enabled: number };
+    expect(casRow.role).toBe("staff");
+    expect(Number(casRow.enabled)).toBe(0);
+  });
+
+  it("lets naive SET-both restore a concurrently demoted role, while field-specific CAS does not", () => {
+    const snapshotAt = "2026-11-15T00:00:00.000Z";
+    const naive = new DatabaseSync(":memory:");
+    const ids = seedTwoSupers(naive);
+    naive.exec(lastSuperSql);
+    naive
+      .prepare("UPDATE admin_operator SET role = 'staff', updated_at = ? WHERE user_id = ?")
+      .run("2026-11-15T00:00:01.000Z", ids.b);
+    naive
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, enabled = ?, updated_at = ?, updated_by = ?
+         WHERE user_id = ?`,
+      )
+      .run("super_admin", 0, "2026-11-15T00:00:02.000Z", "stale", ids.b);
+    const naiveRow = naive
+      .prepare("SELECT role, enabled FROM admin_operator WHERE user_id = ?")
+      .get(ids.b) as { role: string; enabled: number };
+    expect(naiveRow.role).toBe("super_admin");
+    expect(Number(naiveRow.enabled)).toBe(0);
+
+    const cas = new DatabaseSync(":memory:");
+    const casIds = seedTwoSupers(cas);
+    cas.exec(lastSuperSql);
+    cas
+      .prepare("UPDATE admin_operator SET role = 'staff', updated_at = ? WHERE user_id = ?")
+      .run("2026-11-15T00:00:01.000Z", casIds.b);
+    const casResult = cas
+      .prepare(
+        `UPDATE admin_operator
+         SET enabled = ?, updated_at = ?, updated_by = ?
+         WHERE user_id = ? AND role = ? AND enabled = ? AND updated_at = ?`,
+      )
+      .run(0, "2026-11-15T00:00:02.000Z", "stale", casIds.b, "super_admin", 1, snapshotAt);
+    expect(Number(casResult.changes)).toBe(0);
+    const casRow = cas
+      .prepare("SELECT role, enabled FROM admin_operator WHERE user_id = ?")
+      .get(casIds.b) as { role: string; enabled: number };
+    expect(casRow.role).toBe("staff");
+    expect(Number(casRow.enabled)).toBe(1);
+  });
+
+  it("keeps enabled unchanged on a role-only PATCH", async () => {
+    const env = createTestEnv();
+    await insertMemoryOperator(env, "super-1", "super@example.invalid", "super_admin");
+    await insertMemoryOperator(env, "staff-1", "staff@example.invalid", "staff");
+    await env.DB.prepare("UPDATE admin_operator SET enabled = 0 WHERE user_id = ?")
+      .bind("staff-1")
+      .run();
+    const response = await handlePatchOperator(
+      patchRequest({ role: "super_admin" }),
+      env,
+      { id: "super-1", email: "super@example.invalid", operatorRole: "super_admin" },
+      "staff-1",
+      "req-role-only",
+    );
+    expect(response.status).toBe(200);
+    const stored = await env.DB.prepare(
+      "SELECT role, enabled FROM admin_operator WHERE user_id = ?",
+    )
+      .bind("staff-1")
+      .first<{ role: string; enabled: number }>();
+    expect(stored?.role).toBe("super_admin");
+    expect(Number(stored?.enabled)).toBe(0);
+  });
+
+  it("keeps role unchanged on an enabled-only PATCH", async () => {
+    const env = createTestEnv();
+    await insertMemoryOperator(env, "super-1", "super@example.invalid", "super_admin");
+    await insertMemoryOperator(env, "staff-1", "staff@example.invalid", "super_admin");
+    const response = await handlePatchOperator(
+      patchRequest({ enabled: false }),
+      env,
+      { id: "super-1", email: "super@example.invalid", operatorRole: "super_admin" },
+      "staff-1",
+      "req-enabled-only",
+    );
+    expect(response.status).toBe(200);
+    const stored = await env.DB.prepare(
+      "SELECT role, enabled FROM admin_operator WHERE user_id = ?",
+    )
+      .bind("staff-1")
+      .first<{ role: string; enabled: number }>();
+    expect(stored?.role).toBe("super_admin");
+    expect(Number(stored?.enabled)).toBe(0);
+  });
+
+  it("returns CONFLICT without audit or session revoke when a concurrent disable races a promotion", async () => {
+    const env = createTestEnv();
+    await insertMemoryOperator(env, "super-1", "super@example.invalid", "super_admin");
+    await insertMemoryOperator(env, "staff-1", "staff@example.invalid", "staff");
+    await insertMemorySession(env, "staff-1", "session-staff-1");
+    setD1BeforeBatch(env.DB, (sqlite) => {
+      sqlite
+        .prepare(
+          "UPDATE admin_operator SET enabled = 0, updated_at = 'concurrent-disable' WHERE user_id = ?",
+        )
+        .run("staff-1");
+    });
+    await expect(
+      handlePatchOperator(
+        patchRequest({ role: "super_admin" }),
+        env,
+        { id: "super-1", email: "super@example.invalid", operatorRole: "super_admin" },
+        "staff-1",
+        "req-stale-promote",
+      ),
+    ).rejects.toMatchObject({ code: "CONFLICT", message: OPERATOR_CONFLICT_MESSAGE });
+    const stored = await env.DB.prepare(
+      "SELECT role, enabled FROM admin_operator WHERE user_id = ?",
+    )
+      .bind("staff-1")
+      .first<{ role: string; enabled: number }>();
+    expect(stored?.role).toBe("staff");
+    expect(Number(stored?.enabled)).toBe(0);
+    const sessions = await env.DB.prepare('SELECT COUNT(*) AS n FROM "session" WHERE "userId" = ?')
+      .bind("staff-1")
+      .first<{ n: number }>();
+    expect(Number(sessions?.n)).toBe(1);
+    const audits = await env.DB.prepare("SELECT COUNT(*) AS n FROM operator_audit_events").first<{
+      n: number;
+    }>();
+    expect(Number(audits?.n)).toBe(0);
+  });
+
+  it("returns CONFLICT without restoring a concurrently demoted role on enabled-only PATCH", async () => {
+    const env = createTestEnv();
+    await insertMemoryOperator(env, "super-1", "super@example.invalid", "super_admin");
+    await insertMemoryOperator(env, "staff-1", "staff@example.invalid", "super_admin");
+    await insertMemorySession(env, "staff-1", "session-staff-1");
+    setD1BeforeBatch(env.DB, (sqlite) => {
+      sqlite
+        .prepare(
+          "UPDATE admin_operator SET role = 'staff', updated_at = 'concurrent-demote' WHERE user_id = ?",
+        )
+        .run("staff-1");
+    });
+    await expect(
+      handlePatchOperator(
+        patchRequest({ enabled: false }),
+        env,
+        { id: "super-1", email: "super@example.invalid", operatorRole: "super_admin" },
+        "staff-1",
+        "req-stale-disable",
+      ),
+    ).rejects.toMatchObject({ code: "CONFLICT", message: OPERATOR_CONFLICT_MESSAGE });
+    const stored = await env.DB.prepare(
+      "SELECT role, enabled FROM admin_operator WHERE user_id = ?",
+    )
+      .bind("staff-1")
+      .first<{ role: string; enabled: number }>();
+    expect(stored?.role).toBe("staff");
+    expect(Number(stored?.enabled)).toBe(1);
+    const sessions = await env.DB.prepare('SELECT COUNT(*) AS n FROM "session" WHERE "userId" = ?')
+      .bind("staff-1")
+      .first<{ n: number }>();
+    expect(Number(sessions?.n)).toBe(1);
+    const audits = await env.DB.prepare("SELECT COUNT(*) AS n FROM operator_audit_events").first<{
+      n: number;
+    }>();
+    expect(Number(audits?.n)).toBe(0);
   });
 });

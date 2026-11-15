@@ -10,6 +10,7 @@ export type AdminOperatorRole = (typeof ADMIN_OPERATOR_ROLES)[number];
 export const ADMIN_PASSWORD_MAX_LENGTH = 128;
 export const LAST_ENABLED_SUPER_ADMIN_MESSAGE =
   "The last enabled super admin cannot be demoted or disabled.";
+export const OPERATOR_CONFLICT_MESSAGE = "Operator was updated by another request.";
 
 export type OperatorActor = {
   id: string;
@@ -30,6 +31,7 @@ type OperatorRow = {
   user_id: string;
   role: string;
   enabled: number;
+  updated_at: string;
 };
 
 type ListedOperatorRow = {
@@ -113,10 +115,10 @@ export async function operatorsProvisioned(db: D1Database): Promise<boolean> {
 export async function loadOperator(
   db: D1Database,
   userId: string,
-): Promise<{ role: AdminOperatorRole; enabled: boolean } | null> {
+): Promise<{ role: AdminOperatorRole; enabled: boolean; updatedAt: string } | null> {
   try {
     const row = await db
-      .prepare("SELECT user_id, role, enabled FROM admin_operator WHERE user_id = ?")
+      .prepare("SELECT user_id, role, enabled, updated_at FROM admin_operator WHERE user_id = ?")
       .bind(userId)
       .first<OperatorRow>();
     if (!row) {
@@ -126,7 +128,7 @@ export async function loadOperator(
     if (!role) {
       return null;
     }
-    return { role, enabled: parseEnabledFlag(row.enabled) };
+    return { role, enabled: parseEnabledFlag(row.enabled), updatedAt: row.updated_at };
   } catch (error) {
     if (isMissingOperatorTable(error)) {
       return null;
@@ -201,6 +203,109 @@ function auditStatement(
 
 function revokeSessionsStatement(db: D1Database, userId: string): D1Statement {
   return db.prepare('DELETE FROM "session" WHERE "userId" = ?').bind(userId);
+}
+
+const WRITE_MATCHED_SQL =
+  "EXISTS (SELECT 1 FROM admin_operator WHERE user_id = ? AND updated_at = ?)";
+
+function auditIfWriteStatement(
+  db: D1Database,
+  event: {
+    userId: string;
+    eventType: string;
+    actorId: string;
+    fromValue: string | null;
+    toValue: string | null;
+    requestId: string;
+    writeAt: string;
+  },
+): D1Statement {
+  return db
+    .prepare(
+      `INSERT INTO operator_audit_events
+        (id, user_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?
+       WHERE ${WRITE_MATCHED_SQL}`,
+    )
+    .bind(
+      crypto.randomUUID(),
+      event.userId,
+      event.eventType,
+      event.actorId,
+      event.fromValue,
+      event.toValue,
+      event.requestId,
+      event.writeAt,
+      event.userId,
+      event.writeAt,
+    );
+}
+
+function revokeSessionsIfWriteStatement(
+  db: D1Database,
+  userId: string,
+  writeAt: string,
+): D1Statement {
+  return db
+    .prepare(
+      `DELETE FROM "session"
+       WHERE "userId" = ?
+         AND ${WRITE_MATCHED_SQL}`,
+    )
+    .bind(userId, userId, writeAt);
+}
+
+const OPERATOR_CAS_SQL = "WHERE user_id = ? AND role = ? AND enabled = ? AND updated_at = ?";
+
+function patchOperatorUpdateStatement(
+  db: D1Database,
+  input: {
+    userId: string;
+    actorId: string;
+    writeAt: string;
+    currentRole: AdminOperatorRole;
+    currentEnabled: boolean;
+    currentUpdatedAt: string;
+    nextRole: AdminOperatorRole;
+    nextEnabled: boolean;
+    hasRole: boolean;
+    hasEnabled: boolean;
+  },
+): D1Statement {
+  const casValues = [
+    input.userId,
+    input.currentRole,
+    input.currentEnabled ? 1 : 0,
+    input.currentUpdatedAt,
+  ];
+  if (input.hasRole && input.hasEnabled) {
+    return db
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, enabled = ?, updated_at = ?, updated_by = ?
+         ${OPERATOR_CAS_SQL}`,
+      )
+      .bind(input.nextRole, input.nextEnabled ? 1 : 0, input.writeAt, input.actorId, ...casValues);
+  }
+  if (input.hasRole) {
+    return db
+      .prepare(
+        `UPDATE admin_operator
+         SET role = ?, updated_at = ?, updated_by = ?
+         ${OPERATOR_CAS_SQL}`,
+      )
+      .bind(input.nextRole, input.writeAt, input.actorId, ...casValues);
+  }
+  if (!input.hasEnabled) {
+    throw new AppError("VALIDATION_FAILED", "Provide a role or enabled flag.");
+  }
+  return db
+    .prepare(
+      `UPDATE admin_operator
+       SET enabled = ?, updated_at = ?, updated_by = ?
+       ${OPERATOR_CAS_SQL}`,
+    )
+    .bind(input.nextEnabled ? 1 : 0, input.writeAt, input.actorId, ...casValues);
 }
 
 async function countOtherEnabledSuperAdmins(db: D1Database, userId: string): Promise<number> {
@@ -439,41 +544,52 @@ export async function handlePatchOperator(
   }
 
   const now = new Date().toISOString();
-  const nextEnabledFlag = nextEnabled ? 1 : 0;
   const statements: D1Statement[] = [
-    env.DB.prepare(
-      `UPDATE admin_operator
-       SET role = ?, enabled = ?, updated_at = ?, updated_by = ?
-       WHERE user_id = ?`,
-    ).bind(nextRole, nextEnabledFlag, now, actor.id, userId),
+    patchOperatorUpdateStatement(env.DB, {
+      userId,
+      actorId: actor.id,
+      writeAt: now,
+      currentRole: current.role,
+      currentEnabled: current.enabled,
+      currentUpdatedAt: current.updatedAt,
+      nextRole,
+      nextEnabled,
+      hasRole,
+      hasEnabled,
+    }),
   ];
   if (roleChanged) {
     statements.push(
-      auditStatement(env.DB, {
+      auditIfWriteStatement(env.DB, {
         userId,
         eventType: "operator_role_changed",
         actorId: actor.id,
         fromValue: current.role,
         toValue: nextRole,
         requestId,
+        writeAt: now,
       }),
     );
   }
   if (enabledChanged) {
     statements.push(
-      auditStatement(env.DB, {
+      auditIfWriteStatement(env.DB, {
         userId,
         eventType: nextEnabled ? "operator_enabled" : "operator_disabled",
         actorId: actor.id,
         fromValue: current.enabled ? "enabled" : "disabled",
         toValue: nextEnabled ? "enabled" : "disabled",
         requestId,
+        writeAt: now,
       }),
     );
   }
-  statements.push(revokeSessionsStatement(env.DB, userId));
+  statements.push(revokeSessionsIfWriteStatement(env.DB, userId, now));
 
-  await commitOperatorSecurityBatch(env.DB, statements);
+  const results = await commitOperatorSecurityBatch(env.DB, statements);
+  if ((results[0]?.meta.changes ?? 0) === 0) {
+    throw new AppError("CONFLICT", OPERATOR_CONFLICT_MESSAGE);
+  }
   return json({ item: await getPublicOperator(env.DB, userId) }, 200, requestId);
 }
 
