@@ -7,7 +7,7 @@
 | Local | Development and automated tests | Local/emulated D1; email stub or approved test recipient |
 | Preview | Pull-request review | Separate preview database or isolated test data; test email mode/domain |
 | Staging | Release candidate and stakeholder acceptance | Separate D1 and Access policy; production-like configuration, no production customer data |
-| Production | Live site and staff operation | Production D1, Resend domain, Access policy, monitoring |
+| Production | Live site and staff operation | Production D1, Email Service sending domain, Access policy, monitoring |
 
 Never share D1 databases, email recipients, or secrets across production and non-production. Preview environments must not send real customer/staff mail.
 
@@ -27,7 +27,7 @@ The reviewed production release overlay is `deploy/production/wrangler.jsonc` (a
 ### Server bindings and secrets
 
 - D1 database binding/identifier.
-- Resend API key, verified sender, approved staff recipient(s), reply-to configuration.
+- Email Service: onboarded sending subdomain `notify.kaiyuemacau.com`, `EMAIL` send_email binding, sender `NOTIFY_FROM_EMAIL`, approved staff recipient `NOTIFY_STAFF_TO`, optional `NOTIFY_ALLOWED_RECIPIENTS` lock (required on staging).
 - Cloudflare Access audience/team-domain verification values where needed.
 - Anti-abuse/Turnstile secret if enabled.
 - Error monitoring DSN/token, with PII scrubbing configured.
@@ -111,7 +111,7 @@ The 2026-11-05 migration targets the separate Kai Yue Cloudflare account. Use th
 
 1. In an authenticated session, verify both account names and IDs, the legacy Worker's deployment revision, routes, bindings, Workers Builds settings, and runtime secret names. Confirm the target workers.dev subdomain, existing resources, and Zero Trust availability. Keep the legacy Worker and build connection serving during verification.
 2. Provision a fresh D1 and private R2 in the target account within the approved plan. Apply migrations `0001`–`0008` to the new database and verify the migration list. Start with synthetic fixtures. Any transfer of legacy rows or offer objects requires review of the exact data subset, permissions, and destination. Offer images referenced by D1 need corresponding R2 keys and metadata.
-3. Update a staging-only deployment configuration with the verified Worker name, target D1 ID, R2 bucket, and target URL. Build from the repository root and set `PUBLIC_SITE_URL` at build time for Astro as well as in runtime configuration. Verify the generated Worker entry and assets paths. Keep admin fail-closed until the target Access application, team domain, audience and approved principals are reviewed and verified. Leave Resend unconfigured for synthetic verification, then use separate staging credentials and approved test recipients if delivery testing is needed.
+3. Update a staging-only deployment configuration with the verified Worker name, target D1 ID, R2 bucket, and target URL. Build from the repository root and set `PUBLIC_SITE_URL` at build time for Astro as well as in runtime configuration. Verify the generated Worker entry and assets paths. Keep admin fail-closed until the target Access application, team domain, audience and approved principals are reviewed and verified. Keep `NOTIFICATIONS_ENABLED=false` for synthetic verification; delivery testing uses only the approved staging inbox through the locked `EMAIL` binding and an owner-approved message.
 4. Use Workers Builds with `staging` as the deployment branch for this staging Worker. Keep other branch builds disabled initially, especially `main`. Verify repository access, root directory, build and deployment commands, and runtime bindings before enabling the trigger. The fetched checkout has Wrangler 4.132.0 locally. If using the current Worker Previews workflow later, verify the lockfile version meets Cloudflare's 4.135.0 minimum and configure preview-specific resources.
 5. Verify the deployed revision and staging URL, localized public routes, canonical metadata, booking and contact persistence and replay behavior with synthetic submissions, R2 image behavior, and admin denial. After Access review, verify an approved identity can sign in and an unapproved identity is denied. Switch staging review links after these checks. Keep the legacy service available and handle retirement separately because it serves the published site.
 

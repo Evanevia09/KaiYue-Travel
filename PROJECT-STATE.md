@@ -83,7 +83,7 @@ Public page-layout refinement (2026-09-21): home and consumer chauffeur service 
 
 ## Quick handoff
 
-Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark and a compact Point to point / Hourly booking bar. Home and consumer service pages embed Journey and open Communication in one modal; B2B and general inquiry pages use a two-column hero with an inquiry form; FAQ and legal pages have no hero or form. The standalone `/booking` route has been removed. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
+Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Cloudflare Email Service notification code (off by default), and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark and a compact Point to point / Hourly booking bar. Home and consumer service pages embed Journey and open Communication in one modal; B2B and general inquiry pages use a two-column hero with an inquiry form; FAQ and legal pages have no hero or form. The standalone `/booking` route has been removed. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
 No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy (2026-10-16) presents chauffeur services across Macau, Mainland China, and Hong Kong; City Tours stay Macau-only; quotes remain after review. B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
@@ -162,6 +162,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | Scope expands into dispatch/CRM/payments prematurely         | Release 1 exclusions unchanged                                                                                                                               |
 
 ## Next recommended actions
+
+Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): branch `cursor/agent-api-notifications-a72c` is ready for PM independent review. Next action: after PM review, promote to `official-staging` with mail still off, then run synthetic staging API checks. A real send needs the PM's exact approval of the card in `docs/records/2026-11-16-agent-api-notifications/STAGE.md`. Production and `main` are untouched, and production mail stays off.
 
 Staging cache + production-readiness (2026-11-16, `task_id` `kaiyue-production-readiness-20261116`): `dca860c` is staged and the admin-root fix is verified over HTTP and in the browser without a purge. Next action: parent-run full authenticated staff UAT on admin-staging (staff role, session revocation, Users create/reset, profile password). No credential reset is needed; owner-supplied staging login verified. Do not merge to `main`. Do not attach production admin. LIVE stays `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
 
@@ -246,6 +248,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-16 — Agent API search + native Cloudflare email (source + local evidence, staging only)
+
+- Admin lists gain `q` and `updatedSince`; inquiries use a stable `(created_at, id)` cursor. Added the OpenAPI contract (`docs/api/admin-agent-v1.openapi.yaml`) and the agent guide (`docs/13-agent-api.md`). Auth is unchanged (existing admin session; no API keys).
+- Resend replaced by a single Cloudflare `EMAIL` send_email binding. Mail is gated on `PUBLIC_SITE_URL` (never `ENVIRONMENT`), `NOTIFICATIONS_ENABLED=true`, the binding, and a required staging recipient lock. Adds a staff notice plus a customer "not confirmed" acknowledgement. The official-staging overlay, guard, and candidate check pin `EMAIL` to `scalingsmb@gmail.com` and `bookings@notify.kaiyuemacau.com`, with `NOTIFICATIONS_ENABLED="false"`. Production config unchanged.
+- Ops reported `notify.kaiyuemacau.com` onboarded at 19:35:37 (DNS ready 19:36; apex Google mail unchanged; Routing off; quota 200/day). Not verified from this VM, and not an email test.
+- Local only: lint, typecheck, full Vitest, staging build, guard, and Wrangler dry-run. No email sent. Not staged, not `task_verified`. Record: `docs/records/2026-11-16-agent-api-notifications/STAGE.md`.
 
 ### 2026-11-16 — Production release closeout (docs only)
 

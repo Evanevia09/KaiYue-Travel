@@ -1,0 +1,23 @@
+[
+  {
+    "to": "scalingsmb@gmail.com",
+    "from": {
+      "email": "bookings@notify.kaiyuemacau.com",
+      "name": "Kai Yue Travel"
+    },
+    "subject": "[Staging test] New booking request KY-XXXXXXXX",
+    "text": "A new chauffeur booking request is waiting for review.\n\nName: Staging Test Guest\nEmail: scalingsmb@gmail.com\nPhone: Not provided\nPickup: Macau International Airport\nDestination: Synthetic Test Hotel\nPickup time: 20 Nov 2026, 10:30 (Asia/Macau)\nPassengers: 1\nMessage: Synthetic staging email test. Not a real booking.\n\nReference: KY-XXXXXXXX\nReview it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.",
+    "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>[Staging test] New booking request KY-XXXXXXXX</title></head><body style=\"font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a\"><h1 style=\"font-size:20px\">[Staging test] New booking request KY-XXXXXXXX</h1><p>A new chauffeur booking request is waiting for review.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Name</th><td style=\"padding:4px 0\">Staging Test Guest</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Email</th><td style=\"padding:4px 0\">scalingsmb@gmail.com</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Phone</th><td style=\"padding:4px 0\">Not provided</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Pickup</th><td style=\"padding:4px 0\">Macau International Airport</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Destination</th><td style=\"padding:4px 0\">Synthetic Test Hotel</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Pickup time</th><td style=\"padding:4px 0\">20 Nov 2026, 10:30 (Asia/Macau)</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Passengers</th><td style=\"padding:4px 0\">1</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Message</th><td style=\"padding:4px 0\">Synthetic staging email test. Not a real booking.</td></tr></table><p>Reference: <strong>KY-XXXXXXXX</strong></p><p>Review it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.</p></body></html>",
+    "replyTo": "scalingsmb@gmail.com"
+  },
+  {
+    "to": "scalingsmb@gmail.com",
+    "from": {
+      "email": "bookings@notify.kaiyuemacau.com",
+      "name": "Kai Yue Travel"
+    },
+    "subject": "[Staging test] We received your request KY-XXXXXXXX",
+    "text": "Hello Staging Test Guest,\n\nThank you for contacting Kai Yue Travel. We have received your booking request.\n\nYour reference: KY-XXXXXXXX\nService: Airport transfer\nPickup time: Nov 20, 2026, 10:30 AM (Asia/Macau)\n\nThis is not a booking confirmation. Our team will check availability and contact you to confirm the details.\n\nTo change your request, contact us through staging.kaiyuemacau.com and quote your reference.\n\nKai Yue Travel\n\nThis is an automated message. Replies to this address are not monitored.",
+    "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>[Staging test] We received your request KY-XXXXXXXX</title></head><body style=\"font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a\"><p>Hello Staging Test Guest,</p><p>Thank you for contacting Kai Yue Travel. We have received your booking request.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Your reference</th><td style=\"padding:4px 0\">KY-XXXXXXXX</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Service</th><td style=\"padding:4px 0\">Airport transfer</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Pickup time</th><td style=\"padding:4px 0\">Nov 20, 2026, 10:30 AM (Asia/Macau)</td></tr></table><p><strong>This is not a booking confirmation. Our team will check availability and contact you to confirm the details.</strong></p><p>To change your request, contact us through staging.kaiyuemacau.com and quote your reference.</p><p>Kai Yue Travel</p><p style=\"font-size:12px;color:#666\">This is an automated message. Replies to this address are not monitored.</p></body></html>"
+  }
+]

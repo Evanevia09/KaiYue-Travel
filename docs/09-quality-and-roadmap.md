@@ -90,7 +90,7 @@ A feature is done only when behavior and edge cases match this documentation, te
 
 ### Phase 2 — Public site and booking
 
-- Implement approved content, booking/contact forms, validation, D1 migrations/API, idempotency, confirmation states, and Resend notifications.
+- Implement approved content, booking/contact forms, validation, D1 migrations/API, idempotency, confirmation states, and email notifications.
 - Add metadata, structured data, sitemap/robots, error pages, accessibility/performance controls, and observability.
 
 **Exit:** end-to-end test submissions persist exactly once and notification failures are recoverable.

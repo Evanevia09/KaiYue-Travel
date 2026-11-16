@@ -8,7 +8,7 @@ Visitor browser
        └─ React islands (booking sheet/form and selected UI)
             └─ /api/v1/* on Cloudflare Workers
                  ├─ D1 (bookings, contacts, audit/event records)
-                 └─ Resend (acknowledgements and staff alerts)
+                 └─ Cloudflare Email Service (EMAIL binding: acknowledgements and staff alerts)
 
 Staff browser
   └─ Cloudflare Access
@@ -26,7 +26,7 @@ The exact Cloudflare packaging—Pages with Functions or a Workers-hosted Astro 
 | React islands       | Mature state/form ecosystem for the widget and admin interactions                   | Hydrate only interactive regions                                     |
 | Cloudflare Workers  | One edge runtime for APIs and server behavior close to the deployed site            | Design for the Workers runtime, not Node-only APIs                   |
 | Cloudflare D1       | Managed SQLite-style relational storage suited to a modest booking/inquiry workload | Review limits, migrations, backup/export, and recovery before launch |
-| Resend              | Focused transactional email API and delivery visibility                             | Email is notification, not the source of truth                       |
+| Email Service       | Native Workers `send_email` binding; no API key; binding-level recipient/sender lock | Email is notification, not the source of truth                       |
 | Cloudflare Access   | Removes custom password/session handling for a small internal team                  | Worker-side authorization and offboarding policy remain required     |
 | GitHub + Cloudflare | Reviewable version history, automated previews, and repeatable releases             | Protect branches and keep secrets out of Git                         |
 
@@ -51,7 +51,7 @@ The exact Cloudflare packaging—Pages with Functions or a Workers-hosted Astro 
 
 - Public API accepts booking and contact creation only; it cannot list or update records.
 - Admin routes require verified Cloudflare Access identity. The Worker must validate Access tokens/claims for admin APIs; hiding the UI is not authorization.
-- D1 and Resend bindings/keys stay server-side.
+- D1 and the EMAIL binding stay server-side.
 - Treat all browser and email content as untrusted. Escape output and never render raw user HTML.
 
 ## Proposed repository structure
@@ -100,7 +100,7 @@ These are proposed defaults used by the first application scaffold. They can be 
 - **Package manager / tests:** pnpm workspaces and Vitest.
 - **Timezone / locale:** `Asia/Macau` display timezone; public English, Macau Portuguese (`pt-PT`), and Traditional Chinese (`zh-Hant`) routes and forms are implemented locally. Native-language and business-owner review remains a production publication gate.
 - **Draft persistence:** in-memory plus `sessionStorage` for journey fields only (service, locations, times, counts). Contact details are not written to storage.
-- **Status emails:** staff/customer status-change email is not sent in Release 1. Create-time staff notification is attempted only when `RESEND_API_KEY` is present.
+- **Status emails:** staff/customer status-change email is not sent in Release 1. At create time the Worker attempts one staff notice and, when the guest gave an email, one localized "request received, not confirmed" acknowledgement. Mail is attempted only when `NOTIFICATIONS_ENABLED` is exactly `true`, the `EMAIL` binding exists, and `PUBLIC_SITE_URL` is the production site or the staging site (never inferred from `ENVIRONMENT`). The staging site additionally requires a non-empty `NOTIFY_ALLOWED_RECIPIENTS` lock; recipients outside it are skipped. Result is stored as `notification_state` (sent, partial, failed, skipped).
 - **Admin auth:** Cloudflare Access JWT verification when `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are set. `DEV_ADMIN_BYPASS=true` is honored only when `ENVIRONMENT=development`.
 
 ## Remaining architecture decisions

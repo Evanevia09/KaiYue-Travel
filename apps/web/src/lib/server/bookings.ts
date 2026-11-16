@@ -13,7 +13,7 @@ import {
 import { translateCopy } from "../i18n-copy.ts";
 import type { Locale } from "../i18n.ts";
 import type { AppEnv, D1Database } from "./env.ts";
-import { noticeHours } from "./env.ts";
+import { businessTimezone, noticeHours } from "./env.ts";
 import { all, first, nowIso, run } from "./db.ts";
 import { clientIp, fail, logSafe, readJson } from "./http.ts";
 import {
@@ -24,6 +24,7 @@ import {
   writeIdempotency,
 } from "./idempotency.ts";
 import { likePattern } from "./admin-list-query.ts";
+import { formatPickup } from "./notification-templates.ts";
 import { sendNotifications } from "./notifications.ts";
 import { getPublicOffer } from "./offers/service.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
@@ -449,7 +450,10 @@ export async function createBooking(
               : parsed.data.serviceType === "city_tour" && parsed.data.tourPackageTitle
                 ? [{ label: "Tour package", value: parsed.data.tourPackageTitle }]
                 : []),
-            { label: "Pickup time", value: parsed.data.pickupAt },
+            {
+              label: "Pickup time",
+              value: formatPickup(parsed.data.pickupAt, "en-GB", businessTimezone(env)),
+            },
             { label: "Passengers", value: String(parsed.data.passengerCount) },
             ...(parsed.data.tourGuideRequested === true
               ? [{ label: "Professional tour guide", value: "Requested" }]

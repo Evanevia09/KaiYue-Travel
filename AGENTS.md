@@ -36,7 +36,7 @@ Never convert a source-reported or unverified business claim into published webs
 - The same booking form reused on mobile as a modal/bottom sheet callable from anywhere.
 - Secondary B2B/corporate content and inquiry path.
 - Astro frontend with React islands for interactive components.
-- Cloudflare Workers API, Cloudflare D1 database, and Resend notifications.
+- Cloudflare Workers API, Cloudflare D1 database, and Cloudflare Email Service notifications through a Worker `send_email` binding (owner decision 2026-11-16 replaced Resend).
 - Lightweight protected admin area: dashboard summary, bookings, calendar, and contacts.
 - Cloudflare Access is preferred for admin protection.
 - GitHub is the source of truth and drives Cloudflare preview/release workflows.

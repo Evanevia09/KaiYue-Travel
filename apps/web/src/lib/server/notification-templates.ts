@@ -202,7 +202,7 @@ function ackLocale(locale: string): AckLocale {
   return "en";
 }
 
-function formatPickup(iso: string, tag: string, timezone: string): string {
+export function formatPickup(iso: string, tag: string, timezone: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return `${new Intl.DateTimeFormat(tag, {
