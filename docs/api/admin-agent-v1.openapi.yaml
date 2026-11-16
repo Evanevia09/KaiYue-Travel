@@ -31,7 +31,8 @@ components:
     Limit:
       name: limit
       in: query
-      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      description: Clamped to 1-50 (0 becomes 1, larger values become 50); never rejected.
+      schema: { type: integer, default: 20 }
     Cursor:
       name: cursor
       in: query
@@ -59,6 +60,20 @@ components:
       in: path
       required: true
       schema: { type: string }
+    RecordId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >
+        8-128 characters, one per intended booking. Reusing a key with the same body
+        returns the original result; with a different body returns 409 IDEMPOTENCY_CONFLICT.
+        Missing or malformed keys return 400 VALIDATION_FAILED.
+      schema: { type: string, minLength: 8, maxLength: 128 }
   schemas:
     Error:
       type: object
@@ -88,6 +103,7 @@ components:
     Booking:
       type: object
       properties:
+        id: { type: string }
         reference: { type: string }
         status: { type: string, enum: [enquiry, assigned, completed, cancelled] }
         serviceType: { type: string }
@@ -96,16 +112,152 @@ components:
         pickupAt: { type: string, format: date-time }
         returnAt: { type: [string, "null"] }
         passengerCount: { type: integer }
+        luggageCount: { type: [integer, "null"] }
+        handCarryCount: { type: [integer, "null"] }
+        vehiclePreference: { type: [string, "null"] }
         communicationChannel: { type: string, enum: [email, whatsapp, admin] }
         contactName: { type: [string, "null"] }
         phone: { type: [string, "null"] }
         email: { type: [string, "null"] }
+        company: { type: [string, "null"] }
         message: { type: string }
+        notes: { type: [string, "null"] }
+        sourcePage: { type: string }
+        sourceTrigger: { type: string }
+        sourceMode: { type: string }
+        locale: { type: string }
         notificationState: { type: string, enum: [pending, sent, partial, failed, skipped] }
         driverId: { type: [string, "null"] }
         vehicleId: { type: [string, "null"] }
+        offerId: { type: [string, "null"] }
+        offerTitle: { type: [string, "null"] }
+        tourGuideRequested: { type: [boolean, "null"] }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+    BookingEnvelope:
+      type: object
+      required: [booking]
+      properties:
+        booking: { $ref: "#/components/schemas/Booking" }
+    BookingDetail:
+      type: object
+      properties:
+        booking: { $ref: "#/components/schemas/Booking" }
+        notes: { type: array, items: { $ref: "#/components/schemas/NoteRow" } }
+        events: { type: array, items: { $ref: "#/components/schemas/AuditEvent" } }
+    BookingCreate:
+      type: object
+      description: >
+        Staff-entered booking. Use communicationChannel "admin" with sourceTrigger
+        "admin-manual"; that channel sends no email. Same validation as the public form.
+      required: [serviceType, pickupLocation, pickupAt, passengerCount, communicationChannel, sourcePage, sourceTrigger, sourceMode]
+      properties:
+        serviceType:
+          type: string
+          enum: [airport_transfer, hotel_transfer, point_to_point, hourly_charter, city_tour, sightseeing, corporate, custom]
+        pickupLocation: { type: string, minLength: 2, maxLength: 160 }
+        destination: { type: string, maxLength: 160, description: Required for transfer-type services }
+        pickupAt: { type: string, format: date-time, description: ISO 8601 with offset }
+        returnAt: { type: string, format: date-time }
+        passengerCount: { type: integer, minimum: 1, maximum: 14 }
+        luggageCount: { type: integer, minimum: 0, maximum: 20 }
+        vehiclePreference: { type: string, enum: [no_preference, executive_van, sedan] }
+        communicationChannel: { type: string, enum: [admin, email, whatsapp] }
+        contactName: { type: string, maxLength: 80 }
+        phone: { type: string, maxLength: 32, description: With country code }
+        email: { type: string, format: email }
+        company: { type: string, maxLength: 120 }
+        message: { type: string, maxLength: 800 }
+        locale: { type: string, default: en }
+        sourcePage: { type: string, example: /admin/bookings }
+        sourceTrigger: { type: string, example: admin-manual }
+        sourceMode: { type: string, enum: [embedded, bottom-sheet, page], example: page }
+    BookingReceipt:
+      type: object
+      properties:
+        reference: { type: string, example: KY-ABCD1234 }
+        status: { type: string, enum: [enquiry] }
+        receivedAt: { type: string, format: date-time }
+        nextStep: { type: string }
+    NoteRow:
+      type: object
+      properties:
+        id: { type: string }
+        body: { type: string }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+    NoteCreated:
+      type: object
+      properties:
+        id: { type: string }
+        entityType: { type: string, enum: [booking, contact] }
+        entityId: { type: string }
+        body: { type: string }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+    AuditEvent:
+      type: object
+      description: Newest first. Field names are snake_case as stored.
+      properties:
+        id: { type: string }
+        event_type: { type: string, example: status_change }
+        actor_id: { type: [string, "null"] }
+        from_value: { type: [string, "null"] }
+        to_value: { type: [string, "null"] }
+        created_at: { type: string, format: date-time }
+    Driver:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: [string, "null"] }
+        notes: { type: [string, "null"] }
+        active: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    DriverInput:
+      type: object
+      description: All fields required on create except email, notes, active (default true). PATCH sends only changed fields.
+      properties:
+        name: { type: string, maxLength: 100 }
+        phone: { type: string }
+        email: { type: [string, "null"] }
+        notes: { type: [string, "null"], maxLength: 500 }
+        active: { type: boolean }
+    Vehicle:
+      type: object
+      properties:
+        id: { type: string }
+        plateNumber: { type: string }
+        makeModel: { type: string }
+        passengerCapacity: { type: integer }
+        contactName: { type: [string, "null"] }
+        contactPhone: { type: [string, "null"] }
+        notes: { type: [string, "null"] }
+        active: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    VehicleInput:
+      type: object
+      description: plateNumber, makeModel, passengerCapacity required on create. PATCH sends only changed fields.
+      properties:
+        plateNumber: { type: string, maxLength: 32, description: Stored upper-case }
+        makeModel: { type: string, maxLength: 100 }
+        passengerCapacity: { type: integer, minimum: 1, maximum: 14 }
+        contactName: { type: [string, "null"], maxLength: 100 }
+        contactPhone: { type: [string, "null"] }
+        notes: { type: [string, "null"], maxLength: 500 }
+        active: { type: boolean }
+    ContactEnvelope:
+      type: object
+      required: [contact]
+      properties:
+        contact: { $ref: "#/components/schemas/Contact" }
+    ContactDetail:
+      type: object
+      properties:
+        contact: { $ref: "#/components/schemas/Contact" }
+        notes: { type: array, items: { $ref: "#/components/schemas/NoteRow" } }
+        events: { type: array, items: { $ref: "#/components/schemas/AuditEvent" } }
     Contact:
       type: object
       properties:
@@ -128,10 +280,44 @@ components:
         body: { type: string, minLength: 1, maxLength: 2000 }
   responses:
     Error:
-      description: Error envelope (401 sign in again, 403 role or host, 404, 409 stale expectedUpdatedAt, 422 validation)
+      description: >
+        Error envelope. 401 sign in again; 403 role, host, or Origin; 404; 409 CONFLICT
+        (stale expectedUpdatedAt), IDEMPOTENCY_CONFLICT, or INVALID_TRANSITION; 422
+        validation; 429 rate limited; 503 unavailable.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
+    Booking:
+      description: Updated booking
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/BookingEnvelope" }
+    Contact:
+      description: Updated inquiry
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ContactEnvelope" }
+    NoteCreated:
+      description: Note created
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/NoteCreated" }
+    Driver:
+      description: Driver
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              item: { $ref: "#/components/schemas/Driver" }
+    Vehicle:
+      description: Vehicle
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              item: { $ref: "#/components/schemas/Vehicle" }
 paths:
   /api/auth/sign-in/email:
     post:
@@ -159,15 +345,34 @@ paths:
         "200": { description: Signed out }
   /api/v1/admin/profile:
     get:
-      summary: Signed-in account email and role (super_admin or staff)
+      summary: Signed-in account email and role
       responses:
-        "200": { description: Profile }
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email: { type: string }
+                  role: { type: string, enum: [super_admin, staff] }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/summary:
     get:
       summary: Dashboard counts and recent bookings
       responses:
-        "200": { description: Summary }
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newBookingsToday: { type: integer }
+                  assignedUpcoming: { type: integer }
+                  completedThisMonth: { type: integer }
+                  cancelledThisMonth: { type: integer }
+                  newInquiries: { type: integer }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings:
     get:
@@ -195,15 +400,40 @@ paths:
                   nextCursor: { type: [string, "null"] }
                   total: { type: integer }
         default: { $ref: "#/components/responses/Error" }
+    post:
+      summary: Create a staff-entered booking (idempotent)
+      parameters:
+        - { $ref: "#/components/parameters/Origin" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingCreate" }
+      responses:
+        "201":
+          description: Stored as an enquiry. Not a confirmed booking.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingReceipt" }
+        default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}:
     get:
       summary: Booking detail with notes and event history
       parameters: [{ $ref: "#/components/parameters/Reference" }]
       responses:
-        "200": { description: Booking detail }
+        "200":
+          description: Booking detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingDetail" }
         default: { $ref: "#/components/responses/Error" }
     patch:
       summary: Edit journey and contact fields (optimistic concurrency)
+      description: >
+        Full replacement, not a partial patch. Send every field from the latest read with
+        your changes applied; omitted contactName, phone, email, destination, returnAt, and
+        message are cleared. Errors return a message without per-field details.
       parameters:
         - { $ref: "#/components/parameters/Reference" }
         - { $ref: "#/components/parameters/Origin" }
@@ -213,7 +443,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [expectedUpdatedAt]
+              required: [expectedUpdatedAt, pickupLocation, pickupAt, passengerCount]
               properties:
                 expectedUpdatedAt: { type: string, description: updatedAt from the last read }
                 pickupLocation: { type: string }
@@ -226,11 +456,14 @@ paths:
                 email: { type: [string, "null"] }
                 message: { type: string }
       responses:
-        "200": { description: Updated booking }
+        "200": { $ref: "#/components/responses/Booking" }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}/status:
     patch:
       summary: Change booking status (enquiry→assigned|cancelled, assigned→completed|cancelled)
+      description: >
+        No expectedUpdatedAt; the transition rules reject invalid moves with 409
+        INVALID_TRANSITION. Re-read before changing status if another writer may be active.
       parameters:
         - { $ref: "#/components/parameters/Reference" }
         - { $ref: "#/components/parameters/Origin" }
@@ -244,11 +477,14 @@ paths:
               properties:
                 status: { type: string, enum: [assigned, completed, cancelled] }
       responses:
-        "200": { description: Updated booking; audit event recorded }
+        "200": { $ref: "#/components/responses/Booking" }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}/assignment:
     patch:
       summary: Assign an active driver and suitable vehicle, or clear both
+      description: >
+        Send both ids or both null; a single id returns 422. Vehicle capacity must cover
+        passengerCount. Does not change status.
       parameters:
         - { $ref: "#/components/parameters/Reference" }
         - { $ref: "#/components/parameters/Origin" }
@@ -264,7 +500,7 @@ paths:
                 driverId: { type: [string, "null"] }
                 vehicleId: { type: [string, "null"] }
       responses:
-        "200": { description: Updated booking }
+        "200": { $ref: "#/components/responses/Booking" }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}/notes:
     post:
@@ -278,7 +514,7 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/Note" }
       responses:
-        "201": { description: Note created }
+        "201": { $ref: "#/components/responses/NoteCreated" }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/contacts:
     get:
@@ -310,7 +546,11 @@ paths:
       summary: Inquiry detail with notes and event history
       parameters: [{ $ref: "#/components/parameters/ContactId" }]
       responses:
-        "200": { description: Inquiry detail }
+        "200":
+          description: Inquiry detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContactDetail" }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/contacts/{id}/status:
     patch:
@@ -328,7 +568,7 @@ paths:
               properties:
                 status: { type: string, enum: [replied, closed] }
       responses:
-        "200": { description: Updated inquiry; audit event recorded }
+        "200": { $ref: "#/components/responses/Contact" }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/contacts/{id}/notes:
     post:
@@ -342,5 +582,81 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/Note" }
       responses:
-        "201": { description: Note created }
+        "201": { $ref: "#/components/responses/NoteCreated" }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/drivers:
+    get:
+      summary: List drivers (needed to pick an active driver for assignment)
+      responses:
+        "200":
+          description: All drivers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Driver" } }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      summary: Add a driver (audited)
+      parameters: [{ $ref: "#/components/parameters/Origin" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DriverInput" }
+      responses:
+        "201": { $ref: "#/components/responses/Driver" }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/drivers/{id}:
+    patch:
+      summary: Update or deactivate a driver (audited; no expectedUpdatedAt)
+      parameters:
+        - { $ref: "#/components/parameters/RecordId" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DriverInput" }
+      responses:
+        "200": { $ref: "#/components/responses/Driver" }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/vehicles:
+    get:
+      summary: List vehicles (needed to pick an active vehicle with enough seats)
+      responses:
+        "200":
+          description: All vehicles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Vehicle" } }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      summary: Add a vehicle (audited)
+      parameters: [{ $ref: "#/components/parameters/Origin" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VehicleInput" }
+      responses:
+        "201": { $ref: "#/components/responses/Vehicle" }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/vehicles/{id}:
+    patch:
+      summary: Update or deactivate a vehicle (audited; no expectedUpdatedAt)
+      parameters:
+        - { $ref: "#/components/parameters/RecordId" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VehicleInput" }
+      responses:
+        "200": { $ref: "#/components/responses/Vehicle" }
         default: { $ref: "#/components/responses/Error" }
