@@ -163,7 +163,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
-Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): branch `cursor/agent-api-notifications-a72c` is ready for PM independent review. Next action: after PM review, promote to `official-staging` with mail still off, then run synthetic staging API checks. A real send needs the PM's exact approval of the card in `docs/records/2026-11-16-agent-api-notifications/STAGE.md`. Production and `main` are untouched, and production mail stays off.
+Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): `a1768092` is staged with mail off, and the one approved two-email send (`KY-CUM9XL9D`) was delivered to the inbox. The agent guide follow-up (docs only) is on `cursor/agent-api-docs-a72c`. Next action: record the results of the PM-run synthetic booking-management script, then close out. Production and `main` are untouched, and production mail stays off.
 
 Staging cache + production-readiness (2026-11-16, `task_id` `kaiyue-production-readiness-20261116`): `dca860c` is staged and the admin-root fix is verified over HTTP and in the browser without a purge. Next action: parent-run full authenticated staff UAT on admin-staging (staff role, session revocation, Users create/reset, profile password). No credential reset is needed; owner-supplied staging login verified. Do not merge to `main`. Do not attach production admin. LIVE stays `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
 
@@ -248,6 +248,11 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-16 — Agent API guide completion (docs only)
+
+- OpenAPI and `docs/13-agent-api.md` now cover admin booking create (`admin` channel, `Idempotency-Key`), drivers, vehicles, actual response wrappers (`{ booking }`, `{ contact }`, `{ item }`, detail `{ booking|contact, notes, events }`), the recommended direct-HTTP client, and known limitations (no `expectedUpdatedAt` on status/notes/inventory; public endpoint accepts `admin` channel; cookie session only). No runtime change; reviewed staging runtime `a1768092` unchanged.
+- Local only: OpenAPI-path contract test and Prettier pass. Staging booking-management API results pending the PM-run synthetic script; not `task_verified`.
 
 ### 2026-11-16 — Agent API search + native Cloudflare email (source + local evidence, staging only)
 
