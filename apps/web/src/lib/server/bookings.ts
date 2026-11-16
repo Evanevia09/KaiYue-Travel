@@ -418,6 +418,17 @@ export async function createBooking(
           requestId,
           summary: "A new chauffeur booking request is waiting for review.",
           replyTo: parsed.data.email,
+          ...(parsed.data.email
+            ? {
+                customer: {
+                  email: parsed.data.email,
+                  locale: parsed.data.locale,
+                  name: parsed.data.contactName ?? null,
+                  serviceType: parsed.data.serviceType,
+                  pickupAt: parsed.data.pickupAt,
+                },
+              }
+            : {}),
           details: [
             { label: "Name", value: parsed.data.contactName ?? "" },
             { label: "Email", value: parsed.data.email ?? "" },

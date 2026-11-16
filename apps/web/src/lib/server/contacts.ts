@@ -3,6 +3,7 @@ import {
   canTransitionContact,
   contactCreateSchema,
   createContactReference,
+  INQUIRY_LABELS,
   type ContactStatus,
   type NotificationState,
 } from "@kaiyue/contracts";
@@ -152,6 +153,23 @@ export async function createContact(
     requestId,
     summary: "A new website inquiry is waiting for review.",
     replyTo: parsed.data.email,
+    details: [
+      { label: "Type", value: INQUIRY_LABELS[parsed.data.inquiryType] },
+      { label: "Name", value: parsed.data.name },
+      { label: "Email", value: parsed.data.email ?? "Not provided" },
+      { label: "Phone", value: parsed.data.phoneDisplay },
+      ...(parsed.data.company ? [{ label: "Company", value: parsed.data.company }] : []),
+      { label: "Message", value: parsed.data.message },
+    ],
+    ...(parsed.data.email
+      ? {
+          customer: {
+            email: parsed.data.email,
+            locale: parsed.data.locale,
+            name: parsed.data.name,
+          },
+        }
+      : {}),
   });
   await run(
     env.DB,

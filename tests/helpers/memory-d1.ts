@@ -130,8 +130,9 @@ export function createTestEnv(overrides: Partial<AppEnv> = {}): AppEnv {
     BUSINESS_TIMEZONE: "Asia/Macau",
     BOOKING_NOTICE_HOURS: "0",
     DEV_ADMIN_BYPASS: "true",
-    RESEND_FROM: "Kai Yue Travel <notifications@example.invalid>",
-    RESEND_STAFF_TO: "ops@example.invalid",
+    NOTIFY_FROM_EMAIL: "notifications@example.invalid",
+    NOTIFY_FROM_NAME: "Kai Yue Travel",
+    NOTIFY_STAFF_TO: "ops@example.invalid",
     ...overrides,
   };
 }
