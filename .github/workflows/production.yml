@@ -1,0 +1,28 @@
+name: Production (fail-closed)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reserved-environment:
+    if: false
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Never activate production
+        run: exit 1
+
+  refuse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Production deploy is fail-closed and unconnected
+        run: |
+          echo "Production automation is fail-closed and unconnected."
+          echo "This workflow has no Cloudflare credentials and does not invoke the Cloudflare CLI."
+          echo "GitHub environment production must require an owner reviewer in the UI."
+          echo "This workflow stays disabled and fail-closed with no credentials."
+          echo "Do not add production credentials, merge or push main, or rewire Workers Builds."
+          exit 1

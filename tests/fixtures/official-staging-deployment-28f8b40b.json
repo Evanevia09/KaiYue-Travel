@@ -1,0 +1,14 @@
+{
+  "id": "28f8b40b-0ffa-45aa-ba82-601f9e429e0f",
+  "source": "wrangler",
+  "strategy": "percentage",
+  "author_email": "sanitized@example.invalid",
+  "created_on": "2026-11-15T23:17:00.000Z",
+  "annotations": {},
+  "versions": [
+    {
+      "version_id": "72e580d0-aeb1-4766-935a-0cb9a27631a4",
+      "percentage": 100
+    }
+  ]
+}

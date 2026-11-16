@@ -141,13 +141,15 @@ Do not upload, `wrangler deploy`, or apply SQL from this increment. Later operat
 
 ## Distinctions
 
-| Claim | This increment |
-|---|---|
-| implemented / tested / pushed | yes, PR #41 |
-| staged (Worker uploaded / D1 applied) | no |
-| `user_accepted` | no |
-| `released` | no |
-| production changed | no; LIVE must stay `71a66a99` / `f3169afb` |
+| Claim | This increment (PR #41 source) | Later, outside this increment |
+|---|---|---|
+| implemented / tested / pushed | yes, PR #41 | CI/CD source is a stacked PR; see `docs/records/2026-11-16-official-staging-cicd.md` |
+| staged (Worker uploaded / D1 applied) | no at PR #41 closeout | **Yes** 2026-11-16 07:17 Asia/Macau: version `72e580d0` @100%, deployment `28f8b40b`; `0009`/`0010` applied on D1 `043cd0ff` |
+| browser-checked | no | **Partial** sign-in, dashboard, Users, min-6 UI; no mutations; revocation untested; admin `/` cache unresolved. Not all QA pass |
+| `user_accepted` | no | no |
+| `released` | no | no |
+| CI/CD connected | no | **no** (source only; environment/token not created; Mika HOLD of `8964c428` is not ops approval) |
+| production changed | no; LIVE must stay `71a66a99` / `f3169afb` | still untouched |
 
 ## Blockers / open
 

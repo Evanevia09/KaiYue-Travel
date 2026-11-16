@@ -14,7 +14,8 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "prettier --check .",
     "format": "prettier --write .",
-    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "official-staging:guard": "node scripts/official-staging-guard.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
@@ -23,7 +24,7 @@
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
-    "wrangler": "^4.38.0"
+    "wrangler": "4.132.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

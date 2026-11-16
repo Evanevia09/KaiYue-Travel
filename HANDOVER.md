@@ -2,6 +2,17 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-16 official staging CI/CD completed (`2a270e59` deployed)
+
+- **task_id:** `github-staging-cd`
+- **event_id:** `kai-yue-official-staging-cicd-20261116-completed-01`
+- **Deployed source:** `2a270e599e1f596aa6e383607ba1429fdb9b6f09` (Mika 16:32 PASS; owner non-force FF `official-staging` 16:34:55). **This docs commit is not deployed.**
+- **Staged:** Worker `kaiyue-travel-staging` version `3e027a63-b969-4e1b-b618-68269a29a33b` (14) @100% / deployment `6cb6b664-9a60-498a-8030-5130bb359e5c` (16:37:06). Run [43832384537](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43832384537) SUCCESS 16:37:12. Independent CF GET matches. Production still `71a66a99` / `f3169afb`.
+- **Browser-checked (partial, parent 16:44):** staging marketing 200 desktop+mobile; public `/login` and get-session 403; admin-staging `/login` 200; unauth `/admin` redirects. No authenticated session. Admin-host `/` still cached marketing (separate gate). Staff-session UAT pending. Owner delivered success 16:45. Not `user_accepted` / not production `released`.
+- **Token (parent UI):** v3 16:23 Specified-Workers Editor-only; raw-token copy into GitHub `staging` secret. Original/v2 retained; do not revoke. No secret values in git.
+- **Record:** `docs/records/2026-11-16-official-staging-cicd.md`. Evidence: `docs/records/2026-11-16-official-staging-cicd-success/SUCCESS-20261116-1638.md` SHA256 `411da0a1b7c1d844b6a7ab8ca4aa2c14419c83fc016ccdee78f6a4f744ddd40e`.
+- **Do not:** push this docs SHA to `official-staging`/`main`, merge to `main`, rerun CD, revoke tokens, purge cache, query D1, production.
+
 ## Current state — 2026-11-15 security correction
 
 - **task_id:** `super-admin-user-management-20261115`

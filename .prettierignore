@@ -10,3 +10,4 @@ worker-configuration.d.ts
 AGENTS.md
 BUSINESS_INFORMATION.md
 docs
+deploy/official-staging/wrangler.jsonc

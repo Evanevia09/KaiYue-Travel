@@ -1,0 +1,80 @@
+{
+  "kind": "official-staging-schema-compatibility-contract",
+  "not_a_live_d1_readback": true,
+  "not_tamperproof": true,
+  "live_d1_query": false,
+  "target": {
+    "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+    "worker_name": "kaiyue-travel-staging",
+    "d1_name": "kaiyue-travel-staging",
+    "d1_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70"
+  },
+  "attested_applied": {
+    "authority": "owner-authorized frozen staging rollout 2026-11-16 07:17 Asia/Macau",
+    "worker_version": "72e580d0-aeb1-4766-935a-0cb9a27631a4",
+    "deployment": "28f8b40b-0ffa-45aa-ba82-601f9e429e0f",
+    "migration_files": [
+      "0001_init.sql",
+      "0002_booking_communication_workflow.sql",
+      "0003_dispatch_inventory.sql",
+      "0004_admin_auth.sql",
+      "0005_special_offers.sql",
+      "0006_offer_photo_variants.sql",
+      "0007_booking_offer.sql",
+      "0008_booking_tour_guide.sql",
+      "0009_admin_operator.sql",
+      "0010_admin_operator_last_super.sql"
+    ],
+    "note": "Attests the exact applied set 0001–0010 on D1 043cd0ff (0001–0008 already present; 0009/0010 applied 07:17). This file is a source contract, not a live D1 readback, and not tamperproof: editing this file together with source SQL can still pass. CI must not apply migrations or query D1. Remote drift after attestation is undetected until a reviewed contract update. Divergent file list, order, or hashes must fail closed."
+  },
+  "required_migration_files": [
+    {
+      "file": "0001_init.sql",
+      "sha256": "0ac6c1699cac9f38d61f654b4815e13dce191c08b155c3d95409d3ea06a20774"
+    },
+    {
+      "file": "0002_booking_communication_workflow.sql",
+      "sha256": "d50c797b0309cd2251fda038e53548cafad76d0cd06fe349125b32062662cf10"
+    },
+    {
+      "file": "0003_dispatch_inventory.sql",
+      "sha256": "889f3c542d5cf9e119b5d9f1dd186c73e6c68c790cc0e4f64c393ba1531fe405"
+    },
+    {
+      "file": "0004_admin_auth.sql",
+      "sha256": "2742a86ad5855a1ff91e59e8c0284e89f3d4ebed7af48d60ba63676528a42fbe"
+    },
+    {
+      "file": "0005_special_offers.sql",
+      "sha256": "a16db4abea32bcadb341a3e25f35811e4b3737a36ec2aa36edeaa412fa3e460e"
+    },
+    {
+      "file": "0006_offer_photo_variants.sql",
+      "sha256": "0c693a05cef767914ce8e76463beb215c847259ce0c110681747ae7832ebfd81"
+    },
+    {
+      "file": "0007_booking_offer.sql",
+      "sha256": "95fe0e7ef24b26523659b63b4545f3db3360794008092c31fa46f90031e06614"
+    },
+    {
+      "file": "0008_booking_tour_guide.sql",
+      "sha256": "5b551ce0613e02f812295b83491cb2a58a2938fae270d2e8b78dafa4bd6804f4"
+    },
+    {
+      "file": "0009_admin_operator.sql",
+      "sha256": "e90ac3cc28ff3efa39286c2b6b9c421d658e2d931b2f8b80e50e17c8916856aa"
+    },
+    {
+      "file": "0010_admin_operator_last_super.sql",
+      "sha256": "8eb9f0a6bd18812232605154bbb64f9ca48db6a629b0e8d728dd941b8d5c3502"
+    }
+  ],
+  "required_objects": ["admin_operator", "operator_audit_events"],
+  "ci_must_not": [
+    "d1 migrations apply",
+    "d1 execute",
+    "provision-staging-operators",
+    "D1 Edit",
+    "account-wide Workers Editor"
+  ]
+}
