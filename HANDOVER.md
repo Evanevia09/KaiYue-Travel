@@ -10,7 +10,8 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **API (synthetic, PM-run):** full run 38/44 with 6 harness faults; focused run 21/21 resolves them. Not complete coverage.
 - **Recommendation:** dedicated staff account with a direct HTTP client (cookie jar, `Origin`, idempotency, `expectedUpdatedAt`, full-replacement edits, `updatedSince` polling).
 - **Residuals:** no concurrency token on status, notes, or inventory; the public endpoint accepts the `admin` channel; inquiry `limit=abc` unverified.
-- **Open:** fixture password restore and staff disable not yet confirmed. Docs-only PR #48 unmerged. Production, `main`, and production mail untouched.
+- **Cleanup 20:27:** temporary staff account disabled (verified); password restore submitted without visible error (not independently verified).
+- **Open:** docs-only PR #48 unmerged. Production, `main`, and production mail untouched.
 - **Record:** `docs/records/2026-11-16-agent-api-notifications/CLOSEOUT-20261116-2026.md`.
 
 ## Previous state — 2026-11-16 production release (operationally activated)
