@@ -11,7 +11,7 @@
 | `2a270e599e1f596aa6e383607ba1429fdb9b6f09` | Reviewed + deployed official-staging CD. Live Worker version `3e027a63` @100% / `6cb6b664`. |
 | `bc533c7a24fb3ad746ba9dc9c206bd777e31af86` | PR #42 docs closeout. Not deployed. Preserved as parent of this branch. |
 | `38301a23a34962e3fc255a274ef7fc4cfeb84d22` | Prior PR #44 head. Independent review HOLD (B1–B3). Not promoted. |
-| This branch | Source candidate only. Not pushed to `official-staging`/`main`. Not activated. |
+| `dca860c59b03c0407293f087a158a855b04c60df` | Mika source PASS (B1–B3 closed). Artifact packet: `docs/records/2026-11-16-staging-cache-readiness/ARTIFACT-dca860c.md`. Not promoted. |
 
 `main` remains `037b93ad`. Production Worker `71a66a99` / `f3169afb` untouched.
 
@@ -48,6 +48,8 @@ Email isolation therefore **must not** key off `ENVIRONMENT`. Fail-closed is the
 ## Tests done vs untested
 
 **Done (local):** lint; typecheck 0 errors (6 existing hints); `pnpm test` 259; overlay guard; staging-URL production build emitted `/index.html` and wrapped `dist/server/entry.mjs` with `createWorkerFetch` before `astro.fetch`. Coverage includes: adapter dispatch order still asset-before-render; ungated adapter returns marketing for admin `/` and `/index.html` when that asset exists; wrapped entry redirects those paths and preserves public HTML + hashed assets; notification-level dummy-key negatives for missing/malformed/staging workers.dev with no `Resend` construct; smoke negatives for external/wrong-path/non-redirect Locations.
+
+**Artifact (this increment):** existing staging-URL `dist` + local Wrangler 4.132.0 `--dry-run` bundle of overlay `main`. Dedicated-admin `/` and `/index.html` 302 `/login` with **no** `ASSETS.fetch`; public `/` and `/index.html` 200 byte-match built `index.html` (`69edbe4e…`, 31184 bytes). Full files outside git: `/opt/cursor/artifacts/kaiyue_dca860c_entry_artifact_20261116/`. Compact report: `ARTIFACT-dca860c.md`.
 
 **Not done / parent:** live cache-miss of admin `/` after this SHA is promoted; authorized purge of admin `/` and `/index.html`; authenticated staff UAT (session, revocation, Users, profile password); real inbox delivery; production admin attach; D1 query; merge to `main`.
 

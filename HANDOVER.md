@@ -2,16 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 staging cache HOLD correction
+## Current state — 2026-11-16 `dca860c` artifact packet
 
 - **task_id:** `kaiyue-production-readiness-20261116`
-- **Writer:** same PR #44 / `cursor/staging-cache-readiness-a72c`. No new writer. PR #42 / `bc533c7` docs preserved.
-- **Live:** still `2a270e59` / version `3e027a63` @100% / `6cb6b664`. `main` `037b93`. Prod `71a66a99` / `f3169afb`. Prior head `38301a23` HOLD, not promoted.
-- **Root mechanism:** boolean `run_worker_first` enters the Worker; `@astrojs/cloudflare` can still `ASSETS.fetch` prerendered `/` and `/index.html` before middleware. HIT evidence is the live symptom, not proof of origin miss, and not the B1 basis.
-- **Source:** wrap `dist/server/entry.mjs` with `createWorkerFetch` before adapter fallback; mail fail-closed except explicit production `PUBLIC_SITE_URL`; smoke requires expected origin + exact `/login` + redirect status. `ENVIRONMENT=production` **kept**.
-- **Checked:** lint; typecheck 0 errors (6 hints); 259 tests; overlay guard; staging-URL build wraps `dist/server/entry.mjs`. Not live-miss, not purge, not auth UAT.
-- **Record:** `docs/records/2026-11-16-staging-cache-readiness.md`. Ops evidence SHA256 `e324bae0bfb3636aaf4d71ddad3546dfe8b6fff0ec7517aad8400e8fe606c580`.
-- **Do not:** push `official-staging`/`main`, purge, deploy, revoke tokens, attach production admin. Wait for parent re-review / staging release.
+- **Writer:** same PR #44 / `cursor/staging-cache-readiness-a72c`. No new writer. Mika source PASS of `dca860c`. Functional code unchanged in this increment.
+- **Live:** still `2a270e59` / version `3e027a63` @100% / `6cb6b664`. `main` `037b93`. Prod `71a66a99` / `f3169afb`.
+- **Artifact:** overlay `main` → `dist/server/entry.mjs` wrap → generated `astro-entry.mjs` `handle` → Wrangler dry-run `entry.js`. Admin `/` and `/index.html` 302 `/login` with no `ASSETS.fetch`; public `/` 200 = built `index.html` `69edbe4e…` (31184).
+- **Files:** compact `docs/records/2026-11-16-staging-cache-readiness/ARTIFACT-dca860c.md`. Generated copies `/opt/cursor/artifacts/kaiyue_dca860c_entry_artifact_20261116/` (not git).
+- **Do not:** push `official-staging`/`main`, purge, deploy. Wait for parent artifact inspection / staging release.
 
 ## Current state — 2026-11-16 official staging CI/CD completed (`2a270e59` deployed)
 

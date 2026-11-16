@@ -49,6 +49,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 29. [2026-11-15 super-admin user management (source only)](records/2026-11-15-super-admin-user-management.md)
 30. [2026-11-16 official staging CI/CD (completed on `2a270e59`)](records/2026-11-16-official-staging-cicd.md)
 31. [2026-11-16 staging cache + production-readiness source](records/2026-11-16-staging-cache-readiness.md)
+32. [2026-11-16 `dca860c` overlay-main / Wrangler-bundle artifact](records/2026-11-16-staging-cache-readiness/ARTIFACT-dca860c.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
