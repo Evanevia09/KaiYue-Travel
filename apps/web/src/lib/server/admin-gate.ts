@@ -210,8 +210,10 @@ export function hostNavigationAction(
 /**
  * Historical path array (live `2a270e59` / version 14). Cloudflare still served
  * prerendered `index.html` from a host-agnostic asset-edge HIT for `/` even with
- * this list. Do not deploy it again; boolean `true` is the durable Worker-first
- * setting. Hashed assets remain pass-through in middleware after the Worker runs.
+ * this list. Do not deploy it again. Boolean `true` is required to enter the
+ * Worker, but `@astrojs/cloudflare` can still `ASSETS.fetch` prerendered root
+ * before middleware. The durable admin `/` / `/index.html` gate is
+ * `createWorkerFetch` on the Wrangler entry. Hashed assets remain pass-through.
  */
 export const INSUFFICIENT_HTML_WORKER_FIRST_PATHS = [
   "/*",
@@ -220,8 +222,13 @@ export const INSUFFICIENT_HTML_WORKER_FIRST_PATHS = [
   "!/favicon.ico",
 ] as const;
 
-/** Always run the Worker before assets so admin-host HTML cannot skip the gate. */
+/** Enter the Worker before platform asset-first; not sufficient by itself. */
 export const HTML_RUN_WORKER_FIRST = true as const;
+
+/** Canonical production site identity that may send Resend mail. */
+export const PRODUCTION_NOTIFICATION_HOSTS = ["kaiyuemacau.com", "www.kaiyuemacau.com"] as const;
+
+const productionNotificationHosts = new Set<string>(PRODUCTION_NOTIFICATION_HOSTS);
 
 export const DEDICATED_ADMIN_CACHE_CONTROL = "private, no-store, no-cache, must-revalidate";
 
@@ -259,17 +266,25 @@ export function applyHostIsolationHeaders(
   }
 }
 
-export function stagingNotificationsFailClosed(env: Pick<AppEnv, "PUBLIC_SITE_URL">): boolean {
+export function productionNotificationsAllowed(env: Pick<AppEnv, "PUBLIC_SITE_URL">): boolean {
   const raw = (env.PUBLIC_SITE_URL ?? "").trim();
   if (!raw) {
     return false;
   }
   try {
-    const host = new URL(raw).hostname.toLowerCase();
-    return host === STAGING_MARKETING_HOST || host === STAGING_ADMIN_HOST;
+    const url = new URL(raw);
+    if (url.protocol !== "https:") {
+      return false;
+    }
+    return productionNotificationHosts.has(url.hostname.toLowerCase());
   } catch {
     return false;
   }
+}
+
+/** Skip Resend unless PUBLIC_SITE_URL is an explicit verified production site. */
+export function stagingNotificationsFailClosed(env: Pick<AppEnv, "PUBLIC_SITE_URL">): boolean {
+  return !productionNotificationsAllowed(env);
 }
 
 export function passwordAdminAllowed(

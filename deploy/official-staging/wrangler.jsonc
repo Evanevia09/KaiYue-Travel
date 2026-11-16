@@ -1,7 +1,7 @@
 // Official staging upload overlay. Generated from deploy/official-staging/constants.json.
 // Do not upload git wrangler.jsonc. keep_vars false. Secrets omitted (Worker-only).
-// Worker-first boolean true so admin-host HTML cannot skip the gate.
-// This file does not deploy traffic by itself.
+// Worker-first boolean true enters the Worker; wrap-worker-entry gates admin HTML
+// before adapter ASSETS.fetch. This file does not deploy traffic by itself.
 {
   "name": "kaiyue-travel-staging",
   "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",

@@ -4,8 +4,8 @@ import { OVERLAY_PATH, fail, loadConstants } from "./official-staging-lib.mjs";
 
 const HEADER = `// Official staging upload overlay. Generated from deploy/official-staging/constants.json.
 // Do not upload git wrangler.jsonc. keep_vars false. Secrets omitted (Worker-only).
-// Worker-first boolean true so admin-host HTML cannot skip the gate.
-// This file does not deploy traffic by itself.
+// Worker-first boolean true enters the Worker; wrap-worker-entry gates admin HTML
+// before adapter ASSETS.fetch. This file does not deploy traffic by itself.
 `;
 
 export function renderOverlay(constants) {

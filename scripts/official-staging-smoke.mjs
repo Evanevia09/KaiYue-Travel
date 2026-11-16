@@ -19,6 +19,7 @@ const result = evaluateOfficialStagingSmoke({
   publicLogin: await get(`${publicSite}/login`),
   adminLogin: await get(constants.admin_login_url),
   adminRoot: await get(`${adminSite}/`),
+  expectedAdminOrigin: adminSite,
 });
 
 if (result) {

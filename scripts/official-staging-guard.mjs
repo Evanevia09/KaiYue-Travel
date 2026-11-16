@@ -51,6 +51,14 @@ check(
 );
 check(overlay.vars?.DEV_ADMIN_BYPASS === "false", "overlay DEV_ADMIN_BYPASS must be false");
 check(overlay.main === constants.overlay_main, "overlay main must be Astro server entry");
+{
+  const webPackage = JSON.parse(readFileSync(join(REPO_ROOT, "apps/web/package.json"), "utf8"));
+  check(
+    typeof webPackage.scripts?.build === "string" &&
+      webPackage.scripts.build.includes("wrap-worker-entry.mjs"),
+    "web build must wrap Worker entry before adapter asset fallback",
+  );
+}
 check(overlay.assets?.run_worker_first === true, "overlay run_worker_first must be true");
 check(constants.html_run_worker_first === true, "constants html_run_worker_first must be true");
 check(

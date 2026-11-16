@@ -115,6 +115,9 @@ describe("official staging CI/CD source", () => {
     expect(overlay.account_id).toBe("33ecc75158a1cdd23ba1a62eb70c5103");
     expect(overlay.keep_vars).toBe(false);
     expect(overlay.main).toContain("apps/web/dist/server/entry.mjs");
+    expect(
+      JSON.parse(readFileSync(join(repoRoot, "apps/web/package.json"), "utf8")).scripts.build,
+    ).toContain("wrap-worker-entry.mjs");
     expect(overlay.d1_databases[0]?.database_id).toBe("043cd0ff-a1e6-4b5e-98c1-968c286e0c70");
     expect(overlay.r2_buckets[0]?.bucket_name).toBe("kaiyue-offers-staging");
     expect(overlay.assets.run_worker_first).toBe(true);
@@ -829,13 +832,18 @@ describe("official staging HTTP smoke contract", () => {
   const publicHome = { status: 200, body: "marketing", location: "" };
   const publicLogin = { status: 403, body: "FORBIDDEN", location: "" };
   const adminLogin = { status: 200, body: "Admin sign in", location: "" };
+  const expectedAdminOrigin = "https://admin-staging.kaiyuemacau.com";
+  const passing = {
+    publicHome,
+    publicLogin,
+    adminLogin,
+    expectedAdminOrigin,
+  };
 
   it("fails when admin-staging / is cached marketing HTML", () => {
     expect(
       evaluateOfficialStagingSmoke({
-        publicHome,
-        publicLogin,
-        adminLogin,
+        ...passing,
         adminRoot: {
           status: 200,
           body: "Private chauffeur across the Greater Bay Area",
@@ -845,14 +853,38 @@ describe("official staging HTTP smoke contract", () => {
     ).toMatch(/admin-staging \//);
   });
 
-  it("passes only when admin-staging / redirects to login without marketing HTML", () => {
+  it("passes only when admin-staging / redirects to that origin's exact /login", () => {
     expect(
       evaluateOfficialStagingSmoke({
-        publicHome,
-        publicLogin,
-        adminLogin,
+        ...passing,
         adminRoot: { status: 302, body: "", location: "/login" },
       }),
     ).toBeNull();
+    expect(
+      evaluateOfficialStagingSmoke({
+        ...passing,
+        adminRoot: {
+          status: 302,
+          body: "",
+          location: "https://admin-staging.kaiyuemacau.com/login",
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects external-host, protocol-relative, wrong-path, and non-redirect login Locations", () => {
+    const negatives = [
+      { status: 302, body: "", location: "https://unrelated.example/login" },
+      { status: 302, body: "", location: "//unrelated.example/login" },
+      { status: 302, body: "", location: "/wrong/login" },
+      { status: 200, body: "", location: "/login" },
+      { status: 302, body: "", location: "" },
+    ];
+    for (const adminRoot of negatives) {
+      expect(
+        evaluateOfficialStagingSmoke({ ...passing, adminRoot }),
+        `${adminRoot.status} ${adminRoot.location}`,
+      ).toMatch(/admin-staging \//);
+    }
   });
 });
