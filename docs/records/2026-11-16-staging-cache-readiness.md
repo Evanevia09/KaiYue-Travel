@@ -11,7 +11,7 @@
 | `2a270e599e1f596aa6e383607ba1429fdb9b6f09` | Reviewed + deployed official-staging CD. Live Worker version `3e027a63` @100% / `6cb6b664`. |
 | `bc533c7a24fb3ad746ba9dc9c206bd777e31af86` | PR #42 docs closeout. Not deployed. Preserved as parent of this branch. |
 | `38301a23a34962e3fc255a274ef7fc4cfeb84d22` | Prior PR #44 head. Independent review HOLD (B1–B3). Not promoted. |
-| `dca860c59b03c0407293f087a158a855b04c60df` | Mika source PASS (B1–B3 closed). Artifact packet: `docs/records/2026-11-16-staging-cache-readiness/ARTIFACT-dca860c.md`. Not promoted. |
+| `dca860c59b03c0407293f087a158a855b04c60df` | Mika source PASS (B1–B3 closed). Artifact packet: `ARTIFACT-dca860c.md`. **Staged** 17:47:46 FF / CD 43842973590 SUCCESS 17:50:01; Worker version 15 `c8986696` @100% / `21ff0a46`. Closeout: `CLOSEOUT-20261116-1757.md`. |
 
 `main` remains `037b93ad`. Production Worker `71a66a99` / `f3169afb` untouched.
 
@@ -53,10 +53,14 @@ Email isolation therefore **must not** key off `ENVIRONMENT`. Fail-closed is the
 
 **Not done / parent:** live cache-miss of admin `/` after this SHA is promoted; authorized purge of admin `/` and `/index.html`; authenticated staff UAT (session, revocation, Users, profile password); real inbox delivery; production admin attach; D1 query; merge to `main`.
 
+## Staged result (parent, 17:50–17:57)
+
+On the deployed Worker, admin-staging `/` and `/index.html` return a 302 to exact `/login` with `no-store` and `Vary: Host`, without a purge. All independent HTTP checks passed. Browser checks passed on desktop and 390 px, with no JS/page/mixed-content errors. Owner-supplied staging login verified as `super_admin` (Users nav); no reset or session writes. Details: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
+
 ## Remaining blockers (not this writer)
 
-- Parent: Mika re-review of this corrected head, then exact reviewed SHA to `official-staging`, then granted purge if HIT remains, then browser QA of admin `/` on a miss or with the new no-store policy.
-- Parent: test identities for full auth UAT.
+- Done: Mika re-review, promotion of exact `dca860c` to `official-staging`, CD, HTTP and browser QA of admin `/`. No purge was needed.
+- Parent: full authenticated staff UAT (staff role, session revocation, Users create/reset, profile password).
 - Parent: Resend test inbox only if delivery is later authorized. Do not revoke original/v2 tokens.
 - Operator bootstrap / live D1 schema remain out-of-band (CD still must not query D1).
 - Customer create-time email is still staff-only in source; not invented here.

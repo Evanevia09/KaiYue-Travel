@@ -2,7 +2,16 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 `dca860c` artifact packet
+## Current state — 2026-11-16 `dca860c` staged, admin root fixed (closeout)
+
+- **task_id:** `kaiyue-production-readiness-20261116`
+- **Staged:** exact `dca860c59b03c0407293f087a158a855b04c60df`. FF `official-staging` 17:47:46, CD run [43842973590](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43842973590) SUCCESS 17:50:01. Worker version 15 `c8986696-960f-4bd6-944f-9bd1006153d9` @100% / deployment `21ff0a46-f43d-4b39-b934-98156c72b115`.
+- **Verified (parent):** independent HTTP PASS, with admin-staging `/` and `/index.html` 302 to exact `/login`, `no-store`, `Vary: Host`, and no purge. Browser 17:57 PASS on desktop and 390 px with no JS/page/mixed-content errors. Owner-supplied staging login verified (`super_admin`, Users nav). No reset or session writes. The prepared reset packet was discarded unexecuted.
+- **Open:** full staff/session/revocation UAT; inbox delivery only if authorized. Not `user_accepted`, not production `released`.
+- **Unchanged:** prod `71a66a99` / `f3169afb`, `main` `037b93ad`. This docs commit is not deployed.
+- **Record:** `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
+
+## Previous state — 2026-11-16 `dca860c` artifact packet
 
 - **task_id:** `kaiyue-production-readiness-20261116`
 - **Writer:** same PR #44 / `cursor/staging-cache-readiness-a72c`. No new writer. Mika source PASS of `dca860c`. Functional code unchanged in this increment.
