@@ -1,6 +1,13 @@
 {
+  // Local dev / getPlatformProxy only. Astro build copies this into
+  // dist/server/wrangler.json and a .wrangler/deploy redirect, so it must stay
+  // non-deployable: disabled name, placeholder account, local-only D1/R2 ids.
+  // Real deploys use deploy/official-staging or deploy/production overlays.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kaiyue-travel",
+  "name": "kaiyue-local-dev-disabled",
+  "account_id": "00000000000000000000000000000000",
+  "workers_dev": false,
+  "preview_urls": false,
   "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -12,15 +19,15 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "kaiyue-travel-staging",
-      "database_id": "069aa442-30c9-4454-ab3a-26eb372b3a1f",
+      "database_name": "kaiyue-local-dev",
+      "database_id": "00000000-0000-4000-8000-000000000000",
       "migrations_dir": "../../migrations",
     },
   ],
   "r2_buckets": [
     {
       "binding": "OFFERS_BUCKET",
-      "bucket_name": "kaiyue-offers-staging",
+      "bucket_name": "kaiyue-offers-local-dev",
     },
   ],
   "vars": {

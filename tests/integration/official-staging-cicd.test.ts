@@ -130,8 +130,9 @@ describe("official staging CI/CD source", () => {
     expect(overlayText).not.toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
   });
 
-  it("leaves git wrangler.jsonc on the obsolete D1 and uploads through the overlay script", () => {
-    expect(gitWrangler).toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
+  it("keeps git wrangler.jsonc fail-closed and uploads through the overlay script", () => {
+    expect(gitWrangler).toContain('"name": "kaiyue-root-config-disabled"');
+    expect(gitWrangler).not.toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
     expect(gitWrangler).not.toContain("043cd0ff-a1e6-4b5e-98c1-968c286e0c70");
     const upload = readFileSync(join(repoRoot, "scripts/official-staging-upload.mjs"), "utf8");
     expect(upload).toContain("OVERLAY_PATH");

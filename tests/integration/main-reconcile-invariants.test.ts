@@ -54,7 +54,7 @@ describe("main reconciliation invariants", () => {
   it("does not encode staging 6-char UAT in git wrangler", () => {
     const wrangler = readFileSync(join(repoRoot, "wrangler.jsonc"), "utf8");
     expect(wrangler).not.toContain("ADMIN_STAGING_TEST_PASSWORD_MIN");
-    expect(wrangler).toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
+    expect(wrangler).not.toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
   });
 
   it("does not add a pretend DB role column on top of 0004", () => {

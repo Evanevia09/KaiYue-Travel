@@ -85,12 +85,16 @@ check(
 );
 
 check(
-  gitWrangler.name === "kaiyue-travel",
-  "git wrangler.jsonc remains the non-upload Worker name",
+  gitWrangler.name === "kaiyue-root-config-disabled" &&
+    gitWrangler.account_id === "00000000000000000000000000000000",
+  "git wrangler.jsonc must stay the fail-closed root config (disabled name, placeholder account)",
 );
 check(
-  gitWrangler.d1_databases?.[0]?.database_id === constants.obsolete_d1,
-  "git wrangler.jsonc still binds obsolete D1 and must never be uploaded",
+  !gitWrangler.d1_databases &&
+    !gitWrangler.r2_buckets &&
+    !gitWrangler.vars &&
+    !gitWrangler.previews,
+  "git wrangler.jsonc must not bind D1/R2, set vars, or define previews",
 );
 
 check(

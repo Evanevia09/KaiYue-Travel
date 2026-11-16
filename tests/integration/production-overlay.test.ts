@@ -59,8 +59,8 @@ describe("production overlay candidate", () => {
     expect(overlayConfig.assets.run_worker_first).toBe(true);
   });
 
-  it("leaves git wrangler.jsonc on the live source blob and does not add staging D1", () => {
-    expect(gitWrangler).toContain(obsoleteD1);
+  it("keeps git wrangler.jsonc fail-closed without any D1 binding", () => {
+    expect(gitWrangler).not.toContain(obsoleteD1);
     expect(gitWrangler).not.toContain(stagingD1);
     expect(gitWrangler).not.toContain(productionD1);
     expect(gitWrangler).not.toContain("ADMIN_STAGING_TEST_PASSWORD_MIN");

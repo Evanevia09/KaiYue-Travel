@@ -1,81 +1,27 @@
 {
-  // Workers Builds for this repository run from the repo root and currently
-  // call `wrangler versions upload` (or `wrangler preview`) against THIS file.
-  // Keep the Cloudflare dashboard root directory at the repository root.
-  // Changing it to apps/web is not required and would be a dashboard change.
+  // Fail-closed repository-root config. It must never deploy anywhere real.
   //
-  // `versions upload` uses this top-level config unless `--env` or
-  // CLOUDFLARE_ENV is set. It does not read env.preview by itself.
-  // `wrangler preview` uses the `previews` block and does not inherit
-  // top-level D1/R2 bindings.
+  // Deploys use only the named, guarded overlays:
+  //   deploy/official-staging/wrangler.jsonc  (official-staging CI/CD)
+  //   deploy/production/wrangler.jsonc        (reviewed production release)
   //
-  // Both production and preview on THIS branch bind staging D1 069aa442 and
-  // R2 kaiyue-offers-staging. Do not merge this file to main.
-  //
-  // Astro writes the Worker to apps/web/dist/server/entry.mjs and static
-  // files to apps/web/dist/client. The old dist/_worker.js path is gone.
+  // This file has a non-production Worker name, a placeholder account id that
+  // no Cloudflare token can write to, no D1/R2 bindings, no vars, and no
+  // previews block. A bare `wrangler deploy`, `wrangler versions upload`, or a
+  // leftover Workers Builds connection against the repo root therefore cannot
+  // update `kaiyue-travel` or bind any retired, staging, or production data.
+  // `--dry-run` bundling from Astro dist still works.
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "kaiyue-travel",
+  "name": "kaiyue-root-config-disabled",
+  "account_id": "00000000000000000000000000000000",
   "main": "./apps/web/dist/server/entry.mjs",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
   "assets": {
     "directory": "./apps/web/dist/client",
     "binding": "ASSETS",
-    // HTML runs the Worker first so dedicated admin hosts can redirect `/`
-    // to `/login`. Hashed assets stay asset-first.
-    "run_worker_first": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"],
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "kaiyue-travel-staging",
-      "database_id": "069aa442-30c9-4454-ab3a-26eb372b3a1f",
-      "migrations_dir": "./migrations",
-    },
-  ],
-  "r2_buckets": [
-    {
-      "binding": "OFFERS_BUCKET",
-      "bucket_name": "kaiyue-offers-staging",
-    },
-  ],
-  "vars": {
-    "ENVIRONMENT": "production",
-    "PUBLIC_SITE_URL": "https://kaiyue-travel.scalingsmb.workers.dev",
-    "BUSINESS_TIMEZONE": "Asia/Macau",
-    "BOOKING_NOTICE_HOURS": "24",
-    "WHATSAPP_NUMBER": "+85328338882",
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
-    "DEV_ADMIN_BYPASS": "false",
-    "ADMIN_EMAILS": "admin-test@kaiyue.test",
-  },
-  "previews": {
-    "vars": {
-      "ENVIRONMENT": "preview",
-      "PUBLIC_SITE_URL": "https://kaiyue-travel.scalingsmb.workers.dev",
-      "BUSINESS_TIMEZONE": "Asia/Macau",
-      "BOOKING_NOTICE_HOURS": "24",
-      "WHATSAPP_NUMBER": "+85328338882",
-      "ACCESS_TEAM_DOMAIN": "",
-      "ACCESS_AUD": "",
-      "DEV_ADMIN_BYPASS": "false",
-      "ADMIN_EMAILS": "admin-test@kaiyue.test",
-    },
-    "d1_databases": [
-      {
-        "binding": "DB",
-        "database_name": "kaiyue-travel-staging",
-        "database_id": "069aa442-30c9-4454-ab3a-26eb372b3a1f",
-        "migrations_dir": "./migrations",
-      },
-    ],
-    "r2_buckets": [
-      {
-        "binding": "OFFERS_BUCKET",
-        "bucket_name": "kaiyue-offers-staging",
-      },
-    ],
+    "run_worker_first": true,
   },
 }
