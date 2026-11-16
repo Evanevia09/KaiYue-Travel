@@ -1,6 +1,23 @@
 # 2026-11-16 — Production operator release candidate (review packet)
 
-Status: `probe_complete` for source and local evidence. Not reviewed, not staged, not deployed, not `user_accepted`, not `released`. Main and production remain on HOLD until the exact candidate review passes.
+Status at review time: `probe_complete` for source and local evidence. The closeout below supersedes that status.
+
+## Production release closeout (as of 2026-11-16 18:58 Asia/Macau)
+
+- **task_id:** `kaiyue-production-release-20261116`
+- **Status:** operationally activated in production by operations under owner authority. The owner waived further tests, UAT and review waits at 18:46. This is not app sign-off or project acceptance (`user_accepted` not claimed).
+- **Git:** PR #45 fast-forwarded `main` to `ff119f2c18f075fe5103821d6541625d49986b38` at 18:49:19. `main` and `official-staging` both point to `ff119f2c`. Default branch (`official-staging`) and ruleset unchanged.
+- **Worker:** account `33ecc`, `kaiyue-travel`, version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100%, deployment `494bc151-3081-4a26-9d1c-40428e0025e3`, since 18:54:51.
+  - Package `kaiyue-production-deploy-696c2bd8.zip`, SHA-256 `d3aae30500a8632e9446ab54c4d34e8be7615905b85fe396070a6d00738d18a9`.
+  - Entry `ab6e34738ee472e0afc72395f328f496a77cc359cd098a166359fb44005b1077`.
+  - Production overlay only (`keep_vars` false).
+- **Production D1 `06cf879d`:** schema `0001`–`0010`. One user, one credential, one enabled `super_admin` operator, zero sessions. The owner confirmed the configured primary as the first super admin. Their password was never exposed and is not recorded.
+- **Admin host:** `admin.kaiyuemacau.com` attached and enabled (domain `e5869a5b…c021c2`, certificate `dfef5bc6-e204-4f5b-b8e8-f89fdf1df1a0`, proxied AAAA record `9816cb16…7af7ed`).
+- **Config:** mail off (`NOTIFICATIONS_ENABLED=false`). `BETTER_AUTH_SECRET` present (name only); Access secrets absent. Staging untouched by the release, and public routes unchanged.
+- **Staging UAT on the new runtime (parent, finished 18:48):** profile password change, reset and session revocation PASS. Fixture `55082ac3` was restored to its original password and left disabled as staff; the owner account was untouched. Direct Users 403 was not rechecked on the new runtime.
+- **Not verified:** production login, production admin UI, production security behaviour, production mail. None are claimed.
+- **Rollback:** previous version `71a66a99` (deployment `f3169afb`), plus detaching the admin hostname. Never restore D1 automatically; `0009`/`0010` are additive.
+
 
 ## Exact refs
 
