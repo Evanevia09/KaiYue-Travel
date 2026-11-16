@@ -39,7 +39,7 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 | Find an inquiry | `GET /api/v1/admin/contacts?q=<text>` (adds company) |
 | Changes since the last poll | `...?updatedSince=2026-11-16T10:00:00Z` (time zone required) |
 
-`q` is a case-insensitive substring match; `%` and `_` are treated literally. Results are paged with `limit` (1-50) and the opaque `nextCursor`. Bookings are sorted by pickup time; inquiries are newest first with a tie-break on id, so pages never repeat or skip a record. Invalid parameters return `422 VALIDATION_FAILED`.
+`q` is a case-insensitive substring match; `%` and `_` are treated literally. Results are paged with `limit` (clamped to 1-50, never rejected) and the opaque `nextCursor`. Bookings are sorted by pickup time; inquiries are newest first with a tie-break on id, so pages never repeat or skip a record. Invalid parameters return `422 VALIDATION_FAILED`.
 
 ## Endpoints and responses
 
@@ -65,6 +65,7 @@ Staff-entered bookings use `communicationChannel: "admin"`, `sourceTrigger: "adm
 ## Changing records
 
 - Booking status: enquiry → assigned or cancelled; assigned → completed or cancelled. Inquiry status: new → replied or closed; replied → closed. Other moves return `409 INVALID_TRANSITION`.
+- A booking edit is a full replacement: send every journey and contact field from the latest read with your changes applied. Omitted contact fields, destination, return time, and message are cleared. Edit errors return a message without per-field details.
 - Booking edits and assignment require `expectedUpdatedAt` from the latest read. A `409 CONFLICT` means someone else changed the record: re-read it, then decide. Never retry a 409 blindly.
 - Assignment takes both `driverId` and `vehicleId`, or both `null`. Both must be active and the vehicle must seat `passengerCount`. Assignment does not change status.
 - Every change, including driver and vehicle changes, is audited under the agent's account.

@@ -252,7 +252,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 ### 2026-11-16 — Agent API guide completion (docs only)
 
 - OpenAPI and `docs/13-agent-api.md` now cover admin booking create (`admin` channel, `Idempotency-Key`), drivers, vehicles, actual response wrappers (`{ booking }`, `{ contact }`, `{ item }`, detail `{ booking|contact, notes, events }`), the recommended direct-HTTP client, and known limitations (no `expectedUpdatedAt` on status/notes/inventory; public endpoint accepts `admin` channel; cookie session only). No runtime change; reviewed staging runtime `a1768092` unchanged.
-- Local only: OpenAPI-path contract test and Prettier pass. Staging booking-management API results pending the PM-run synthetic script; not `task_verified`.
+- Local only: OpenAPI-path contract test and Prettier pass.
+- PM full staging run at 20:19 Asia/Macau: 38 pass, 6 fail. All six failures trace to the test harness: edit sent a partial body (edit is a full replacement, so it returned 422 and the assignment cases that followed used wrong tokens), and the harness expected `limit=0` to return 422 when the code clamps it. Status lifecycle, assignment audit, idempotency, role and host denials, and cleanup passed (`KY-FGLB4M3S` completed, `KY-46EJPEQ2` cancelled, `INQ-2MJ34RQF` closed, synthetic driver and vehicle deactivated, sign-out 401). The docs now state full-replacement edits and `limit` clamping. A focused re-test of edit and assignment concurrency is pending; not `task_verified`.
 
 ### 2026-11-16 — Agent API search + native Cloudflare email (source + local evidence, staging only)
 
