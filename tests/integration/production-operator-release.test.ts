@@ -54,6 +54,7 @@ describe("production overlay", () => {
     assets: { directory: string; run_worker_first: unknown };
     d1_databases: Array<{ database_id: string; database_name: string }>;
     r2_buckets: Array<{ bucket_name: string }>;
+    send_email?: unknown;
     vars: Record<string, string>;
   };
 
@@ -84,6 +85,7 @@ describe("production overlay", () => {
       DEV_ADMIN_BYPASS: "false",
       NOTIFICATIONS_ENABLED: "false",
     });
+    expect(config.send_email).toBeUndefined();
     for (const forbidden of [stagingD1, obsoleteD1, "@", "kaiyue-offers-staging"]) {
       expect(JSON.stringify(config), forbidden).not.toContain(forbidden);
     }

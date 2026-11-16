@@ -37,6 +37,13 @@
   "overlay_assets": "../../apps/web/dist/client",
   "overlay_migrations": "../../migrations",
   "required_worker_secret_names": ["BETTER_AUTH_SECRET"],
+  "approved_staging_mail_recipients": ["scalingsmb@gmail.com"],
+  "approved_staging_mail_senders": ["bookings@notify.kaiyuemacau.com"],
+  "send_email": {
+    "name": "EMAIL",
+    "allowed_destination_addresses": ["scalingsmb@gmail.com"],
+    "allowed_sender_addresses": ["bookings@notify.kaiyuemacau.com"]
+  },
   "required_schema_migrations": ["0009_admin_operator.sql", "0010_admin_operator_last_super.sql"],
   "required_schema_tables": ["admin_operator", "operator_audit_events"],
   "github_secret_names": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
@@ -56,6 +63,11 @@
     "WHATSAPP_NUMBER": "+85328338882",
     "DEV_ADMIN_BYPASS": "false",
     "ADMIN_STAGING_TEST_PASSWORD_MIN": "6",
-    "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com"
+    "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com",
+    "NOTIFICATIONS_ENABLED": "false",
+    "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
+    "NOTIFY_FROM_NAME": "Kai Yue Travel",
+    "NOTIFY_STAFF_TO": "scalingsmb@gmail.com",
+    "NOTIFY_ALLOWED_RECIPIENTS": "scalingsmb@gmail.com"
   }
 }

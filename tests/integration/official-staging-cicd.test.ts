@@ -94,6 +94,13 @@ type StagingConstants = {
   compatibility_date: string;
   html_run_worker_first: boolean;
   admin_site_url: string;
+  approved_staging_mail_recipients: string[];
+  approved_staging_mail_senders: string[];
+  send_email: {
+    name: string;
+    allowed_destination_addresses: string[];
+    allowed_sender_addresses: string[];
+  };
   vars: Record<string, string>;
 };
 
@@ -398,9 +405,81 @@ type RecordedVersion = {
   };
 };
 
+const MAIL_VAR_NAMES = [
+  "NOTIFICATIONS_ENABLED",
+  "NOTIFY_FROM_EMAIL",
+  "NOTIFY_FROM_NAME",
+  "NOTIFY_STAFF_TO",
+  "NOTIFY_ALLOWED_RECIPIENTS",
+] as const;
+
+/** The recorded 72e580d0 view predates the EMAIL binding; add its rows in the same shape. */
 function validCandidate(): RecordedVersion {
-  return structuredClone(JSON.parse(readFileSync(recordedVersionPath, "utf8")) as RecordedVersion);
+  const version = structuredClone(
+    JSON.parse(readFileSync(recordedVersionPath, "utf8")) as RecordedVersion,
+  );
+  for (const name of MAIL_VAR_NAMES) {
+    version.resources.bindings.push({ type: "plain_text", name, text: constants.vars[name] });
+  }
+  version.resources.bindings.push({ type: "send_email", ...constants.send_email });
+  return version;
 }
+
+describe("official staging native email lock", () => {
+  it("keeps mail off and locked to the approved staging inbox in committed config", () => {
+    expect(constants.vars.NOTIFICATIONS_ENABLED).toBe("false");
+    expect(constants.vars.NOTIFY_ALLOWED_RECIPIENTS).toBe("scalingsmb@gmail.com");
+    expect(constants.vars.NOTIFY_STAFF_TO).toBe("scalingsmb@gmail.com");
+    expect(constants.vars.NOTIFY_FROM_EMAIL).toBe("bookings@notify.kaiyuemacau.com");
+    expect(constants.send_email).toEqual({
+      name: "EMAIL",
+      allowed_destination_addresses: ["scalingsmb@gmail.com"],
+      allowed_sender_addresses: ["bookings@notify.kaiyuemacau.com"],
+    });
+    expect(Object.keys(constants.vars).some((name) => name.startsWith("RESEND_"))).toBe(false);
+  });
+
+  it("rejects a missing, duplicated, or widened EMAIL binding on the uploaded version", () => {
+    const missing = validCandidate();
+    missing.resources.bindings = missing.resources.bindings.filter(
+      (row) => row.type !== "send_email",
+    );
+    expect(evaluateCandidate(missing, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /send_email binding named EMAIL/,
+    );
+
+    const duplicated = validCandidate();
+    duplicated.resources.bindings.push({ type: "send_email", name: "EMAIL_OPEN" });
+    expect(evaluateCandidate(duplicated, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /send_email/,
+    );
+
+    const widened = validCandidate();
+    const mail = widened.resources.bindings.find((row) => row.type === "send_email")!;
+    mail.allowed_destination_addresses = ["scalingsmb@gmail.com", "staff@kaiyuemacau.com"];
+    expect(evaluateCandidate(widened, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /allowed_destination_addresses/,
+    );
+
+    const fixed = validCandidate();
+    const fixedMail = fixed.resources.bindings.find((row) => row.type === "send_email")!;
+    fixedMail.destination_address = "guest@example.com";
+    expect(evaluateCandidate(fixed, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /destination_address/,
+    );
+  });
+
+  it("rejects a candidate whose recipient lock var differs from the overlay", () => {
+    const version = validCandidate();
+    const lock = version.resources.bindings.find(
+      (row) => row.type === "plain_text" && row.name === "NOTIFY_ALLOWED_RECIPIENTS",
+    )!;
+    lock.text = "";
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /NOTIFY_ALLOWED_RECIPIENTS/,
+    );
+  });
+});
 
 describe("official staging uploaded-version candidate gate", () => {
   it("accepts the recorded versions-view shape with raw_run_worker_first and ASSETS name/type only", () => {

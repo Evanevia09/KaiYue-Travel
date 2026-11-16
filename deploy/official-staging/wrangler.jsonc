@@ -30,6 +30,17 @@
       "bucket_name": "kaiyue-offers-staging"
     }
   ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_destination_addresses": [
+        "scalingsmb@gmail.com"
+      ],
+      "allowed_sender_addresses": [
+        "bookings@notify.kaiyuemacau.com"
+      ]
+    }
+  ],
   "vars": {
     "ENVIRONMENT": "production",
     "PUBLIC_SITE_URL": "https://staging.kaiyuemacau.com",
@@ -38,6 +49,11 @@
     "WHATSAPP_NUMBER": "+85328338882",
     "DEV_ADMIN_BYPASS": "false",
     "ADMIN_STAGING_TEST_PASSWORD_MIN": "6",
-    "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com"
+    "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com",
+    "NOTIFICATIONS_ENABLED": "false",
+    "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
+    "NOTIFY_FROM_NAME": "Kai Yue Travel",
+    "NOTIFY_STAFF_TO": "scalingsmb@gmail.com",
+    "NOTIFY_ALLOWED_RECIPIENTS": "scalingsmb@gmail.com"
   }
 }

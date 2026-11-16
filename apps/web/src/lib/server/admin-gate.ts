@@ -225,7 +225,7 @@ export const INSUFFICIENT_HTML_WORKER_FIRST_PATHS = [
 /** Enter the Worker before platform asset-first; not sufficient by itself. */
 export const HTML_RUN_WORKER_FIRST = true as const;
 
-/** Canonical production site identity that may send Resend mail. */
+/** Canonical production site identity for outbound notification mail. */
 export const PRODUCTION_NOTIFICATION_HOSTS = ["kaiyuemacau.com", "www.kaiyuemacau.com"] as const;
 
 const productionNotificationHosts = new Set<string>(PRODUCTION_NOTIFICATION_HOSTS);
@@ -282,7 +282,7 @@ export function productionNotificationsAllowed(env: Pick<AppEnv, "PUBLIC_SITE_UR
   }
 }
 
-/** Skip Resend unless PUBLIC_SITE_URL is an explicit verified production site. */
+/** True unless PUBLIC_SITE_URL is an explicit verified production site. */
 export function stagingNotificationsFailClosed(env: Pick<AppEnv, "PUBLIC_SITE_URL">): boolean {
   return !productionNotificationsAllowed(env);
 }
