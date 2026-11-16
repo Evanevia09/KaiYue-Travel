@@ -4,10 +4,10 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 
 ## Current state — 2026-11-16 agent API + native email (staging closeout)
 
-- **task_id:** `kaiyue-agent-api-20261116`; **event_id:** `kaiyue-agent-api-20261116-staging-closeout-01` (as of 20:26 Asia/Macau)
+- **task_id:** `kaiyue-agent-api-20261116`; **event_id:** `kaiyue-agent-api-20261116-staging-closeout-01` (as of 20:29 Asia/Macau)
 - **Staged:** `a1768092` (Mika SOURCE/SECURITY PASS; review SHA256 `beaf7d78…024a`). CD [43862899423](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43862899423) SUCCESS, Worker `kaiyue-travel-staging` version `bd19434f` @100%. `EMAIL` locked to `scalingsmb@gmail.com` and `bookings@notify.kaiyuemacau.com`.
 - **Email:** one owner-approved send window, notifications on then off (mail-off version `09464419`). `KY-CUM9XL9D` `sent`; both messages in the inbox (`1a1e4441b96e97ed`, `1a1e4441891056bd`).
-- **API (synthetic, PM-run):** full run 38/44 with 6 harness faults; focused run 21/21 resolves them. Not complete coverage.
+- **API (synthetic, run on the assistant computer):** full run 38/44 with 6 harness faults; focused run 21/21 resolves them. Not complete coverage.
 - **Recommendation:** dedicated staff account with a direct HTTP client (cookie jar, `Origin`, idempotency, `expectedUpdatedAt`, full-replacement edits, `updatedSince` polling).
 - **Residuals:** no concurrency token on status, notes, or inventory; the public endpoint accepts the `admin` channel; inquiry `limit=abc` unverified.
 - **Cleanup 20:27:** temporary staff account disabled (verified); password restore submitted without visible error (not independently verified).
