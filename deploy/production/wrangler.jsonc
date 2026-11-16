@@ -1,0 +1,42 @@
+// Production upload overlay for kaiyue-travel on account 33ecc. Not wired to any workflow.
+// Build first with PUBLIC_SITE_URL=https://kaiyuemacau.com (baked into the client build).
+// Do not upload git wrangler.jsonc. Secrets stay Worker-only and are never listed here.
+// No ACCESS_*, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, ADMIN_STAGING_TEST_PASSWORD_MIN, or
+// TEMP_ADMIN_EXPIRES_AT: live admin admits enabled admin_operator rows only, minimum 12.
+// NOTIFICATIONS_ENABLED stays "false" until delivery is reviewed and validated.
+{
+  "name": "kaiyue-travel",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "main": "../../apps/web/dist/server/entry.mjs",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "keep_vars": false,
+  "assets": {
+    "directory": "../../apps/web/dist/client",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-production",
+      "database_id": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+      "migrations_dir": "../../migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-production",
+    },
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85328338882",
+    "DEV_ADMIN_BYPASS": "false",
+    "NOTIFICATIONS_ENABLED": "false",
+  },
+}
