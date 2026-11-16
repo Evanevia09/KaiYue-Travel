@@ -2,7 +2,18 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 production release (operationally activated)
+## Current state — 2026-11-16 agent API + native email (staging closeout)
+
+- **task_id:** `kaiyue-agent-api-20261116`; **event_id:** `kaiyue-agent-api-20261116-staging-closeout-01` (as of 20:26 Asia/Macau)
+- **Staged:** `a1768092` (Mika SOURCE/SECURITY PASS; review SHA256 `beaf7d78…024a`). CD [43862899423](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43862899423) SUCCESS, Worker `kaiyue-travel-staging` version `bd19434f` @100%. `EMAIL` locked to `scalingsmb@gmail.com` and `bookings@notify.kaiyuemacau.com`.
+- **Email:** one owner-approved send window, notifications on then off (mail-off version `09464419`). `KY-CUM9XL9D` `sent`; both messages in the inbox (`1a1e4441b96e97ed`, `1a1e4441891056bd`).
+- **API (synthetic, PM-run):** full run 38/44 with 6 harness faults; focused run 21/21 resolves them. Not complete coverage.
+- **Recommendation:** dedicated staff account with a direct HTTP client (cookie jar, `Origin`, idempotency, `expectedUpdatedAt`, full-replacement edits, `updatedSince` polling).
+- **Residuals:** no concurrency token on status, notes, or inventory; the public endpoint accepts the `admin` channel; inquiry `limit=abc` unverified.
+- **Open:** fixture password restore and staff disable not yet confirmed. Docs-only PR #48 unmerged. Production, `main`, and production mail untouched.
+- **Record:** `docs/records/2026-11-16-agent-api-notifications/CLOSEOUT-20261116-2026.md`.
+
+## Previous state — 2026-11-16 production release (operationally activated)
 
 - **task_id:** `kaiyue-production-release-20261116` (as of 18:58 Asia/Macau)
 - **Live:** `main` = `official-staging` = `ff119f2c` (PR #45 FF 18:49:19). Worker `kaiyue-travel` version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` since 18:54:51. Entry `ab6e3473…1077`, package `d3aae305…18a9`.
