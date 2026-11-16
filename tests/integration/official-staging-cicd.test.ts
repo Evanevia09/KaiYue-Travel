@@ -15,7 +15,13 @@ import {
   extractRunWorkerFirst,
   versionsViewArgv,
 } from "../../scripts/official-staging-candidate-check.mjs";
-import { wranglerBin } from "../../scripts/official-staging-lib.mjs";
+import {
+  classifyCloudflareAccountId,
+  classifyCloudflareApiToken,
+  prepareWranglerSpawn,
+  wranglerBin,
+  wranglerCredentialError,
+} from "../../scripts/official-staging-lib.mjs";
 import { versionsUploadArgv } from "../../scripts/official-staging-upload.mjs";
 import {
   evaluateSchemaContract,
@@ -644,5 +650,171 @@ describe("official staging pinned Wrangler 4.132.0 command construction", () => 
       overlayPath,
       "--json",
     ]);
+  });
+});
+
+const DUMMY_TOKEN = "DUMMY.CF.TOKEN.NOTREAL_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const DUMMY_FRAGMENTS = [
+  "DUMMY.CF.TOKEN.NOTREAL",
+  "aaaaaaaaaaaaaaaa",
+  "Bearer DUMMY",
+  "Authorization:",
+];
+const CREDENTIALED_SCRIPTS = [
+  "official-staging-upload.mjs",
+  "official-staging-candidate-check.mjs",
+  "official-staging-activate.mjs",
+] as const;
+
+function assertNoSecretFragments(output: string) {
+  for (const fragment of DUMMY_FRAGMENTS) {
+    expect(output).not.toContain(fragment);
+  }
+  expect(output).not.toMatch(/Bearer\s+[A-Za-z0-9._-]{8,}/);
+  expect(output).not.toMatch(/Headers\.set:/);
+}
+
+function childEnv(overrides: Record<string, string | undefined>) {
+  const env: Record<string, string | undefined> = { ...process.env };
+  delete env.CLOUDFLARE_API_TOKEN;
+  delete env.CF_API_TOKEN;
+  delete env.CLOUDFLARE_ACCOUNT_ID;
+  delete env.CLOUDFLARE_API_KEY;
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === undefined) {
+      delete env[key];
+    } else {
+      env[key] = value;
+    }
+  }
+  env.CLOUDFLARE_API_BASE_URL = "http://127.0.0.1:9";
+  env.CF_API_BASE_URL = "http://127.0.0.1:9";
+  env.CLOUDFLARE_BASE_URL = "http://127.0.0.1:9";
+  return env;
+}
+
+function runCredentialedScript(script: string, env: Record<string, string | undefined>) {
+  return spawnSync(process.execPath, [join(repoRoot, "scripts", script)], {
+    encoding: "utf8",
+    cwd: repoRoot,
+    env,
+    timeout: 15000,
+  });
+}
+
+describe("official staging fail-closed Cloudflare credential format gate", () => {
+  it("accepts a clean dummy token and matching overlay account id without spawning", () => {
+    expect(classifyCloudflareApiToken(DUMMY_TOKEN)).toBe("ok");
+    expect(classifyCloudflareAccountId(constants.account_id, constants.account_id)).toBe("ok");
+    const env = {
+      CLOUDFLARE_API_TOKEN: DUMMY_TOKEN,
+      CLOUDFLARE_ACCOUNT_ID: constants.account_id,
+    };
+    expect(wranglerCredentialError(env, constants.account_id)).toBeNull();
+    const prepared = prepareWranglerSpawn(["versions", "upload"], env, constants.account_id);
+    expect(prepared.ok).toBe(true);
+    expect(prepared.error).toBeNull();
+    expect(prepared.command).toBe(process.execPath);
+    expect(prepared.args?.[0]).toBe(wranglerBin());
+    expect(prepared.args?.slice(1)).toEqual(["versions", "upload"]);
+  });
+
+  it("classifies missing, control, non-latin1, quoted, and copy-snippet tokens categorically", () => {
+    expect(classifyCloudflareApiToken(undefined)).toBe("missing");
+    expect(classifyCloudflareApiToken("")).toBe("missing");
+    expect(classifyCloudflareApiToken("   ")).toBe("missing");
+    expect(classifyCloudflareApiToken(`\n${DUMMY_TOKEN}`)).toBe("malformed");
+    expect(
+      classifyCloudflareApiToken(`${DUMMY_TOKEN.slice(0, 20)}\n${DUMMY_TOKEN.slice(20)}`),
+    ).toBe("malformed");
+    expect(classifyCloudflareApiToken(`${DUMMY_TOKEN}\n`)).toBe("malformed");
+    expect(classifyCloudflareApiToken(`${DUMMY_TOKEN}\r\n`)).toBe("malformed");
+    expect(classifyCloudflareApiToken(`${DUMMY_TOKEN}\r`)).toBe("malformed");
+    expect(
+      classifyCloudflareApiToken(`${DUMMY_TOKEN.slice(0, 20)}\0${DUMMY_TOKEN.slice(20)}`),
+    ).toBe("malformed");
+    expect(classifyCloudflareApiToken(`${DUMMY_TOKEN}\u2026`)).toBe("malformed");
+    expect(classifyCloudflareApiToken(`${DUMMY_TOKEN}令`)).toBe("malformed");
+    expect(classifyCloudflareApiToken(` ${DUMMY_TOKEN}`)).toBe("malformed");
+    expect(classifyCloudflareApiToken(`${DUMMY_TOKEN} `)).toBe("malformed");
+    expect(classifyCloudflareApiToken(`Bearer ${DUMMY_TOKEN}`)).toBe("copied_snippet");
+    expect(classifyCloudflareApiToken(`Authorization: Bearer ${DUMMY_TOKEN}`)).toBe(
+      "copied_snippet",
+    );
+    expect(classifyCloudflareApiToken(`"${DUMMY_TOKEN}"`)).toBe("copied_snippet");
+    expect(classifyCloudflareApiToken(`'${DUMMY_TOKEN}'`)).toBe("copied_snippet");
+    expect(classifyCloudflareApiToken("```\n" + DUMMY_TOKEN + "\n```")).toBe("copied_snippet");
+    expect(
+      classifyCloudflareApiToken(`${DUMMY_TOKEN.slice(0, 20)}\n    ${DUMMY_TOKEN.slice(20)}`),
+    ).toBe("malformed");
+  });
+
+  it("does not echo dummy token or header fragments in categorical errors", () => {
+    const cases = [
+      { CLOUDFLARE_API_TOKEN: undefined, CLOUDFLARE_ACCOUNT_ID: constants.account_id },
+      { CLOUDFLARE_API_TOKEN: `\n${DUMMY_TOKEN}`, CLOUDFLARE_ACCOUNT_ID: constants.account_id },
+      {
+        CLOUDFLARE_API_TOKEN: `${DUMMY_TOKEN.slice(0, 20)}\n${DUMMY_TOKEN.slice(20)}`,
+        CLOUDFLARE_ACCOUNT_ID: constants.account_id,
+      },
+      { CLOUDFLARE_API_TOKEN: `${DUMMY_TOKEN}\r\n`, CLOUDFLARE_ACCOUNT_ID: constants.account_id },
+      {
+        CLOUDFLARE_API_TOKEN: `${DUMMY_TOKEN.slice(0, 12)}\0${DUMMY_TOKEN.slice(12)}`,
+        CLOUDFLARE_ACCOUNT_ID: constants.account_id,
+      },
+      { CLOUDFLARE_API_TOKEN: `${DUMMY_TOKEN}\u2026`, CLOUDFLARE_ACCOUNT_ID: constants.account_id },
+      {
+        CLOUDFLARE_API_TOKEN: `Bearer ${DUMMY_TOKEN}`,
+        CLOUDFLARE_ACCOUNT_ID: constants.account_id,
+      },
+      { CLOUDFLARE_API_TOKEN: `"${DUMMY_TOKEN}"`, CLOUDFLARE_ACCOUNT_ID: constants.account_id },
+      { CLOUDFLARE_API_TOKEN: DUMMY_TOKEN, CLOUDFLARE_ACCOUNT_ID: undefined },
+      { CLOUDFLARE_API_TOKEN: DUMMY_TOKEN, CLOUDFLARE_ACCOUNT_ID: "not-the-overlay-account" },
+    ];
+    for (const env of cases) {
+      const message = wranglerCredentialError(env, constants.account_id);
+      expect(message).toEqual(expect.any(String));
+      expect(message).toMatch(/refusing to call Wrangler/);
+      expect(message).not.toMatch(/length|index|U\+/i);
+      assertNoSecretFragments(message ?? "");
+      const prepared = prepareWranglerSpawn(["versions", "upload"], env, constants.account_id);
+      expect(prepared.ok).toBe(false);
+      expect(prepared.command).toBeNull();
+      expect(prepared.args).toBeNull();
+      assertNoSecretFragments(prepared.error ?? "");
+    }
+  });
+
+  it("refuses malformed env in upload, candidate-check, and activate without starting Wrangler", () => {
+    const invalidEnv = childEnv({
+      CLOUDFLARE_API_TOKEN: `${DUMMY_TOKEN.slice(0, 20)}\n    ${DUMMY_TOKEN.slice(20)}`,
+      CLOUDFLARE_ACCOUNT_ID: constants.account_id,
+      WORKER_VERSION_ID: CANDIDATE_VERSION_ID,
+    });
+    for (const script of CREDENTIALED_SCRIPTS) {
+      const result = runCredentialedScript(script, invalidEnv);
+      const output = `${result.stdout}\n${result.stderr}`;
+      expect(result.status, output).toBe(1);
+      expect(output).toMatch(/CLOUDFLARE_API_TOKEN is not a usable HTTP credential/);
+      expect(output).toMatch(/refusing to call Wrangler/);
+      expect(output).not.toMatch(/wrangler 4\.132\.0/);
+      expect(output).not.toMatch(/Worker Version ID:/);
+      assertNoSecretFragments(output);
+    }
+  });
+
+  it("keeps the credential gate on every token-bearing script and leaves production credential-free", () => {
+    for (const script of CREDENTIALED_SCRIPTS) {
+      const source = readFileSync(join(repoRoot, "scripts", script), "utf8");
+      expect(source).toContain("spawnWrangler");
+      expect(source).not.toMatch(/spawnSync\(/);
+    }
+    const lib = readFileSync(join(repoRoot, "scripts/official-staging-lib.mjs"), "utf8");
+    expect(lib).toContain("wranglerCredentialError");
+    expect(lib).toContain("prepareWranglerSpawn");
+    expect(lib).toMatch(/refusing to call Wrangler/);
+    expect(lib).not.toMatch(/\.trim\(/);
+    expect(productionWorkflow).not.toContain("CLOUDFLARE_");
+    expect(ciWorkflow).not.toContain("CLOUDFLARE_API_TOKEN");
   });
 });

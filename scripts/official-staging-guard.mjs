@@ -142,6 +142,21 @@ check(workflow.includes("contents: read"), "workflow permissions must be content
     ),
     "upload script must emit worker_version_id",
   );
+  for (const name of [
+    "official-staging-upload.mjs",
+    "official-staging-candidate-check.mjs",
+    "official-staging-activate.mjs",
+  ]) {
+    const source = readFileSync(join(REPO_ROOT, "scripts", name), "utf8");
+    check(
+      source.includes("spawnWrangler"),
+      `${name} must refuse malformed credentials before Wrangler`,
+    );
+    check(
+      !source.includes("spawnSync("),
+      `${name} must not spawn Wrangler without the credential gate`,
+    );
+  }
   check(
     viewArgv[0] === "versions" && viewArgv[1] === "view",
     "candidate argv must be versions view",

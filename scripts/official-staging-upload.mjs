@@ -1,13 +1,6 @@
 import { appendFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import {
-  OVERLAY_PATH,
-  REPO_ROOT,
-  fail,
-  loadConstants,
-  wranglerBin,
-} from "./official-staging-lib.mjs";
+import { OVERLAY_PATH, fail, loadConstants, spawnWrangler } from "./official-staging-lib.mjs";
 
 export function versionsUploadArgv(constants) {
   return [
@@ -23,11 +16,7 @@ export function versionsUploadArgv(constants) {
 
 function main() {
   const constants = loadConstants();
-  const result = spawnSync(process.execPath, [wranglerBin(), ...versionsUploadArgv(constants)], {
-    encoding: "utf8",
-    cwd: REPO_ROOT,
-    env: process.env,
-  });
+  const result = spawnWrangler(versionsUploadArgv(constants), process.env, constants.account_id);
   process.stdout.write(result.stdout);
   process.stderr.write(result.stderr);
   if (result.status !== 0) {

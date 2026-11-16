@@ -2,15 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 official staging CI/CD source (not connected)
+## Current state — 2026-11-16 official staging CI/CD credential-format gate (source only)
 
 - **task_id:** `official-staging-cicd-20261116`
-- **Writer:** same PR #42 / `cursor/official-staging-cicd-a72c` from PR #41 head `6180543`. PR #41 source and frozen runtime `4af0a5c` unchanged. Mika HOLD of `8964c428` is review evidence, not operations approval.
+- **Writer:** same PR #42 / `cursor/official-staging-cicd-a72c`. Frozen runtime `4af0a5c` unchanged. Do not treat this push as deployed.
 - **Staged:** Worker `kaiyue-travel-staging` `72e580d0` @100% / deployment `28f8b40b` (ops 07:17 Asia/Macau). Production still `71a66a99` / `f3169afb`.
-- **Browser-checked (partial):** sign-in; desktop/mobile dashboard + Users for owner super-admin and UAT staff; profile / min-6 UI; no app JS errors; no mutations. Staff-session revocation untested. Admin-host `/` cached marketing unresolved. Not all QA pass. Not accepted / not released.
-- **CI/CD:** source only, **not connected**. HOLD enable at `e03e643d` is review evidence, not ops approval. Bounded follow-up: `pnpm/action-setup` uses `packageManager` `pnpm@10.15.0` (no 10.28.0 override); candidate extractor reads recorded `resources.script_runtime.assets.raw_run_worker_first`; activation readback is Wrangler 4.132.0 `deployments status --json`; both CD builds restore `PUBLIC_SITE_URL=https://staging.kaiyuemacau.com`. Token remains step-scoped. Schema contract attests `0001`–`0010` hashes: **not** live D1, **not** tamperproof. GitHub Environment name is **`staging`** (git branch `official-staging`, no required reviewer). Specified-Workers Editor token is PM UI follow-up; not created. `official-staging` not pushed. Production GitHub env should require owner reviewer; production workflow stays fail-closed with no credentials. Independent re-review required. Do not auto-run operations after green checks.
+- **Browser-checked (partial):** unchanged. Not accepted / not released.
+- **CI/CD:** git `official-staging` is `8caab939` (owner 14:42). Actions run `43818219718` failed twice at Wrangler 4.132.0 `Headers.set` invalid header **before any candidate** (not 401/403). Confirmed: pass-through env + interior/leading LF reproduces; trailing-newline-only does not; clipboard origin unproven. This source fail-closes malformed/copied-snippet tokens before Wrangler (no trim, no value/header logs, pin 4.132.0). Token stays step-scoped. Production workflow stays fail-closed with no credentials.
 - **Record:** `docs/records/2026-11-16-official-staging-cicd.md`
-- **Do not:** merge, push `official-staging`/`main`, create tokens, claim connected, query D1 from CI, apply migrations from CI, rewire Workers Builds, cache-purge, production.
+- **Do not:** merge, push `official-staging`/`main`, claim connected/deployed, query D1 from CI, apply migrations from CI, rewire Workers Builds, cache-purge, production. Parent corrects the GitHub secret via secure UI, then promotes only the reviewed SHA.
 
 ## Current state — 2026-11-15 security correction
 

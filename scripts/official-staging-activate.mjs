@@ -1,12 +1,5 @@
-import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import {
-  OVERLAY_PATH,
-  REPO_ROOT,
-  fail,
-  loadConstants,
-  wranglerBin,
-} from "./official-staging-lib.mjs";
+import { OVERLAY_PATH, fail, loadConstants, spawnWrangler } from "./official-staging-lib.mjs";
 import { parseWranglerJson } from "./official-staging-candidate-check.mjs";
 
 export function evaluateActivationReadback(deployment, expectedVersionId) {
@@ -67,16 +60,12 @@ export function deploymentsStatusArgv(constants) {
   ];
 }
 
-function wranglerJson(args) {
-  return spawnSync(process.execPath, [wranglerBin(), ...args], {
-    encoding: "utf8",
-    cwd: REPO_ROOT,
-    env: process.env,
-  });
+function wranglerJson(args, expectedAccountId) {
+  return spawnWrangler(args, process.env, expectedAccountId);
 }
 
 function readLatestDeployment(constants) {
-  const result = wranglerJson(deploymentsStatusArgv(constants));
+  const result = wranglerJson(deploymentsStatusArgv(constants), constants.account_id);
   if (result.status !== 0) {
     return {
       ok: false,
@@ -108,7 +97,7 @@ function main() {
     fail("activation fail-closed: WORKER_VERSION_ID missing or not a UUID");
   }
 
-  const deploy = wranglerJson(versionsDeployArgv(constants, versionId));
+  const deploy = wranglerJson(versionsDeployArgv(constants, versionId), constants.account_id);
   process.stdout.write(deploy.stdout);
   process.stderr.write(deploy.stderr);
 

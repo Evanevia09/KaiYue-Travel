@@ -1,12 +1,5 @@
-import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import {
-  OVERLAY_PATH,
-  REPO_ROOT,
-  fail,
-  loadConstants,
-  wranglerBin,
-} from "./official-staging-lib.mjs";
+import { OVERLAY_PATH, fail, loadConstants, spawnWrangler } from "./official-staging-lib.mjs";
 
 const FORBIDDEN_BINDING_NAMES = [
   "ACCESS_AUD",
@@ -226,14 +219,10 @@ function main() {
   if (!versionId || !/^[0-9a-f-]{36}$/i.test(versionId)) {
     fail("candidate check fail-closed: WORKER_VERSION_ID missing or not a UUID");
   }
-  const result = spawnSync(
-    process.execPath,
-    [wranglerBin(), ...versionsViewArgv(constants, versionId)],
-    {
-      encoding: "utf8",
-      cwd: REPO_ROOT,
-      env: process.env,
-    },
+  const result = spawnWrangler(
+    versionsViewArgv(constants, versionId),
+    process.env,
+    constants.account_id,
   );
   if (result.status !== 0) {
     fail(
