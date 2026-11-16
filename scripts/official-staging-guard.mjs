@@ -51,10 +51,11 @@ check(
 );
 check(overlay.vars?.DEV_ADMIN_BYPASS === "false", "overlay DEV_ADMIN_BYPASS must be false");
 check(overlay.main === constants.overlay_main, "overlay main must be Astro server entry");
+check(overlay.assets?.run_worker_first === true, "overlay run_worker_first must be true");
+check(constants.html_run_worker_first === true, "constants html_run_worker_first must be true");
 check(
-  JSON.stringify(overlay.assets?.run_worker_first) ===
-    JSON.stringify(constants.html_worker_first_paths),
-  "overlay run_worker_first paths mismatch",
+  overlay.vars?.ENVIRONMENT === "production",
+  "overlay ENVIRONMENT stays production by host-role design",
 );
 check(
   !("BETTER_AUTH_SECRET" in (overlay.vars ?? {})),

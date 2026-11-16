@@ -19,7 +19,7 @@
       "compatibility_flags": ["nodejs_compat"],
       "usage_model": "standard",
       "assets": {
-        "raw_run_worker_first": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"]
+        "raw_run_worker_first": true
       }
     },
     "bindings": [

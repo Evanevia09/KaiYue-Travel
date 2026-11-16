@@ -4,7 +4,11 @@ import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { HTML_WORKER_FIRST_PATHS } from "../../apps/web/src/lib/server/admin-gate.ts";
+import {
+  HTML_RUN_WORKER_FIRST,
+  INSUFFICIENT_HTML_WORKER_FIRST_PATHS,
+} from "../../apps/web/src/lib/server/admin-gate.ts";
+import { evaluateOfficialStagingSmoke } from "../../scripts/official-staging-smoke-lib.mjs";
 import {
   deploymentsStatusArgv,
   evaluateActivationReadback,
@@ -53,7 +57,7 @@ const overlay = parseJsonc(overlayText) as {
   d1_databases: Array<{ database_id: string }>;
   r2_buckets: Array<{ bucket_name: string }>;
   vars: Record<string, string>;
-  assets: { run_worker_first: string[] };
+  assets: { run_worker_first: boolean | string[] };
 };
 
 type SchemaContract = {
@@ -88,7 +92,8 @@ type StagingConstants = {
   github_secret_names: string[];
   forbidden_github_secret_names: string[];
   compatibility_date: string;
-  html_worker_first_paths: string[];
+  html_run_worker_first: boolean;
+  admin_site_url: string;
   vars: Record<string, string>;
 };
 
@@ -112,7 +117,10 @@ describe("official staging CI/CD source", () => {
     expect(overlay.main).toContain("apps/web/dist/server/entry.mjs");
     expect(overlay.d1_databases[0]?.database_id).toBe("043cd0ff-a1e6-4b5e-98c1-968c286e0c70");
     expect(overlay.r2_buckets[0]?.bucket_name).toBe("kaiyue-offers-staging");
-    expect(overlay.assets.run_worker_first).toEqual([...HTML_WORKER_FIRST_PATHS]);
+    expect(overlay.assets.run_worker_first).toBe(true);
+    expect(constants.html_run_worker_first).toBe(HTML_RUN_WORKER_FIRST);
+    expect(constants.vars.ENVIRONMENT).toBe("production");
+    expect(constants.admin_site_url).toBe("https://admin-staging.kaiyuemacau.com");
     expect(overlay.vars.ADMIN_STAGING_TEST_PASSWORD_MIN).toBe("6");
     expect(overlay.vars).not.toHaveProperty("BETTER_AUTH_SECRET");
     expect(overlayText).not.toContain("06cf879d-8fea-4088-8881-7d382e1b8c11");
@@ -395,9 +403,7 @@ describe("official staging uploaded-version candidate gate", () => {
     const recorded = validCandidate();
     expect(recorded.id).toBe(CANDIDATE_VERSION_ID);
     expect(recorded.resources.assets).toBeUndefined();
-    expect(recorded.resources.script_runtime.assets?.raw_run_worker_first).toEqual([
-      ...HTML_WORKER_FIRST_PATHS,
-    ]);
+    expect(recorded.resources.script_runtime.assets?.raw_run_worker_first).toBe(true);
     expect(recorded.resources.bindings.find((row) => row.name === "ASSETS")).toEqual({
       type: "assets",
       name: "ASSETS",
@@ -406,9 +412,7 @@ describe("official staging uploaded-version candidate gate", () => {
       type: "secret_text",
       name: "BETTER_AUTH_SECRET",
     });
-    expect(extractRunWorkerFirst(recorded, { type: "assets", name: "ASSETS" })).toEqual([
-      ...HTML_WORKER_FIRST_PATHS,
-    ]);
+    expect(extractRunWorkerFirst(recorded, { type: "assets", name: "ASSETS" })).toBe(true);
     expect(evaluateCandidate(recorded, constants, CANDIDATE_VERSION_ID)).toEqual([]);
   });
 
@@ -442,22 +446,24 @@ describe("official staging uploaded-version candidate gate", () => {
     );
   });
 
-  it("rejects boolean run_worker_first instead of the Worker-first path array", () => {
+  it("rejects the historical Worker-first path array that stayed host-agnostic asset-cacheable", () => {
     const version = validCandidate();
     if (!version.resources.script_runtime.assets) {
       throw new Error("fixture missing script_runtime.assets");
     }
-    version.resources.script_runtime.assets.raw_run_worker_first = true;
+    version.resources.script_runtime.assets.raw_run_worker_first = [
+      ...INSUFFICIENT_HTML_WORKER_FIRST_PATHS,
+    ];
     expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
-      /Worker-first/,
+      /run_worker_first/,
     );
   });
 
-  it("rejects a missing Worker-first path array on the recorded shape", () => {
+  it("rejects a missing run_worker_first true on the recorded shape", () => {
     const version = validCandidate();
     delete version.resources.script_runtime.assets;
     expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
-      /Worker-first/,
+      /run_worker_first/,
     );
   });
 
@@ -816,5 +822,37 @@ describe("official staging fail-closed Cloudflare credential format gate", () =>
     expect(lib).not.toMatch(/\.trim\(/);
     expect(productionWorkflow).not.toContain("CLOUDFLARE_");
     expect(ciWorkflow).not.toContain("CLOUDFLARE_API_TOKEN");
+  });
+});
+
+describe("official staging HTTP smoke contract", () => {
+  const publicHome = { status: 200, body: "marketing", location: "" };
+  const publicLogin = { status: 403, body: "FORBIDDEN", location: "" };
+  const adminLogin = { status: 200, body: "Admin sign in", location: "" };
+
+  it("fails when admin-staging / is cached marketing HTML", () => {
+    expect(
+      evaluateOfficialStagingSmoke({
+        publicHome,
+        publicLogin,
+        adminLogin,
+        adminRoot: {
+          status: 200,
+          body: "Private chauffeur across the Greater Bay Area",
+          location: "",
+        },
+      }),
+    ).toMatch(/admin-staging \//);
+  });
+
+  it("passes only when admin-staging / redirects to login without marketing HTML", () => {
+    expect(
+      evaluateOfficialStagingSmoke({
+        publicHome,
+        publicLogin,
+        adminLogin,
+        adminRoot: { status: 302, body: "", location: "/login" },
+      }),
+    ).toBeNull();
   });
 });

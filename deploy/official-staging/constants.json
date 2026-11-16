@@ -5,6 +5,7 @@
   "d1_id": "043cd0ff-a1e6-4b5e-98c1-968c286e0c70",
   "r2_bucket": "kaiyue-offers-staging",
   "public_site_url": "https://staging.kaiyuemacau.com",
+  "admin_site_url": "https://admin-staging.kaiyuemacau.com",
   "admin_login_url": "https://admin-staging.kaiyuemacau.com/login",
   "production_worker": "kaiyue-travel",
   "production_d1": "06cf879d-8fea-4088-8881-7d382e1b8c11",
@@ -31,7 +32,7 @@
     "0010_admin_operator_last_super.sql"
   ],
   "compatibility_date": "2026-09-01",
-  "html_worker_first_paths": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"],
+  "html_run_worker_first": true,
   "overlay_main": "../../apps/web/dist/server/entry.mjs",
   "overlay_assets": "../../apps/web/dist/client",
   "overlay_migrations": "../../migrations",

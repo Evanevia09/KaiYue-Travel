@@ -116,11 +116,9 @@ export function evaluateCandidate(version, constants, expectedVersionId) {
     errors.push(`expected exactly one assets binding named ASSETS, found ${assets.length}`);
   }
   const runWorkerFirst = extractRunWorkerFirst(version, assets[0]);
-  if (!Array.isArray(runWorkerFirst)) {
-    errors.push("candidate missing Worker-first path array on ASSETS metadata");
-  } else if (JSON.stringify(runWorkerFirst) !== JSON.stringify(constants.html_worker_first_paths)) {
+  if (runWorkerFirst !== true || constants.html_run_worker_first !== true) {
     errors.push(
-      `run_worker_first ${JSON.stringify(runWorkerFirst)} != ${JSON.stringify(constants.html_worker_first_paths)}`,
+      `run_worker_first ${JSON.stringify(runWorkerFirst)} must be true (path arrays remain host-agnostic asset-cacheable)`,
     );
   }
 

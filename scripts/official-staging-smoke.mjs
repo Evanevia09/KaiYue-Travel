@@ -1,4 +1,5 @@
 import { fail, loadConstants } from "./official-staging-lib.mjs";
+import { evaluateOfficialStagingSmoke } from "./official-staging-smoke-lib.mjs";
 
 const constants = loadConstants();
 
@@ -8,21 +9,20 @@ async function get(url) {
   return { status: response.status, body, location: response.headers.get("location") ?? "" };
 }
 
-const publicHome = await get(constants.public_site_url);
-if (publicHome.status !== 200) {
-  fail(`staging marketing home expected 200, got ${publicHome.status}`);
+const publicSite = constants.public_site_url.replace(/\/$/, "");
+const adminSite = (
+  constants.admin_site_url ?? new URL(".", constants.admin_login_url).origin
+).replace(/\/$/, "");
+
+const result = evaluateOfficialStagingSmoke({
+  publicHome: await get(publicSite),
+  publicLogin: await get(`${publicSite}/login`),
+  adminLogin: await get(constants.admin_login_url),
+  adminRoot: await get(`${adminSite}/`),
+});
+
+if (result) {
+  fail(result);
 }
 
-const publicLogin = await get(`${constants.public_site_url.replace(/\/$/, "")}/login`);
-if (publicLogin.status !== 403) {
-  fail(`staging marketing /login expected 403, got ${publicLogin.status}`);
-}
-
-const adminLogin = await get(constants.admin_login_url);
-if (adminLogin.status !== 200 || !/Admin sign in/i.test(adminLogin.body)) {
-  fail(`admin-staging /login expected 200 Admin sign in, got ${adminLogin.status}`);
-}
-
-console.log(
-  "official-staging smoke passed (admin-staging / is not asserted; cached marketing remains a known separate issue)",
-);
+console.log("official-staging smoke passed (admin-staging / redirects to /login)");

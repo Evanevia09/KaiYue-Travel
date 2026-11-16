@@ -6,9 +6,8 @@
 // Do not upload staging 8ed952a7, d8c8bd20, or dad60edf.
 //
 // Live assets mode:
-//   hashed /_astro, /images, and favicon stay asset-first (serve_directly = true)
-//   HTML runs the Worker first so dedicated admin hosts can redirect `/`
-//   to `/login` instead of serving the prerendered marketing homepage.
+//   run_worker_first true so dedicated admin hosts redirect `/` before
+//   prerendered index.html. Path arrays remain host-agnostic asset-cacheable.
 // Wrangler 4 schema has run_worker_first, not a serve_directly key.
 //
 // Bindings: production D1 06cf879d / R2 kaiyue-offers-production.
@@ -29,7 +28,7 @@
   "assets": {
     "directory": "./dist-client",
     "binding": "ASSETS",
-    "run_worker_first": ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"]
+    "run_worker_first": true
   },
   "d1_databases": [
     {

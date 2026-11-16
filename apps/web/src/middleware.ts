@@ -4,6 +4,7 @@ import { localizeHtml } from "./lib/i18n-html.ts";
 import { localeFromPath, localeTags, stripLocale } from "./lib/i18n.ts";
 import {
   accessConfigured,
+  applyHostIsolationHeaders,
   assertLiveAdminSurface,
   dedicatedAdminPathAction,
   forbiddenResponse,
@@ -21,35 +22,76 @@ const SECURITY_HEADERS: Record<string, string> = {
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
 };
 
+function finishResponse(
+  response: Response,
+  options: { dedicatedAdmin: boolean; pathname: string },
+): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    headers.set(key, value);
+  }
+  applyHostIsolationHeaders(headers, {
+    dedicatedAdmin: options.dedicatedAdmin,
+    contentType: headers.get("content-type"),
+  });
+  if (options.pathname.startsWith("/admin")) {
+    headers.set("x-robots-tag", "noindex, nofollow");
+    headers.set("cache-control", "no-store");
+  }
+  const pagePath = stripLocale(options.pathname).replace(/\/$/, "") || "/";
+  if (pagePath === "/special-offers" || pagePath.startsWith("/special-offers/")) {
+    headers.set("cache-control", "private, no-store, no-cache, must-revalidate");
+    headers.set("cdn-cache-control", "no-store");
+    headers.set("cloudflare-cdn-cache-control", "no-store");
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.requestId = createRequestId();
-  if (
-    isDedicatedAdminHostname(context.url.hostname) &&
-    !isDedicatedAdminPassthroughPath(context.url.pathname)
-  ) {
+  const dedicatedAdmin = isDedicatedAdminHostname(context.url.hostname);
+
+  if (dedicatedAdmin && !isDedicatedAdminPassthroughPath(context.url.pathname)) {
     let workerEnv: AppEnv | undefined;
     try {
       const { env } = await import("cloudflare:workers");
       workerEnv = env;
     } catch {
-      return forbiddenResponse();
+      return finishResponse(forbiddenResponse(), {
+        dedicatedAdmin: true,
+        pathname: context.url.pathname,
+      });
     }
     const action = dedicatedAdminPathAction(workerEnv, context.url.pathname);
     switch (action) {
       case "pass":
         break;
       case "redirect-login":
-        return context.redirect("/login", 302);
+        return finishResponse(context.redirect("/login", 302), {
+          dedicatedAdmin: true,
+          pathname: context.url.pathname,
+        });
       case "redirect-admin":
-        return context.redirect("/admin", 302);
+        return finishResponse(context.redirect("/admin", 302), {
+          dedicatedAdmin: true,
+          pathname: context.url.pathname,
+        });
       case "forbid":
-        return forbiddenResponse();
+        return finishResponse(forbiddenResponse(), {
+          dedicatedAdmin: true,
+          pathname: context.url.pathname,
+        });
       default: {
         const exhaustive: never = action;
         return exhaustive;
       }
     }
   }
+
   if (isProtectedAdminPath(context.url.pathname) && !context.url.pathname.startsWith("/api/")) {
     let workerEnv: AppEnv | undefined;
     try {
@@ -57,49 +99,46 @@ export const onRequest = defineMiddleware(async (context, next) => {
       const { env } = await import("cloudflare:workers");
       workerEnv = env;
       assertLiveAdminSurface(env, context.url.pathname, context.request);
-      if (context.url.pathname === "/login" || context.url.pathname === "/setup-admin") {
-        return next();
+      if (context.url.pathname !== "/login" && context.url.pathname !== "/setup-admin") {
+        await requireAdmin(context.request, env);
       }
-      await requireAdmin(context.request, env);
     } catch (error) {
       if (error instanceof AppError && (error.code === "FORBIDDEN" || error.status === 403)) {
-        return forbiddenResponse(error.message);
+        return finishResponse(forbiddenResponse(error.message), {
+          dedicatedAdmin,
+          pathname: context.url.pathname,
+        });
       }
-      if (
-        isDedicatedAdminHostname(context.url.hostname) &&
-        (!workerEnv || accessConfigured(workerEnv))
-      ) {
-        return forbiddenResponse("Admin authentication is required.");
+      if (dedicatedAdmin && (!workerEnv || accessConfigured(workerEnv))) {
+        return finishResponse(forbiddenResponse("Admin authentication is required."), {
+          dedicatedAdmin: true,
+          pathname: context.url.pathname,
+        });
       }
-      return context.redirect("/login", 302);
+      return finishResponse(context.redirect("/login", 302), {
+        dedicatedAdmin,
+        pathname: context.url.pathname,
+      });
     }
   }
+
   const response = await next();
-  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    response.headers.set(key, value);
-  }
-  if (context.url.pathname.startsWith("/admin")) {
-    response.headers.set("x-robots-tag", "noindex, nofollow");
-    response.headers.set("cache-control", "no-store");
-  }
-  const pagePath = stripLocale(context.url.pathname).replace(/\/$/, "") || "/";
-  if (pagePath === "/special-offers" || pagePath.startsWith("/special-offers/")) {
-    response.headers.set("cache-control", "private, no-store, no-cache, must-revalidate");
-    response.headers.set("cdn-cache-control", "no-store");
-    response.headers.set("cloudflare-cdn-cache-control", "no-store");
-  }
   const locale = localeFromPath(context.url.pathname);
+  const headed = finishResponse(response, {
+    dedicatedAdmin,
+    pathname: context.url.pathname,
+  });
   if (locale !== "en") {
-    response.headers.set("content-language", localeTags[locale]);
+    headed.headers.set("content-language", localeTags[locale]);
   }
   if (!import.meta.env.DEV && locale === "en") {
-    return response;
+    return headed;
   }
-  const contentType = response.headers.get("content-type") ?? "";
+  const contentType = headed.headers.get("content-type") ?? "";
   if (!contentType.includes("text/html")) {
-    return response;
+    return headed;
   }
-  const html = await response.text();
+  const html = await headed.text();
   const localized = localizeHtml(html, locale);
   const rewritten = import.meta.env.DEV
     ? localized
@@ -112,11 +151,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
         )
         .replaceAll("/node_modules/.vite/deps_prerender/", "/node_modules/.vite/deps/")
     : localized;
-  const headers = new Headers(response.headers);
+  const headers = new Headers(headed.headers);
   headers.delete("content-length");
   return new Response(rewritten, {
-    status: response.status,
-    statusText: response.statusText,
+    status: headed.status,
+    statusText: headed.statusText,
     headers,
   });
 });

@@ -2,6 +2,17 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-16 staging cache + production-readiness source
+
+- **task_id:** `kaiyue-production-readiness-20261116`
+- **Writer:** `cursor/staging-cache-readiness-a72c` targeting `official-staging`. Sole source writer. PR #42 / `bc533c7` docs preserved, not mixed with runtime.
+- **Live:** still `2a270e59` / version `3e027a63` @100% / `6cb6b664`. `main` `037b93`. Prod `71a66a99` / `f3169afb`.
+- **Defect (parent 17:09):** admin-staging `/` HIT marketing HTML, same SHA as public staging and workers.dev; query-bust still HIT; no zone rules. Path-array Worker-first is live and insufficient.
+- **Source:** `run_worker_first: true`; admin HTML `no-store` + `Vary: Host`; smoke asserts admin `/` → `/login`; staging mail fail-closed on `PUBLIC_SITE_URL`. `ENVIRONMENT=production` **kept**.
+- **Checked:** lint, typecheck, 251 tests, staging-URL build. Not live-miss, not purge, not auth UAT.
+- **Record:** `docs/records/2026-11-16-staging-cache-readiness.md`. Ops evidence SHA256 `e324bae0bfb3636aaf4d71ddad3546dfe8b6fff0ec7517aad8400e8fe606c580`.
+- **Do not:** push `official-staging`/`main`, purge, deploy, revoke tokens, attach production admin.
+
 ## Current state — 2026-11-16 official staging CI/CD completed (`2a270e59` deployed)
 
 - **task_id:** `github-staging-cd`

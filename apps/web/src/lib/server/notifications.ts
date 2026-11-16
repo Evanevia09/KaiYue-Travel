@@ -1,5 +1,6 @@
 import type { NotificationState } from "@kaiyue/contracts";
 import { Resend } from "resend";
+import { stagingNotificationsFailClosed } from "./admin-gate.ts";
 import type { AppEnv } from "./env.ts";
 import { logSafe } from "./http.ts";
 
@@ -26,6 +27,15 @@ export async function sendNotifications(
   env: AppEnv,
   input: NotificationInput,
 ): Promise<NotificationState> {
+  if (stagingNotificationsFailClosed(env)) {
+    logSafe("info", "notification_skipped", {
+      kind: input.kind,
+      reference: input.reference,
+      requestId: input.requestId,
+      reason: "staging_fail_closed",
+    });
+    return "skipped";
+  }
   if (!env.RESEND_API_KEY) {
     logSafe("info", "notification_skipped", {
       kind: input.kind,

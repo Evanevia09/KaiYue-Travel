@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ACCESS_ADMIN_HOST,
   ADMIN_TRIAL_HOST,
-  HTML_WORKER_FIRST_PATHS,
+  HTML_RUN_WORKER_FIRST,
   PRODUCTION_HOSTS,
   STAGING_ADMIN_HOST,
   STAGING_MARKETING_HOST,
@@ -27,7 +27,7 @@ describe("main reconciliation invariants", () => {
     expect(STAGING_MARKETING_HOST).toBe("staging.kaiyuemacau.com");
     expect(PRODUCTION_HOSTS).not.toContain(ADMIN_TRIAL_HOST);
     expect(PRODUCTION_HOSTS).not.toContain(STAGING_ADMIN_HOST);
-    expect(HTML_WORKER_FIRST_PATHS[0]).toBe("/*");
+    expect(HTML_RUN_WORKER_FIRST).toBe(true);
     const session = readFileSync(
       join(repoRoot, "apps/web/src/lib/server/admin-session.ts"),
       "utf8",

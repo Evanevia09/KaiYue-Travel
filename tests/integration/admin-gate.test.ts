@@ -7,7 +7,11 @@ import {
   PRODUCTION_MARKETING_HOSTS,
   STAGING_ADMIN_HOST,
   STAGING_MARKETING_HOST,
-  HTML_WORKER_FIRST_PATHS,
+  HTML_RUN_WORKER_FIRST,
+  INSUFFICIENT_HTML_WORKER_FIRST_PATHS,
+  applyHostIsolationHeaders,
+  dedicatedAdminCacheHeaders,
+  stagingNotificationsFailClosed,
   accessBindingState,
   accessConfigured,
   assertLiveAdminSurface,
@@ -119,7 +123,46 @@ describe("dedicated admin host root vs marketing host root", () => {
         "pass",
       );
     }
-    expect(HTML_WORKER_FIRST_PATHS).toEqual(["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"]);
+    expect(HTML_RUN_WORKER_FIRST).toBe(true);
+    expect(INSUFFICIENT_HTML_WORKER_FIRST_PATHS).toEqual([
+      "/*",
+      "!/_astro/*",
+      "!/images/*",
+      "!/favicon.ico",
+    ]);
+  });
+
+  it("marks dedicated-admin HTML uncacheable and host-varied", () => {
+    const adminHeaders = new Headers({ "content-type": "text/html" });
+    applyHostIsolationHeaders(adminHeaders, { dedicatedAdmin: true });
+    expect(adminHeaders.get("cache-control")).toBe(dedicatedAdminCacheHeaders()["cache-control"]);
+    expect(adminHeaders.get("vary")).toBe("Host");
+    expect(adminHeaders.get("cdn-cache-control")).toBe("no-store");
+
+    const marketingHeaders = new Headers({
+      "content-type": "text/html",
+      "cache-control": "public, max-age=0, must-revalidate",
+    });
+    applyHostIsolationHeaders(marketingHeaders, { dedicatedAdmin: false });
+    expect(marketingHeaders.get("vary")).toBe("Host");
+    expect(marketingHeaders.get("cache-control")).toBe("public, max-age=0, must-revalidate");
+  });
+
+  it("fail-closes staging notifications from PUBLIC_SITE_URL, not ENVIRONMENT=production", () => {
+    expect(
+      stagingNotificationsFailClosed({ PUBLIC_SITE_URL: "https://staging.kaiyuemacau.com" }),
+    ).toBe(true);
+    expect(
+      stagingNotificationsFailClosed({ PUBLIC_SITE_URL: "https://admin-staging.kaiyuemacau.com" }),
+    ).toBe(true);
+    expect(stagingNotificationsFailClosed({ PUBLIC_SITE_URL: "https://kaiyuemacau.com" })).toBe(
+      false,
+    );
+    expect(
+      stagingNotificationsFailClosed({
+        PUBLIC_SITE_URL: "https://kaiyue-travel-staging.kai-yue.workers.dev",
+      }),
+    ).toBe(false);
   });
 
   it("leaves marketing-host / as the public site and keeps /login 403", () => {

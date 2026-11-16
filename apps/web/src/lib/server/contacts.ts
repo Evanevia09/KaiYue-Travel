@@ -150,6 +150,7 @@ export async function createContact(
     reference,
     requestId,
     summary: "A new website inquiry is waiting for review.",
+    replyTo: parsed.data.email,
   });
   await run(
     env.DB,

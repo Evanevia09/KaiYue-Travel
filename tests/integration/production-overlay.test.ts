@@ -30,20 +30,15 @@ const stagingD1 = "043cd0ff-a1e6-4b5e-98c1-968c286e0c70";
 const obsoleteD1 = "069aa442-30c9-4454-ab3a-26eb372b3a1f";
 
 describe("production overlay candidate", () => {
-  it("uses production D1/R2, fail-closed vars, and serve-directly assets", () => {
+  it("uses production D1/R2, fail-closed vars, and Worker-first assets", () => {
     expect(overlayConfig.name).toBe("kaiyue-travel");
     expect(overlayConfig.account_id).toBe("33ecc75158a1cdd23ba1a62eb70c5103");
     expect(overlayConfig.d1_databases[0].database_id).toBe(productionD1);
     expect(overlayConfig.r2_buckets[0].bucket_name).toBe("kaiyue-offers-production");
-    expect(overlayConfig.assets.run_worker_first).toEqual([
-      "/*",
-      "!/_astro/*",
-      "!/images/*",
-      "!/favicon.ico",
-    ]);
+    expect(overlayConfig.assets.run_worker_first).toBe(true);
     expect(overlayConfig.vars.DEV_ADMIN_BYPASS).toBe("false");
     expect(overlayConfig.keep_vars).toBe(true);
-    expect(overlayText).toMatch(/serve_directly = true/);
+    expect(overlayText).toMatch(/run_worker_first true/);
   });
 
   it("does not encode staging bindings, temp-admin, 6-char, allowlist, or secrets", () => {
@@ -61,7 +56,7 @@ describe("production overlay candidate", () => {
     expect(JSON.stringify(overlayConfig)).not.toContain("admin-test@kaiyue.test");
     expect(JSON.stringify(overlayConfig)).not.toContain("uat-admin-20261114@kaiyue.test");
     expect(JSON.stringify(overlayConfig)).not.toContain("daniel@kaiyuemacau.com");
-    expect(overlayConfig.assets.run_worker_first).not.toBe(true);
+    expect(overlayConfig.assets.run_worker_first).toBe(true);
   });
 
   it("leaves git wrangler.jsonc on the live source blob and does not add staging D1", () => {

@@ -207,8 +207,70 @@ export function hostNavigationAction(
   }
 }
 
-/** HTML hits the Worker first so admin-host `/` can redirect; hashed assets stay asset-first. */
-export const HTML_WORKER_FIRST_PATHS = ["/*", "!/_astro/*", "!/images/*", "!/favicon.ico"] as const;
+/**
+ * Historical path array (live `2a270e59` / version 14). Cloudflare still served
+ * prerendered `index.html` from a host-agnostic asset-edge HIT for `/` even with
+ * this list. Do not deploy it again; boolean `true` is the durable Worker-first
+ * setting. Hashed assets remain pass-through in middleware after the Worker runs.
+ */
+export const INSUFFICIENT_HTML_WORKER_FIRST_PATHS = [
+  "/*",
+  "!/_astro/*",
+  "!/images/*",
+  "!/favicon.ico",
+] as const;
+
+/** Always run the Worker before assets so admin-host HTML cannot skip the gate. */
+export const HTML_RUN_WORKER_FIRST = true as const;
+
+export const DEDICATED_ADMIN_CACHE_CONTROL = "private, no-store, no-cache, must-revalidate";
+
+export function dedicatedAdminCacheHeaders(): Record<string, string> {
+  return {
+    "cache-control": DEDICATED_ADMIN_CACHE_CONTROL,
+    "cdn-cache-control": "no-store",
+    "cloudflare-cdn-cache-control": "no-store",
+    vary: "Host",
+  };
+}
+
+export function applyHostIsolationHeaders(
+  headers: Headers,
+  options: { dedicatedAdmin: boolean; contentType?: string | null },
+): void {
+  if (options.dedicatedAdmin) {
+    for (const [key, value] of Object.entries(dedicatedAdminCacheHeaders())) {
+      headers.set(key, value);
+    }
+    headers.set("x-robots-tag", "noindex, nofollow");
+    return;
+  }
+  const contentType = options.contentType ?? headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) {
+    return;
+  }
+  const vary = headers.get("vary");
+  if (!vary) {
+    headers.set("vary", "Host");
+    return;
+  }
+  if (!/\bHost\b/i.test(vary)) {
+    headers.set("vary", `${vary}, Host`);
+  }
+}
+
+export function stagingNotificationsFailClosed(env: Pick<AppEnv, "PUBLIC_SITE_URL">): boolean {
+  const raw = (env.PUBLIC_SITE_URL ?? "").trim();
+  if (!raw) {
+    return false;
+  }
+  try {
+    const host = new URL(raw).hostname.toLowerCase();
+    return host === STAGING_MARKETING_HOST || host === STAGING_ADMIN_HOST;
+  } catch {
+    return false;
+  }
+}
 
 export function passwordAdminAllowed(
   env: Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">,
