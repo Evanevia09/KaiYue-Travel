@@ -113,7 +113,7 @@ Returns non-sensitive form configuration such as approved service types and book
 | `POST /api/v1/admin/users` | Super-admin create staff (no email invite) |
 | `PATCH /api/v1/admin/users/:id` | Super-admin role and/or enabled flag; field-specific CAS |
 | `POST /api/v1/admin/users/:id/password` | Super-admin credential reset |
-| `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service |
+| `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service, `q` search (reference, name, email, phone), `updatedSince` |
 | `POST /api/v1/admin/bookings` | Add a manually entered booking enquiry |
 | `GET /api/v1/admin/bookings/:reference` | Booking detail, notes, safe event history |
 | `PATCH /api/v1/admin/bookings/:reference/status` | Validated status transition |
@@ -122,7 +122,7 @@ Returns non-sensitive form configuration such as approved service types and book
 | `POST /api/v1/admin/bookings/:reference/notes` | Add internal note |
 | `GET /api/v1/admin/drivers` / `POST /api/v1/admin/drivers` / `PATCH /api/v1/admin/drivers/:id` | List, add, and update driver inventory |
 | `GET /api/v1/admin/vehicles` / `POST /api/v1/admin/vehicles` / `PATCH /api/v1/admin/vehicles/:id` | List, add, and update vehicle inventory |
-| `GET /api/v1/admin/contacts` | Paginated/filterable inquiry list |
+| `GET /api/v1/admin/contacts` | Paginated/filterable inquiry list; `q` (adds company), `updatedSince`, opaque `(created_at, id)` cursor |
 | `GET /api/v1/admin/contacts/:id` | Inquiry detail |
 | `PATCH /api/v1/admin/contacts/:id/status` | Update inquiry status |
 | `POST /api/v1/admin/contacts/:id/notes` | Add internal note |

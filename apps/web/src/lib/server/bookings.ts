@@ -23,6 +23,7 @@ import {
   requireIdempotencyKey,
   writeIdempotency,
 } from "./idempotency.ts";
+import { likePattern } from "./admin-list-query.ts";
 import { sendNotifications } from "./notifications.ts";
 import { getPublicOffer } from "./offers/service.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
@@ -545,6 +546,8 @@ export async function listBookings(
     serviceType?: string;
     from?: string;
     to?: string;
+    q?: string;
+    updatedSince?: string;
     cursor?: string;
     limit?: number;
   },
@@ -567,6 +570,17 @@ export async function listBookings(
   if (filters.to) {
     clauses.push("pickup_at <= ?");
     params.push(filters.to);
+  }
+  if (filters.q) {
+    const pattern = likePattern(filters.q);
+    clauses.push(
+      "(reference LIKE ? ESCAPE '\\' OR contact_name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR phone_display LIKE ? ESCAPE '\\')",
+    );
+    params.push(pattern, pattern, pattern, pattern, pattern);
+  }
+  if (filters.updatedSince) {
+    clauses.push("updated_at >= ?");
+    params.push(filters.updatedSince);
   }
   if (filters.cursor) {
     let decoded: { pickupAt: string; id: string };

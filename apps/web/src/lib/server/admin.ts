@@ -1,4 +1,5 @@
 import { AppError, BOOKING_STATUSES, CONTACT_STATUSES } from "@kaiyue/contracts";
+import { parseSearchQuery, parseUpdatedSince } from "./admin-list-query.ts";
 import type { AppEnv, D1Database } from "./env.ts";
 import { businessTimezone } from "./env.ts";
 import { all, first, nowIso } from "./db.ts";
@@ -147,6 +148,8 @@ export async function handleAdminBookingsList(request: Request, env: AppEnv) {
     serviceType: url.searchParams.get("serviceType") ?? undefined,
     from: url.searchParams.get("from") ?? undefined,
     to: url.searchParams.get("to") ?? undefined,
+    q: parseSearchQuery(url.searchParams.get("q")),
+    updatedSince: parseUpdatedSince(url.searchParams.get("updatedSince")),
     cursor: url.searchParams.get("cursor") ?? undefined,
     limit: Number(url.searchParams.get("limit") ?? 20),
   });
@@ -206,6 +209,8 @@ export async function handleAdminContactsList(request: Request, env: AppEnv) {
   const result = await listContacts(env.DB, {
     status,
     inquiryType: url.searchParams.get("inquiryType") ?? undefined,
+    q: parseSearchQuery(url.searchParams.get("q")),
+    updatedSince: parseUpdatedSince(url.searchParams.get("updatedSince")),
     cursor: url.searchParams.get("cursor") ?? undefined,
     limit: Number(url.searchParams.get("limit") ?? 20),
   });

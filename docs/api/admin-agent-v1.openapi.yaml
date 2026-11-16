@@ -1,0 +1,346 @@
+openapi: 3.1.0
+info:
+  title: Kai Yue admin API (agent subset)
+  version: 1.0.0
+  description: >
+    Existing staff admin API for an AI agent that signs in with an existing admin
+    account. Same session, roles, same-origin rules, and audit trail as the admin UI.
+    No API keys. Admin hosts only; marketing hosts return 403.
+servers:
+  - url: https://admin-staging.kaiyuemacau.com
+    description: Official staging (synthetic data)
+security:
+  - sessionCookie: []
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Secure-better-auth.session_token
+      description: >
+        Set by POST /api/auth/sign-in/email. Send every cookie returned by sign-in.
+        Sessions last 8 hours; on 401 sign in again. Disabled accounts and revoked
+        sessions fail immediately.
+  parameters:
+    Origin:
+      name: Origin
+      in: header
+      required: true
+      description: Must equal the admin host origin on every POST/PATCH.
+      schema: { type: string, example: "https://admin-staging.kaiyuemacau.com" }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque value from the previous page's nextCursor.
+      schema: { type: string }
+    Q:
+      name: q
+      in: query
+      description: >
+        Case-insensitive substring search, 2-100 characters. Bookings match reference,
+        contact name, email, and phone. Inquiries also match company.
+      schema: { type: string, minLength: 2, maxLength: 100 }
+    UpdatedSince:
+      name: updatedSince
+      in: query
+      description: ISO 8601 date-time with a time zone; returns records updated at or after it.
+      schema: { type: string, format: date-time }
+    Reference:
+      name: reference
+      in: path
+      required: true
+      schema: { type: string, example: KY-ABCD1234 }
+    ContactId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              {
+                type: string,
+                enum:
+                  [
+                    VALIDATION_FAILED,
+                    UNAUTHORIZED,
+                    FORBIDDEN,
+                    NOT_FOUND,
+                    CONFLICT,
+                    RATE_LIMITED,
+                    IDEMPOTENCY_CONFLICT,
+                    INVALID_TRANSITION,
+                    UNAVAILABLE,
+                  ],
+              }
+            message: { type: string }
+            fields: { type: object, additionalProperties: { type: string } }
+            requestId: { type: string }
+    Booking:
+      type: object
+      properties:
+        reference: { type: string }
+        status: { type: string, enum: [enquiry, assigned, completed, cancelled] }
+        serviceType: { type: string }
+        pickupLocation: { type: string }
+        destination: { type: [string, "null"] }
+        pickupAt: { type: string, format: date-time }
+        returnAt: { type: [string, "null"] }
+        passengerCount: { type: integer }
+        communicationChannel: { type: string, enum: [email, whatsapp, admin] }
+        contactName: { type: [string, "null"] }
+        phone: { type: [string, "null"] }
+        email: { type: [string, "null"] }
+        message: { type: string }
+        notificationState: { type: string, enum: [pending, sent, partial, failed, skipped] }
+        driverId: { type: [string, "null"] }
+        vehicleId: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Contact:
+      type: object
+      properties:
+        id: { type: string }
+        reference: { type: string }
+        status: { type: string, enum: [new, replied, closed] }
+        inquiryType: { type: string, enum: [general, corporate, partnership, media] }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: [string, "null"] }
+        company: { type: [string, "null"] }
+        message: { type: string }
+        notificationState: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Note:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 2000 }
+  responses:
+    Error:
+      description: Error envelope (401 sign in again, 403 role or host, 404, 409 stale expectedUpdatedAt, 422 validation)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+paths:
+  /api/auth/sign-in/email:
+    post:
+      summary: Sign in with an existing admin email and password
+      security: []
+      parameters: [{ $ref: "#/components/parameters/Origin" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200": { description: Signed in; Set-Cookie carries the session }
+        "401": { description: Invalid credentials }
+  /api/auth/sign-out:
+    post:
+      summary: End the session
+      parameters: [{ $ref: "#/components/parameters/Origin" }]
+      responses:
+        "200": { description: Signed out }
+  /api/v1/admin/profile:
+    get:
+      summary: Signed-in account email and role (super_admin or staff)
+      responses:
+        "200": { description: Profile }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/summary:
+    get:
+      summary: Dashboard counts and recent bookings
+      responses:
+        "200": { description: Summary }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings:
+    get:
+      summary: List or search bookings (sorted by pickup time ascending)
+      parameters:
+        - { $ref: "#/components/parameters/Q" }
+        - { $ref: "#/components/parameters/UpdatedSince" }
+        - name: status
+          in: query
+          schema: { type: string, enum: [enquiry, assigned, completed, cancelled] }
+        - { name: serviceType, in: query, schema: { type: string } }
+        - { name: from, in: query, description: Pickup at or after, schema: { type: string, format: date-time } }
+        - { name: to, in: query, description: Pickup at or before, schema: { type: string, format: date-time } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Page of bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Booking" } }
+                  nextCursor: { type: [string, "null"] }
+                  total: { type: integer }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings/{reference}:
+    get:
+      summary: Booking detail with notes and event history
+      parameters: [{ $ref: "#/components/parameters/Reference" }]
+      responses:
+        "200": { description: Booking detail }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      summary: Edit journey and contact fields (optimistic concurrency)
+      parameters:
+        - { $ref: "#/components/parameters/Reference" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedUpdatedAt]
+              properties:
+                expectedUpdatedAt: { type: string, description: updatedAt from the last read }
+                pickupLocation: { type: string }
+                destination: { type: [string, "null"] }
+                pickupAt: { type: string, format: date-time }
+                returnAt: { type: [string, "null"] }
+                passengerCount: { type: integer }
+                contactName: { type: string }
+                phone: { type: string }
+                email: { type: [string, "null"] }
+                message: { type: string }
+      responses:
+        "200": { description: Updated booking }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings/{reference}/status:
+    patch:
+      summary: Change booking status (enquiry→assigned|cancelled, assigned→completed|cancelled)
+      parameters:
+        - { $ref: "#/components/parameters/Reference" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [assigned, completed, cancelled] }
+      responses:
+        "200": { description: Updated booking; audit event recorded }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings/{reference}/assignment:
+    patch:
+      summary: Assign an active driver and suitable vehicle, or clear both
+      parameters:
+        - { $ref: "#/components/parameters/Reference" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedUpdatedAt, driverId, vehicleId]
+              properties:
+                expectedUpdatedAt: { type: string }
+                driverId: { type: [string, "null"] }
+                vehicleId: { type: [string, "null"] }
+      responses:
+        "200": { description: Updated booking }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings/{reference}/notes:
+    post:
+      summary: Add an internal note
+      parameters:
+        - { $ref: "#/components/parameters/Reference" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Note" }
+      responses:
+        "201": { description: Note created }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/contacts:
+    get:
+      summary: List or search inquiries (newest first)
+      parameters:
+        - { $ref: "#/components/parameters/Q" }
+        - { $ref: "#/components/parameters/UpdatedSince" }
+        - name: status
+          in: query
+          schema: { type: string, enum: [new, replied, closed] }
+        - name: inquiryType
+          in: query
+          schema: { type: string, enum: [general, corporate, partnership, media] }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Page of inquiries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Contact" } }
+                  nextCursor: { type: [string, "null"] }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/contacts/{id}:
+    get:
+      summary: Inquiry detail with notes and event history
+      parameters: [{ $ref: "#/components/parameters/ContactId" }]
+      responses:
+        "200": { description: Inquiry detail }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/contacts/{id}/status:
+    patch:
+      summary: Change inquiry status (new→replied|closed, replied→closed)
+      parameters:
+        - { $ref: "#/components/parameters/ContactId" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [replied, closed] }
+      responses:
+        "200": { description: Updated inquiry; audit event recorded }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/contacts/{id}/notes:
+    post:
+      summary: Add an internal note
+      parameters:
+        - { $ref: "#/components/parameters/ContactId" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Note" }
+      responses:
+        "201": { description: Note created }
+        default: { $ref: "#/components/responses/Error" }
