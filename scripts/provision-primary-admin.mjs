@@ -32,6 +32,8 @@ const PRODUCTION_D1_NAME = "kaiyue-travel-production";
 const VERIFIED_PRODUCTION_PRIMARY_EMAIL = "daniel@kaiyuemacau.com";
 const TRIAL_OPERATOR_EMAIL = "admin-trial@kaiyue.test";
 const MIN_PASSWORD_LENGTH = 12;
+const MAX_PASSWORD_LENGTH = 128;
+const BOOTSTRAP_MARKER = "production-bootstrap";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 function argValue(flag) {
@@ -47,6 +49,8 @@ function fail(message) {
   console.error(message);
   process.exit(1);
 }
+
+const NOW_SQL = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
 
 function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
@@ -153,14 +157,82 @@ AND NOT EXISTS (
 ${postconditionSql(email, userId, accountId)}`;
 }
 
+function operatorPreflightSql(email) {
+  return `-- SELECT-only. Safe before 0009/0010: lists applied migrations and sidecar objects.
+SELECT name FROM d1_migrations ORDER BY id;
+SELECT name, type FROM sqlite_master
+WHERE name IN ('admin_operator', 'operator_audit_events',
+  'protect_last_enabled_super_admin_update', 'protect_last_enabled_super_admin_delete')
+ORDER BY name;
+-- Run only after 0009/0010 exist; these read admin_operator.
+SELECT COUNT(*) AS operator_count,
+  (SELECT COUNT(*) FROM admin_operator WHERE role = 'super_admin' AND enabled = 1) AS enabled_super_count
+FROM admin_operator;
+SELECT o.role, o.enabled, o.updated_by
+FROM admin_operator AS o
+JOIN "user" AS u ON u."id" = o.user_id
+WHERE lower(u."email") = lower(${sqlString(email)});
+`;
+}
+
+function bootstrapSql({ email, auditId, d1Name, d1Id }) {
+  const target = `(SELECT "id" FROM "user" WHERE lower("email") = lower(${sqlString(email)}))`;
+  const identityOk = `(SELECT COUNT(*) FROM "user" WHERE lower("email") = lower(${sqlString(email)})) = 1
+    AND (
+      SELECT COUNT(*) FROM "account" AS a
+      JOIN "user" AS u ON u."id" = a."userId"
+      WHERE lower(u."email") = lower(${sqlString(email)}) AND a."providerId" = 'credential'
+    ) = 1`;
+  const ownerIsSuper = `(SELECT COUNT(*) FROM admin_operator
+      WHERE user_id = ${target} AND role = 'super_admin' AND enabled = 1) = 1`;
+  return `-- First production super_admin bootstrap for ${d1Name} (${d1Id}).
+-- Requires migrations 0009 + 0010 and a primary user + credential created by --write-sql.
+-- Supported prestate: admin_operator empty, or this primary already an enabled super_admin
+-- (replay inserts nothing). Anything else fails the CHECK before any write.
+-- Does not create users, change passwords, touch other users, or send mail.
+-- D1 auto-commits each statement; every write re-checks its own preconditions.
+CREATE TABLE IF NOT EXISTS "_primary_operator_bootstrap_guard" (
+  ok INTEGER NOT NULL CHECK (ok = 1)
+);
+DELETE FROM "_primary_operator_bootstrap_guard";
+INSERT INTO "_primary_operator_bootstrap_guard" ("ok")
+SELECT CASE
+  WHEN ${identityOk}
+    AND (
+      (SELECT COUNT(*) FROM admin_operator) = 0
+      OR ${ownerIsSuper}
+    )
+  THEN 1
+  ELSE 0
+END;
+INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+SELECT ${target}, 'super_admin', 1, ${NOW_SQL}, ${NOW_SQL}, ${sqlString(BOOTSTRAP_MARKER)}
+WHERE ${identityOk}
+  AND (SELECT COUNT(*) FROM admin_operator) = 0;
+INSERT INTO operator_audit_events
+  (id, user_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+SELECT ${sqlString(auditId)}, ${target}, 'operator_created', ${sqlString(BOOTSTRAP_MARKER)},
+  NULL, 'super_admin:enabled', ${sqlString(BOOTSTRAP_MARKER)}, ${NOW_SQL}
+WHERE ${identityOk}
+  AND (SELECT COUNT(*) FROM admin_operator
+    WHERE user_id = ${target} AND updated_by = ${sqlString(BOOTSTRAP_MARKER)}) = 1
+  AND NOT EXISTS (
+    SELECT 1 FROM operator_audit_events
+    WHERE user_id = ${target} AND request_id = ${sqlString(BOOTSTRAP_MARKER)}
+  );
+INSERT INTO "_primary_operator_bootstrap_guard" ("ok")
+SELECT CASE WHEN ${identityOk} AND ${ownerIsSuper} THEN 1 ELSE 0 END;
+DROP TABLE "_primary_operator_bootstrap_guard";
+`;
+}
+
 function printPlan() {
   const lines = [
     "Primary operator provisioning plan (no secrets, no D1 apply).",
     `Production D1: ${PRODUCTION_D1_NAME} ${PRODUCTION_D1_ID}.`,
-    "14:18 snapshot: Daniel user count 0; credential count 0; no role column. Re-read before apply.",
-    "Decision at 14:18: CREATE user + credential. That snapshot is not perpetual.",
-    "Authority is Worker env ADMIN_PRIMARY_EMAIL + ADMIN_EMAILS, not a DB role column.",
-    "No migrations/0009. A persisted role would be unused metadata, not a single-primary lock.",
+    "Order: --preflight, migrations 0009 + 0010, --write-sql (CREATE user + credential), --write-bootstrap-sql (first super_admin). Re-read before each apply.",
+    "Live admin authority is an enabled admin_operator row (super_admin or staff). ADMIN_EMAILS and ADMIN_PRIMARY_EMAIL neither admit nor exclude on production hosts.",
+    "Bootstrap supports only an empty admin_operator or this primary already an enabled super_admin; replay inserts nothing.",
     "Password policy: production CREATE stays Better Auth minPasswordLength 12. ADMIN_STAGING_TEST_PASSWORD_MIN is ignored on production hosts and by this provisioner.",
     "Cloudflare Vault cannot export a generated login password into this CLI or write Worker bindings.",
     "A later native user-secret request may put a user-provided password in PRIMARY_ADMIN_PASSWORD for this process.",
@@ -193,8 +265,44 @@ if (hasFlag("--preflight")) {
   process.exit(0);
 }
 
+if (hasFlag("--preflight-operators")) {
+  if (envName !== "production") {
+    fail("Operator preflight is production-only.");
+  }
+  process.stdout.write(operatorPreflightSql(expectedEmail));
+  process.exit(0);
+}
+
+if (hasFlag("--write-bootstrap-sql")) {
+  if (envName !== "production") {
+    fail("Bootstrap SQL is production-only.");
+  }
+  if (!email || email !== expectedEmail) {
+    fail("PRIMARY_ADMIN_EMAIL must match the configured production primary.");
+  }
+  const bootstrapOut = argValue("--out");
+  if (!bootstrapOut) {
+    fail("--write-bootstrap-sql requires --out <path>.");
+  }
+  writeExclusivePrivate(
+    bootstrapOut,
+    bootstrapSql({
+      email,
+      auditId: randomUUID(),
+      d1Name: PRODUCTION_D1_NAME,
+      d1Id: PRODUCTION_D1_ID,
+    }),
+  );
+  process.stdout.write(
+    "Wrote first super_admin bootstrap SQL with CHECK pre/postconditions. This script did not apply D1.\n",
+  );
+  process.exit(0);
+}
+
 if (!hasFlag("--write-sql")) {
-  fail("Use --plan, --preflight, or --write-sql --out <path>. This script does not apply D1.");
+  fail(
+    "Use --plan, --preflight, --preflight-operators, --write-sql --out <path>, or --write-bootstrap-sql --out <path>. This script does not apply D1.",
+  );
 }
 
 const outPath = argValue("--out");
@@ -212,15 +320,11 @@ if (email !== expectedEmail) {
 }
 
 const password = process.env.PRIMARY_ADMIN_PASSWORD ?? "";
-const secret = process.env.BETTER_AUTH_SECRET ?? "";
 if (!password || password.length < MIN_PASSWORD_LENGTH) {
   fail(`PRIMARY_ADMIN_PASSWORD must be at least ${MIN_PASSWORD_LENGTH} characters.`);
 }
-if (!secret || secret.length < 32) {
-  fail("BETTER_AUTH_SECRET must be at least 32 characters.");
-}
-if (password === secret) {
-  fail("Password and BETTER_AUTH_SECRET must be different.");
+if (password.length > MAX_PASSWORD_LENGTH) {
+  fail(`PRIMARY_ADMIN_PASSWORD must be at most ${MAX_PASSWORD_LENGTH} characters.`);
 }
 
 const { hashPassword } = await import(resolveBetterAuthCrypto());

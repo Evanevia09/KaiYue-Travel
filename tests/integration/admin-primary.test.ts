@@ -127,7 +127,7 @@ describe("secret-safe primary CREATE helper", () => {
     expect(plan.status).toBe(0);
     expect(plan.stdout).toContain("CREATE");
     expect(plan.stdout).toContain(productionD1);
-    expect(plan.stdout).toContain("Re-read before apply");
+    expect(plan.stdout).toContain("Re-read before each apply");
     expect(plan.stdout).toContain("Vault cannot export");
     expect(plan.stdout).toContain("batch()");
     expect(plan.stdout).not.toMatch(/password\s*=/i);
