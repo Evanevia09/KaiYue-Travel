@@ -2,7 +2,16 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 `dca860c` staged, admin root fixed (closeout)
+## Current state — 2026-11-16 production release (operationally activated)
+
+- **task_id:** `kaiyue-production-release-20261116` (as of 18:58 Asia/Macau)
+- **Live:** `main` = `official-staging` = `ff119f2c` (PR #45 FF 18:49:19). Worker `kaiyue-travel` version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` since 18:54:51. Entry `ab6e3473…1077`, package `d3aae305…18a9`.
+- **Admin:** `admin.kaiyuemacau.com` attached. Production D1 `06cf879d` has schema `0001`–`0010` and one enabled `super_admin` (the configured primary). Mail off. No Access.
+- **Owner waived further tests/UAT at 18:46.** Operational activation only, not app sign-off or project acceptance. Production login, UI and security behaviour not verified here.
+- **Rollback:** version `71a66a99` and detach the admin hostname. Never restore D1 automatically.
+- **Record:** `docs/records/2026-11-16-production-operator-release.md`.
+
+## Previous state — 2026-11-16 `dca860c` staged, admin root fixed (closeout)
 
 - **task_id:** `kaiyue-production-readiness-20261116`
 - **Staged:** exact `dca860c59b03c0407293f087a158a855b04c60df`. FF `official-staging` 17:47:46, CD run [43842973590](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43842973590) SUCCESS 17:50:01. Worker version 15 `c8986696-960f-4bd6-944f-9bd1006153d9` @100% / deployment `21ff0a46-f43d-4b39-b934-98156c72b115`.
