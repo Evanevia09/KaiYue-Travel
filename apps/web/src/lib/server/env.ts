@@ -30,6 +30,7 @@ export type AppEnv = {
   PUBLIC_SITE_URL?: string;
   BUSINESS_TIMEZONE?: string;
   BOOKING_NOTICE_HOURS?: string;
+  NOTIFICATIONS_ENABLED?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
   RESEND_STAFF_TO?: string;

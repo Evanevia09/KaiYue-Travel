@@ -68,6 +68,30 @@ describe("staging notification fail-closed", () => {
     expect(sendMock).not.toHaveBeenCalled();
   });
 
+  it("skips production identity with a dummy key unless NOTIFICATIONS_ENABLED is exactly true", async () => {
+    for (const flag of [undefined, "", "false", "TRUE", "1", "yes"]) {
+      sendMock.mockReset();
+      ResendMock.mockReset();
+      const env = createTestEnv({
+        ...dummyDelivery,
+        PUBLIC_SITE_URL: "https://kaiyuemacau.com",
+        NOTIFICATIONS_ENABLED: flag,
+      });
+      await expect(sendNotifications(env, input)).resolves.toBe("skipped");
+      expect(ResendMock, String(flag)).not.toHaveBeenCalled();
+      expect(sendMock, String(flag)).not.toHaveBeenCalled();
+    }
+
+    const enabledWithoutSender = createTestEnv({
+      ...dummyDelivery,
+      PUBLIC_SITE_URL: "https://kaiyuemacau.com",
+      NOTIFICATIONS_ENABLED: "true",
+      RESEND_FROM: undefined,
+    });
+    await expect(sendNotifications(enabledWithoutSender, input)).resolves.toBe("failed");
+    expect(ResendMock).not.toHaveBeenCalled();
+  });
+
   it("does not construct Resend for missing, malformed, or staging workers.dev site URLs", async () => {
     const cases = [
       { PUBLIC_SITE_URL: undefined },

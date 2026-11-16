@@ -8,6 +8,7 @@ type AppBindings = {
   OFFERS_BUCKET?: import("./lib/server/offers/objects").OfferR2Bucket;
   BUSINESS_TIMEZONE?: string;
   BOOKING_NOTICE_HOURS?: string;
+  NOTIFICATIONS_ENABLED?: string;
   RESEND_API_KEY?: string;
   RESEND_FROM?: string;
   RESEND_STAFF_TO?: string;

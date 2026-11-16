@@ -36,6 +36,15 @@ export async function sendNotifications(
     });
     return "skipped";
   }
+  if ((env.NOTIFICATIONS_ENABLED ?? "").trim() !== "true") {
+    logSafe("info", "notification_skipped", {
+      kind: input.kind,
+      reference: input.reference,
+      requestId: input.requestId,
+      reason: "notifications_disabled",
+    });
+    return "skipped";
+  }
   if (!env.RESEND_API_KEY) {
     logSafe("info", "notification_skipped", {
       kind: input.kind,
