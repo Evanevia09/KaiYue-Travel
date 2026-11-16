@@ -36,7 +36,7 @@ export function isPrimaryAdminEmail(
   return Boolean(primary && normalizeAdminEmail(email) === primary);
 }
 
-export function productionDedicatedHostRequiresPrimary(
+export function productionDedicatedHostRequiresOperator(
   env: Pick<AppEnv, "ENVIRONMENT">,
   request: Request,
 ): boolean {
@@ -46,11 +46,16 @@ export function productionDedicatedHostRequiresPrimary(
   );
 }
 
-export function liveAdminRequiresPrimary(
+/**
+ * Live admin surfaces admit only an enabled persisted operator row
+ * (super_admin or staff). ADMIN_EMAILS and ADMIN_PRIMARY_EMAIL never admit
+ * or exclude anyone there, so an unprovisioned directory fails closed.
+ */
+export function liveAdminRequiresOperator(
   env: Pick<AppEnv, "ENVIRONMENT">,
   request: Request,
 ): boolean {
-  return productionDedicatedHostRequiresPrimary(env, request) || isProductionHost(request);
+  return productionDedicatedHostRequiresOperator(env, request) || isProductionHost(request);
 }
 
 export function temporaryAdminExpiryApplies(
@@ -67,15 +72,22 @@ export function effectiveAdminRole(
   return isPrimaryAdminEmail(email, env) ? ADMIN_ROLE_PRIMARY : ADMIN_ROLE_STAFF;
 }
 
-export function assertPrimaryOperator(
-  actor: { email: string },
+export function assertAdminAdmission(
+  actor: { email: string; operatorRole?: AdminOperatorRole | null },
   env: Pick<AppEnv, "ENVIRONMENT" | "ADMIN_PRIMARY_EMAIL" | "ADMIN_EMAILS">,
   request: Request,
 ): void {
-  const primary = primaryAdminEmail(env);
-  if (liveAdminRequiresPrimary(env, request) && !primary) {
-    throw new AppError("FORBIDDEN", "Primary operator is not configured.");
+  const hasOperatorRole = actor.operatorRole === "super_admin" || actor.operatorRole === "staff";
+  if (liveAdminRequiresOperator(env, request)) {
+    if (!hasOperatorRole) {
+      throw new AppError("FORBIDDEN", "Operator directory is not provisioned for this account.");
+    }
+    return;
   }
+  if (hasOperatorRole) {
+    return;
+  }
+  const primary = primaryAdminEmail(env);
   if (primary && !isPrimaryAdminEmail(actor.email, env)) {
     throw new AppError("FORBIDDEN", "Primary operator authentication is required.");
   }

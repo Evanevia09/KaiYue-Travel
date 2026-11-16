@@ -3,10 +3,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { getPlatformProxy } from "wrangler";
 import { ACCESS_ADMIN_HOST } from "../../apps/web/src/lib/server/admin-gate.ts";
-import {
-  ADMIN_ROLE_PRIMARY,
-  ADMIN_ROLE_STAFF,
-} from "../../apps/web/src/lib/server/admin-primary.ts";
+import { ADMIN_ROLE_PRIMARY } from "../../apps/web/src/lib/server/admin-primary.ts";
 import { passwordSignupGate } from "../../apps/web/src/lib/server/admin-signup.ts";
 import {
   ADMIN_PASSWORD_MIN_LENGTH,
@@ -96,8 +93,17 @@ beforeAll(async () => {
     ADMIN_STAGING_TEST_PASSWORD_MIN: "6",
   };
   await execMigration(env, "../../migrations/0004_admin_auth.sql");
+  await execMigration(env, "../../migrations/0009_admin_operator.sql");
+  await execMigration(env, "../../migrations/0010_admin_operator_last_super.sql");
   expect((await signUp(env, primaryEmail, currentPassword)).status).toBe(200);
   expect((await signUp(env, staffEmail, currentPassword)).status).toBe(200);
+  const now = new Date().toISOString();
+  await env.DB.prepare(
+    `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+     SELECT id, 'super_admin', 1, ?, ?, 'production-bootstrap' FROM "user" WHERE email = ?`,
+  )
+    .bind(now, now, primaryEmail)
+    .run();
 }, 30_000);
 
 afterEach(() => {
@@ -109,7 +115,7 @@ afterAll(async () => {
 });
 
 describe("production dedicated admin host password login", () => {
-  it("accepts the primary operator and own password change, then rejects other sessions in D1", async () => {
+  it("accepts the bootstrapped super admin and own password change, then rejects other sessions in D1", async () => {
     expect(ADMIN_PASSWORD_MIN_LENGTH).toBe(12);
     expect(currentPassword.length).toBeGreaterThanOrEqual(ADMIN_PASSWORD_MIN_LENGTH);
     expect(ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS).toBe(60);
@@ -129,7 +135,7 @@ describe("production dedicated admin host password login", () => {
     expect(profile.status).toBe(200);
     const profileBody = (await profile.json()) as { role?: string; email?: string };
     expect(profileBody.email).toBe(primaryEmail);
-    expect(profileBody.role).toBe(ADMIN_ROLE_PRIMARY);
+    expect(profileBody.role).toBe("super_admin");
 
     const other = await signIn(env, primaryEmail, currentPassword);
     expect(other.status).toBe(200);
@@ -171,12 +177,12 @@ describe("production dedicated admin host password login", () => {
     expect((await signIn(env, primaryEmail, currentPassword)).status).not.toBe(200);
   }, 30_000);
 
-  it("rejects staff, unallowlisted, bypass, expired UAT policy inheritance, signup, and cross-origin", async () => {
+  it("rejects accounts without an operator row, unallowlisted, bypass, expired UAT policy inheritance, signup, and cross-origin", async () => {
     const staff = await signIn(env, staffEmail, currentPassword);
     expect(staff.status).toBe(200);
     await expect(
       requireAdmin(new Request(`${origin}/admin`, { headers: { cookie: staff.cookie } }), env),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
 
     const unlisted = {
       ...env,
@@ -253,7 +259,7 @@ describe("production dedicated admin host password login", () => {
     expect(rolePost.status).toBe(401);
   }, 30_000);
 
-  it("does not treat a persisted primary row as privilege when env names another operator", async () => {
+  it("does not let ADMIN_PRIMARY_EMAIL grant or remove operator-row privilege", async () => {
     const spoofed = {
       ...env,
       ADMIN_PRIMARY_EMAIL: staffEmail,
@@ -261,25 +267,26 @@ describe("production dedicated admin host password login", () => {
     };
     const login = await signIn(spoofed, primaryEmail, nextPassword);
     expect(login.status).toBe(200);
-    await expect(
-      requireAdmin(new Request(`${origin}/admin`, { headers: { cookie: login.cookie } }), spoofed),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    const superIdentity = await requireAdmin(
+      new Request(`${origin}/admin`, { headers: { cookie: login.cookie } }),
+      spoofed,
+    );
+    expect(superIdentity.operatorRole).toBe("super_admin");
 
     const staffLogin = await signIn(spoofed, staffEmail, currentPassword);
     expect(staffLogin.status).toBe(200);
-    const staffIdentity = await requireAdmin(
-      new Request(`${origin}/admin`, { headers: { cookie: staffLogin.cookie } }),
-      spoofed,
-    );
-    expect(staffIdentity.email).toBe(staffEmail);
+    await expect(
+      requireAdmin(
+        new Request(`${origin}/admin`, { headers: { cookie: staffLogin.cookie } }),
+        spoofed,
+      ),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     const profile = await handleApi(
       new Request(`${origin}/api/v1/admin/profile`, {
         headers: jsonHeaders(staffLogin.cookie),
       }),
       spoofed,
     );
-    expect(profile.status).toBe(200);
-    expect(((await profile.json()) as { role?: string }).role).toBe(ADMIN_ROLE_PRIMARY);
-    expect(ADMIN_ROLE_STAFF).toBe("staff");
+    expect(profile.status).toBe(401);
   }, 30_000);
 });

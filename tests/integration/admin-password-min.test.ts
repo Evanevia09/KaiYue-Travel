@@ -208,6 +208,21 @@ describe("staging-admin Better Auth min 6 vs production-admin min 12", () => {
     expect(longEnough).toHaveLength(12);
     const productionCreate = await signUp(env, productionOrigin, productionEmail, longEnough);
     expect(productionCreate.status).toBe(200);
+    for (const name of ["0009_admin_operator.sql", "0010_admin_operator_last_super.sql"]) {
+      await env.DB.exec(
+        readFileSync(fileURLToPath(new URL(`../../migrations/${name}`, import.meta.url)), "utf8")
+          .split("\n")
+          .filter((line) => !line.trim().startsWith("--"))
+          .join("\n"),
+      );
+    }
+    const now = new Date().toISOString();
+    await env.DB.prepare(
+      `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+       SELECT id, 'super_admin', 1, ?, ?, 'production-bootstrap' FROM "user" WHERE email = ?`,
+    )
+      .bind(now, now, productionEmail)
+      .run();
     const productionEnv = {
       ...env,
       ADMIN_PRIMARY_EMAIL: productionEmail,

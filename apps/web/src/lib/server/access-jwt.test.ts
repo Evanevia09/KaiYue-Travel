@@ -127,16 +127,29 @@ describe("Access JWT signature verification", () => {
       ADMIN_PRIMARY_EMAIL: "ops@example.test",
       ADMIN_EMAILS: "ops@example.test",
     });
+    await expect(requireAdmin(request, env)).rejects.toThrow(/not provisioned/);
+    const createdAt = new Date().toISOString();
+    await env.DB.prepare(
+      `INSERT INTO "user" (id, name, email, emailVerified, createdAt, updatedAt) VALUES (?, ?, ?, 1, ?, ?)`,
+    )
+      .bind("access-user-1", "Access Operator", "ops@example.test", createdAt, createdAt)
+      .run();
+    await env.DB.prepare(
+      `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+       VALUES ('access-user-1', 'super_admin', 1, ?, ?, 'test')`,
+    )
+      .bind(createdAt, createdAt)
+      .run();
     await expect(requireAdmin(request, env)).resolves.toEqual({
       ...first,
-      operatorRole: null,
+      operatorRole: "super_admin",
     });
     await expect(requireAdmin(request, { ...env, ACCESS_AUD: "different-app" })).rejects.toThrow(
       /not allowed/,
     );
     await expect(
       requireAdmin(request, { ...env, ADMIN_PRIMARY_EMAIL: undefined, ADMIN_EMAILS: undefined }),
-    ).rejects.toThrow(/Primary operator is not configured/);
+    ).resolves.toMatchObject({ operatorRole: "super_admin" });
 
     const otherPayload = Buffer.from(
       JSON.stringify({
@@ -157,8 +170,6 @@ describe("Access JWT signature verification", () => {
     const otherRequest = new Request(`https://${ACCESS_ADMIN_HOST}/admin`, {
       headers: { "cf-access-jwt-assertion": otherToken },
     });
-    await expect(requireAdmin(otherRequest, env)).rejects.toThrow(
-      /Primary operator authentication is required/,
-    );
+    await expect(requireAdmin(otherRequest, env)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

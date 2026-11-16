@@ -12,7 +12,7 @@ import {
   operatorsProvisioned,
   type AdminOperatorRole,
 } from "./admin-operator.ts";
-import { assertPrimaryOperator, temporaryAdminExpiryApplies } from "./admin-primary.ts";
+import { assertAdminAdmission, temporaryAdminExpiryApplies } from "./admin-primary.ts";
 import { allowedAdminEmails, createAdminSessionAuth } from "./admin-session.ts";
 import type { AppEnv } from "./env.ts";
 
@@ -49,9 +49,12 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
     if (!accessToken) {
       throw new AppError("FORBIDDEN", "Admin access is not configured.");
     }
-    const accessIdentity = await verifyAccessJwt(accessToken, env);
-    assertPrimaryOperator(accessIdentity, env, request);
-    return await attachOperatorRole(env.DB, accessIdentity);
+    const accessIdentity = await attachOperatorRole(
+      env.DB,
+      await verifyAccessJwt(accessToken, env),
+    );
+    assertAdminAdmission(accessIdentity, env, request);
+    return accessIdentity;
   }
 
   if (isLocalRuntime(env) && env.DEV_ADMIN_BYPASS === "true" && !isDedicatedAdminHost(request)) {
@@ -60,9 +63,9 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
 
   const token = request.headers.get("cf-access-jwt-assertion");
   if (token && accessState === "configured") {
-    const accessIdentity = await verifyAccessJwt(token, env);
-    assertPrimaryOperator(accessIdentity, env, request);
-    return await attachOperatorRole(env.DB, accessIdentity);
+    const accessIdentity = await attachOperatorRole(env.DB, await verifyAccessJwt(token, env));
+    assertAdminAdmission(accessIdentity, env, request);
+    return accessIdentity;
   }
 
   if (!passwordAdminAllowed(env, request)) {
@@ -104,7 +107,7 @@ export async function requireAdmin(request: Request, env: AppEnv): Promise<Admin
   if (identity.operatorRole == null && !allowed.has(session.user.email.toLowerCase())) {
     throw new AppError("UNAUTHORIZED", "Admin authentication is required.");
   }
-  assertPrimaryOperator(identity, env, request);
+  assertAdminAdmission(identity, env, request);
   return identity;
 }
 
