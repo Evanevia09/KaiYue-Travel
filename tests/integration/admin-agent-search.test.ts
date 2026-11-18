@@ -127,6 +127,33 @@ describe("admin list search for agents", () => {
     }
   });
 
+  it.each([
+    ["bookings", "/api/v1/bookings", booking("Alex Chan", "alex@example.com", 48)],
+    ["contacts", "/api/v1/contacts", contact("Jamie Ho", "Harbour Hotels")],
+  ] as const)("normalizes list limits for %s", async (resource, path, fixture) => {
+    const env = createTestEnv();
+    for (let index = 0; index < 3; index += 1) {
+      await post(env, path, `agent-limit-${resource}-${index}`, fixture);
+    }
+
+    for (const [limit, expectedLength] of [
+      ["abc", 3],
+      ["Infinity", 3],
+      ["1.9", 1],
+      ["0", 1],
+      ["999", 3],
+    ] as const) {
+      const page = await list(env, `/api/v1/admin/${resource}?limit=${limit}`);
+      expect(page.status, limit).toBe(200);
+      expect(page.body.items, limit).toHaveLength(expectedLength);
+      if (expectedLength === 1) {
+        expect(page.body.nextCursor, limit).toEqual(expect.any(String));
+      } else {
+        expect(page.body.nextCursor, limit).toBeNull();
+      }
+    }
+  });
+
   it("searches inquiries by company and pages with a stable opaque cursor", async () => {
     const env = createTestEnv();
     await post(env, "/api/v1/contacts", "agent-search-c1", contact("Jamie Ho", "Harbour Hotels"));

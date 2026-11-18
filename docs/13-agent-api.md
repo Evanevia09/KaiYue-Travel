@@ -39,7 +39,7 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 | Find an inquiry | `GET /api/v1/admin/contacts?q=<text>` (adds company) |
 | Changes since the last poll | `...?updatedSince=2026-11-16T10:00:00Z` (time zone required) |
 
-`q` is a case-insensitive substring match; `%` and `_` are treated literally. Results are paged with `limit` (clamped to 1-50, never rejected) and the opaque `nextCursor`. Bookings are sorted by pickup time; inquiries are newest first with a tie-break on id, so pages never repeat or skip a record. Invalid parameters return `422 VALIDATION_FAILED`.
+`q` is a case-insensitive substring match; `%` and `_` are treated literally. Results are paged with `limit` and the opaque `nextCursor`. An omitted or non-finite limit defaults to 20. Finite numbers are truncated to integers and clamped to 1–50. Bookings are sorted by pickup time; inquiries are newest first with a tie-break on id, for stable ordering when records stay unchanged. Invalid search, timestamp, and cursor values return `422 VALIDATION_FAILED`.
 
 ## Endpoints and responses
 
