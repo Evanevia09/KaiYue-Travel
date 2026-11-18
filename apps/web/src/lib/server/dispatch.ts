@@ -43,7 +43,7 @@ async function audit(
   return db
     .prepare(
       `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
-    VALUES (?, 'booking', ?, ?, ?, NULL, ?, ?, ?)`,
+    SELECT ?, 'booking', ?, ?, ?, NULL, ?, ?, ? WHERE changes() = 1`,
     )
     .bind(crypto.randomUUID(), row.id, kind, actorId, JSON.stringify(fields), requestId, updatedAt);
 }
@@ -143,7 +143,7 @@ export async function editBooking(
     return row[dbKey] !== next;
   });
   if (fields.length === 0) return { booking: bookingToAdmin(row) };
-  await db.batch([
+  const [result] = await db.batch([
     db
       .prepare(
         `UPDATE bookings SET pickup_location=?, destination=?, pickup_at=?, return_at=?, passenger_count=?, contact_name=?, phone=?, phone_display=?, email=?, message=?, updated_at=? WHERE id=? AND updated_at=?`,
@@ -165,6 +165,9 @@ export async function editBooking(
       ),
     await audit(db, row, "details_edit", fields, actorId, requestId, updatedAt),
   ]);
+  if (result?.meta.changes !== 1) {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
   const updated = await getBookingByReference(db, reference);
   return { booking: bookingToAdmin(updated!) };
 }
@@ -202,7 +205,7 @@ export async function assignBooking(
   if (row.driver_id === driverId && row.vehicle_id === vehicleId)
     return { booking: bookingToAdmin(row) };
   const updatedAt = nextTimestamp(row.updated_at);
-  await db.batch([
+  const [result] = await db.batch([
     db
       .prepare(
         "UPDATE bookings SET driver_id=?, vehicle_id=?, updated_at=? WHERE id=? AND updated_at=?",
@@ -218,6 +221,9 @@ export async function assignBooking(
       updatedAt,
     ),
   ]);
+  if (result?.meta.changes !== 1) {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
   const updated = await getBookingByReference(db, reference);
   return { booking: bookingToAdmin(updated!) };
 }

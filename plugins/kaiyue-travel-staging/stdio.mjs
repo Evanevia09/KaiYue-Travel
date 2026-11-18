@@ -1,9 +1,10 @@
+import manifest from "./plugin.json" with { type: "json" };
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServer } from "./server.mjs";
 import { createStagingApi } from "./staging-api.mjs";
 
 const api = createStagingApi();
-const server = createServer(api);
+const server = createServer(api, { version: manifest.version });
 let stopping = false;
 
 async function stop() {

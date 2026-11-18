@@ -92,8 +92,11 @@ export function BookingsPanel({ locale, initialStatus = "" }: Props) {
           <select value={status} onChange={(event) => changeStatus(event.target.value)}>
             <option value="">{t(locale, "bookings.statusAll")}</option>
             <option value="enquiry">{t(locale, "status.enquiry")}</option>
+            <option value="approved">{t(locale, "status.approved")}</option>
+            <option value="confirmed">{t(locale, "status.confirmed")}</option>
             <option value="assigned">{t(locale, "status.assigned")}</option>
             <option value="completed">{t(locale, "status.completed")}</option>
+            <option value="denied">{t(locale, "status.denied")}</option>
             <option value="cancelled">{t(locale, "status.cancelled")}</option>
           </select>
         </label>

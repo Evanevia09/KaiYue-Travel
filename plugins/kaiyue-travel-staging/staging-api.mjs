@@ -4,7 +4,8 @@ import { CookieJar } from "tough-cookie";
 
 export const STAGING_ORIGIN = "https://admin-staging.kaiyuemacau.com";
 
-export class StagingError extends Error {}
+import { StagingError, stagingResponseError } from "../../packages/agent-tools/error.mjs";
+export { StagingError };
 
 async function readCredentials() {
   try {
@@ -34,19 +35,19 @@ export function createStagingApi({ fetchRequest = fetch, getCredentials = readCr
   let session;
   let signingIn;
 
-  async function request(path, { jar, method = "GET", credentials } = {}) {
+  async function request(path, { jar, method = "GET", body } = {}) {
     const url = new URL(path, STAGING_ORIGIN);
     if (url.origin !== STAGING_ORIGIN) throw new StagingError("Unexpected staging request origin.");
     const headers = new Headers({ Accept: "application/json" });
-    if (method === "POST") headers.set("Origin", STAGING_ORIGIN);
-    if (credentials) headers.set("Content-Type", "application/json");
+    if (method !== "GET") headers.set("Origin", STAGING_ORIGIN);
+    if (body !== undefined) headers.set("Content-Type", "application/json");
     const cookie = await jar.getCookieString(url.href);
     if (cookie) headers.set("Cookie", cookie);
 
     const response = await fetchRequest(url, {
       method,
       headers,
-      body: credentials ? JSON.stringify(credentials) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
       redirect: "error",
       signal: AbortSignal.timeout(10_000),
     });
@@ -54,8 +55,6 @@ export function createStagingApi({ fetchRequest = fetch, getCredentials = readCr
       for (const value of response.headers.getSetCookie()) {
         await jar.setCookie(value, url.href, { ignoreError: true });
       }
-    } else {
-      await response.body?.cancel();
     }
     return response;
   }
@@ -65,7 +64,7 @@ export function createStagingApi({ fetchRequest = fetch, getCredentials = readCr
     const response = await request("/api/auth/sign-in/email", {
       jar,
       method: "POST",
-      credentials: await getCredentials(),
+      body: await getCredentials(),
     });
     await response.body?.cancel();
     const cookies = await jar.getCookies(STAGING_ORIGIN + "/api/v1/admin/bookings");
@@ -84,20 +83,31 @@ export function createStagingApi({ fetchRequest = fetch, getCredentials = readCr
     return signingIn;
   }
 
+  async function authenticatedRequest(path, method, body) {
+    let jar = await getSession();
+    let response = await request(path, { jar, method, body });
+    if (response.status === 401) {
+      await response.body?.cancel();
+      if (session === jar) session = undefined;
+      jar = await getSession();
+      response = await request(path, { jar, method, body });
+      if (response.status === 401 && session === jar) session = undefined;
+    }
+    if (!response.ok) {
+      throw await stagingResponseError(response, STAGING_ORIGIN);
+    }
+    return response.json();
+  }
+
   return {
-    async get(path) {
-      let jar = await getSession();
-      let response = await request(path, { jar });
-      if (response.status === 401) {
-        if (session === jar) session = undefined;
-        jar = await getSession();
-        response = await request(path, { jar });
-        if (response.status === 401 && session === jar) session = undefined;
-      }
-      if (!response.ok) {
-        throw new StagingError(`Staging returned HTTP ${response.status}.`);
-      }
-      return response.json();
+    get(path) {
+      return authenticatedRequest(path, "GET");
+    },
+    patch(path, body) {
+      return authenticatedRequest(path, "PATCH", body);
+    },
+    post(path, body) {
+      return authenticatedRequest(path, "POST", body);
     },
     async close() {
       if (signingIn) await signingIn.catch(() => {});

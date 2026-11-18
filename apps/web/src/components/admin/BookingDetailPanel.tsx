@@ -385,19 +385,28 @@ export function BookingDetailPanel({
                   key={status}
                   type="button"
                   disabled={saving}
-                  className={status === "cancelled" ? "btn btn--danger" : "btn btn--secondary"}
+                  className={
+                    status === "cancelled" || status === "denied"
+                      ? "btn btn--danger"
+                      : "btn btn--secondary"
+                  }
                   onClick={() => {
-                    if (
-                      status === "cancelled" &&
-                      !window.confirm(t(locale, "detail.cancelConfirm"))
-                    )
-                      return;
+                    if (status === "cancelled" || status === "denied" || status === "confirmed") {
+                      if (
+                        !window.confirm(
+                          t(locale, "detail.statusActionConfirm", {
+                            status: prefixedLabel(locale, "status", status),
+                          }),
+                        )
+                      )
+                        return;
+                    }
                     void action(
                       () =>
                         adminFetch(`/api/v1/admin/bookings/${reference}/status`, {
                           method: "PATCH",
                           locale,
-                          body: JSON.stringify({ status }),
+                          body: JSON.stringify({ status, expectedUpdatedAt: booking.updatedAt }),
                         }),
                       t(locale, "detail.statusChanged", {
                         status: prefixedLabel(locale, "status", status),

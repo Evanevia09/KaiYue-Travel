@@ -111,6 +111,10 @@ check(
     "overlay NOTIFY_ALLOWED_RECIPIENTS/NOTIFY_STAFF_TO must stay on the approved staging inbox",
   );
   check(
+    vars.STAGING_QUOTE_EMAIL_ENABLED === "true" || vars.STAGING_QUOTE_EMAIL_ENABLED === "false",
+    "overlay STAGING_QUOTE_EMAIL_ENABLED must be the literal string false or true",
+  );
+  check(
     approvedSenders.includes(vars.NOTIFY_FROM_EMAIL),
     "overlay NOTIFY_FROM_EMAIL must be the approved sender",
   );

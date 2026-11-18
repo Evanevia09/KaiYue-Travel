@@ -69,3 +69,7 @@ Read these files in order before making changes:
 ## Documentation maintenance
 
 `PROJECT-STATE.md` is the living handoff document. Update it after meaningful work so the next person or agent can quickly understand what is confirmed, what changed, what remains open, what was verified, and what should happen next.
+
+## Connect an agent
+
+The [staging plugin page](https://staging.kaiyuemacau.com/plugin) lists the tools and explains browser sign-in. See [the Agent API guide](docs/13-agent-api.md) for the HTTP MCP connection and local Codex option.

@@ -51,6 +51,7 @@
     "ADMIN_STAGING_TEST_PASSWORD_MIN": "6",
     "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com",
     "NOTIFICATIONS_ENABLED": "false",
+    "STAGING_QUOTE_EMAIL_ENABLED": "true",
     "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
     "NOTIFY_FROM_NAME": "Kai Yue Travel",
     "NOTIFY_STAFF_TO": "scalingsmb@gmail.com",

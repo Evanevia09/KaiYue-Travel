@@ -124,3 +124,55 @@ describe("admin authorization and mutations", () => {
     expect(stored.booking.sourceTrigger).toBe("admin-manual");
   });
 });
+
+describe("booking decision statuses", () => {
+  it("persists, filters, and audits distinct approval, confirmation, and denial", async () => {
+    const env = createTestEnv();
+    const first = await createBooking(env);
+    const second = await createBooking(env);
+    const path = (reference: string) => `http://localhost/api/v1/admin/bookings/${reference}`;
+    const get = async (reference: string) =>
+      (await (await handleApi(new Request(path(reference)), env)).json()).booking as {
+        status: string;
+        updatedAt: string;
+      };
+    const change = async (reference: string, status: string, expectedUpdatedAt: string) =>
+      handleApi(
+        new Request(`${path(reference)}/status`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json", origin: "http://localhost:4321" },
+          body: JSON.stringify({ status, expectedUpdatedAt }),
+        }),
+        env,
+      );
+
+    const entry = await get(first.reference);
+    expect((await change(first.reference, "confirmed", entry.updatedAt)).status).toBe(409);
+    expect((await change(first.reference, "approved", entry.updatedAt)).status).toBe(200);
+    expect((await change(first.reference, "confirmed", entry.updatedAt)).status).toBe(409);
+    const approved = await get(first.reference);
+    expect(approved.status).toBe("approved");
+    expect((await change(first.reference, "confirmed", approved.updatedAt)).status).toBe(200);
+    expect((await get(first.reference)).status).toBe("confirmed");
+    expect(
+      (await change(second.reference, "denied", (await get(second.reference)).updatedAt)).status,
+    ).toBe(200);
+    expect((await get(second.reference)).status).toBe("denied");
+
+    for (const [reference, status] of [
+      [first.reference, "confirmed"],
+      [second.reference, "denied"],
+    ]) {
+      const response = await handleApi(
+        new Request(`http://localhost/api/v1/admin/bookings?status=${status}`),
+        env,
+      );
+      expect(response.status).toBe(200);
+      expect((await response.json()).items).toMatchObject([{ reference, status }]);
+    }
+    const log = await env.DB.prepare(
+      "SELECT to_value FROM audit_events WHERE event_type = 'status_change' ORDER BY rowid",
+    ).all();
+    expect(log.results.map((event) => event.to_value)).toEqual(["approved", "confirmed", "denied"]);
+  });
+});

@@ -6,3 +6,4 @@ export * from "./offer.ts";
 export * from "./phone.ts";
 export * from "./public-config.ts";
 export * from "./status.ts";
+export * from "./quote.ts";

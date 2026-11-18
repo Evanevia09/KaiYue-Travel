@@ -33,6 +33,7 @@ export type BookingRow = {
   id: string;
   reference: string;
   status: BookingStatus;
+  decision_status?: BookingStatus | null;
   service_type: string;
   pickup_location: string;
   destination: string | null;
@@ -192,7 +193,7 @@ export function bookingToAdmin(row: BookingRow) {
   return {
     id: row.id,
     reference: row.reference,
-    status: row.status,
+    status: row.decision_status ?? row.status,
     serviceType: row.service_type,
     pickupLocation: row.pickup_location,
     destination: row.destination,
@@ -551,8 +552,23 @@ export async function getBookingByReference(
   db: D1Database,
   reference: string,
 ): Promise<BookingRow | null> {
-  return first<BookingRow>(db, "SELECT * FROM bookings WHERE reference = ?", reference);
+  return first<BookingRow>(
+    db,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE reference = ?`,
+    reference,
+  );
 }
+
+// Keep existing booking storage compatible. The latest audited decision supplies
+// the extra workflow states; a subsequent ordinary status takes precedence.
+const decisionStatusSql = `(
+  SELECT CASE WHEN to_value IN ('approved', 'confirmed', 'denied') THEN to_value END
+  FROM audit_events
+  WHERE entity_type = 'booking' AND entity_id = bookings.id AND event_type = 'status_change'
+  ORDER BY created_at DESC, rowid DESC LIMIT 1
+)`;
+export const bookingAdminColumns = `bookings.*, ${decisionStatusSql} AS decision_status`;
+export const bookingStatusSql = `COALESCE(${decisionStatusSql}, bookings.status)`;
 
 export async function listBookings(
   db: D1Database,
@@ -571,7 +587,7 @@ export async function listBookings(
   const clauses = ["1 = 1"];
   const params: unknown[] = [];
   if (filters.status) {
-    clauses.push("status = ?");
+    clauses.push(`${bookingStatusSql} = ?`);
     params.push(filters.status);
   }
   if (filters.serviceType) {
@@ -619,7 +635,7 @@ export async function listBookings(
   );
   const rows = await all<BookingRow>(
     db,
-    `SELECT * FROM bookings WHERE ${clauses.join(" AND ")} ORDER BY pickup_at ASC, id ASC LIMIT ?`,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE ${clauses.join(" AND ")} ORDER BY pickup_at ASC, id ASC LIMIT ?`,
     ...params,
     limit + 1,
   );
@@ -642,25 +658,35 @@ export async function updateBookingStatus(
   actorId: string,
   requestId: string,
 ): Promise<BookingRow> {
-  if (!canTransitionBooking(row.status, nextStatus)) {
+  const previous = row.decision_status ?? row.status;
+  if (!canTransitionBooking(previous, nextStatus)) {
     throw new AppError(
       "INVALID_TRANSITION",
-      `Cannot change status from ${row.status} to ${nextStatus}.`,
+      `Cannot change status from ${previous} to ${nextStatus}.`,
     );
   }
-  const updatedAt = nowIso();
-  await db.batch([
+  const updatedAt = new Date(Math.max(Date.now(), Date.parse(row.updated_at) + 1)).toISOString();
+  const storedStatus =
+    nextStatus === "approved" || nextStatus === "confirmed"
+      ? "enquiry"
+      : nextStatus === "denied"
+        ? "cancelled"
+        : nextStatus;
+  const [result] = await db.batch([
     db
-      .prepare("UPDATE bookings SET status = ?, updated_at = ? WHERE id = ?")
-      .bind(nextStatus, updatedAt, row.id),
+      .prepare("UPDATE bookings SET status = ?, updated_at = ? WHERE id = ? AND updated_at = ?")
+      .bind(storedStatus, updatedAt, row.id, row.updated_at),
     db
       .prepare(
         `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
-         VALUES (?, 'booking', ?, 'status_change', ?, ?, ?, ?, ?)`,
+         SELECT ?, 'booking', ?, 'status_change', ?, ?, ?, ?, ? WHERE changes() = 1`,
       )
-      .bind(crypto.randomUUID(), row.id, actorId, row.status, nextStatus, requestId, updatedAt),
+      .bind(crypto.randomUUID(), row.id, actorId, previous, nextStatus, requestId, updatedAt),
   ]);
-  const updated = await first<BookingRow>(db, "SELECT * FROM bookings WHERE id = ?", row.id);
+  if (result?.meta.changes !== 1) {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
+  const updated = await getBookingByReference(db, row.reference);
   if (!updated) {
     throw new AppError("UNAVAILABLE", "Could not update booking status.");
   }

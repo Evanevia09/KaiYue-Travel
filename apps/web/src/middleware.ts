@@ -28,7 +28,7 @@ function finishResponse(
 ): Response {
   const headers = new Headers(response.headers);
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    headers.set(key, value);
+    if (key !== "referrer-policy" || !headers.has(key)) headers.set(key, value);
   }
   applyHostIsolationHeaders(headers, {
     dedicatedAdmin: options.dedicatedAdmin,

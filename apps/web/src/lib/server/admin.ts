@@ -5,6 +5,8 @@ import { businessTimezone } from "./env.ts";
 import { all, first, nowIso } from "./db.ts";
 import { readJson } from "./http.ts";
 import {
+  bookingAdminColumns,
+  bookingStatusSql,
   bookingToAdmin,
   getBookingByReference,
   listBookings,
@@ -36,7 +38,7 @@ export async function adminSummary(env: AppEnv) {
   const monthStart = `${today.slice(0, 8)}01T00:00:00.000Z`;
   const results = await env.DB.batch([
     env.DB.prepare(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'enquiry' AND created_at >= ?",
+      `SELECT COUNT(*) as count FROM bookings WHERE ${bookingStatusSql} = 'enquiry' AND created_at >= ?`,
     ).bind(today),
     env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'assigned' AND pickup_at >= ?",
@@ -45,13 +47,13 @@ export async function adminSummary(env: AppEnv) {
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'completed' AND updated_at >= ?",
     ).bind(monthStart),
     env.DB.prepare(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'cancelled' AND updated_at >= ?",
+      `SELECT COUNT(*) as count FROM bookings WHERE ${bookingStatusSql} = 'cancelled' AND updated_at >= ?`,
     ).bind(monthStart),
     env.DB.prepare("SELECT COUNT(*) as count FROM contacts WHERE status = 'new'"),
     env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE notification_state IN ('failed', 'pending')",
     ),
-    env.DB.prepare("SELECT * FROM bookings ORDER BY created_at DESC LIMIT 8"),
+    env.DB.prepare(`SELECT ${bookingAdminColumns} FROM bookings ORDER BY created_at DESC LIMIT 8`),
   ]);
 
   return {
@@ -183,7 +185,10 @@ export async function handleAdminBookingStatus(
   if (!row) {
     throw new AppError("NOT_FOUND", "Booking not found.");
   }
-  const body = (await readJson(request)) as { status?: string };
+  const body = (await readJson(request)) as { status?: string; expectedUpdatedAt?: string };
+  if (body.expectedUpdatedAt !== undefined && body.expectedUpdatedAt !== row.updated_at) {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
   if (
     !body.status ||
     !BOOKING_STATUSES.includes(body.status as (typeof BOOKING_STATUSES)[number])

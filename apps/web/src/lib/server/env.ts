@@ -48,6 +48,7 @@ export type AppEnv = {
   BUSINESS_TIMEZONE?: string;
   BOOKING_NOTICE_HOURS?: string;
   NOTIFICATIONS_ENABLED?: string;
+  STAGING_QUOTE_EMAIL_ENABLED?: string;
   EMAIL?: SendEmailBinding;
   NOTIFY_FROM_EMAIL?: string;
   NOTIFY_FROM_NAME?: string;

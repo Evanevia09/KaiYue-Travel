@@ -1,0 +1,56 @@
+---
+import { env } from "cloudflare:workers";
+import AgentSetupLayout from "../../layouts/AgentSetupLayout.astro";
+import { AppError } from "@kaiyue/contracts";
+import { approveMcpAction, assertMcpHost, readMcpApproval } from "../../lib/server/mcp-access.ts";
+
+export const prerender = false;
+
+try {
+  assertMcpHost(Astro.request, env);
+} catch {
+  return new Response(null, { status: 404 });
+}
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set(
+  "Content-Security-Policy",
+  "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'",
+);
+const ticket = Astro.url.searchParams.get("ticket") ?? "";
+let message: string | undefined;
+let approved = false;
+let failure: string | undefined;
+try {
+  if (Astro.request.method === "POST") {
+    await approveMcpAction(Astro.request, env, ticket);
+    approved = true;
+  } else {
+    const record = await readMcpApproval(Astro.request, env, ticket);
+    message = record.message;
+  }
+} catch (error) {
+  Astro.response.status = error instanceof AppError ? error.status : 500;
+  failure = error instanceof AppError ? error.message : "The approval is unavailable.";
+}
+---
+
+<AgentSetupLayout title="Review staging action">
+  <section class="section page-content">
+    <div class="wrap page-content__narrow">
+      <h1>Review staging action</h1>
+      {failure && <p role="alert">{failure}</p>}
+      {approved && <p>Approved. Return to your agent so it can retry the same action.</p>}
+      {
+        message && (
+          <form method="post">
+            <p style="white-space: pre-wrap">{message}</p>
+            <button type="submit" class="btn btn--primary">
+              Approve this action
+            </button>
+          </form>
+        )
+      }
+    </div>
+  </section>
+</AgentSetupLayout>

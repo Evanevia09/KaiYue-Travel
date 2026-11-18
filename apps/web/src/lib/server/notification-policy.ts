@@ -50,10 +50,17 @@ export function mailSite(env: Pick<AppEnv, "PUBLIC_SITE_URL">): MailSite | null 
   return null;
 }
 
-export function resolveMailPolicy(env: AppEnv): MailPolicy {
+export function resolveMailPolicy(
+  env: AppEnv,
+  purpose: "notifications" | "staging-quote" = "notifications",
+): MailPolicy {
   const site = mailSite(env);
   if (!site) return { ok: false, state: "skipped", reason: "unrecognized_site" };
-  if ((env.NOTIFICATIONS_ENABLED ?? "").trim() !== "true") {
+  const enabled =
+    purpose === "staging-quote"
+      ? site === "staging" && env.STAGING_QUOTE_EMAIL_ENABLED === "true"
+      : (env.NOTIFICATIONS_ENABLED ?? "").trim() === "true";
+  if (!enabled) {
     return { ok: false, state: "skipped", reason: "notifications_disabled" };
   }
   if (!env.EMAIL || typeof env.EMAIL.send !== "function") {

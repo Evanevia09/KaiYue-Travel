@@ -39,12 +39,12 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 | Find an inquiry | `GET /api/v1/admin/contacts?q=<text>` (adds company) |
 | Changes since the last poll | `...?updatedSince=2026-11-16T10:00:00Z` (time zone required) |
 
-`q` is a case-insensitive substring match; `%` and `_` are treated literally. Results are paged with `limit` (1-50) and the opaque `nextCursor`. Bookings are sorted by pickup time; inquiries are newest first with a tie-break on id, so pages never repeat or skip a record. Invalid parameters return `422 VALIDATION_FAILED`.
+`q` is a case-insensitive substring match; `%` and `_` are treated literally. Results are paged with `limit` (1-50) and the opaque `nextCursor`. Bookings are sorted by pickup time; inquiries are newest first with a tie-break on id, so pagination is stable while matching records stay unchanged. Invalid parameters return `422 VALIDATION_FAILED`.
 
 ## Changing records
 
-- Booking status: enquiry → assigned or cancelled; assigned → completed or cancelled. Inquiry status: new → replied or closed; replied → closed.
-- Booking edits and assignment require `expectedUpdatedAt` from the latest read. A `409 CONFLICT` means someone else changed the record: re-read it, then decide.
+- Booking approvals can progress from enquiry to approved, confirmed, assigned, and completed. Denied and cancelled are distinct terminal statuses. Staff can keep using the existing enquiry-to-assigned path. Inquiry status can progress from new to replied to closed.
+- Booking edits, assignment, and MCP status changes use `expectedUpdatedAt` from the latest read. A `409 CONFLICT` means someone else changed the record: re-read it, then decide.
 - Every change is audited under the agent's account.
 - Never tell a guest a booking is confirmed from the API alone. Confirmation stays a human decision on WhatsApp or email.
 
@@ -52,21 +52,37 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 
 Responses contain guest personal data. Do not log full responses, put them in URLs, or send them to third-party tools beyond what the task needs.
 
-## Kai Yue Travel Staging plugin
+## Connect an agent on staging
 
-The [local Codex plugin](../plugins/kaiyue-travel-staging/) wraps the staging staff API over MCP stdio. It runs on macOS with Node.js 22 or later and uses the staging admin host exclusively.
+Open [Kai Yue Travel agent tools](https://staging.kaiyuemacau.com/plugin). Share that link with an agent or staff member. It links to a machine-readable capability list and the connection instructions.
 
-| Tool | Returned data |
+1. The staff user signs in at the staging admin site in their browser and opens **Connect a staging agent**.
+2. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and enter the generated token in the MCP client's secure bearer-token setting. The token expires after 30 minutes and depends on the existing staff session. The staff password stays in the browser sign-in.
+3. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
+
+### What the ten tools can do
+
+| Tool | Use |
 | --- | --- |
-| `list_bookings` | Paginated booking references, statuses, service types, pickup times, and passenger counts |
-| `get_booking` | The same summary fields for one booking reference |
-| `list_inquiries` | Paginated inquiry references, types, statuses, and timestamps |
+| `list_bookings` | List enquiries or other bookings by status and date, with assignment IDs |
+| `get_booking` | Read the schedule, status, assigned driver, and assigned vehicle |
+| `list_inquiries` | List general inquiries by status or last update |
+| `get_inquiry` | Read a specific general inquiry by reference |
+| `list_inventory` | See drivers, vehicles, and vehicle capacities |
+| `edit_booking` | Update itinerary fields or passenger count |
+| `change_booking_status` | Approve, confirm, deny, assign in the workflow, complete, or cancel |
+| `assign_booking` | Assign an active inventory driver and vehicle with enough seats |
+| `draft_quote` | Preview the email for a staff-supplied fixed amount or hourly rate and duration |
+| `send_quote_email` | Submit the approved quote to the designated staging test inbox |
 
-The tools return operational summaries. They omit guest contact details, trip addresses, messages, and internal notes. Staff authorization still applies to every upstream request.
+Tool results omit contact details, trip addresses, plates, messages, and internal notes. Editing an itinerary preserves its existing contact fields. Active inventory indicates dispatch eligibility. Confirm schedule availability separately. A booking status change records the staff decision, and a quote submission records provider acceptance. Guest communication is a separate action.
 
-To build and install from the repository root:
+### Local Codex option
+
+The [local Codex plugin](../plugins/kaiyue-travel-staging/) uses the same tools over MCP stdio on macOS. To build and install from this repository:
 
 ```bash
+pnpm install --frozen-lockfile
 npm --prefix plugins/kaiyue-travel-staging ci
 npm --prefix plugins/kaiyue-travel-staging run build
 npm --prefix plugins/kaiyue-travel-staging test
@@ -74,6 +90,4 @@ codex plugin marketplace add "$PWD"
 codex plugin add kaiyue-travel-staging@kaiyue-travel-local
 ```
 
-After the owner approves a dedicated staging staff account, create a generic password item in the macOS login keychain. Set its service/name to `Kai Yue Travel Staging Plugin` and its account to `kaiyue-staging-agent`. The password field holds a JSON object with the staff account's `email` and `password`. Enter the values in Keychain Access. Keep them out of chat, shell arguments, and source files.
-
-Start a new local Codex chat, select **Kai Yue Travel Staging**, and ask it to look up an approved staging test booking by reference. The readiness check is a successful authenticated tool call against that fixture.
+Use a generic password item in the macOS login keychain with the service name `Kai Yue Travel Staging Plugin` and account `kaiyue-staging-agent`. The password field holds a JSON object with the approved staff account's `email` and `password`. Enter the values in Keychain Access. For local booking writes, the MCP client needs to support a human confirmation form. Quote approval uses the same browser review as hosted MCP.

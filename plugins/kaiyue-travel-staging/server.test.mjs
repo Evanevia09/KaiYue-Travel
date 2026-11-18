@@ -3,6 +3,8 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { StagingError } from "./staging-api.mjs";
+import { ElicitRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "./server.mjs";
 import { createStagingApi, STAGING_ORIGIN } from "./staging-api.mjs";
 
@@ -14,6 +16,8 @@ const summary = {
   pickupAt: time,
   passengerCount: 2,
   updatedAt: time,
+  driverId: "driver-1",
+  vehicleId: "vehicle-1",
 };
 const booking = { ...summary, email: "synthetic@example.com", pickupLocation: "Private address" };
 const inquiry = {
@@ -32,6 +36,19 @@ test("MCP exposes only read tools and projects the staging responses", async (t)
     async get(path) {
       paths.push(path);
       if (path.includes("/contacts")) return { items: [inquiry], nextCursor: null };
+      if (path.endsWith("/drivers")) {
+        return { items: [{ id: "driver-1", name: "Test Driver", phone: "Private phone" }] };
+      }
+      if (path.endsWith("/vehicles")) {
+        return {
+          items: [{ id: "vehicle-1", makeModel: "Test Van", plateNumber: "Private plate" }],
+        };
+      }
+      if (path.endsWith("KY-22222222")) {
+        return {
+          booking: { ...booking, reference: "KY-22222222", driverId: null, vehicleId: "missing" },
+        };
+      }
       if (path.endsWith(booking.reference)) return { booking, notes: [{ body: "Private note" }] };
       return { items: [booking], nextCursor: "dGVzdA==", total: 1 };
     },
@@ -47,9 +64,21 @@ test("MCP exposes only read tools and projects the staging responses", async (t)
   const { tools } = await client.listTools();
   assert.deepEqual(
     tools.map(({ name }) => name),
-    ["list_bookings", "get_booking", "list_inquiries"],
+    [
+      "list_bookings",
+      "get_booking",
+      "list_inquiries",
+      "get_inquiry",
+      "list_inventory",
+      "edit_booking",
+      "change_booking_status",
+      "assign_booking",
+      "draft_quote",
+      "send_quote_email",
+    ],
   );
-  assert.ok(tools.every(({ annotations }) => annotations.readOnlyHint));
+  assert.equal(tools.filter(({ annotations }) => annotations.readOnlyHint).length, 6);
+  assert.match(client.getInstructions(), /list_inventory/);
   const page = await client.callTool({
     name: "list_bookings",
     arguments: { status: "enquiry", limit: 1 },
@@ -59,7 +88,21 @@ test("MCP exposes only read tools and projects the staging responses", async (t)
     name: "get_booking",
     arguments: { reference: "ky-abcdefgh" },
   });
-  assert.deepEqual(detail.structuredContent, { booking: summary });
+  assert.deepEqual(detail.structuredContent, {
+    booking: summary,
+    assignment: {
+      driver: { id: "driver-1", name: "Test Driver" },
+      vehicle: { id: "vehicle-1", makeModel: "Test Van" },
+    },
+  });
+  const partial = await client.callTool({
+    name: "get_booking",
+    arguments: { reference: "KY-22222222" },
+  });
+  assert.deepEqual(partial.structuredContent.assignment, {
+    driver: null,
+    vehicle: { id: "missing", makeModel: null },
+  });
   const inquiries = await client.callTool({
     name: "list_inquiries",
     arguments: { cursor: page.structuredContent.nextCursor },
@@ -70,6 +113,10 @@ test("MCP exposes only read tools and projects the staging responses", async (t)
   assert.deepEqual(paths, [
     "/api/v1/admin/bookings?limit=1&status=enquiry",
     "/api/v1/admin/bookings/KY-ABCDEFGH",
+    "/api/v1/admin/drivers",
+    "/api/v1/admin/vehicles",
+    "/api/v1/admin/bookings/KY-22222222",
+    "/api/v1/admin/vehicles",
     "/api/v1/admin/contacts?limit=10&cursor=dGVzdA%3D%3D",
   ]);
   for (const result of [page, detail, inquiries]) {
@@ -135,5 +182,107 @@ test("built plugin launches through the declared stdio command", async (t) => {
     }),
   );
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 3);
+  assert.equal(tools.length, 10);
+});
+
+test("MCP previews quotes and requires per-action human approval for writes", async (t) => {
+  const current = {
+    ...booking,
+    pickupLocation: "Test pickup",
+    destination: "Test destination",
+    returnAt: null,
+    contactName: "Test Guest",
+    phone: "Test phone",
+    message: "Test message",
+  };
+  const mutations = [];
+  let quoteApproved = false;
+  const api = {
+    async get(path) {
+      if (path.endsWith("/drivers"))
+        return { items: [{ id: "driver-1", name: "Test driver", active: true }] };
+      if (path.endsWith("/vehicles"))
+        return {
+          items: [
+            { id: "vehicle-1", makeModel: "Test vehicle", active: true, passengerCapacity: 4 },
+          ],
+        };
+      return { booking: current };
+    },
+    async patch(path, body) {
+      mutations.push({ path, body });
+      return { booking: current };
+    },
+    async post(path, body) {
+      if (!quoteApproved) throw new StagingError("Review the quote in the browser.");
+      mutations.push({ path, body });
+      return { ...body, status: "submitted" };
+    },
+  };
+  const server = createServer(api);
+  const client = new Client(
+    { name: "approval-test", version: "1.0.0" },
+    {
+      capabilities: { elicitation: { form: {} } },
+    },
+  );
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  t.after(async () => {
+    await client.close();
+    await server.close();
+  });
+  let approve = false;
+  const prompts = [];
+  client.setRequestHandler(ElicitRequestSchema, async (request) => {
+    prompts.push(request.params.message);
+    return approve ? { action: "accept", content: { approve: true } } : { action: "decline" };
+  });
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+  const revision = { reference: booking.reference, expectedUpdatedAt: time };
+  const call = (name, args) => client.callTool({ name, arguments: args });
+  const quote = {
+    reference: booking.reference,
+    currency: "MOP",
+    pricing: { type: "hourly", rate: "215.05", minutes: 90 },
+  };
+  const draft = await call("draft_quote", quote);
+  assert.equal(draft.structuredContent.total, "322.58");
+  assert.match(draft.structuredContent.body, /MOP 322\.58/);
+  assert.equal((await call("send_quote_email", quote)).isError, true);
+  assert.deepEqual(mutations, []);
+  approve = true;
+  assert.equal(
+    (await call("change_booking_status", { ...revision, status: "assigned" })).isError,
+    undefined,
+  );
+  assert.equal(
+    (await call("edit_booking", { ...revision, changes: { passengerCount: 3 } })).isError,
+    undefined,
+  );
+  assert.equal(
+    (await call("assign_booking", { ...revision, driverId: "driver-1", vehicleId: "vehicle-1" }))
+      .isError,
+    undefined,
+  );
+  quoteApproved = true;
+  assert.equal((await call("send_quote_email", quote)).structuredContent.status, "submitted");
+  assert.equal(
+    (
+      await call("edit_booking", {
+        ...revision,
+        expectedUpdatedAt: "2020-01-01T00:00:00Z",
+        changes: { passengerCount: 2 },
+      })
+    ).isError,
+    true,
+  );
+  assert.deepEqual(
+    mutations.map(({ path }) => path.split("/").pop()),
+    ["status", booking.reference, "assignment", "email"],
+  );
+  assert.equal(mutations[1].body.email, current.email);
+  assert.equal(mutations[1].body.message, current.message);
+  assert.equal(mutations[1].body.passengerCount, 3);
+  assert.equal(prompts.length, 3);
 });

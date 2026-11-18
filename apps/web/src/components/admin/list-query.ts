@@ -1,4 +1,6 @@
-const ALLOWED_BOOKING_STATUS = new Set(["enquiry", "assigned", "completed", "cancelled"]);
+import { BOOKING_STATUSES } from "@kaiyue/contracts";
+
+const ALLOWED_BOOKING_STATUS = new Set<string>(BOOKING_STATUSES);
 
 export function statusFromSearch(search: string): string {
   const value = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get(
