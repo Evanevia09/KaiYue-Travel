@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { QUOTE_CURRENCIES, renderQuote } from "../contracts/src/quote.ts";
+import { QUOTE_CURRENCIES, QUOTE_TOTAL_PATTERN, renderQuote } from "../contracts/src/quote.ts";
+import { StagingError } from "./error.mjs";
 
 const amount = z
   .string()
@@ -36,6 +37,9 @@ export function draftQuote({ reference, currency, pricing }) {
       ? toCents(pricing.amount)
       : Math.floor((toCents(pricing.rate) * pricing.minutes + 30) / 60);
   const total = (cents / 100).toFixed(2);
+  if (cents < 1 || !QUOTE_TOTAL_PATTERN.test(total)) {
+    throw new StagingError("The quote total must be between 0.01 and 999999999.99.");
+  }
   return {
     reference,
     currency,
