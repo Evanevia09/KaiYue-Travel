@@ -1,0 +1,12 @@
+{
+  "name": "kaiyue-travel-local",
+  "interface": { "displayName": "Kai Yue Travel Local" },
+  "plugins": [
+    {
+      "name": "kaiyue-travel-staging",
+      "source": { "source": "local", "path": "./plugins/kaiyue-travel-staging" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

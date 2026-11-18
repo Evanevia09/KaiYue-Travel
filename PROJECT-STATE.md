@@ -1,5 +1,7 @@
 # Kai Yue Travel — Project State
 
+**2026-11-18 plugin checkpoint:** Kai Yue Travel Staging is installed locally in Codex. Three read-only MCP tools passed local discovery and synthetic tests. The next check needs an owner-approved staging staff account and fixture. See the dated change below.
+
 **Last updated:** 2026-11-16 18:58 Asia/Macau (production operationally activated: `kaiyue-travel` version `5eebf7b6` @100%, `main` `ff119f2c`, `admin.kaiyuemacau.com` attached; not project acceptance)
 **Product-status evidence date:** 2026-11-15 freeze `cd33cf8c` / live Worker `f3169afb`; 2026-11-13 for the Version 2 illustrative photos (staging PR #27 preview byte-verified); 2026-11-03 for live booking UX verify on `870c536` (PR #24); 2026-11-03 for staging booking UX QA PASS (PR #23 tip `3fb82362`); 2026-11-03 for live tour-guide verify on `7c9ca1d` (PR #21); 2026-11-03 for the staging→main tour-guide promote; 2026-11-02 for optional Macau tour-guide copy and half-day/full-day booking preference; 2026-10-30 for Traditional Chinese private-car wording and staging→main conflict resolution; 2026-10-22 for hero plate branding and header logo/WhatsApp icon on main; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 
@@ -248,6 +250,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-18 — Local Kai Yue Travel Staging plugin
+
+- Built on published `official-staging` `a176809` in `codex/kaiyue-staging-plugin`. The local Codex plugin offers three read-only MCP tools with booking and inquiry summaries. The staging API pagination changes in PR #49 are under separate review.
+- Verified the local install, bundled stdio discovery, synthetic tool responses and data filtering, cookie session renewal, and anonymous HTTP 401 from the staging bookings endpoint. Authenticated staging tool calls await an owner-approved dedicated staff account stored in macOS Keychain.
+- Repository lint, type check, and site build passed. The test run passed 290 of 291 tests. The existing 41-photo invariant passed in a clean snapshot, where the local ignored `.DS_Store` was absent.
+- Next action is an authenticated MCP read against an approved staging fixture. See [Agent API and plugin setup](docs/13-agent-api.md).
 
 ### 2026-11-16 — Agent API search + native Cloudflare email (source + local evidence, staging only)
 

@@ -4,7 +4,7 @@ An AI agent works the booking and inquiry queues through the **same admin API, a
 
 ## What it is not
 
-- No API keys, bearer tokens, MCP server, or new role.
+- The HTTP API uses the existing staff session and account roles.
 - No password in a URL, and no password sent on every request.
 - No direct D1 access.
 - No authentication on marketing hosts. `www`, apex, and the staging marketing host return 403 for admin APIs.
@@ -51,3 +51,29 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 ## Data handling
 
 Responses contain guest personal data. Do not log full responses, put them in URLs, or send them to third-party tools beyond what the task needs.
+
+## Kai Yue Travel Staging plugin
+
+The [local Codex plugin](../plugins/kaiyue-travel-staging/) wraps the staging staff API over MCP stdio. It runs on macOS with Node.js 22 or later and uses the staging admin host exclusively.
+
+| Tool | Returned data |
+| --- | --- |
+| `list_bookings` | Paginated booking references, statuses, service types, pickup times, and passenger counts |
+| `get_booking` | The same summary fields for one booking reference |
+| `list_inquiries` | Paginated inquiry references, types, statuses, and timestamps |
+
+The tools return operational summaries. They omit guest contact details, trip addresses, messages, and internal notes. Staff authorization still applies to every upstream request.
+
+To build and install from the repository root:
+
+```bash
+npm --prefix plugins/kaiyue-travel-staging ci
+npm --prefix plugins/kaiyue-travel-staging run build
+npm --prefix plugins/kaiyue-travel-staging test
+codex plugin marketplace add "$PWD"
+codex plugin add kaiyue-travel-staging@kaiyue-travel-local
+```
+
+After the owner approves a dedicated staging staff account, create a generic password item in the macOS login keychain. Set its service/name to `Kai Yue Travel Staging Plugin` and its account to `kaiyue-staging-agent`. The password field holds a JSON object with the staff account's `email` and `password`. Enter the values in Keychain Access. Keep them out of chat, shell arguments, and source files.
+
+Start a new local Codex chat, select **Kai Yue Travel Staging**, and ask it to look up an approved staging test booking by reference. The readiness check is a successful authenticated tool call against that fixture.

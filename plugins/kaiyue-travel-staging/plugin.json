@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kaiyue-travel-staging",
+  "version": "0.1.0",
+  "description": "Read booking and inquiry status from Kai Yue Travel staging.",
+  "author": { "name": "Kai Yue Travel" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Kai Yue Travel Staging",
+        "shortDescription": "Staging booking and inquiries",
+        "developerName": "Kai Yue Travel",
+        "category": "Productivity"
+      }
+    }
+  }
+}
