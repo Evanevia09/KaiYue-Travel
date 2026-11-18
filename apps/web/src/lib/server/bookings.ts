@@ -23,7 +23,7 @@ import {
   requireIdempotencyKey,
   writeIdempotency,
 } from "./idempotency.ts";
-import { likePattern } from "./admin-list-query.ts";
+import { likePattern, normalizePageLimit } from "./admin-list-query.ts";
 import { formatPickup } from "./notification-templates.ts";
 import { sendNotifications } from "./notifications.ts";
 import { getPublicOffer } from "./offers/service.ts";
@@ -567,7 +567,7 @@ export async function listBookings(
     limit?: number;
   },
 ): Promise<{ items: BookingRow[]; nextCursor: string | null; total: number }> {
-  const limit = Math.min(Math.max(Number.isFinite(filters.limit) ? filters.limit! : 20, 1), 50);
+  const limit = normalizePageLimit(filters.limit);
   const clauses = ["1 = 1"];
   const params: unknown[] = [];
   if (filters.status) {

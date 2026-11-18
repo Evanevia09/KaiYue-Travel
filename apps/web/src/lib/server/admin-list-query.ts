@@ -4,6 +4,13 @@ const SEARCH_MIN = 2;
 const SEARCH_MAX = 100;
 const ZONED_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}:\d{2})$/;
 
+export function normalizePageLimit(limit?: number): number {
+  if (limit === undefined || !Number.isFinite(limit)) {
+    return 20;
+  }
+  return Math.min(Math.max(Math.trunc(limit), 1), 50);
+}
+
 export function parseSearchQuery(raw: string | null): string | undefined {
   const value = (raw ?? "").trim();
   if (!value) {

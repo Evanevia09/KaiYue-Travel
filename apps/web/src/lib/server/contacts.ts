@@ -17,7 +17,12 @@ import {
   requireIdempotencyKey,
   writeIdempotency,
 } from "./idempotency.ts";
-import { decodeCreatedCursor, encodeCreatedCursor, likePattern } from "./admin-list-query.ts";
+import {
+  decodeCreatedCursor,
+  encodeCreatedCursor,
+  likePattern,
+  normalizePageLimit,
+} from "./admin-list-query.ts";
 import { sendNotifications } from "./notifications.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
 
@@ -208,7 +213,7 @@ export async function listContacts(
     limit?: number;
   },
 ): Promise<{ items: ContactRow[]; nextCursor: string | null }> {
-  const limit = Math.min(Math.max(filters.limit ?? 20, 1), 50);
+  const limit = normalizePageLimit(filters.limit);
   const clauses = ["1 = 1"];
   const params: unknown[] = [];
   if (filters.status) {
