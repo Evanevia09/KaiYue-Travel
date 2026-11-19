@@ -1,5 +1,7 @@
 # Kai Yue Travel — Project State
 
+**2026-11-19 MCP staff-password auth (unmerged):** Staging MCP can exchange an existing staff or `super_admin` email/password for a 30-minute connection token without visiting `/login` or `/admin/agent-connect`. Vault login or a secure in-chat form. No API-key system. Production hosts and `admin.kaiyuemacau.com` stay closed. Write-tool browser approval is unchanged. Not deployed; not `user_accepted`.
+
 **2026-11-18 plugin checkpoint:** Version 0.3.0 adds a staging Worker MCP endpoint with ten discoverable tools, a public `/plugin` guide, staff-session tokens, browser approvals, new decision statuses, and quote email locked to the owner-approved staging inbox. Staging rollout and receipt checks are in progress. See the dated changes below.
 
 **Last updated:** 2026-11-16 18:58 Asia/Macau (production operationally activated: `kaiyue-travel` version `5eebf7b6` @100%, `main` `ff119f2c`, `admin.kaiyuemacau.com` attached; not project acceptance)
@@ -1093,6 +1095,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Evan, 2026-11-02 Asia/Macau. Macau-only, not included by default, quote later, no invented guide price. Squash-merged to `staging` as `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (PR 19; Mika staging-only approval). Remote staging D1 `0008` applied 2026-11-02 11:41:12 UTC.
 - Verified: `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 108/108; `pnpm build` completed. Built Home, About, City Tours, half-day, and full-day HTML in EN/pt/zh-Hant contain the optional Macau tour-guide wording and no published guide price. Built `/zh-Hant` still uses 包車接送 for transfer labels. Local Chrome on `/services/city-tours/half-day`: step 2 shows the yes/no Macau tour-guide question and hides luggage; switching the same draft to Point to point restores Big luggage / Hand carry. `admin-gate`, middleware, and `wrangler.jsonc` were not edited. No wrangler deploy. Staging D1 column `bookings.tour_guide_requested` INTEGER exists; `d1_migrations` row `0008_booking_tour_guide.sql` recorded.
 - Not verified or follow-up: Workers preview browser pass, live production. Do not re-apply `0008`. Do not apply to production D1. `user_accepted` and `released` are not established.
+
+### 2026-11-19 — Staging MCP staff email/password (unmerged)
+
+- Changed: `POST /api/v1/admin/mcp-session` on `admin-staging.kaiyuemacau.com` exchanges existing staff email/password for the same 30-minute MCP token, with no browser Origin and no visit to `/login` or `/admin/agent-connect`. Plugin/docs tell an agent to use a saved vault login or a secure in-chat form. Local plugin also reads `KAIYUE_STAGING_STAFF_EMAIL` / `KAIYUE_STAGING_STAFF_PASSWORD` before keychain. Write-tool browser approval, production hosts, and Access/D1/mail/secrets are unchanged.
+- Decision/evidence: Owner (Evan) 2026-11-19 Asia/Macau: MCP authentication must not require the admin sign-in page; keep the signed-in account’s permissions; no API-key system; staging only.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 307/307 including happy path, bad password, disabled, unprovisioned, URL credentials, and production/non-staging 404; plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`.
+- Not verified or follow-up: live staging after authorized deploy; vault or in-chat form in a real MCP client. Do not merge, deploy, or prepare a production candidate.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 

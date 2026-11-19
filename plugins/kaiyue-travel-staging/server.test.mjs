@@ -6,7 +6,13 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { StagingError } from "./staging-api.mjs";
 import { ElicitRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "./server.mjs";
-import { createStagingApi, STAGING_ORIGIN } from "./staging-api.mjs";
+import {
+  STAFF_EMAIL_ENV,
+  STAFF_PASSWORD_ENV,
+  createStagingApi,
+  readStaffCredentials,
+  STAGING_ORIGIN,
+} from "./staging-api.mjs";
 
 const time = "2026-11-18T11:00:00.000Z";
 const summary = {
@@ -122,6 +128,29 @@ test("MCP exposes only read tools and projects the staging responses", async (t)
   for (const result of [page, detail, inquiries]) {
     assert.doesNotMatch(JSON.stringify(result.content), /synthetic@example|Private/);
   }
+});
+
+test("staff credentials prefer a vault env login over keychain", async () => {
+  const login = await readStaffCredentials({
+    env: {
+      [STAFF_EMAIL_ENV]: "vault@example.com",
+      [STAFF_PASSWORD_ENV]: "vault-password",
+    },
+    readKeychain: async () => {
+      throw new Error("keychain should not run when a vault login is present");
+    },
+  });
+  assert.deepEqual(login, { email: "vault@example.com", password: "vault-password" });
+});
+
+test("missing staff credentials ask for a vault login or secure form", async () => {
+  await assert.rejects(
+    readStaffCredentials({
+      env: {},
+      readKeychain: async () => null,
+    }),
+    /saved vault login or collect the staging staff email and password in a secure in-chat form/,
+  );
 });
 
 test("staging uses a cookie session, renews one expired read and signs out", async () => {

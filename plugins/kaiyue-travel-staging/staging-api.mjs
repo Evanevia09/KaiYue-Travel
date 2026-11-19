@@ -1,37 +1,63 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { CookieJar } from "tough-cookie";
+import { StagingError, stagingResponseError } from "../../packages/agent-tools/error.mjs";
 
 export const STAGING_ORIGIN = "https://admin-staging.kaiyuemacau.com";
-
-import { StagingError, stagingResponseError } from "../../packages/agent-tools/error.mjs";
+export const STAFF_EMAIL_ENV = "KAIYUE_STAGING_STAFF_EMAIL";
+export const STAFF_PASSWORD_ENV = "KAIYUE_STAGING_STAFF_PASSWORD";
 export { StagingError };
 
-async function readCredentials() {
+const missingCredentialsMessage =
+  "Use a saved vault login or collect the staging staff email and password in a secure in-chat form. Do not visit the admin sign-in page.";
+
+function credentialsFromValues(email, password) {
+  if (typeof email === "string" && email && typeof password === "string" && password) {
+    return { email, password };
+  }
+  return null;
+}
+
+export function credentialsFromEnv(env = process.env) {
+  return credentialsFromValues(env[STAFF_EMAIL_ENV], env[STAFF_PASSWORD_ENV]);
+}
+
+async function readKeychainCredentials() {
+  const { stdout } = await promisify(execFile)(
+    "/usr/bin/security",
+    [
+      "find-generic-password",
+      "-s",
+      "Kai Yue Travel Staging Plugin",
+      "-a",
+      "kaiyue-staging-agent",
+      "-w",
+    ],
+    { timeout: 10_000, maxBuffer: 8192 },
+  );
+  const { email, password } = JSON.parse(stdout);
+  return credentialsFromValues(email, password);
+}
+
+export async function readStaffCredentials({
+  env = process.env,
+  readKeychain = readKeychainCredentials,
+} = {}) {
+  const fromEnv = credentialsFromEnv(env);
+  if (fromEnv) return fromEnv;
   try {
-    const { stdout } = await promisify(execFile)(
-      "/usr/bin/security",
-      [
-        "find-generic-password",
-        "-s",
-        "Kai Yue Travel Staging Plugin",
-        "-a",
-        "kaiyue-staging-agent",
-        "-w",
-      ],
-      { timeout: 10_000, maxBuffer: 8192 },
-    );
-    const { email, password } = JSON.parse(stdout);
-    if (typeof email === "string" && email && typeof password === "string" && password) {
-      return { email, password };
-    }
+    const fromKeychain = await readKeychain();
+    if (fromKeychain) return fromKeychain;
   } catch {
     // Keychain command output and parsing errors can contain credentials.
   }
-  throw new StagingError("Set up the dedicated staging staff account in macOS Keychain first.");
+  throw new StagingError(missingCredentialsMessage);
 }
 
-export function createStagingApi({ fetchRequest = fetch, getCredentials = readCredentials } = {}) {
+export function createStagingApi({
+  fetchRequest = fetch,
+  getCredentials = readStaffCredentials,
+} = {}) {
   let session;
   let signingIn;
 
