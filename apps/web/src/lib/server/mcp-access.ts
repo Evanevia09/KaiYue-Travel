@@ -8,6 +8,7 @@ import type { AppEnv } from "./env.ts";
 import { errorResponse, json, readJson, requestIdFrom } from "./http.ts";
 import { mailSite } from "./notification-policy.ts";
 import {
+  PASSWORD_SIGNIN_FAILED,
   beginPasswordAttempt,
   clearPasswordAttempts,
   rejectIfPasswordLocked,
@@ -21,7 +22,6 @@ const tokenLifetime = 30 * 60 * 1000;
 const tokenLifetimeSeconds = tokenLifetime / 1000;
 const approvalLifetime = 10 * 60 * 1000;
 const staffEmailMaxLength = 254;
-const credentialSignInFailed = "Staff email or password is incorrect.";
 
 type Ticket = {
   session: { cookie: string; actor: string; expires: number };
@@ -186,7 +186,7 @@ export async function issueMcpTokenFromCredentials(
   if (!login.ok || !cookie) {
     await login.body?.cancel();
     rejectIfPasswordLocked(attempt, now);
-    throw new AppError("UNAUTHORIZED", credentialSignInFailed);
+    throw new AppError("UNAUTHORIZED", PASSWORD_SIGNIN_FAILED);
   }
   await login.body?.cancel();
   try {
@@ -194,7 +194,14 @@ export async function issueMcpTokenFromCredentials(
     await clearPasswordAttempts(env, request, credentials.email);
     return sealStaffSession(env, cookie, identity.id);
   } catch (error) {
-    rejectIfPasswordLocked(attempt, now);
+    if (error instanceof AppError && error.code === "RATE_LIMITED") throw error;
+    if (
+      error instanceof AppError &&
+      (error.code === "UNAUTHORIZED" || error.code === "FORBIDDEN")
+    ) {
+      rejectIfPasswordLocked(attempt, now);
+      throw new AppError("UNAUTHORIZED", PASSWORD_SIGNIN_FAILED);
+    }
     throw error;
   }
 }

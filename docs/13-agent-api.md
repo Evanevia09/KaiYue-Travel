@@ -20,7 +20,7 @@ The owner creates or chooses an admin account for the agent in **Users**, normal
 1. Sign in on the admin host with `POST /api/auth/sign-in/email` and a JSON body `{ "email", "password" }`. Send an `Origin` header equal to the admin origin, for example `https://admin-staging.kaiyuemacau.com`.
 2. Keep every cookie from the response in a cookie jar and send them on each `/api/v1/admin/*` call.
 3. On each `POST` or `PATCH`, send the same `Origin` header.
-4. On `401`, sign in once again. Sessions last up to 8 hours. Three failed password sign-ins lock that account and source IP for five minutes on both `POST /api/auth/sign-in/email` and `POST /api/v1/admin/mcp-session`. The lock is stored in D1 `rate_limits` (not memory). A locked request returns `429` with `Retry-After` and does not check the password. A successful sign-in clears the counters. The generic error does not say whether the account exists.
+4. On `401`, sign in once again. Sessions last up to 8 hours. Wrong, unknown, disabled, and unprovisioned passwords all return the same generic `401`. Three failed password sign-ins lock that account and source IP for five minutes on both `POST /api/auth/sign-in/email` and `POST /api/v1/admin/mcp-session`. The lock is stored in D1 `rate_limits` (not memory). A locked request returns `429` with `Retry-After` and does not check the password. `/login` shows a generic five-minute wait message, not “wrong password”. A successful sign-in clears the counters. Hosted Cloudflare uses `CF-Connecting-IP` only; client `X-Forwarded-For` is ignored there.
 5. Call `POST /api/auth/sign-out` when done.
 
 ```bash

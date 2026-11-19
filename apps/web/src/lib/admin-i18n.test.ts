@@ -93,6 +93,9 @@ describe("admin i18n dictionaries", () => {
     expect(t("zh-Hant", "status.enquiry")).toBe("查詢");
     expect(t("zh-Hant", "status.cancelled")).toBe("已取消");
     expect(t("zh-Hant", "login.submit")).toBe("登入");
+    expect(t("zh-Hant", "login.errorLockout", { minutes: 5 })).toBe(
+      "登入嘗試次數過多。請等待 5 分鐘後再試。",
+    );
     expect(t("en", "nav.dashboard")).toBe("Dashboard");
     expect(t("zh-Hant", "bookings.specialOffer", { title: "Harbour" })).toBe("特別優惠：Harbour");
   });

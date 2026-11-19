@@ -20,6 +20,7 @@ export type ApiErrorBody = {
     message: string;
     fields?: FieldErrors;
     requestId: string;
+    retryAfter?: number;
   };
 };
 
@@ -80,6 +81,7 @@ export function toErrorBody(error: AppError, requestId: string): ApiErrorBody {
       code: error.code,
       message: error.expose ? error.message : "Something went wrong. Please try again.",
       ...(error.fields ? { fields: error.fields } : {}),
+      ...(error.retryAfter != null ? { retryAfter: error.retryAfter } : {}),
       requestId,
     },
   };

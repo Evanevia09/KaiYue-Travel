@@ -12,6 +12,7 @@ import { handleMcpSession } from "../../apps/web/src/lib/server/mcp-access.ts";
 import {
   PASSWORD_LOCKOUT_MESSAGE,
   PASSWORD_LOCKOUT_MS,
+  PASSWORD_SIGNIN_FAILED,
   RATE_LIMITS_TABLE_SQL,
   handlePasswordSignIn,
   passwordAttemptBuckets,
@@ -21,6 +22,9 @@ const stagingOrigin = `https://${STAGING_ADMIN_HOST}`;
 const productionOrigin = `https://${PRODUCTION_ADMIN_HOST}`;
 const staffEmail = "mcp-lockout-staff@example.invalid";
 const altEmail = "mcp-lockout-alt@example.invalid";
+const disabledEmail = "mcp-lockout-disabled@example.invalid";
+const unprovisionedEmail = "mcp-lockout-none@example.invalid";
+const unknownEmail = "mcp-lockout-unknown@example.invalid";
 const password = "aaaaaa";
 const wrongPassword = "wrong-password";
 const secret = "test-only-isolated-d1-secret-0123456789abcdef";
@@ -58,13 +62,13 @@ async function signUp(email: string): Promise<string> {
   return row!.id;
 }
 
-async function provision(userId: string) {
+async function provision(userId: string, enabled = 1) {
   const now = new Date().toISOString();
   await env.DB.prepare(
     `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
-     VALUES (?, 'staff', 1, ?, ?, 'test')`,
+     VALUES (?, 'staff', ?, ?, ?, 'test')`,
   )
-    .bind(userId, now, now)
+    .bind(userId, enabled, now, now)
     .run();
 }
 
@@ -118,7 +122,7 @@ describe("password sign-in lockout for MCP and shared auth", () => {
       ENVIRONMENT: "production",
       PUBLIC_SITE_URL: "https://staging.kaiyuemacau.com",
       BETTER_AUTH_SECRET: secret,
-      ADMIN_EMAILS: `${staffEmail},${altEmail}`,
+      ADMIN_EMAILS: `${staffEmail},${altEmail},${disabledEmail},${unprovisionedEmail}`,
       ADMIN_PRIMARY_EMAIL: staffEmail,
       DEV_ADMIN_BYPASS: "false",
       ADMIN_STAGING_TEST_PASSWORD_MIN: "6",
@@ -129,8 +133,11 @@ describe("password sign-in lockout for MCP and shared auth", () => {
     await execMigration(env, "0010_admin_operator_last_super.sql");
     const staffId = await signUp(staffEmail);
     const altId = await signUp(altEmail);
+    const disabledId = await signUp(disabledEmail);
+    await signUp(unprovisionedEmail);
     await provision(staffId);
     await provision(altId);
+    await provision(disabledId, 0);
   }, 30_000);
 
   afterAll(async () => {
@@ -251,6 +258,40 @@ describe("password sign-in lockout for MCP and shared auth", () => {
     expect(third.status).toBe(429);
     const mcpBypass = await handleMcpSession(mcpRequest(altEmail, password, altIp), env);
     expect(mcpBypass.status).toBe(429);
+  }, 30_000);
+
+  it("returns the same generic 401 for wrong, unknown, disabled, and unprovisioned sign-ins", async () => {
+    const cases = [
+      { email: staffEmail, secretValue: wrongPassword, ip: "203.0.113.50" },
+      { email: unknownEmail, secretValue: password, ip: "203.0.113.51" },
+      { email: disabledEmail, secretValue: password, ip: "203.0.113.52" },
+      { email: unprovisionedEmail, secretValue: password, ip: "203.0.113.53" },
+    ];
+    const publicErrors: Array<{ code?: string; message?: string }> = [];
+    for (const item of cases) {
+      await clearLockout(item.email, item.ip);
+      const mcp = await handleMcpSession(mcpRequest(item.email, item.secretValue, item.ip), env);
+      const signIn = await handlePasswordSignIn(
+        signInRequest(item.email, item.secretValue, item.ip),
+        env,
+      );
+      expect(mcp.status).toBe(401);
+      expect(signIn.status).toBe(401);
+      expect(signIn.headers.getSetCookie().join(";")).not.toMatch(/session_token=/);
+      const mcpBody = (await mcp.json()) as { error?: { code?: string; message?: string } };
+      const signInBody = (await signIn.json()) as { error?: { code?: string; message?: string } };
+      publicErrors.push(
+        { code: mcpBody.error?.code, message: mcpBody.error?.message },
+        { code: signInBody.error?.code, message: signInBody.error?.message },
+      );
+      expect(JSON.stringify(mcpBody)).not.toMatch(/disabled|unprovisioned|unknown|does not exist/i);
+      expect(JSON.stringify(signInBody)).not.toMatch(
+        /disabled|unprovisioned|unknown|does not exist/i,
+      );
+    }
+    for (const body of publicErrors) {
+      expect(body).toEqual({ code: "UNAUTHORIZED", message: PASSWORD_SIGNIN_FAILED });
+    }
   }, 30_000);
 
   it("keeps production MCP closed with 404 even after a staging lockout", async () => {

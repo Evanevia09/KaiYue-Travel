@@ -12,6 +12,7 @@ import {
   passwordAttemptBuckets,
   passwordAttemptSource,
   rejectIfPasswordLocked,
+  trustClientForwardedIp,
 } from "./password-attempt.ts";
 
 const secret = "test-only-isolated-d1-secret-0123456789abcdef";
@@ -37,16 +38,33 @@ describe("password attempt lockout", () => {
     expect(isPasswordSignInPath("/api/auth/sign-up/email")).toBe(false);
   });
 
-  it("prefers cf-connecting-ip over the first X-Forwarded-For hop", () => {
-    const request = attemptRequest("203.0.113.9", { "x-forwarded-for": "198.51.100.1, 10.0.0.1" });
-    expect(passwordAttemptSource(request)).toBe("203.0.113.9");
+  it("prefers cf-connecting-ip and ignores client XFF on hosted Cloudflare", () => {
+    const hosted = createTestEnv({ ENVIRONMENT: "production", DEV_ADMIN_BYPASS: "false" });
+    const local = createTestEnv({ ENVIRONMENT: "development" });
+    const withCf = attemptRequest("203.0.113.9", { "x-forwarded-for": "198.51.100.1, 10.0.0.1" });
+    expect(passwordAttemptSource(withCf, hosted)).toBe("203.0.113.9");
+    expect(trustClientForwardedIp(hosted, withCf)).toBe(false);
     expect(
       passwordAttemptSource(
         new Request("https://admin-staging.kaiyuemacau.com/login", {
           headers: { "x-forwarded-for": "198.51.100.2, 10.0.0.1" },
         }),
+        hosted,
       ),
-    ).toBe("198.51.100.2");
+    ).toBe("untrusted");
+    const localForwarded = new Request("http://localhost:4321/login", {
+      headers: { "x-forwarded-for": "198.51.100.3, 10.0.0.1" },
+    });
+    expect(trustClientForwardedIp(local, localForwarded)).toBe(true);
+    expect(passwordAttemptSource(localForwarded, local)).toBe("198.51.100.3");
+    expect(
+      trustClientForwardedIp(
+        local,
+        new Request("https://kaiyue-travel.example.workers.dev/login", {
+          headers: { "x-forwarded-for": "198.51.100.4" },
+        }),
+      ),
+    ).toBe(false);
   });
 
   it("stores hashed account and IP buckets, never the email or IP", async () => {
@@ -209,9 +227,12 @@ describe("password attempt lockout", () => {
       const response = errorResponse(error, "req_lockout");
       expect(response.status).toBe(429);
       expect(response.headers.get("Retry-After")).toBe("300");
-      const body = (await response.json()) as { error?: { message?: string; code?: string } };
+      const body = (await response.json()) as {
+        error?: { message?: string; code?: string; retryAfter?: number };
+      };
       expect(body.error?.code).toBe("RATE_LIMITED");
       expect(body.error?.message).toBe(PASSWORD_LOCKOUT_MESSAGE);
+      expect(body.error?.retryAfter).toBe(300);
       expect(JSON.stringify(body)).not.toMatch(/lockout-staff|example\.invalid/i);
     }
   });

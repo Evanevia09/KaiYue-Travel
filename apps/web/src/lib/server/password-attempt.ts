@@ -1,13 +1,24 @@
 import { AppError, sha256Hex } from "@kaiyue/contracts";
+import {
+  PASSWORD_LOCKOUT_FAILURES,
+  PASSWORD_LOCKOUT_MESSAGE,
+  PASSWORD_LOCKOUT_MS,
+  PASSWORD_SIGNIN_FAILED,
+} from "../password-sign-in-copy.ts";
+import { resolveHostRole } from "./admin-gate.ts";
 import { normalizeAdminEmail } from "./admin-primary.ts";
 import { createAdminSessionAuth } from "./admin-session.ts";
+import { requireAdmin } from "./auth.ts";
 import { first, run } from "./db.ts";
 import type { AppEnv } from "./env.ts";
 import { JSON_LIMIT_BYTES, errorResponse, requestIdFrom } from "./http.ts";
 
-export const PASSWORD_LOCKOUT_FAILURES = 3;
-export const PASSWORD_LOCKOUT_MS = 5 * 60 * 1000;
-export const PASSWORD_LOCKOUT_MESSAGE = "Too many sign-in attempts. Please wait and try again.";
+export {
+  PASSWORD_LOCKOUT_FAILURES,
+  PASSWORD_LOCKOUT_MESSAGE,
+  PASSWORD_LOCKOUT_MS,
+  PASSWORD_SIGNIN_FAILED,
+};
 
 /** Existing `rate_limits` table from `migrations/0001_init.sql`. Tests on persist:false D1 must create it. */
 export const RATE_LIMITS_TABLE_SQL =
@@ -40,9 +51,38 @@ ON CONFLICT(bucket) DO UPDATE SET
 WHERE (rate_limits.count >= ? AND rate_limits.window_start <= ?) OR rate_limits.count < ?
 RETURNING count, window_start`;
 
-export function passwordAttemptSource(request: Request): string {
+export function trustClientForwardedIp(
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+  request: Request,
+): boolean {
+  const role = resolveHostRole(env, request);
+  switch (role) {
+    case "local": {
+      const host = new URL(request.url).hostname.toLowerCase();
+      return host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host === "::1";
+    }
+    case "preview":
+    case "staging-admin":
+    case "staging-marketing":
+    case "production-admin":
+    case "production-marketing":
+      return false;
+    default: {
+      const exhaustive: never = role;
+      return exhaustive;
+    }
+  }
+}
+
+export function passwordAttemptSource(
+  request: Request,
+  env: Pick<AppEnv, "ENVIRONMENT" | "ENV">,
+): string {
   const cf = request.headers.get("cf-connecting-ip")?.trim().toLowerCase();
   if (cf) return cf;
+  if (!trustClientForwardedIp(env, request)) {
+    return "untrusted";
+  }
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().toLowerCase();
   if (forwarded) return forwarded;
   return "unknown";
@@ -135,7 +175,7 @@ export async function beginPasswordAttempt(
   email: string,
   now = Date.now(),
 ): Promise<PasswordAttemptReservation> {
-  const buckets = await passwordAttemptBuckets(env, email, passwordAttemptSource(request));
+  const buckets = await passwordAttemptBuckets(env, email, passwordAttemptSource(request, env));
   const nowIso = new Date(now).toISOString();
   const expiredBefore = new Date(now - PASSWORD_LOCKOUT_MS).toISOString();
   const rows: RateLimitRow[] = [];
@@ -161,7 +201,7 @@ export async function clearPasswordAttempts(
   request: Request,
   email: string,
 ): Promise<void> {
-  const buckets = await passwordAttemptBuckets(env, email, passwordAttemptSource(request));
+  const buckets = await passwordAttemptBuckets(env, email, passwordAttemptSource(request, env));
   const keys = [buckets.account, buckets.ip].filter((key): key is string => Boolean(key));
   if (keys.length === 0) return;
   await run(
@@ -198,6 +238,31 @@ export async function peekSignInEmail(request: Request): Promise<string> {
   return "";
 }
 
+function passwordSignInFailed(): AppError {
+  return new AppError("UNAUTHORIZED", PASSWORD_SIGNIN_FAILED);
+}
+
+function sessionCookieFromResponse(response: Response): string | undefined {
+  for (const value of response.headers.getSetCookie()) {
+    const cookie = value
+      .split(";")
+      .map((part) => part.trim())
+      .find(
+        (part) =>
+          part.startsWith("__Secure-better-auth.session_token=") ||
+          part.startsWith("better-auth.session_token="),
+      );
+    if (cookie) return cookie;
+  }
+  return undefined;
+}
+
+async function admitPasswordSignIn(request: Request, env: AppEnv, response: Response) {
+  const cookie = sessionCookieFromResponse(response);
+  if (!cookie) throw passwordSignInFailed();
+  await requireAdmin(new Request(request.url, { headers: { cookie } }), env);
+}
+
 export async function handlePasswordSignIn(
   request: Request,
   env: AppEnv,
@@ -212,14 +277,26 @@ export async function handlePasswordSignIn(
     const attempt = await beginPasswordAttempt(env, request, email, now);
     const response = await createAdminSessionAuth(env, false, request).handler(request);
     if (response.ok) {
+      try {
+        await admitPasswordSignIn(request, env, response);
+      } catch (error) {
+        await response.body?.cancel();
+        if (error instanceof AppError && error.code === "RATE_LIMITED") throw error;
+        if (
+          error instanceof AppError &&
+          (error.code === "UNAUTHORIZED" || error.code === "FORBIDDEN")
+        ) {
+          rejectIfPasswordLocked(attempt, now);
+          throw passwordSignInFailed();
+        }
+        throw error;
+      }
       await clearPasswordAttempts(env, request, email);
       return response;
     }
-    if (attempt.count >= PASSWORD_LOCKOUT_FAILURES) {
-      await response.body?.cancel();
-      rejectIfPasswordLocked(attempt, now);
-    }
-    return response;
+    await response.body?.cancel();
+    rejectIfPasswordLocked(attempt, now);
+    throw passwordSignInFailed();
   } catch (error) {
     return errorResponse(error, requestId);
   }
