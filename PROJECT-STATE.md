@@ -1,5 +1,7 @@
 # Kai Yue Travel — Project State
 
+**2026-11-19 process-setup pilot (unmerged, not a product feature, not a release):** Branch `cursor/process-setup-pilot-800d` encodes the agreed low-micromanagement habit, a committed Cloud Agent `.cursor/environment.json` plus secret-free `.cursor/install.sh`, and a thin `.cursor/skills/repo-checks` pointer at the existing pnpm/CI levers. Review-only PR into `official-staging` (`c9173c0`). Leave it unmerged. Production remains held until staging PR #52 is settled. Do not prepare a production candidate from this work. Open MCP OAuth PRs #51 and #52 stay unmodified.
+
 **2026-11-18 plugin checkpoint:** Version 0.3.0 adds a staging Worker MCP endpoint with ten discoverable tools, a public `/plugin` guide, staff-session tokens, browser approvals, new decision statuses, and quote email locked to the owner-approved staging inbox. Staging rollout and receipt checks are in progress. See the dated changes below.
 
 **Last updated:** 2026-11-16 18:58 Asia/Macau (production operationally activated: `kaiyue-travel` version `5eebf7b6` @100%, `main` `ff119f2c`, `admin.kaiyuemacau.com` attached; not project acceptance)
@@ -165,6 +167,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+Process-setup pilot (2026-11-19, unmerged): review the official-staging PR for the AGENTS.md habit pointer, `.cursor/environment.json`, `.cursor/install.sh`, and `.cursor/skills/repo-checks`. Do not merge, deploy, or treat a green CI `check` as production authority. Install runs only during a successful Cloud Agent Build after an environment records that file; until then agents may boot the default image and skip install. Production remains held until staging PR #52 is settled. Leave MCP OAuth PRs #51 and #52 and their branches unmodified.
+
 Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): branch `cursor/agent-api-notifications-a72c` is ready for PM independent review. Next action: after PM review, promote to `official-staging` with mail still off, then run synthetic staging API checks. A real send needs the PM's exact approval of the card in `docs/records/2026-11-16-agent-api-notifications/STAGE.md`. Production and `main` are untouched, and production mail stays off.
 
 Staging cache + production-readiness (2026-11-16, `task_id` `kaiyue-production-readiness-20261116`): `dca860c` is staged and the admin-root fix is verified over HTTP and in the browser without a purge. Next action: parent-run full authenticated staff UAT on admin-staging (staff role, session revocation, Users create/reset, profile password). No credential reset is needed; owner-supplied staging login verified. Do not merge to `main`. Do not attach production admin. LIVE stays `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
@@ -250,6 +254,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-19 — Process-setup workflow pilot (unmerged)
+
+- Changed: short AGENTS.md habit pointer; committed `.cursor/environment.json` (`name`, `install` only) and idempotent secret-free `.cursor/install.sh` (Node 22.23.5 linux-x64 from nodejs.org SHASUMS256.txt, pnpm 10.15.0, `pnpm install --frozen-lockfile`); thin `.cursor/skills/repo-checks` pointing at existing `pnpm lint` / `typecheck` / `test` / `build` / `official-staging:guard` and GitHub CI job `check`. No product, workflow YAML, MCP OAuth, or production-candidate change.
+- Decision/evidence: owner process-setup pilot. Base `official-staging` `c9173c0` (PR #50). Production `main` `ff119f2c` untouched. Production held until staging PR #52 is settled. Archived Cursor Project stays archived. No vault writes.
+- Verified on this Cloud Agent VM: `environment.json` Draft 2019-09 schema (`name`, `install` only); `install.sh` `bash -n`; Node 22.23.5 linux-x64 SHA256 matches https://nodejs.org/dist/v22.23.5/SHASUMS256.txt; two `bash .cursor/install.sh` runs (second skipped Node/pnpm download; lockfile already up to date); path targets exist; `git diff --check`; `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 297/297; `PUBLIC_SITE_URL=https://example.invalid pnpm build`; `pnpm official-staging:guard`.
+- Not verified or follow-up: Cloud Agent Build (not triggered; install applies only after an environment records this file and a Build succeeds); live e2e; wrangler deploy; staging/production credentials; merge.
 
 ### 2026-11-18 — Hosted staging MCP and booking decisions
 

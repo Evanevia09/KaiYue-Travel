@@ -16,6 +16,10 @@ Do not start implementation from a conversation summary alone.
 
 For substantial work, use the personal [execution guide](C:/Users/USER/.codex/workflow/README.md) through this project's [workflow adapter](docs/11-codex-workflow-adapter.md). At startup, confirm the actual checkout, revision, dirty files, task outcome, constraints, and observable acceptance criteria. Assign bounded agents explicit files and checks; the coordinator integrates and verifies their returns. For Lab-coordinated work, the owning agent returns evidence to the Lab coordinator; the user need not route routine work between chats. At closeout, record source, date, revision, checks, review, unresolved gates, and one next action in the project record. Keep `probe_complete`, `task_verified`, `user_accepted`, and `released` distinct; a historical check does not establish current readiness.
 
+## Substantial software work
+
+Start with `/poteto-mode` in Cursor, or the same written steps in Codex. State the goal, the smallest change, the acceptance check, and whether the work is one task or genuinely independent slices. Subtract before you add. Prove it works on the real command or app path. Build the lever using the existing repository checks in `.cursor/skills/repo-checks/SKILL.md`. At closeout, cite rerunnable proof, the exact source SHA, remaining limits, and a review-ready `official-staging` PR. Follow-up review covers the changed diff and unresolved findings only. Keep one coordinator and one active writer per task. Existing release, production, mail, Access, D1, and business-claim gates stay. A green check does not authorize those actions. Do not make `/swarm`, `/arena`, or `/interrogate` the default.
+
 ## Source-of-truth hierarchy
 
 When sources conflict, use this order:
