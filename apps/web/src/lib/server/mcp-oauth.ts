@@ -97,6 +97,12 @@ async function registerClient(request: Request, env: AppEnv) {
   );
 }
 
+export function mcpAuthorizePageStatus(error: unknown) {
+  return error instanceof OAuthError || (error instanceof AppError && error.status < 500)
+    ? 400
+    : 503;
+}
+
 export async function readMcpAuthorization(request: Request, env: AppEnv) {
   assertMcpHost(request, env);
   const params = new URL(request.url).searchParams;

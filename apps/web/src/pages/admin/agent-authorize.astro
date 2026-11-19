@@ -1,9 +1,12 @@
 ---
 import { env } from "cloudflare:workers";
-import { AppError } from "@kaiyue/contracts";
 import AgentSetupLayout from "../../layouts/AgentSetupLayout.astro";
 import { assertMcpHost } from "../../lib/server/mcp-access.ts";
-import { authorizeMcpClient, readMcpAuthorization } from "../../lib/server/mcp-oauth.ts";
+import {
+  authorizeMcpClient,
+  mcpAuthorizePageStatus,
+  readMcpAuthorization,
+} from "../../lib/server/mcp-oauth.ts";
 
 export const prerender = false;
 
@@ -19,7 +22,7 @@ try {
   if (Astro.request.method === "POST") return await authorizeMcpClient(Astro.request, env);
   details = await readMcpAuthorization(Astro.request, env);
 } catch (error) {
-  Astro.response.status = error instanceof AppError && error.status >= 500 ? 503 : 400;
+  Astro.response.status = mcpAuthorizePageStatus(error);
 }
 const callbackOrigin = details ? new URL(details.redirectUri).origin : "";
 Astro.response.headers.set(

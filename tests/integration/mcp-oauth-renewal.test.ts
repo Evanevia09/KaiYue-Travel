@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getPlatformProxy } from "wrangler";
+import { AppError } from "../../packages/contracts/src/index.ts";
 import {
   PRODUCTION_ADMIN_HOST,
   STAGING_ADMIN_HOST,
@@ -11,6 +12,7 @@ import type { AppEnv } from "../../apps/web/src/lib/server/env.ts";
 import { authenticateMcp } from "../../apps/web/src/lib/server/mcp-access.ts";
 import {
   authorizeMcpClient,
+  mcpAuthorizePageStatus,
   readMcpAuthorization,
 } from "../../apps/web/src/lib/server/mcp-oauth.ts";
 import { mcpLoginReturn, mcpResource } from "../../apps/web/src/lib/server/mcp-oauth-metadata.ts";
@@ -230,6 +232,17 @@ describe("staging MCP OAuth renewal path", () => {
         expect(body).not.toMatch(/"error":"(invalid|unsupported|server)_/);
       }
     }
+  });
+
+  it("distinguishes bad consent requests from server failures", async () => {
+    const invalid = await readMcpAuthorization(
+      new Request(`${stagingOrigin}/admin/agent-authorize?client_id=x`),
+      env,
+    ).catch((error: unknown) => error);
+    expect(mcpAuthorizePageStatus(invalid)).toBe(400);
+    expect(mcpAuthorizePageStatus(new AppError("VALIDATION_FAILED", "bad"))).toBe(400);
+    expect(mcpAuthorizePageStatus(new AppError("UNAVAILABLE", "down"))).toBe(503);
+    expect(mcpAuthorizePageStatus(new Error("synthetic storage failure"))).toBe(503);
   });
 
   it("only returns to the consent page after login", () => {
