@@ -1,6 +1,7 @@
-import { AppError, sha256Hex } from "@kaiyue/contracts";
+import { AppError, createRequestId, sha256Hex } from "@kaiyue/contracts";
 import { first, run } from "./db.ts";
 import type { AppEnv } from "./env.ts";
+import { logSafe } from "./http.ts";
 import {
   assertMcpHost,
   encodeMcpBytes,
@@ -185,11 +186,7 @@ async function exchangeCode(env: AppEnv, clientId: string, params: URLSearchPara
   );
   if (!row) {
     // OAuth 2.1: a reused authorization code revokes the connection it already created.
-    await run(
-      env.DB,
-      "UPDATE idempotency_keys SET status_code=409 WHERE key_hash=? AND status_code=200",
-      key,
-    );
+    await revokeGrant(env, key);
     throw new OAuthError("invalid_grant");
   }
   const saved = await openMcpTicket(env, "code", row.response_json);
@@ -215,8 +212,20 @@ async function exchangeCode(env: AppEnv, clientId: string, params: URLSearchPara
     key,
     new Date().toISOString(),
   );
-  if (!updated) throw new OAuthError("invalid_grant");
+  if (!updated) {
+    // A concurrent exchange of the same code won the race; treat this attempt as a replay.
+    await revokeGrant(env, key);
+    throw new OAuthError("invalid_grant");
+  }
   return pair;
+}
+
+function revokeGrant(env: AppEnv, grant: string) {
+  return run(
+    env.DB,
+    "UPDATE idempotency_keys SET status_code=409 WHERE key_hash=? AND status_code=200",
+    grant,
+  );
 }
 
 async function refreshGrant(env: AppEnv, clientId: string, params: URLSearchParams) {
@@ -237,11 +246,7 @@ async function refreshGrant(env: AppEnv, clientId: string, params: URLSearchPara
   );
   if (!updated) {
     // A previously issued token was replayed. Revoke the entire connection.
-    await run(
-      env.DB,
-      "UPDATE idempotency_keys SET status_code=409 WHERE key_hash=? AND status_code=200",
-      saved.grant,
-    );
+    await revokeGrant(env, saved.grant);
     throw new OAuthError("invalid_grant");
   }
   return pair;
@@ -252,6 +257,10 @@ export async function handleMcpOAuthApi(request: Request, env: AppEnv): Promise<
   if (path !== oauthPath + "register" && path !== oauthPath + "token") return null;
   try {
     assertMcpHost(request, env);
+  } catch {
+    return null;
+  }
+  try {
     if (request.method !== "POST")
       return new Response(null, { status: 405, headers: { ...headers, Allow: "POST" } });
     const source = request.headers.get("Origin");
@@ -281,22 +290,27 @@ export async function handleMcpOAuthApi(request: Request, env: AppEnv): Promise<
     if (!pair) throw new OAuthError("unsupported_grant_type");
     return Response.json(pair, { headers });
   } catch (error) {
-    const status =
-      error instanceof AppError && error.status === 404
-        ? 404
-        : error instanceof OAuthError && error.code === "invalid_client"
-          ? 401
-          : 400;
+    if (error instanceof OAuthError) {
+      return Response.json(
+        { error: error.code },
+        { status: error.code === "invalid_client" ? 401 : 400, headers },
+      );
+    }
+    if (error instanceof SyntaxError) {
+      return Response.json({ error: "invalid_client_metadata" }, { status: 400, headers });
+    }
+    if (error instanceof AppError && error.status < 500) {
+      return Response.json({ error: "invalid_grant" }, { status: 400, headers });
+    }
+    const requestId = createRequestId();
+    logSafe("error", "mcp_oauth_failed", {
+      requestId,
+      path,
+      code: error instanceof AppError ? error.code : "INTERNAL",
+    });
     return Response.json(
-      {
-        error:
-          error instanceof OAuthError
-            ? error.code
-            : error instanceof AppError
-              ? "invalid_grant"
-              : "invalid_request",
-      },
-      { status, headers },
+      { error: "server_error" },
+      { status: error instanceof AppError ? error.status : 500, headers },
     );
   }
 }

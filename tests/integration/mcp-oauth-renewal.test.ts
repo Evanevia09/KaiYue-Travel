@@ -13,7 +13,7 @@ import {
   authorizeMcpClient,
   readMcpAuthorization,
 } from "../../apps/web/src/lib/server/mcp-oauth.ts";
-import { mcpResource } from "../../apps/web/src/lib/server/mcp-oauth-metadata.ts";
+import { mcpLoginReturn, mcpResource } from "../../apps/web/src/lib/server/mcp-oauth-metadata.ts";
 import { createWorkerFetch } from "../../apps/web/src/lib/server/worker-entry.ts";
 
 const stagingOrigin = `https://${STAGING_ADMIN_HOST}`;
@@ -220,10 +220,32 @@ describe("staging MCP OAuth renewal path", () => {
         {},
       );
       expect(await metadata.text()).not.toContain("authorization_endpoint");
-      expect((await register({ redirect_uris: [callback] }, target, origin)).status).toBe(404);
-      expect(
-        (await token("x", { grant_type: "refresh_token" }, { host: origin, target })).status,
-      ).toBe(404);
+      for (const response of [
+        await register({ redirect_uris: [callback] }, target, origin),
+        await token("x", { grant_type: "refresh_token" }, { host: origin, target }),
+      ]) {
+        expect([200, 201]).not.toContain(response.status);
+        const body = await response.text();
+        expect(body).not.toContain("client_id");
+        expect(body).not.toMatch(/"error":"(invalid|unsupported|server)_/);
+      }
+    }
+  });
+
+  it("only returns to the consent page after login", () => {
+    expect(mcpLoginReturn("/admin/agent-authorize?client_id=x")).toBe(
+      "/admin/agent-authorize?client_id=x",
+    );
+    for (const value of [
+      null,
+      "//evil.example.invalid/admin/agent-authorize?x",
+      "https://evil.example.invalid/admin/agent-authorize?x",
+      "/admin/agent-authorize/../x?y",
+      "/admin/agent-authorize",
+      "/admin/agent-authorize?x#fragment",
+      "/admin/users",
+    ]) {
+      expect(mcpLoginReturn(value)).toBeUndefined();
     }
   });
 
@@ -355,6 +377,61 @@ describe("staging MCP OAuth renewal path", () => {
     expect(renewed.status).toBe(200);
   });
 
+  it("revokes the connection when the same code is exchanged concurrently", async () => {
+    const clientId = await registerClient();
+    const code = await authorize(clientId);
+    const exchange = {
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: callback,
+      code_verifier: verifier,
+    };
+    const responses = await Promise.all([token(clientId, exchange), token(clientId, exchange)]);
+    const statuses = responses.map((response) => response.status).sort();
+    expect(statuses).toEqual([200, 400]);
+    const winner = responses.find((response) => response.status === 200)!;
+    const pair = (await winner.json()) as { access_token: string };
+    await expect(useAccess(pair.access_token)).rejects.toMatchObject({ status: 401 });
+  });
+
+  it("revokes the connection when the same refresh token is used concurrently", async () => {
+    const clientId = await registerClient();
+    const connection = await connect(clientId);
+    const refresh = { grant_type: "refresh_token", refresh_token: connection.refresh_token };
+    const responses = await Promise.all([token(clientId, refresh), token(clientId, refresh)]);
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 400]);
+    await expect(useAccess(connection.access_token)).rejects.toMatchObject({ status: 401 });
+  });
+
+  it("reports storage failures as server errors, not invalid grants", async () => {
+    const clientId = await registerClient();
+    const broken = {
+      ...env,
+      DB: {
+        prepare() {
+          throw new Error("synthetic storage failure");
+        },
+      },
+    } as unknown as AppEnv;
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const response = await token(
+        clientId,
+        {
+          grant_type: "authorization_code",
+          code: "c".repeat(43),
+          redirect_uri: callback,
+          code_verifier: verifier,
+        },
+        { target: broken },
+      );
+      expect(response.status).toBe(500);
+      expect(await errorCode(response)).toBe("server_error");
+    } finally {
+      error.mockRestore();
+    }
+  });
+
   it("ends renewal when the eight-hour authorization expires", async () => {
     const clientId = await registerClient();
     const connection = await connect(clientId);
@@ -367,6 +444,27 @@ describe("staging MCP OAuth renewal path", () => {
       expect(await errorCode(response)).toBe("invalid_grant");
     } finally {
       time.mockRestore();
+    }
+  });
+
+  it("ends access and renewal when the staff operator is disabled", async () => {
+    const clientId = await registerClient();
+    const connection = await connect(clientId);
+    const actor = (await useAccess(connection.access_token)).actor;
+    await env.DB.prepare("UPDATE admin_operator SET enabled = 0 WHERE user_id = ?")
+      .bind(actor)
+      .run();
+    try {
+      await expect(useAccess(connection.access_token)).rejects.toMatchObject({ status: 401 });
+      const response = await token(clientId, {
+        grant_type: "refresh_token",
+        refresh_token: connection.refresh_token,
+      });
+      expect(await errorCode(response)).toBe("invalid_grant");
+    } finally {
+      await env.DB.prepare("UPDATE admin_operator SET enabled = 1 WHERE user_id = ?")
+        .bind(actor)
+        .run();
     }
   });
 });
