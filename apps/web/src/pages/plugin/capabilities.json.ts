@@ -15,7 +15,7 @@ export const GET: APIRoute = ({ site }) => {
           authentication:
             "OAuth 2.0 with PKCE and automatic refresh. Ask the staff user to follow the MCP client browser sign-in and consent. Manual bearer tokens are also supported.",
           signIn: `${adminOrigin}/login`,
-          manualTokenSetup: `${adminOrigin}/admin/agent-connect`,
+          setup: `${adminOrigin}/admin/agent-connect`,
         }
       : null,
   });
