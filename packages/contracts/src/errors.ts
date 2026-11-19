@@ -20,6 +20,7 @@ export type ApiErrorBody = {
     message: string;
     fields?: FieldErrors;
     requestId: string;
+    retryAfter?: number;
   };
 };
 
@@ -28,11 +29,18 @@ export class AppError extends Error {
   readonly status: number;
   readonly fields?: FieldErrors;
   readonly expose: boolean;
+  readonly retryAfter?: number;
 
   constructor(
     code: ErrorCode,
     message: string,
-    options?: { status?: number; fields?: FieldErrors; expose?: boolean; cause?: unknown },
+    options?: {
+      status?: number;
+      fields?: FieldErrors;
+      expose?: boolean;
+      cause?: unknown;
+      retryAfter?: number;
+    },
   ) {
     super(message, { cause: options?.cause });
     this.name = "AppError";
@@ -40,6 +48,7 @@ export class AppError extends Error {
     this.status = options?.status ?? statusForCode(code);
     this.fields = options?.fields;
     this.expose = options?.expose ?? true;
+    this.retryAfter = options?.retryAfter;
   }
 }
 
@@ -72,6 +81,7 @@ export function toErrorBody(error: AppError, requestId: string): ApiErrorBody {
       code: error.code,
       message: error.expose ? error.message : "Something went wrong. Please try again.",
       ...(error.fields ? { fields: error.fields } : {}),
+      ...(error.retryAfter != null ? { retryAfter: error.retryAfter } : {}),
       requestId,
     },
   };

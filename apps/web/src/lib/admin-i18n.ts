@@ -47,6 +47,8 @@ export const adminEn = {
   "login.submitting": "Signing in…",
   "login.errorCredentials":
     "Sign-in failed. Check your credentials or ask the administrator for access.",
+  "login.errorLockout": "Too many sign-in attempts. Please wait {minutes} minutes and try again.",
+  "login.errorLockoutOne": "Too many sign-in attempts. Please wait 1 minute and try again.",
   "login.errorUnavailable": "Sign-in is unavailable. Please try again later.",
   "login.setupHelp": "First local setup?",
   "login.setupLink": "Create the operator account",
@@ -571,6 +573,8 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "login.submit": "登入",
   "login.submitting": "登入中…",
   "login.errorCredentials": "登入失敗。請核對帳戶，或向管理員申請權限。",
+  "login.errorLockout": "登入嘗試次數過多。請等待 {minutes} 分鐘後再試。",
+  "login.errorLockoutOne": "登入嘗試次數過多。請等待 1 分鐘後再試。",
   "login.errorUnavailable": "暫時無法登入，請稍後再試。",
   "login.setupHelp": "首次本機設定？",
   "login.setupLink": "建立營運帳戶",

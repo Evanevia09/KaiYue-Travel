@@ -53,6 +53,10 @@ Indexes: `(status, created_at)` and `created_at`.
 
 `key_hash`, `request_hash`, `response_reference`, `expires_at`, `created_at`. Use if idempotency is not stored directly on the booking/contact record.
 
+### `rate_limits` (`migrations/0001_init.sql`)
+
+`bucket` (primary key), `count`, `window_start`. Public booking/contact throttles use IP buckets. Password sign-in lockout reuses the same table with hashed `signin:acct:<sha256>` and `signin:ip:<sha256>` keys (SHA-256 of `BETTER_AUTH_SECRET` plus the normalized email or IP; no raw email, IP, or password). Three failed password checks lock that account and source IP for five minutes. Failures 1–2 persist until the third failure, a success, or a later lock expiry. Hosted Cloudflare IP buckets use `CF-Connecting-IP` only; missing that header is `untrusted` and client `X-Forwarded-For` is not used. The only local/test exception is hostname `localhost` / `127.0.0.1` / `::1`, which may use the first `X-Forwarded-For` hop. `.workers.dev` and other non-loopback hosts never trust client `X-Forwarded-For` even when `ENVIRONMENT=development`. No `0011` migration: live D1 already has this table from `0001`. Applying schema live is not part of this increment. The official-staging schema contract remains attested `0001`–`0010` on disk.
+
 ### `admin_operator` (sidecar, `migrations/0009_admin_operator.sql`)
 
 `user_id` (FK to Better Auth `"user"`), `role` (`super_admin` or `staff` only), `enabled` (0/1), `created_at`, `updated_at`, `updated_by`. No password hashes. Empty table is not implicit super-admin elevation. Operator mutations write `operator_audit_events`, not the booking/contact `audit_events` table. `migrations/0010_admin_operator_last_super.sql` installs BEFORE UPDATE/DELETE triggers that `RAISE(ABORT)` if the change would remove the last enabled `super_admin`.

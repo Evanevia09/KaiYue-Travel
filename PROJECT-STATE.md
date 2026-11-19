@@ -1,6 +1,8 @@
 # Kai Yue Travel — Project State
 
-**2026-11-19 MCP staff-password auth (unmerged):** Staging MCP can exchange an existing staff or `super_admin` email/password for a 30-minute connection token without visiting `/login` or `/admin/agent-connect`. Vault login or a secure in-chat form. No API-key system. Production hosts and `admin.kaiyuemacau.com` stay closed. Write-tool browser approval is unchanged. Not deployed; not `user_accepted`.
+**2026-11-19 MCP password rate limit (unmerged PR #55):** After three failed staff password sign-ins, further attempts wait five minutes. Durable D1 lock on hashed account and `CF-Connecting-IP` (hosted; XFF ignored if that header is absent). `/login` shows generic wait copy on `429`. Wrong/unknown/disabled/unprovisioned share one generic `401`. No `0011`. Not merged, not deployed, not `user_accepted`. Record: `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`.
+
+**2026-11-19 MCP staff-password auth (merged to official-staging):** Squash `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54). Staging MCP can exchange an existing staff or `super_admin` email/password for a 30-minute connection token without visiting `/login` or `/admin/agent-connect`. Production hosts stay closed. Write-tool browser approval unchanged. Not deployed from this follow-up; not `user_accepted`.
 
 **2026-11-18 plugin checkpoint:** Version 0.3.0 adds a staging Worker MCP endpoint with ten discoverable tools, a public `/plugin` guide, staff-session tokens, browser approvals, new decision statuses, and quote email locked to the owner-approved staging inbox. Staging rollout and receipt checks are in progress. See the dated changes below.
 
@@ -1096,12 +1098,19 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Verified: `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 108/108; `pnpm build` completed. Built Home, About, City Tours, half-day, and full-day HTML in EN/pt/zh-Hant contain the optional Macau tour-guide wording and no published guide price. Built `/zh-Hant` still uses 包車接送 for transfer labels. Local Chrome on `/services/city-tours/half-day`: step 2 shows the yes/no Macau tour-guide question and hides luggage; switching the same draft to Point to point restores Big luggage / Hand carry. `admin-gate`, middleware, and `wrangler.jsonc` were not edited. No wrangler deploy. Staging D1 column `bookings.tour_guide_requested` INTEGER exists; `d1_migrations` row `0008_booking_tour_guide.sql` recorded.
 - Not verified or follow-up: Workers preview browser pass, live production. Do not re-apply `0008`. Do not apply to production D1. `user_accepted` and `released` are not established.
 
-### 2026-11-19 — Staging MCP staff email/password (unmerged)
+### 2026-11-19 — Staging MCP staff email/password (merged)
 
 - Changed: `POST /api/v1/admin/mcp-session` on `admin-staging.kaiyuemacau.com` exchanges existing staff email/password for the same 30-minute MCP token, with no browser Origin and no visit to `/login` or `/admin/agent-connect`. Plugin/docs tell an agent to use a saved vault login or a secure in-chat form. Local plugin also reads `KAIYUE_STAGING_STAFF_EMAIL` / `KAIYUE_STAGING_STAFF_PASSWORD` before keychain. Write-tool browser approval, production hosts, and Access/D1/mail/secrets are unchanged.
-- Decision/evidence: Owner (Evan) 2026-11-19 Asia/Macau: MCP authentication must not require the admin sign-in page; keep the signed-in account’s permissions; no API-key system; staging only.
-- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 307/307 including happy path, bad password, disabled, unprovisioned, URL credentials, and production/non-staging 404; plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`.
-- Not verified or follow-up: live staging after authorized deploy; vault or in-chat form in a real MCP client. Do not merge, deploy, or prepare a production candidate.
+- Decision/evidence: Owner (Evan) 2026-11-19 Asia/Macau: MCP authentication must not require the admin sign-in page; keep the signed-in account’s permissions; no API-key system; staging only. Squash-merged to `official-staging` as `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54).
+- Verified (historical, PR #54): `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 307/307 including happy path, bad password, disabled, unprovisioned, URL credentials, and production/non-staging 404; plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`.
+- Not verified or follow-up: live staging after authorized deploy; vault or in-chat form in a real MCP client.
+
+### 2026-11-19 — Staff password sign-in lockout (unmerged)
+
+- Changed: Shared durable lockout for `POST /api/v1/admin/mcp-session` and `POST /api/auth/sign-in/email`. Three failed password checks lock the hashed account and source IP for five minutes in existing D1 `rate_limits`. Locked requests return `429` with `Retry-After`, do not verify the password, and do not extend `window_start`. A later success or an expired window resets the counters. No `0011` migration; schema contract remains attested `0001`–`0010`.
+- Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
+- Not verified or follow-up: live D1 apply (not authorized); hosted/staging auth; `/login` browser pass against a live Better Auth client; merge; deploy. PRs #51/#52/#53, `main`, and production workflows untouched. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 

@@ -7,6 +7,12 @@ import { first } from "./db.ts";
 import type { AppEnv } from "./env.ts";
 import { errorResponse, json, readJson, requestIdFrom } from "./http.ts";
 import { mailSite } from "./notification-policy.ts";
+import {
+  PASSWORD_SIGNIN_FAILED,
+  beginPasswordAttempt,
+  clearPasswordAttempts,
+  rejectIfPasswordLocked,
+} from "./password-attempt.ts";
 
 const origin = `https://${STAGING_ADMIN_HOST}`;
 const encoder = new TextEncoder();
@@ -16,7 +22,6 @@ const tokenLifetime = 30 * 60 * 1000;
 const tokenLifetimeSeconds = tokenLifetime / 1000;
 const approvalLifetime = 10 * 60 * 1000;
 const staffEmailMaxLength = 254;
-const credentialSignInFailed = "Staff email or password is incorrect.";
 
 type Ticket = {
   session: { cookie: string; actor: string; expires: number };
@@ -162,10 +167,15 @@ export async function issueMcpToken(request: Request, env: AppEnv) {
   return sealStaffSession(env, cookie, identity.id);
 }
 
-export async function issueMcpTokenFromCredentials(request: Request, env: AppEnv) {
+export async function issueMcpTokenFromCredentials(
+  request: Request,
+  env: AppEnv,
+  now = Date.now(),
+) {
   assertMcpHost(request, env);
   rejectCredentialQuery(request);
   const credentials = staffPasswordCredentials(await readJson(request));
+  const attempt = await beginPasswordAttempt(env, request, credentials.email, now);
   const signInRequest = new Request(`${origin}/api/auth/sign-in/email`, {
     method: "POST",
     headers: { "content-type": "application/json", origin },
@@ -175,11 +185,25 @@ export async function issueMcpTokenFromCredentials(request: Request, env: AppEnv
   const cookie = sessionCookieFromResponse(login);
   if (!login.ok || !cookie) {
     await login.body?.cancel();
-    throw new AppError("UNAUTHORIZED", credentialSignInFailed);
+    rejectIfPasswordLocked(attempt, now);
+    throw new AppError("UNAUTHORIZED", PASSWORD_SIGNIN_FAILED);
   }
   await login.body?.cancel();
-  const identity = await requireStaffOperatorSession(env, cookie);
-  return sealStaffSession(env, cookie, identity.id);
+  try {
+    const identity = await requireStaffOperatorSession(env, cookie);
+    await clearPasswordAttempts(env, request, credentials.email);
+    return sealStaffSession(env, cookie, identity.id);
+  } catch (error) {
+    if (error instanceof AppError && error.code === "RATE_LIMITED") throw error;
+    if (
+      error instanceof AppError &&
+      (error.code === "UNAUTHORIZED" || error.code === "FORBIDDEN")
+    ) {
+      rejectIfPasswordLocked(attempt, now);
+      throw new AppError("UNAUTHORIZED", PASSWORD_SIGNIN_FAILED);
+    }
+    throw error;
+  }
 }
 
 export async function handleMcpSession(request: Request, env: AppEnv): Promise<Response> {

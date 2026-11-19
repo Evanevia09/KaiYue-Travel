@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { t, type AdminLocale } from "../../lib/admin-i18n.ts";
 import { authClient } from "./auth-client.ts";
+import { loginFormErrorMessage } from "./login-form-error.ts";
 
 export function LoginForm({
   locale,
@@ -19,11 +20,20 @@ export function LoginForm({
         const form = new FormData(event.currentTarget);
         setBusy(true);
         setError("");
+        let retryAfter: string | null = null;
         void authClient.signIn
-          .email({ email: String(form.get("email")), password: String(form.get("password")) })
+          .email({
+            email: String(form.get("email")),
+            password: String(form.get("password")),
+            fetchOptions: {
+              onResponse(context) {
+                retryAfter = context.response.headers.get("Retry-After");
+              },
+            },
+          })
           .then(({ error }) => {
             if (error) {
-              setError(t(locale, "login.errorCredentials"));
+              setError(loginFormErrorMessage(locale, error, retryAfter));
               return;
             }
             window.location.assign("/admin");

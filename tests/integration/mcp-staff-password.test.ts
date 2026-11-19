@@ -14,6 +14,7 @@ import {
   handleMcpSession,
   issueMcpTokenFromCredentials,
 } from "../../apps/web/src/lib/server/mcp-access.ts";
+import { RATE_LIMITS_TABLE_SQL } from "../../apps/web/src/lib/server/password-attempt.ts";
 
 const stagingOrigin = `https://${STAGING_ADMIN_HOST}`;
 const productionOrigin = `https://${PRODUCTION_ADMIN_HOST}`;
@@ -73,11 +74,13 @@ function credentialRequest(
   email: string,
   secretValue: string,
   host = stagingOrigin,
-  extra: { origin?: string; query?: string } = {},
+  extra: { origin?: string; query?: string; ip?: string } = {},
 ) {
   const url = `${host}/api/v1/admin/mcp-session${extra.query ?? ""}`;
   const headers = new Headers({ "content-type": "application/json" });
   if (extra.origin) headers.set("origin", extra.origin);
+  const derivedIp = `198.51.100.${(Array.from(email).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 250) + 1}`;
+  headers.set("cf-connecting-ip", extra.ip ?? derivedIp);
   return new Request(url, {
     method: "POST",
     headers,
@@ -101,6 +104,7 @@ describe("staging MCP staff email/password exchange", () => {
       DEV_ADMIN_BYPASS: "false",
       ADMIN_STAGING_TEST_PASSWORD_MIN: "6",
     };
+    await env.DB.exec(RATE_LIMITS_TABLE_SQL);
     await execMigration(env, "0004_admin_auth.sql");
     await execMigration(env, "0009_admin_operator.sql");
     await execMigration(env, "0010_admin_operator_last_super.sql");

@@ -2,13 +2,23 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-19 staging MCP staff-password auth (unmerged)
+## Current state — 2026-11-19 staff password lockout (unmerged)
+
+- **task_id:** `kaiyue-mcp-password-ratelimit-20261119`
+- **Branch:** `cursor/mcp-password-rate-limit-f58e` from verified `official-staging` `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54 squash)
+- **Change:** Three failed password sign-ins lock that account hash and source IP for five minutes. Shared by staging MCP `/api/v1/admin/mcp-session` and `/api/auth/sign-in/email`. `/login` shows generic 5-minute/`Retry-After` wait copy on `429` (not wrong-password). Wrong/unknown/disabled/unprovisioned share one generic `401`. Hosted Cloudflare uses `CF-Connecting-IP` only; missing that header is `untrusted`. Local/test XFF exception is loopback hostname only.
+- **Schema:** No new migration file. Live apply not authorized. Persist:false tests `CREATE TABLE IF NOT EXISTS rate_limits`.
+- **Verified locally:** lint, typecheck 0 errors (6 hints), tests 327/327, plugin 6/6, official-staging guard, CI-matching build.
+- **Review:** no pstack in repo; CodeRabbit CLI 0.9.6 present but `auth login --agent` failed (`automatic_login_failed`); independent `code-reviewer` pass found no remaining Important. Green CI is not code review.
+- **Not done:** merge, deploy, live D1, hosted auth test, production. PRs #51/#52/#53, `main`, production workflows untouched.
+- **Record:** `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`
+
+## Previous state — 2026-11-19 staging MCP staff-password auth (merged)
 
 - **task_id:** staging MCP email/password connection without the admin sign-in page
-- **Branch:** `cursor/mcp-staff-password-auth-f58e` from `official-staging` `c9173c0f3d564be35a67ba49bd584277badecb43`
+- **Merged:** PR #54 squash `2664d32f6715e34a1e90095da6322108f8d7f1d6` on `official-staging`
 - **Change:** Staging-only `POST /api/v1/admin/mcp-session` exchanges existing staff/`super_admin` email and password for the current MCP bearer token. Vault login or secure in-chat form. No API keys. Write-tool browser approval kept. Production hosts closed.
-- **Verified locally:** lint, typecheck 0 errors, tests 307/307, plugin 6/6, official-staging guard, CI-matching build.
-- **Not done:** merge, deploy, live staging run, production. PRs #51/#52/#53 untouched.
+- **Not done from this follow-up:** deploy, live staging run, production.
 
 ## Current state — 2026-11-16 production release (operationally activated)
 
