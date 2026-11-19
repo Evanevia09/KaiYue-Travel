@@ -132,6 +132,8 @@ describe("official staging CI/CD source", () => {
     expect(constants.vars.ENVIRONMENT).toBe("production");
     expect(constants.admin_site_url).toBe("https://admin-staging.kaiyuemacau.com");
     expect(overlay.vars.ADMIN_STAGING_TEST_PASSWORD_MIN).toBe("6");
+    expect(overlay.vars.MCP_STAGING_DIRECT_WRITES).toBe("true");
+    expect(overlay.vars.WHATSAPP_NUMBER).toBe("+85363128081");
     expect(overlay.vars).not.toHaveProperty("BETTER_AUTH_SECRET");
     expect(overlayText).not.toContain("06cf879d-8fea-4088-8881-7d382e1b8c11");
     expect(overlayText).not.toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
@@ -412,6 +414,7 @@ const MAIL_VAR_NAMES = [
   "NOTIFY_FROM_NAME",
   "NOTIFY_STAFF_TO",
   "NOTIFY_ALLOWED_RECIPIENTS",
+  "MCP_STAGING_DIRECT_WRITES",
 ] as const;
 
 /** The recorded 72e580d0 view predates the EMAIL binding; add its rows in the same shape. */
@@ -422,12 +425,27 @@ function validCandidate(): RecordedVersion {
   for (const name of MAIL_VAR_NAMES) {
     version.resources.bindings.push({ type: "plain_text", name, text: constants.vars[name] });
   }
+  const whatsapp = version.resources.bindings.find(
+    (row) => row.type === "plain_text" && row.name === "WHATSAPP_NUMBER",
+  );
+  if (whatsapp) whatsapp.text = constants.vars.WHATSAPP_NUMBER;
   version.resources.bindings.push({ type: "send_email", ...constants.send_email });
   return version;
 }
 
 describe("official staging native email lock", () => {
+  it("rejects a candidate missing MCP_STAGING_DIRECT_WRITES", () => {
+    const version = validCandidate();
+    version.resources.bindings = version.resources.bindings.filter(
+      (row) => row.name !== "MCP_STAGING_DIRECT_WRITES",
+    );
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /MCP_STAGING_DIRECT_WRITES/,
+    );
+  });
+
   it("keeps mail off and locked to the approved staging inbox in committed config", () => {
+    expect(constants.vars.MCP_STAGING_DIRECT_WRITES).toBe("true");
     expect(constants.vars.NOTIFICATIONS_ENABLED).toBe("false");
     expect(constants.vars.NOTIFY_ALLOWED_RECIPIENTS).toBe("scalingsmb@gmail.com");
     expect(constants.vars.NOTIFY_STAFF_TO).toBe("scalingsmb@gmail.com");

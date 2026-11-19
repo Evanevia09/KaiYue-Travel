@@ -85,6 +85,7 @@ describe("production overlay", () => {
       DEV_ADMIN_BYPASS: "false",
       NOTIFICATIONS_ENABLED: "false",
     });
+    expect(config.vars).not.toHaveProperty("MCP_STAGING_DIRECT_WRITES");
     expect(config.send_email).toBeUndefined();
     for (const forbidden of [stagingD1, obsoleteD1, "@", "kaiyue-offers-staging"]) {
       expect(JSON.stringify(config), forbidden).not.toContain(forbidden);

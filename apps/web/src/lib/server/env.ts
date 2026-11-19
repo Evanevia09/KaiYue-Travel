@@ -49,6 +49,8 @@ export type AppEnv = {
   BOOKING_NOTICE_HOURS?: string;
   NOTIFICATIONS_ENABLED?: string;
   STAGING_QUOTE_EMAIL_ENABLED?: string;
+  /** Official-staging overlay only. Exact `"true"` plus trusted staging host/site skip MCP browser tickets. */
+  MCP_STAGING_DIRECT_WRITES?: string;
   EMAIL?: SendEmailBinding;
   NOTIFY_FROM_EMAIL?: string;
   NOTIFY_FROM_NAME?: string;

@@ -73,9 +73,14 @@ describe("POST /api/v1/bookings", () => {
 
     const first = await handleApi(request(), env);
     expect(first.status).toBe(201);
-    const firstBody = (await first.json()) as { reference: string; status: string };
+    const firstBody = (await first.json()) as {
+      reference: string;
+      status: string;
+      whatsappUrl?: string;
+    };
     expect(firstBody.status).toBe("enquiry");
     expect(firstBody.reference).toMatch(/^KY-/);
+    expect(firstBody.whatsappUrl).toBeUndefined();
 
     const replay = await handleApi(request(), env);
     expect(replay.status).toBe(201);
@@ -190,7 +195,7 @@ describe("POST /api/v1/bookings", () => {
   });
 
   it("rejects a WhatsApp enquiry without a WhatsApp number", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
@@ -212,7 +217,7 @@ describe("POST /api/v1/bookings", () => {
   });
 
   it("persists a WhatsApp enquiry and returns a formatted deep link", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
@@ -231,7 +236,7 @@ describe("POST /api/v1/bookings", () => {
     );
     expect(response.status).toBe(201);
     const body = (await response.json()) as { whatsappUrl: string };
-    expect(body.whatsappUrl).toContain("https://wa.me/85328338882?text=");
+    expect(body.whatsappUrl).toContain("https://wa.me/85363128081?text=");
     expect(decodeURIComponent(body.whatsappUrl)).toContain("Two suitcases and a child seat.");
     expect(decodeURIComponent(body.whatsappUrl)).toContain("WhatsApp number: +853 6234 5678");
     const row = await env.DB.prepare(
@@ -254,7 +259,7 @@ describe("POST /api/v1/bookings", () => {
   ])(
     "localizes the %s WhatsApp request and confirmation",
     async (locale, heading, service, confirmation) => {
-      const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+      const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
       const response = await handleApi(
         new Request("http://localhost/api/v1/bookings", {
           method: "POST",
@@ -281,7 +286,7 @@ describe("POST /api/v1/bookings", () => {
   );
 
   it("accepts an optional message and omits empty Message text from WhatsApp", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
@@ -360,7 +365,7 @@ describe("POST /api/v1/bookings", () => {
 
   it("labels a special-offer WhatsApp enquiry as special offer, not city tour", async () => {
     const env = createTestEnv({
-      WHATSAPP_NUMBER: "+853 2833 8882",
+      WHATSAPP_NUMBER: "+853 6312 8081",
       offerStore: publishedOfferStore(),
     });
     const response = await handleApi(
@@ -398,7 +403,7 @@ describe("POST /api/v1/bookings", () => {
     ["zh-Hant", "服務: 特別優惠"],
   ])("localizes the %s special-offer WhatsApp service label", async (locale, service) => {
     const env = createTestEnv({
-      WHATSAPP_NUMBER: "+853 2833 8882",
+      WHATSAPP_NUMBER: "+853 6312 8081",
       offerStore: publishedOfferStore(),
     });
     const response = await handleApi(
@@ -436,7 +441,7 @@ describe("POST /api/v1/bookings", () => {
   });
 
   it("keeps city tour on a City Tours WhatsApp enquiry", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",

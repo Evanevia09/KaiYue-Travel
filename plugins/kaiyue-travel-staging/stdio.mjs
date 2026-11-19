@@ -4,7 +4,13 @@ import { createServer } from "./server.mjs";
 import { createStagingApi } from "./staging-api.mjs";
 
 const api = createStagingApi();
-const server = createServer(api, { version: manifest.version });
+const server = createServer(api, {
+  version: manifest.version,
+  // Staging-only plugin. Hosted Worker still authenticates and enforces roles,
+  // concurrency, schema, and the quote-inbox allowlist. Browser tickets are a
+  // server-owned staging overlay policy, not a client confirmation form.
+  approve: async () => null,
+});
 let stopping = false;
 
 async function stop() {

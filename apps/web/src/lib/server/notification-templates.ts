@@ -1,9 +1,11 @@
-import type { ServiceType } from "@kaiyue/contracts";
+import { renderQuote, type ServiceType } from "@kaiyue/contracts";
 import type { MailSite } from "./notification-policy.ts";
 
 export type RenderedEmail = { subject: string; text: string; html: string };
 
 export type DetailRow = { label: string; value: string };
+
+export type EmailBrand = { logoUrl?: string };
 
 export type StaffMessageInput = {
   kind: "booking" | "contact";
@@ -23,9 +25,32 @@ export type CustomerAckInput = {
   siteUrl: string;
 };
 
+export type QuoteMessageInput = {
+  reference: string;
+  currency: string;
+  total: string;
+};
+
 type AckLocale = "en" | "pt" | "zh-Hant";
 
 const STAGING_PREFIX = "[Staging test] ";
+const BRAND_NAME = "Kai Yue Travel";
+const BRAND_GREEN = "#008c5e";
+const BRAND_GOLD = "#f3a600";
+const BRAND_TEXT = "#1a1a1a";
+export const EMAIL_LOGO_PATH = "/images/kai-yue-travel-group-logo.png";
+/** Intrinsic PNG size is 1500×294 (250:49). Keep the email wordmark in that ratio. */
+export const EMAIL_LOGO_WIDTH = 250;
+export const EMAIL_LOGO_HEIGHT = 49;
+
+export function emailLogoUrl(siteUrl: string | undefined): string {
+  try {
+    if (!siteUrl) return "";
+    return new URL(EMAIL_LOGO_PATH, siteUrl).href;
+  } catch {
+    return "";
+  }
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -44,13 +69,23 @@ function prefix(site: MailSite): string {
   return site === "staging" ? STAGING_PREFIX : "";
 }
 
-function htmlDocument(lang: string, subject: string, body: string): string {
-  return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a">${body}</body></html>`;
+function visibleRows(rows: DetailRow[]): DetailRow[] {
+  return rows.filter((row) => singleLine(row.value) !== "");
+}
+
+function brandedEmailHtml(lang: string, subject: string, inner: string, logoUrl?: string): string {
+  const title = escapeHtml(subject);
+  const brand = escapeHtml(BRAND_NAME);
+  const logo = logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" alt="${brand}" width="${EMAIL_LOGO_WIDTH}" height="${EMAIL_LOGO_HEIGHT}" style="display:block;border:0;width:${EMAIL_LOGO_WIDTH}px;height:${EMAIL_LOGO_HEIGHT}px;">`
+    : "";
+  return `<!doctype html><html lang="${escapeHtml(lang)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;padding:0;background:#f4f4f4;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;"><tr><td align="center" style="padding:24px 12px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;"><tr><td style="background:${BRAND_GREEN};padding:20px 24px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>${logo ? `<td style="padding-right:12px;vertical-align:middle;">${logo}</td>` : ""}<td style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;color:#ffffff;">${brand}</td></tr></table></td></tr><tr><td style="height:4px;line-height:4px;font-size:0;background:${BRAND_GOLD};">&nbsp;</td></tr><tr><td style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:${BRAND_TEXT};">${inner}</td></tr></table></td></tr></table></body></html>`;
 }
 
 function rowsHtml(rows: DetailRow[]): string {
-  if (rows.length === 0) return "";
-  const cells = rows
+  const visible = visibleRows(rows);
+  if (visible.length === 0) return "";
+  const cells = visible
     .map(
       ({ label, value }) =>
         `<tr><th align="left" style="padding:4px 12px 4px 0;vertical-align:top">${escapeHtml(label)}</th><td style="padding:4px 0">${escapeHtml(value)}</td></tr>`,
@@ -60,10 +95,16 @@ function rowsHtml(rows: DetailRow[]): string {
 }
 
 function rowsText(rows: DetailRow[]): string {
-  return rows.map(({ label, value }) => `${label}: ${singleLine(value)}`).join("\n");
+  return visibleRows(rows)
+    .map(({ label, value }) => `${label}: ${singleLine(value)}`)
+    .join("\n");
 }
 
-export function renderStaffMessage(site: MailSite, input: StaffMessageInput): RenderedEmail {
+export function renderStaffMessage(
+  site: MailSite,
+  input: StaffMessageInput,
+  brand: EmailBrand = {},
+): RenderedEmail {
   const subject = `${prefix(site)}${input.kind === "booking" ? "New booking request" : "New inquiry"} ${input.reference}`;
   const rows = input.details ?? [];
   const text = [
@@ -76,10 +117,11 @@ export function renderStaffMessage(site: MailSite, input: StaffMessageInput): Re
   ]
     .filter((line, index, all) => !(line === "" && all[index - 1] === ""))
     .join("\n");
-  const html = htmlDocument(
+  const html = brandedEmailHtml(
     "en",
     subject,
-    `<h1 style="font-size:20px">${escapeHtml(subject)}</h1><p>${escapeHtml(input.summary)}</p>${rowsHtml(rows)}<p>Reference: <strong>${escapeHtml(input.reference)}</strong></p><p>Review it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.</p>`,
+    `<h1 style="font-size:20px;margin:0 0 12px">${escapeHtml(subject)}</h1><p>${escapeHtml(input.summary)}</p>${rowsHtml(rows)}<p>Reference: <strong>${escapeHtml(input.reference)}</strong></p><p>Review it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.</p>`,
+    brand.logoUrl,
   );
   return { subject, text, html };
 }
@@ -212,7 +254,11 @@ export function formatPickup(iso: string, tag: string, timezone: string): string
   }).format(date)} (${timezone})`;
 }
 
-export function renderCustomerAck(site: MailSite, input: CustomerAckInput): RenderedEmail {
+export function renderCustomerAck(
+  site: MailSite,
+  input: CustomerAckInput,
+  brand: EmailBrand = {},
+): RenderedEmail {
   const locale = ackLocale(input.locale);
   const copy = ACK_COPY[locale];
   const name = input.name ? singleLine(input.name) : null;
@@ -247,10 +293,31 @@ export function renderCustomerAck(site: MailSite, input: CustomerAckInput): Rend
     "",
     copy.automated,
   ].join("\n");
-  const html = htmlDocument(
+  const html = brandedEmailHtml(
     copy.tag,
     subject,
     `<p>${escapeHtml(copy.greeting(name))}</p><p>${escapeHtml(paragraphs[0]!)}</p>${rowsHtml(rows)}<p><strong>${escapeHtml(paragraphs[1]!)}</strong></p><p>${escapeHtml(paragraphs[2]!)}</p><p>${escapeHtml(copy.signoff)}</p><p style="font-size:12px;color:#666">${escapeHtml(copy.automated)}</p>`,
+    brand.logoUrl,
   );
   return { subject, text, html };
+}
+
+export function renderQuoteEmail(
+  site: MailSite,
+  input: QuoteMessageInput,
+  brand: EmailBrand = {},
+): RenderedEmail {
+  const draft = renderQuote(input.reference, input.currency, input.total);
+  const subject = `${prefix(site)}${draft.subject}`;
+  const rows: DetailRow[] = [
+    { label: "Reference", value: input.reference },
+    { label: "Quoted total", value: `${input.currency} ${input.total}` },
+  ];
+  const html = brandedEmailHtml(
+    "en",
+    subject,
+    `<p>Hello,</p><p>Thank you for your enquiry with Kai Yue Travel.</p>${rowsHtml(rows)}<p>Please reply if you would like to proceed. Our team will confirm the booking separately.</p><p>${escapeHtml(BRAND_NAME)}</p>`,
+    brand.logoUrl,
+  );
+  return { subject, text: draft.body, html };
 }

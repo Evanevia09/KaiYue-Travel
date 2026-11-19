@@ -1,11 +1,12 @@
-import { AppError, QUOTE_CURRENCIES, QUOTE_TOTAL_PATTERN, renderQuote } from "@kaiyue/contracts";
+import { AppError, QUOTE_CURRENCIES, QUOTE_TOTAL_PATTERN } from "@kaiyue/contracts";
 import { resolveHostRole } from "./admin-gate.ts";
 import { first, nowIso } from "./db.ts";
 import type { AppEnv } from "./env.ts";
 import { json, readJson } from "./http.ts";
 import { hashRequest } from "./idempotency.ts";
-import { consumeMcpApproval } from "./mcp-access.ts";
+import { consumeMcpApproval, mcpStagingDirectWritesEnabled } from "./mcp-access.ts";
 import { normalizeAddress, recipientAllowed, resolveMailPolicy } from "./notification-policy.ts";
+import { emailLogoUrl, renderQuoteEmail } from "./notification-templates.ts";
 
 type QuoteRecord = {
   id: string;
@@ -75,17 +76,23 @@ export async function sendStagingQuote(
   if (existing?.status_code === 200) return json(result, 200, requestId);
   if (existing)
     throw new AppError("CONFLICT", "A submission already exists. Check the staging inbox.");
-  const draft = renderQuote(reference, currency, total);
-  const review = await approve(
-    env,
-    actorId,
-    ["quote", reference, record.updated_at, recipient, currency, total],
-    `Send this quote to the approved staging test inbox?\n\n${draft.subject}\n\n${draft.body}`,
+  const draft = renderQuoteEmail(
+    policy.site,
+    { reference, currency, total },
+    { logoUrl: emailLogoUrl(env.PUBLIC_SITE_URL) },
   );
-  if (review) {
-    throw new AppError("CONFLICT", "Human approval is required for this quote.", {
-      fields: { reviewUrl: review },
-    });
+  if (!mcpStagingDirectWritesEnabled(env, request)) {
+    const review = await approve(
+      env,
+      actorId,
+      ["quote", reference, record.updated_at, recipient, currency, total],
+      `Send this quote to the approved staging test inbox?\n\n${draft.subject}\n\n${draft.text}`,
+    );
+    if (review) {
+      throw new AppError("CONFLICT", "Human approval is required for this quote.", {
+        fields: { reviewUrl: review },
+      });
+    }
   }
   const when = nowIso();
   const claim = await first<{ key_hash: string }>(
@@ -118,7 +125,8 @@ export async function sendStagingQuote(
       from: policy.from,
       to: recipient,
       subject: draft.subject,
-      text: draft.body,
+      text: draft.text,
+      html: draft.html,
     });
   } catch {
     throw new AppError(

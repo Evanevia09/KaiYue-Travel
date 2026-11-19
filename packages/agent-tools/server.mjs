@@ -94,7 +94,7 @@ const pageInput = {
   updatedSince: timestamp.optional(),
 };
 
-export function createServer(api, { approve, version = "0.3.0" } = {}) {
+export function createServer(api, { approve, version = "0.4.0" } = {}) {
   const server = new McpServer(
     { name: "kaiyue-travel-staging", version },
     { instructions: guide.instructions.join("\n") },
@@ -255,7 +255,7 @@ export function createServer(api, { approve, version = "0.3.0" } = {}) {
 
   register(
     "edit_booking",
-    "Edit pickup, destination, return time, or passenger count. Requires the latest updatedAt and human approval.",
+    "Edit pickup, destination, return time, or passenger count. Requires the latest updatedAt.",
     {
       ...revision,
       changes: edits,
@@ -277,7 +277,7 @@ export function createServer(api, { approve, version = "0.3.0" } = {}) {
 
   register(
     "change_booking_status",
-    "Change a staging booking to approved, confirmed, denied, assigned, completed, or cancelled when the current status allows it. Requires human approval.",
+    "Change a staging booking to approved, confirmed, denied, assigned, completed, or cancelled when the current status allows it.",
     {
       ...revision,
       status: z.enum(["approved", "confirmed", "denied", "assigned", "completed", "cancelled"]),
@@ -302,7 +302,7 @@ export function createServer(api, { approve, version = "0.3.0" } = {}) {
 
   register(
     "assign_booking",
-    "Assign an inventory driver and vehicle to a staging booking. Both must be active and the vehicle must fit the passenger count. Requires human approval.",
+    "Assign an inventory driver and vehicle to a staging booking. Both must be active and the vehicle must fit the passenger count.",
     {
       ...revision,
       driverId: z.string().min(1).max(100),
@@ -355,7 +355,7 @@ export function createServer(api, { approve, version = "0.3.0" } = {}) {
   );
   register(
     "send_quote_email",
-    "Send a reviewed quotation for a staging booking or inquiry to the approved test inbox. Requires human approval of the exact draft.",
+    "Send a reviewed quotation for a staging booking or inquiry to the approved test inbox.",
     quoteInput,
     quoteOutput
       .pick({ reference: true, currency: true, total: true })

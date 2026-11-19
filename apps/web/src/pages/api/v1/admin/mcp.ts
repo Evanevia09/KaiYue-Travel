@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { handleMcp, stagingResponseError } from "@kaiyue/agent-tools/http";
-import { authenticateMcp, consumeMcpApproval } from "../../../../lib/server/mcp-access.ts";
+import { authenticateMcp, reviewMcpWrite } from "../../../../lib/server/mcp-access.ts";
 import { handleApi } from "../../../../lib/server/router.ts";
 import { errorResponse, requestIdFrom } from "../../../../lib/server/http.ts";
 import { AppError } from "@kaiyue/contracts";
@@ -51,9 +51,7 @@ export const ALL: APIRoute = async ({ request }) => {
       },
       {
         async approve(message: string, action: unknown) {
-          const review = await consumeMcpApproval(env, session.actor, action, message);
-          if (review) return review;
-          return null;
+          return reviewMcpWrite(env, request, session.actor, message, action);
         },
       },
     );

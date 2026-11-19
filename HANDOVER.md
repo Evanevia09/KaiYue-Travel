@@ -2,7 +2,16 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-19 agent login / plugin plaintext (unmerged)
+## Current state — 2026-11-19 combined staging candidate (unmerged)
+
+- **task_id:** `kaiyue-mcp-branded-email-combined-20261119`
+- **Branch:** `cursor/mcp-staging-direct-writes-f58e` from verified `official-staging` `01cd9576eb75428d7f77ae8feecbbf16d7b3f140`
+- **Change:** One candidate: staging MCP direct writes (overlay `MCP_STAGING_DIRECT_WRITES=true`; auth/roles/lockout/idempotency/allowlist kept; production fail-closed) + branded HTML email on the real send path + WhatsApp `+85363128081` (office tel unchanged) + owner WeChat QR JPEG on Contact and footer.
+- **Premerge email:** PM sends via Cloudflare REST to `scalingsmb@gmail.com` only. Artifacts in `/opt/cursor/artifacts/kaiyue-email-previews-20261119/`. This writer did not send mail.
+- **Not done:** merge, deploy, production, PRs #51/#52/#53.
+- **Record:** `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`
+
+## Previous state — 2026-11-19 agent login / plugin plaintext (unmerged)
 
 - **task_id:** `kaiyue-agent-login-plugin-fix-20261119`
 - **Branch:** `cursor/agent-login-plugin-fix-f58e` from verified `official-staging` `458fe75adb52f5580e38485725fc26726d7dc4ee` (PR #55 squash)

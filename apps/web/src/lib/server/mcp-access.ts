@@ -23,6 +23,29 @@ const tokenLifetimeSeconds = tokenLifetime / 1000;
 const approvalLifetime = 10 * 60 * 1000;
 const staffEmailMaxLength = 254;
 
+/** Worker var name. Read only from env, never from request headers, query, or body. */
+export const MCP_STAGING_DIRECT_WRITES_VAR = "MCP_STAGING_DIRECT_WRITES";
+
+/**
+ * Staging MCP write tools skip browser-review tickets only when the official
+ * staging overlay sets this var to the exact string `"true"` and the request is
+ * on the trusted staging admin host with the staging site identity. Fail closed
+ * otherwise. `ENVIRONMENT` is ignored (official staging uses `"production"`).
+ */
+export function mcpStagingDirectWritesEnabled(
+  env: Pick<AppEnv, "MCP_STAGING_DIRECT_WRITES" | "PUBLIC_SITE_URL" | "ENVIRONMENT" | "ENV">,
+  request: Request,
+): boolean {
+  if (env.MCP_STAGING_DIRECT_WRITES !== "true") return false;
+  if (resolveHostRole(env, request) !== "staging-admin") return false;
+  if (mailSite(env) !== "staging") return false;
+  try {
+    return new URL(request.url).origin === origin;
+  } catch {
+    return false;
+  }
+}
+
 type Ticket = {
   session: { cookie: string; actor: string; expires: number };
   approval: { action: string; actor: string; message: string; expires: number };
@@ -237,6 +260,17 @@ export async function authenticateMcp(request: Request, env: AppEnv) {
     throw new AppError("UNAUTHORIZED", "The staging session is no longer available.");
   }
   return session;
+}
+
+export async function reviewMcpWrite(
+  env: AppEnv,
+  request: Request,
+  actor: string,
+  message: string,
+  action: unknown,
+): Promise<string | null> {
+  if (mcpStagingDirectWritesEnabled(env, request)) return null;
+  return consumeMcpApproval(env, actor, action, message);
 }
 
 export async function consumeMcpApproval(

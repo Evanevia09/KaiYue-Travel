@@ -39,9 +39,10 @@ describe("main reconciliation invariants", () => {
     expect(session).toMatch(/ADMIN_SESSION_COOKIE_CACHE_MAX_AGE_SECONDS = 60/);
   });
 
-  it("keeps all 41 public photos", () => {
+  it("keeps public photos including the owner WeChat QR JPEG", () => {
     const files = listFiles(join(repoRoot, "apps/web/public/images"));
-    expect(files).toHaveLength(41);
+    expect(files).toHaveLength(42);
+    expect(files.some((path) => path.endsWith("/wechat-qr.jpg"))).toBe(true);
   });
 
   it("uses source Access env names ACCESS_TEAM_DOMAIN and ACCESS_AUD", () => {
