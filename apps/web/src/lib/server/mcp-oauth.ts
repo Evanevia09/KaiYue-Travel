@@ -183,7 +183,15 @@ async function exchangeCode(env: AppEnv, clientId: string, params: URLSearchPara
     key,
     now,
   );
-  if (!row) throw new OAuthError("invalid_grant");
+  if (!row) {
+    // OAuth 2.1: a reused authorization code revokes the connection it already created.
+    await run(
+      env.DB,
+      "UPDATE idempotency_keys SET status_code=409 WHERE key_hash=? AND status_code=200",
+      key,
+    );
+    throw new OAuthError("invalid_grant");
+  }
   const saved = await openMcpTicket(env, "code", row.response_json);
   const challenge = encodeMcpBytes(
     new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))),

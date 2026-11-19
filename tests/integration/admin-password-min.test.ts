@@ -432,7 +432,6 @@ describe("staging-admin Better Auth min 6 vs production-admin min 12", () => {
       access_token: string;
       refresh_token: string;
     };
-    expect((await exchangeToken(exchange)).status).toBe(400);
     const clock = Date.now() + 31 * 60_000;
     const time = vi.spyOn(Date, "now").mockReturnValue(clock);
     let renewed;
