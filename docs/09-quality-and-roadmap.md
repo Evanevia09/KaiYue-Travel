@@ -29,7 +29,7 @@ Proposed launch budgets, measured on representative mobile conditions:
 
 - Server-side schema validation, output escaping, parameterized D1 queries, strict method/content-type checks, and bounded payload sizes.
 - Same-origin APIs, restrictive CORS, secure headers/CSP, HTTPS, and no secrets in browser code.
-- Rate limiting and anti-automation tuned for public forms; do not rely on a CAPTCHA alone.
+- Rate limiting and anti-automation tuned for public forms; do not rely on a CAPTCHA alone. Staff password sign-in uses a durable D1 lock (3 failures / 5 minutes) on the account hash and source IP, shared by the admin sign-in route and staging MCP session exchange.
 - Idempotency prevents duplicate submission effects.
 - Cloudflare Access plus API-side token/claim verification for every admin route.
 - Least-privilege bindings, recipient lists, repository permissions, and staff access.

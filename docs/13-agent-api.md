@@ -20,7 +20,7 @@ The owner creates or chooses an admin account for the agent in **Users**, normal
 1. Sign in on the admin host with `POST /api/auth/sign-in/email` and a JSON body `{ "email", "password" }`. Send an `Origin` header equal to the admin origin, for example `https://admin-staging.kaiyuemacau.com`.
 2. Keep every cookie from the response in a cookie jar and send them on each `/api/v1/admin/*` call.
 3. On each `POST` or `PATCH`, send the same `Origin` header.
-4. On `401`, sign in once again. Sessions last up to 8 hours. Sign-in attempts are rate limited.
+4. On `401`, sign in once again. Sessions last up to 8 hours. Three failed password sign-ins lock that account and source IP for five minutes on both `POST /api/auth/sign-in/email` and `POST /api/v1/admin/mcp-session`. The lock is stored in D1 `rate_limits` (not memory). A locked request returns `429` with `Retry-After` and does not check the password. A successful sign-in clears the counters. The generic error does not say whether the account exists.
 5. Call `POST /api/auth/sign-out` when done.
 
 ```bash
@@ -60,7 +60,7 @@ Open [Kai Yue Travel agent tools](https://staging.kaiyuemacau.com/plugin). Share
 Staging MCP uses the existing staff or `super_admin` email and password. There is no API-key system. The connected agent keeps that account’s normal permissions. This path exists only on `admin-staging.kaiyuemacau.com`. Production hosts, including `admin.kaiyuemacau.com`, do not offer it.
 
 1. Use a login already saved in the agent vault, or collect the staff email and password in a secure in-chat form. Do not visit `/login` or `/admin/agent-connect`, and do not put the password in a URL.
-2. `POST` JSON `{ "email", "password" }` to `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp-session`. Disabled or unprovisioned accounts fail closed. The response token lasts 30 minutes and stands in for that staff session.
+2. `POST` JSON `{ "email", "password" }` to `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp-session`. Disabled or unprovisioned accounts fail closed. Three failed attempts lock the account and IP for five minutes (`429` + `Retry-After`); the same lock covers `/api/auth/sign-in/email`. The response token lasts 30 minutes and stands in for that staff session.
 3. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and enter the token in the MCP client’s secure bearer-token setting.
 4. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
 

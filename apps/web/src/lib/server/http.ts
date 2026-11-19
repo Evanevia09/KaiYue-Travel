@@ -20,17 +20,25 @@ export function json(data: unknown, status = 200, requestId?: string): Response 
 }
 
 export function errorResponse(error: unknown, requestId: string): Response {
-  if (error instanceof AppError) {
-    return json(toErrorBody(error, requestId), error.status, requestId);
+  const response =
+    error instanceof AppError
+      ? json(toErrorBody(error, requestId), error.status, requestId)
+      : json(
+          toErrorBody(
+            new AppError("UNAVAILABLE", "Something went wrong. Please try again.", {
+              expose: false,
+            }),
+            requestId,
+          ),
+          500,
+          requestId,
+        );
+  if (error instanceof AppError && error.code === "RATE_LIMITED" && error.retryAfter != null) {
+    const headers = new Headers(response.headers);
+    headers.set("Retry-After", String(Math.max(1, Math.ceil(error.retryAfter))));
+    return new Response(response.body, { status: response.status, headers });
   }
-  return json(
-    toErrorBody(
-      new AppError("UNAVAILABLE", "Something went wrong. Please try again.", { expose: false }),
-      requestId,
-    ),
-    500,
-    requestId,
-  );
+  return response;
 }
 
 export async function readJson(request: Request): Promise<unknown> {

@@ -53,6 +53,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 33. [2026-11-16 `dca860c` overlay-main / Wrangler-bundle artifact](records/2026-11-16-staging-cache-readiness/ARTIFACT-dca860c.md)
 34. [2026-11-16 `dca860c` staged closeout (admin root fixed; staff UAT open)](records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md)
 35. [2026-11-16 production operator release candidate (review packet)](records/2026-11-16-production-operator-release.md)
+36. [2026-11-19 staff password sign-in lockout (unmerged)](records/2026-11-19-mcp-password-rate-limit/REPORT.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

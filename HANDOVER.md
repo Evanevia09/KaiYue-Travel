@@ -2,13 +2,22 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-19 staging MCP staff-password auth (unmerged)
+## Current state — 2026-11-19 staff password lockout (unmerged)
+
+- **task_id:** `kaiyue-mcp-password-ratelimit-20261119`
+- **Branch:** `cursor/mcp-password-rate-limit-f58e` from verified `official-staging` `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54 squash)
+- **Change:** Three failed password sign-ins lock that account hash and source IP for five minutes. Shared by staging MCP `/api/v1/admin/mcp-session` and `/api/auth/sign-in/email`. Durable D1 `rate_limits` (existing `0001` table). `429` + `Retry-After`. No password check and no window extend while locked. Success or expiry resets.
+- **Schema:** No new migration file. Live apply not authorized. Persist:false tests `CREATE TABLE IF NOT EXISTS rate_limits`.
+- **Verified locally:** lint, typecheck 0 errors (6 hints), tests 324/324, plugin 6/6, official-staging guard, CI-matching build.
+- **Not done:** merge, deploy, live D1, hosted auth test, production. PRs #51/#52/#53, `main`, production workflows untouched.
+- **Record:** `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`
+
+## Previous state — 2026-11-19 staging MCP staff-password auth (merged)
 
 - **task_id:** staging MCP email/password connection without the admin sign-in page
-- **Branch:** `cursor/mcp-staff-password-auth-f58e` from `official-staging` `c9173c0f3d564be35a67ba49bd584277badecb43`
+- **Merged:** PR #54 squash `2664d32f6715e34a1e90095da6322108f8d7f1d6` on `official-staging`
 - **Change:** Staging-only `POST /api/v1/admin/mcp-session` exchanges existing staff/`super_admin` email and password for the current MCP bearer token. Vault login or secure in-chat form. No API keys. Write-tool browser approval kept. Production hosts closed.
-- **Verified locally:** lint, typecheck 0 errors, tests 307/307, plugin 6/6, official-staging guard, CI-matching build.
-- **Not done:** merge, deploy, live staging run, production. PRs #51/#52/#53 untouched.
+- **Not done from this follow-up:** deploy, live staging run, production.
 
 ## Current state — 2026-11-16 production release (operationally activated)
 
