@@ -5,9 +5,11 @@ import { authClient } from "./auth-client.ts";
 export function LoginForm({
   locale,
   passwordMinLength = 12,
+  returnPath = "/admin",
 }: {
   locale: AdminLocale;
   passwordMinLength?: number;
+  returnPath?: string;
 }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,7 +28,7 @@ export function LoginForm({
               setError(t(locale, "login.errorCredentials"));
               return;
             }
-            window.location.assign("/admin");
+            window.location.assign(returnPath);
           })
           .catch(() => setError(t(locale, "login.errorUnavailable")))
           .finally(() => setBusy(false));

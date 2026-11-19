@@ -13,9 +13,9 @@ export const GET: APIRoute = ({ site }) => {
           transport: "streamable-http",
           endpoint: `${adminOrigin}/api/v1/admin/mcp`,
           authentication:
-            "Short-lived bearer token. Ask the staff user to sign in at the admin website and generate the token in their browser.",
+            "OAuth 2.0 with PKCE and automatic refresh. Ask the staff user to follow the MCP client browser sign-in and consent. Manual bearer tokens are also supported.",
           signIn: `${adminOrigin}/login`,
-          setup: `${adminOrigin}/admin/agent-connect`,
+          manualTokenSetup: `${adminOrigin}/admin/agent-connect`,
         }
       : null,
   });

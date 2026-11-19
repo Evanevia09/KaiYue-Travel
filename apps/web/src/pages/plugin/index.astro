@@ -21,20 +21,22 @@ const endpoint = `${adminOrigin}/api/v1/admin/mcp`;
             <h2>Connect on staging</h2>
             <ol>
               <li>
-                <a href={`${adminOrigin}/login`}>Sign in to the staging admin site</a> in your
-                browser.
+                Add <code>{endpoint}</code> to your MCP client using Streamable HTTP and OAuth.
               </li>
               <li>
-                Open <a href={`${adminOrigin}/admin/agent-connect`}>Connect a staging agent</a> to
-                generate a short-lived token.
+                When the client opens your browser, sign in to staging admin and authorize the
+                client.
               </li>
               <li>
-                Add <code>{endpoint}</code> to your MCP client using Streamable HTTP and its secure
-                bearer-token setting. Keep staff passwords in the admin sign-in page.
+                Your client renews its access automatically during the authorized staff session.
               </li>
             </ol>
             <p>
-              The agent will receive the tool list on connection. Follow any review link it returns
+              Clients with manual bearer-token setup can use
+              <a href={`${adminOrigin}/admin/agent-connect`}>a short-lived connection token</a>.
+            </p>
+            <p>
+              The agent receives the tool list when connected. Follow any review link it returns
               when an action needs approval.
             </p>
           </>

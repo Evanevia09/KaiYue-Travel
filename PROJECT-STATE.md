@@ -251,6 +251,12 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Change log
 
+### 2026-11-19 — Hosted MCP OAuth renewal
+
+- Added browser consent with OAuth authorization code and PKCE. OAuth clients rotate the 30-minute access token without a new manual paste, within an eight-hour authorization bound to the existing staff session. Refresh replay revokes the connection. Manual bearer setup remains available.
+- Independent Chromium review reproduced and verified the fixes for native form origin handling and redirect CSP. Isolated D1 tests verify registration, authorization, expiry, renewal, replay, and revocation at sign-out.
+- Next action is authorized staging rollout followed by an end-to-end OAuth connection in the intended MCP client. The deployed staging Worker still uses its current manual-token flow.
+
 ### 2026-11-18 — Hosted staging MCP and booking decisions
 
 - Baseline `official-staging` `a176809`, task branch `codex/kaiyue-staging-plugin`. Added ten discoverable tools, the `/plugin` guide, encrypted short-lived staff sessions, and browser approval for exact hosted writes. The approval workflow retains the existing D1 schema and keeps guest confirmation a human decision.

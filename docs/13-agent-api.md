@@ -56,9 +56,11 @@ Responses contain guest personal data. Do not log full responses, put them in UR
 
 Open [Kai Yue Travel agent tools](https://staging.kaiyuemacau.com/plugin). Share that link with an agent or staff member. It links to a machine-readable capability list and the connection instructions.
 
-1. The staff user signs in at the staging admin site in their browser and opens **Connect a staging agent**.
-2. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and enter the generated token in the MCP client's secure bearer-token setting. The token expires after 30 minutes and depends on the existing staff session. The staff password stays in the browser sign-in.
-3. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
+1. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and OAuth in a compatible MCP client.
+2. Follow the client’s browser prompt, sign in with staging staff credentials, and authorize the client. The client can renew its 30-minute access tokens using a rotating refresh token. Authorization lasts up to eight hours and ends sooner if the staff session ends or the account loses access.
+3. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user approves the exact change in the browser. Then the agent retries the same tool call.
+
+Clients that use a manually entered bearer token can still generate a 30-minute token on **Connect a staging agent**. Automatic renewal requires the OAuth connection.
 
 ### What the ten tools can do
 
