@@ -1,6 +1,8 @@
 # Kai Yue Travel — Project State
 
-**2026-11-19 MCP password rate limit (unmerged PR #55):** After three failed staff password sign-ins, further attempts wait five minutes. Durable D1 lock on hashed account and `CF-Connecting-IP` (hosted; XFF ignored if that header is absent). `/login` shows generic wait copy on `429`. Wrong/unknown/disabled/unprovisioned share one generic `401`. No `0011`. Not merged, not deployed, not `user_accepted`. Record: `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`.
+**2026-11-19 agent login / plugin plaintext (unmerged):** `/plugin` is `text/plain` agent instructions. Honest application `User-Agent` required; BIC blocked `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`). Owner approved a narrow staging-admin MCP `bic: false` configuration rule 22:27; operator applied it 22:28:27 (ruleset `a8eec7c4…`, rule `40c580d7…`, ref `staging_mcp_bic_off`). That is operator config, not this PR. Hosted fresh-testbot E2E not verified. Record: `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`.
+
+**2026-11-19 MCP password rate limit (merged PR #55):** Squash `458fe75adb52f5580e38485725fc26726d7dc4ee`. After three failed staff password sign-ins, further attempts wait five minutes. Durable D1 lock on hashed account and `CF-Connecting-IP`. `/login` shows generic wait copy on `429`. Wrong/unknown/disabled/unprovisioned share one generic `401`. Not `user_accepted`. Record: `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`.
 
 **2026-11-19 MCP staff-password auth (merged to official-staging):** Squash `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54). Staging MCP can exchange an existing staff or `super_admin` email/password for a 30-minute connection token without visiting `/login` or `/admin/agent-connect`. Production hosts stay closed. Write-tool browser approval unchanged. Not deployed from this follow-up; not `user_accepted`.
 
@@ -1105,12 +1107,19 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Verified (historical, PR #54): `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 307/307 including happy path, bad password, disabled, unprovisioned, URL credentials, and production/non-staging 404; plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`.
 - Not verified or follow-up: live staging after authorized deploy; vault or in-chat form in a real MCP client.
 
-### 2026-11-19 — Staff password sign-in lockout (unmerged)
+### 2026-11-19 — Staff password sign-in lockout (merged PR #55)
 
 - Changed: Shared durable lockout for `POST /api/v1/admin/mcp-session` and `POST /api/auth/sign-in/email`. Three failed password checks lock the hashed account and source IP for five minutes in existing D1 `rate_limits`. Locked requests return `429` with `Retry-After`, do not verify the password, and do not extend `window_start`. A later success or an expired window resets the counters. No `0011` migration; schema contract remains attested `0001`–`0010`.
 - Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
-- Not verified or follow-up: live D1 apply (not authorized); hosted/staging auth; `/login` browser pass against a live Better Auth client; merge; deploy. PRs #51/#52/#53, `main`, and production workflows untouched. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+- Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+
+### 2026-11-19 — Agent login 1010 + plugin plaintext (unmerged)
+
+- Changed: `/plugin` and `/plugin.txt` are `text/plain; charset=utf-8` with `X-Robots-Tag: noindex, nofollow, noarchive`. Capabilities JSON stays consistent. Clients must send an honest application User-Agent. 401/429/1010 stop copy. Local plugin sets `KaiYue-staging-mcp/1.0` and refuses browser impersonation. Password lockout, permissions, production MCP 404, and write approval unchanged.
+- Decision/evidence: Owner t289u/t290u 2026-11-19 Macau. Cloudflare GraphQL verified BIC 403 on `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`); PM 21:21 200 with `KaiYue-staging-mcp-auth-test/1.0`. Owner 22:27 approved the narrow `bic: false` configuration rule; operator applied 22:28:27 ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` rule `40c580d7c4f747dd838ddb380ca534af` ref `staging_mcp_bic_off`. This writer did not apply it. Zone `browser_check` remains on.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 332/332; plugin 8/8; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent GET of the live config rule matches the approved host+four-path expression. Post-apply urllib `GET` 405 / empty `POST` CSRF 403 (not 1010). Independent `code-reviewer` Approve after closing the password-POST STOP residual. GitHub CI is not a code review.
+- Not verified or follow-up: merge; deploy of this PR; hosted `/plugin` plaintext on live staging; fresh testbot JSON login + MCP read (authorized once, result not waited on). Production not authorized. Rollback of the operator rule is disable/delete that one rule only.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 

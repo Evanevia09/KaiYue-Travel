@@ -2,15 +2,20 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-19 staff password lockout (unmerged)
+## Current state — 2026-11-19 agent login / plugin plaintext (unmerged)
+
+- **task_id:** `kaiyue-agent-login-plugin-fix-20261119`
+- **Branch:** `cursor/agent-login-plugin-fix-f58e` from verified `official-staging` `458fe75adb52f5580e38485725fc26726d7dc4ee` (PR #55 squash)
+- **Change:** `/plugin` and `/plugin.txt` are `text/plain` public agent instructions (noindex). Honest `User-Agent: KaiYue-staging-mcp/1.0`. 401/429/1010 stop guidance. Verified BIC block of `Python-urllib/3.13` on rays `a5cfc9652fbb7c97` and `a5cfce47dbc574d1`.
+- **Operator config (not this PR):** owner 22:27 approved; applied 22:28:27 ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` rule `40c580d7c4f747dd838ddb380ca534af` ref `staging_mcp_bic_off`, `bic: false` on `admin-staging` MCP session/MCP paths only. Zone `browser_check` still on. Rollback: disable/delete that one rule.
+- **Not done:** merge, deploy, further Cloudflare writes, hosted `/plugin` of this PR, testbot result (authorized once, not waited on), production. Hosted workflow is not `task_verified`.
+- **Record:** `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`
+
+## Previous state — 2026-11-19 staff password lockout (merged PR #55)
 
 - **task_id:** `kaiyue-mcp-password-ratelimit-20261119`
-- **Branch:** `cursor/mcp-password-rate-limit-f58e` from verified `official-staging` `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54 squash)
-- **Change:** Three failed password sign-ins lock that account hash and source IP for five minutes. Shared by staging MCP `/api/v1/admin/mcp-session` and `/api/auth/sign-in/email`. `/login` shows generic 5-minute/`Retry-After` wait copy on `429` (not wrong-password). Wrong/unknown/disabled/unprovisioned share one generic `401`. Hosted Cloudflare uses `CF-Connecting-IP` only; missing that header is `untrusted`. Local/test XFF exception is loopback hostname only.
-- **Schema:** No new migration file. Live apply not authorized. Persist:false tests `CREATE TABLE IF NOT EXISTS rate_limits`.
-- **Verified locally:** lint, typecheck 0 errors (6 hints), tests 327/327, plugin 6/6, official-staging guard, CI-matching build.
-- **Review:** no pstack in repo; CodeRabbit CLI 0.9.6 present but `auth login --agent` failed (`automatic_login_failed`); independent `code-reviewer` pass found no remaining Important. Green CI is not code review.
-- **Not done:** merge, deploy, live D1, hosted auth test, production. PRs #51/#52/#53, `main`, production workflows untouched.
+- **Merged:** PR #55 squash `458fe75adb52f5580e38485725fc26726d7dc4ee` on `official-staging`
+- **Change:** Three failed password sign-ins lock that account hash and source IP for five minutes. Shared by staging MCP `/api/v1/admin/mcp-session` and `/api/auth/sign-in/email`. `/login` shows generic wait copy on `429`.
 - **Record:** `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`
 
 ## Previous state — 2026-11-19 staging MCP staff-password auth (merged)

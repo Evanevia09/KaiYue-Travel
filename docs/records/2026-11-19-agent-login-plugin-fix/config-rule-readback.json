@@ -1,0 +1,32 @@
+{
+  "note": "Independent GET by the plugin-PR writer after the operator applied the owner-approved rule. This file is not a Cloudflare write and is not a product-code change. Inspector box paths /tmp/kaiyue-bic-config-rule-before.json and /tmp/kaiyue-bic-config-rule-after.json were cited by the coordinator and were not present on this writer VM.",
+  "read_at": "2026-11-19T14:31:00Z",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "zone_id": "fb84210cb8175ff4412b444805e1a6a5",
+  "browser_check": "on",
+  "security_level": "medium",
+  "custom_firewall_entrypoint": "404",
+  "ratelimit_entrypoint": "404",
+  "ruleset": {
+    "id": "a8eec7c4fb8b4dfcba60c80255ec28fc",
+    "name": "Kai Yue configuration rules",
+    "description": "Zone configuration rules. Staging MCP BIC exception only.",
+    "kind": "zone",
+    "phase": "http_config_settings",
+    "version": "1",
+    "last_updated": "2026-11-19T14:28:27.210982Z",
+    "rules": [
+      {
+        "id": "40c580d7c4f747dd838ddb380ca534af",
+        "ref": "staging_mcp_bic_off",
+        "enabled": true,
+        "action": "set_config",
+        "action_parameters": { "bic": false },
+        "expression": "(http.host eq \"admin-staging.kaiyuemacau.com\" and http.request.uri.path in {\"/api/v1/admin/mcp-session\" \"/api/v1/admin/mcp-session/\" \"/api/v1/admin/mcp\" \"/api/v1/admin/mcp/\"})",
+        "description": "Disable Browser Integrity Check only on staging MCP session and MCP transport paths",
+        "version": "1",
+        "last_updated": "2026-11-19T14:28:27.210982Z"
+      }
+    ]
+  }
+}

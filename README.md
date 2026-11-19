@@ -72,4 +72,4 @@ Read these files in order before making changes:
 
 ## Connect an agent
 
-The [staging plugin page](https://staging.kaiyuemacau.com/plugin) lists the tools and explains browser sign-in. See [the Agent API guide](docs/13-agent-api.md) for the HTTP MCP connection and local Codex option.
+The [staging plugin instructions](https://staging.kaiyuemacau.com/plugin) are `text/plain` for agents (canonical `/plugin.txt`). They are public machine instructions, not an AI-only security boundary. See [the Agent API guide](docs/13-agent-api.md) for the HTTP MCP session exchange, honest User-Agent, and local Codex option.

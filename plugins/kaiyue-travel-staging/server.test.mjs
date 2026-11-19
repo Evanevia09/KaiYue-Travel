@@ -3,6 +3,10 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import {
+  isCloudflareBrowserIntegrityBlock,
+  stagingResponseError,
+} from "../../packages/agent-tools/error.mjs";
 import { StagingError } from "./staging-api.mjs";
 import { ElicitRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "./server.mjs";
@@ -130,26 +134,26 @@ test("MCP exposes only read tools and projects the staging responses", async (t)
   }
 });
 
-test("staff credentials prefer a vault env login over keychain", async () => {
+test("staff credentials prefer environment secrets over keychain", async () => {
   const login = await readStaffCredentials({
     env: {
       [STAFF_EMAIL_ENV]: "vault@example.com",
       [STAFF_PASSWORD_ENV]: "vault-password",
     },
     readKeychain: async () => {
-      throw new Error("keychain should not run when a vault login is present");
+      throw new Error("keychain should not run when env credentials are present");
     },
   });
   assert.deepEqual(login, { email: "vault@example.com", password: "vault-password" });
 });
 
-test("missing staff credentials ask for a vault login or secure form", async () => {
+test("missing staff credentials ask for env secrets or a secure form", async () => {
   await assert.rejects(
     readStaffCredentials({
       env: {},
       readKeychain: async () => null,
     }),
-    /saved vault login or collect the staging staff email and password in a secure in-chat form/,
+    /secure secret field[\s\S]*secure in-chat form[\s\S]*Browser vaults cannot inject/,
   );
 });
 
@@ -161,6 +165,9 @@ test("staging uses a cookie session, renews one expired read and signs out", asy
     async fetchRequest(url, options) {
       assert.equal(url.origin, STAGING_ORIGIN);
       assert.equal(options.redirect, "error");
+      assert.equal(options.headers.get("User-Agent"), "KaiYue-staging-mcp/1.0");
+      assert.notEqual(options.headers.get("User-Agent") ?? "", "");
+      assert.doesNotMatch(options.headers.get("User-Agent") ?? "", /Mozilla\//);
       requests.push([options.method, url.pathname]);
       if (options.method === "POST") assert.equal(options.headers.get("Origin"), STAGING_ORIGIN);
       if (url.pathname.endsWith("/sign-in/email")) {
@@ -195,6 +202,75 @@ test("staging uses a cookie session, renews one expired read and signs out", asy
     ["GET", "/api/v1/admin/contacts"],
     ["POST", "/api/auth/sign-out"],
   ]);
+});
+
+test("edge 1010, 401, and 429 tell the client to stop instead of retrying", async () => {
+  const html1010 = new Response("<!doctype html><title>Error 1010</title>", {
+    status: 403,
+    headers: { "content-type": "text/html" },
+  });
+  const htmlBody = await html1010.clone().text();
+  assert.equal(isCloudflareBrowserIntegrityBlock(html1010, htmlBody), true);
+  const blocked = await stagingResponseError(html1010, STAGING_ORIGIN);
+  assert.match(
+    blocked.message,
+    /error 1010 \/ Browser Integrity Check[\s\S]*Do not retry the password[\s\S]*Do not impersonate a browser/,
+  );
+  const unauthorized = await stagingResponseError(
+    new Response("{}", { status: 401, headers: { "content-type": "application/json" } }),
+    STAGING_ORIGIN,
+  );
+  assert.match(unauthorized.message, /Staff email or password was not accepted[\s\S]*Stop/);
+  const locked = await stagingResponseError(
+    new Response("{}", { status: 429, headers: { "retry-after": "300" } }),
+    STAGING_ORIGIN,
+  );
+  assert.match(locked.message, /Wait five minutes[\s\S]*Do not retry during the lock/);
+  assert.equal(
+    isCloudflareBrowserIntegrityBlock(
+      new Response(JSON.stringify({ error: { code: "FORBIDDEN" } }), {
+        status: 403,
+        headers: { "content-type": "application/json" },
+      }),
+      JSON.stringify({ error: { code: "FORBIDDEN" } }),
+    ),
+    false,
+  );
+});
+
+test("password sign-in stops on 1010, 401, and 429 instead of retrying", async () => {
+  async function expectSignInStop(status, headers, body, pattern) {
+    let signIns = 0;
+    const api = createStagingApi({
+      getCredentials: async () => ({ email: "synthetic@example.com", password: "fixture" }),
+      async fetchRequest(url) {
+        assert.equal(url.pathname, "/api/auth/sign-in/email");
+        signIns += 1;
+        return new Response(body, { status, headers });
+      },
+    });
+    await assert.rejects(api.get("/api/v1/admin/contacts"), pattern);
+    assert.equal(signIns, 1);
+    await api.close();
+  }
+  await expectSignInStop(
+    403,
+    { "content-type": "text/html" },
+    "<!doctype html><title>Error 1010</title>",
+    /error 1010 \/ Browser Integrity Check[\s\S]*Do not retry the password[\s\S]*Do not impersonate a browser/,
+  );
+  await expectSignInStop(
+    401,
+    { "content-type": "application/json" },
+    "{}",
+    /Staff email or password was not accepted[\s\S]*Stop/,
+  );
+  await expectSignInStop(
+    429,
+    { "retry-after": "300" },
+    "{}",
+    /Wait five minutes[\s\S]*Do not retry during the lock/,
+  );
 });
 
 test("built plugin launches through the declared stdio command", async (t) => {
