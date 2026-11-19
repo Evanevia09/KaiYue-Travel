@@ -10,4 +10,5 @@ export function handleMcp(
   options: { approve(message: string, action: unknown): Promise<string | null>; version?: string },
 ): Promise<Response>;
 
+export function isCloudflareBrowserIntegrityBlock(response: Response, bodyText?: string): boolean;
 export function stagingResponseError(response: Response, origin: string): Promise<Error>;

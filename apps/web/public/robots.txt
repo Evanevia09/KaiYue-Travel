@@ -3,5 +3,6 @@ Allow: /
 Disallow: /admin
 Disallow: /booking/confirmation
 Disallow: /api/
+Disallow: /plugin
 
 Sitemap: /sitemap-index.xml

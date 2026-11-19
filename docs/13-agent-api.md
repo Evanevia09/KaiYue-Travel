@@ -25,7 +25,7 @@ The owner creates or chooses an admin account for the agent in **Users**, normal
 
 ```bash
 ORIGIN=https://admin-staging.kaiyuemacau.com
-curl -sS -c jar -H "Origin: $ORIGIN" -H 'content-type: application/json' \
+curl -sS -c jar -A 'KaiYue-staging-mcp/1.0' -H "Origin: $ORIGIN" -H 'content-type: application/json' \
   --data @credentials.json "$ORIGIN/api/auth/sign-in/email"   # file kept out of shell history
 curl -sS -b jar "$ORIGIN/api/v1/admin/bookings?q=chan&status=enquiry"
 curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
@@ -55,14 +55,41 @@ Responses contain guest personal data. Do not log full responses, put them in UR
 
 ## Connect an agent on staging
 
-Open [Kai Yue Travel agent tools](https://staging.kaiyuemacau.com/plugin). Share that link with an agent or staff member. It links to a machine-readable capability list and the connection instructions.
+Fetch [https://staging.kaiyuemacau.com/plugin](https://staging.kaiyuemacau.com/plugin) (canonical [https://staging.kaiyuemacau.com/plugin.txt](https://staging.kaiyuemacau.com/plugin.txt)). That URL is `text/plain; charset=utf-8` with `X-Robots-Tag: noindex, nofollow, noarchive`. It is public machine-readable instruction, not an AI-only security boundary. The JSON list is `/plugin/capabilities.json`.
 
 Staging MCP uses the existing staff or `super_admin` email and password. There is no API-key system. The connected agent keeps that account’s normal permissions. This path exists only on `admin-staging.kaiyuemacau.com`. Production hosts, including `admin.kaiyuemacau.com`, do not offer it.
 
-1. Use a login already saved in the agent vault, or collect the staff email and password in a secure in-chat form. Do not visit `/login` or `/admin/agent-connect`, and do not put the password in a URL.
-2. `POST` JSON `{ "email", "password" }` to `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp-session`. Disabled or unprovisioned accounts fail closed. Three failed attempts lock the account and IP for five minutes (`429` + `Retry-After`); the same lock covers `/api/auth/sign-in/email`. The response token lasts 30 minutes and stands in for that staff session.
-3. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and enter the token in the MCP client’s secure bearer-token setting.
-4. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
+Browser vaults, including Grok Bot Vault, fill browser fields only. They cannot inject credentials into HTTP APIs. Generic agent clients are supported; this is not Grok-exclusive.
+
+1. Map a secure secret field to environment password and email, or collect them in a secure in-chat form. Do not visit `/login` or `/admin/agent-connect`, and do not put the password in a URL.
+2. Identify the client honestly. Send `User-Agent: KaiYue-staging-mcp/1.0` or `ClientName/version`. Do not impersonate a browser. Cloudflare Browser Integrity Check on this zone blocked `Python-urllib/3.13` (HTTP 403, source `bic`) on the same `POST /api/v1/admin/mcp-session` path that succeeded with `KaiYue-staging-mcp-auth-test/1.0`.
+3. `POST` JSON `{ "email", "password" }` to `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp-session`. Origin is not required. Disabled or unprovisioned accounts fail closed. Three failed attempts lock the account and IP for five minutes (`429` + `Retry-After`); the same lock covers `/api/auth/sign-in/email`. The response token lasts 1800 seconds and stands in for that staff session.
+4. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and send `Authorization: Bearer` with that token. Then `initialize`, `tools/list`, and a read tool.
+5. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
+
+### Failure handling
+
+| Status | Meaning | Client action |
+| --- | --- | --- |
+| `401` | Generic credential failure (wrong, unknown, disabled, or unprovisioned) | Stop. Do not brute-retry. Three failures lock five minutes. |
+| `429` + `Retry-After` | Durable account+IP lockout | Wait the stated interval (five minutes). Do not retry during the lock. |
+| `403` Cloudflare error `1010` | Edge Browser Integrity Check, before the Worker | Stop. Contact the owner. Do not retry the password. Do not spoof a browser User-Agent. |
+
+A Worker JSON `403` is a host/origin gate, not error 1010.
+
+### Operator BIC exception (applied 2026-11-19 — not source)
+
+Verified cause (Cloudflare GraphQL `httpRequestsAdaptive`, official Kai Yue account `33ecc75158a1cdd23ba1a62eb70c5103`, zone `fb84210cb8175ff4412b444805e1a6a5`): both staging `POST /api/v1/admin/mcp-session` failures were HTTP 403, source `bic` / action `block`, User-Agent exact `Python-urllib/3.13` (22:08:23 ray `a5cfc9652fbb7c97`, 22:11:43 ray `a5cfce47dbc574d1`). The same path returned 200 at 21:21:10 with `KaiYue-staging-mcp-auth-test/1.0`. Honest application identification remains the client requirement.
+
+Owner approved a narrow exception at 22:27 Macau. An operator applied it at 22:28:27 (`last_updated` `2026-11-19T14:28:27.210982Z`). It is **not** a git/Worker change.
+
+- Ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` (`http_config_settings`), rule `40c580d7c4f747dd838ddb380ca534af`, ref `staging_mcp_bic_off`, enabled, `set_config` `bic: false` only.
+- Expression: `(http.host eq "admin-staging.kaiyuemacau.com" and http.request.uri.path in {"/api/v1/admin/mcp-session" "/api/v1/admin/mcp-session/" "/api/v1/admin/mcp" "/api/v1/admin/mcp/"})`
+- Zone `browser_check` stays **on**; `security_level` stays **medium**; no production host; no `/login`; no other product skip.
+
+Post-apply urllib probe (no credentials): `GET` that session path returned **405** `Allow: POST` (`cf-ray` `a5cfe8b49c61ef68-IAD`); empty-body `POST` returned **403** `Cross-site POST form submissions are forbidden` (Astro form CSRF, not error 1010).
+
+Rollback: disable or delete that one rule. Leave `browser_check` on.
 
 ### What the ten tools can do
 
@@ -94,4 +121,4 @@ codex plugin marketplace add "$PWD"
 codex plugin add kaiyue-travel-staging@kaiyue-travel-local
 ```
 
-Prefer a saved vault login in `KAIYUE_STAGING_STAFF_EMAIL` and `KAIYUE_STAGING_STAFF_PASSWORD`. If those are unset, a generic macOS keychain item still works: service `Kai Yue Travel Staging Plugin`, account `kaiyue-staging-agent`, with a JSON object of the staff `email` and `password`. If neither is present, collect email and password in a secure in-chat form and set the vault variables. Do not visit the admin sign-in page. For local booking writes, the MCP client needs to support a human confirmation form. Quote approval uses the same browser review as hosted MCP.
+Prefer `KAIYUE_STAGING_STAFF_EMAIL` and `KAIYUE_STAGING_STAFF_PASSWORD` from a secure secret field mapped to the environment. If those are unset, a generic macOS keychain item still works: service `Kai Yue Travel Staging Plugin`, account `kaiyue-staging-agent`, with a JSON object of the staff `email` and `password`. If neither is present, collect email and password in a secure in-chat form and set those environment variables. Do not visit the admin sign-in page. The local plugin sends `User-Agent: KaiYue-staging-mcp/1.0`. For local booking writes, the MCP client needs to support a human confirmation form. Quote approval uses the same browser review as hosted MCP.

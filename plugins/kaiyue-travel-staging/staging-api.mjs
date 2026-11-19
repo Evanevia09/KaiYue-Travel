@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { CookieJar } from "tough-cookie";
+import { STAGING_MCP_USER_AGENT } from "../../packages/agent-tools/client.mjs";
 import { StagingError, stagingResponseError } from "../../packages/agent-tools/error.mjs";
 
 export const STAGING_ORIGIN = "https://admin-staging.kaiyuemacau.com";
@@ -9,7 +10,7 @@ export const STAFF_PASSWORD_ENV = "KAIYUE_STAGING_STAFF_PASSWORD";
 export { StagingError };
 
 const missingCredentialsMessage =
-  "Use a saved vault login or collect the staging staff email and password in a secure in-chat form. Do not visit the admin sign-in page.";
+  "Set KAIYUE_STAGING_STAFF_EMAIL and KAIYUE_STAGING_STAFF_PASSWORD from a secure secret field, or collect them in a secure in-chat form. Browser vaults cannot inject credentials into this HTTP client. Do not visit the admin sign-in page.";
 
 function credentialsFromValues(email, password) {
   if (typeof email === "string" && email && typeof password === "string" && password) {
@@ -64,7 +65,10 @@ export function createStagingApi({
   async function request(path, { jar, method = "GET", body } = {}) {
     const url = new URL(path, STAGING_ORIGIN);
     if (url.origin !== STAGING_ORIGIN) throw new StagingError("Unexpected staging request origin.");
-    const headers = new Headers({ Accept: "application/json" });
+    const headers = new Headers({
+      Accept: "application/json",
+      "User-Agent": STAGING_MCP_USER_AGENT,
+    });
     if (method !== "GET") headers.set("Origin", STAGING_ORIGIN);
     if (body !== undefined) headers.set("Content-Type", "application/json");
     const cookie = await jar.getCookieString(url.href);
@@ -92,9 +96,12 @@ export function createStagingApi({
       method: "POST",
       body: await getCredentials(),
     });
-    await response.body?.cancel();
+    if (!response.ok) {
+      throw await stagingResponseError(response, STAGING_ORIGIN);
+    }
     const cookies = await jar.getCookies(STAGING_ORIGIN + "/api/v1/admin/bookings");
-    if (!response.ok || !cookies.some(({ key }) => key === "__Secure-better-auth.session_token")) {
+    await response.body?.cancel();
+    if (!cookies.some(({ key }) => key === "__Secure-better-auth.session_token")) {
       throw new StagingError(`Staging staff sign-in failed (HTTP ${response.status}).`);
     }
     session = jar;

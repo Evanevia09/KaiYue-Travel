@@ -15,4 +15,4 @@ export async function handleMcp(request, api, options) {
   }
 }
 
-export { stagingResponseError } from "./error.mjs";
+export { isCloudflareBrowserIntegrityBlock, stagingResponseError } from "./error.mjs";

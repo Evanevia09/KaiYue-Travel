@@ -70,7 +70,8 @@ export default defineConfig({
       filter: (page) =>
         !page.includes("/admin") &&
         !page.includes("/booking/confirmation") &&
-        !page.includes("/login"),
+        !page.includes("/login") &&
+        !page.includes("/plugin"),
     }),
   ],
   security: {
