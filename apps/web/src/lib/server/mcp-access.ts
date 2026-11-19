@@ -1,8 +1,11 @@
 import { AppError, sha256Hex } from "@kaiyue/contracts";
 import { STAGING_ADMIN_HOST, resolveHostRole } from "./admin-gate.ts";
+import { ADMIN_PASSWORD_MAX_LENGTH } from "./admin-operator.ts";
+import { createAdminSessionAuth } from "./admin-session.ts";
 import { requireAdmin } from "./auth.ts";
 import { first } from "./db.ts";
 import type { AppEnv } from "./env.ts";
+import { errorResponse, json, readJson, requestIdFrom } from "./http.ts";
 import { mailSite } from "./notification-policy.ts";
 
 const origin = `https://${STAGING_ADMIN_HOST}`;
@@ -10,7 +13,10 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const sessionCookieName = "__Secure-better-auth.session_token";
 const tokenLifetime = 30 * 60 * 1000;
+const tokenLifetimeSeconds = tokenLifetime / 1000;
 const approvalLifetime = 10 * 60 * 1000;
+const staffEmailMaxLength = 254;
+const credentialSignInFailed = "Staff email or password is incorrect.";
 
 type Ticket = {
   session: { cookie: string; actor: string; expires: number };
@@ -95,19 +101,105 @@ function staffRequest(cookie: string) {
   return new Request(`${origin}/api/v1/admin/profile`, { headers: { cookie } });
 }
 
+function sessionCookieFromHeader(header: string | null): string | undefined {
+  return header
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${sessionCookieName}=`));
+}
+
+function sessionCookieFromResponse(response: Response): string | undefined {
+  for (const value of response.headers.getSetCookie()) {
+    const cookie = sessionCookieFromHeader(value);
+    if (cookie) return cookie;
+  }
+  return undefined;
+}
+
+async function sealStaffSession(env: AppEnv, cookie: string, actor: string) {
+  return seal(env, "session", { cookie, actor, expires: Date.now() + tokenLifetime });
+}
+
+function rejectCredentialQuery(request: Request) {
+  const params = new URL(request.url).searchParams;
+  if (params.has("email") || params.has("password")) {
+    throw new AppError("VALIDATION_FAILED", "Do not put credentials in the URL.");
+  }
+}
+
+function staffPasswordCredentials(body: unknown): { email: string; password: string } {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    throw new AppError("VALIDATION_FAILED", "Send the staff email and password as JSON.");
+  }
+  const record = body as Record<string, unknown>;
+  const email = typeof record.email === "string" ? record.email.trim() : "";
+  const password = typeof record.password === "string" ? record.password : "";
+  if (!email || email.length > staffEmailMaxLength || email.includes("\0")) {
+    throw new AppError("VALIDATION_FAILED", "Enter a staff email address.");
+  }
+  if (!password || password.length > ADMIN_PASSWORD_MAX_LENGTH) {
+    throw new AppError("VALIDATION_FAILED", "Enter the staff password.");
+  }
+  return { email, password };
+}
+
+async function requireStaffOperatorSession(env: AppEnv, cookie: string) {
+  const identity = await requireAdmin(staffRequest(cookie), env);
+  if (!identity.operatorRole) {
+    throw new AppError("FORBIDDEN", "A staging staff password session is required.");
+  }
+  return identity;
+}
+
 export async function issueMcpToken(request: Request, env: AppEnv) {
   assertMcpHost(request, env);
   requireBrowserOrigin(request);
   const identity = await requireAdmin(request, env);
-  const cookie = request.headers
-    .get("cookie")
-    ?.split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${sessionCookieName}=`));
+  const cookie = sessionCookieFromHeader(request.headers.get("cookie"));
   if (!identity.operatorRole || !cookie) {
     throw new AppError("FORBIDDEN", "A staging staff password session is required.");
   }
-  return seal(env, "session", { cookie, actor: identity.id, expires: Date.now() + tokenLifetime });
+  return sealStaffSession(env, cookie, identity.id);
+}
+
+export async function issueMcpTokenFromCredentials(request: Request, env: AppEnv) {
+  assertMcpHost(request, env);
+  rejectCredentialQuery(request);
+  const credentials = staffPasswordCredentials(await readJson(request));
+  const signInRequest = new Request(`${origin}/api/auth/sign-in/email`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin },
+    body: JSON.stringify(credentials),
+  });
+  const login = await createAdminSessionAuth(env, false, signInRequest).handler(signInRequest);
+  const cookie = sessionCookieFromResponse(login);
+  if (!login.ok || !cookie) {
+    await login.body?.cancel();
+    throw new AppError("UNAUTHORIZED", credentialSignInFailed);
+  }
+  await login.body?.cancel();
+  const identity = await requireStaffOperatorSession(env, cookie);
+  return sealStaffSession(env, cookie, identity.id);
+}
+
+export async function handleMcpSession(request: Request, env: AppEnv): Promise<Response> {
+  const requestId = requestIdFrom(request);
+  try {
+    assertMcpHost(request, env);
+    if (request.method !== "POST") {
+      return new Response(null, {
+        status: 405,
+        headers: { Allow: "POST", "Cache-Control": "no-store" },
+      });
+    }
+    const token = await issueMcpTokenFromCredentials(request, env);
+    return json({ token, expiresIn: tokenLifetimeSeconds }, 200, requestId);
+  } catch (error) {
+    const response = errorResponse(error, requestId);
+    const headers = new Headers(response.headers);
+    headers.set("Cache-Control", "no-store");
+    return new Response(response.body, { status: response.status, headers });
+  }
 }
 
 export async function authenticateMcp(request: Request, env: AppEnv) {

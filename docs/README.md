@@ -58,7 +58,7 @@ City Tour planning: [2026-10-03 discussion record — packages, future booking a
 
 WeChat QR placeholder: [2026-10-16 record](records/2026-10-16-wechat-qr-placeholder.md). Replace `apps/web/public/images/wechat-qr.svg` with the real code when supplied; do not invent a WeChat ID.
 
-[Agent API and Kai Yue Travel Staging plugin](13-agent-api.md) covers staff sessions, read-only MCP tools, and local installation.
+[Agent API and Kai Yue Travel Staging plugin](13-agent-api.md) covers staff sessions, staging MCP email/password connection, and local installation.
 
 ## How to use this suite
 

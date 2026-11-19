@@ -2,6 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-19 staging MCP staff-password auth (unmerged)
+
+- **task_id:** staging MCP email/password connection without the admin sign-in page
+- **Branch:** `cursor/mcp-staff-password-auth-f58e` from `official-staging` `c9173c0f3d564be35a67ba49bd584277badecb43`
+- **Change:** Staging-only `POST /api/v1/admin/mcp-session` exchanges existing staff/`super_admin` email and password for the current MCP bearer token. Vault login or secure in-chat form. No API keys. Write-tool browser approval kept. Production hosts closed.
+- **Verified locally:** lint, typecheck 0 errors, tests 307/307, plugin 6/6, official-staging guard, CI-matching build.
+- **Not done:** merge, deploy, live staging run, production. PRs #51/#52/#53 untouched.
+
 ## Current state — 2026-11-16 production release (operationally activated)
 
 - **task_id:** `kaiyue-production-release-20261116` (as of 18:58 Asia/Macau)

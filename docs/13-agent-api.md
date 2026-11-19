@@ -5,7 +5,8 @@ An AI agent works the booking and inquiry queues through the **same admin API, a
 ## What it is not
 
 - The HTTP API uses the existing staff session and account roles.
-- No password in a URL, and no password sent on every request.
+- Staging MCP uses that same staff email and password. There is no separate API-key system.
+- No password in a URL, and no password sent on every request after the short staging MCP session exchange.
 - No direct D1 access.
 - No authentication on marketing hosts. `www`, apex, and the staging marketing host return 403 for admin APIs.
 - No bypass. `DEV_ADMIN_BYPASS` is local-only and is rejected by the staging and production gates.
@@ -56,9 +57,12 @@ Responses contain guest personal data. Do not log full responses, put them in UR
 
 Open [Kai Yue Travel agent tools](https://staging.kaiyuemacau.com/plugin). Share that link with an agent or staff member. It links to a machine-readable capability list and the connection instructions.
 
-1. The staff user signs in at the staging admin site in their browser and opens **Connect a staging agent**.
-2. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and enter the generated token in the MCP client's secure bearer-token setting. The token expires after 30 minutes and depends on the existing staff session. The staff password stays in the browser sign-in.
-3. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
+Staging MCP uses the existing staff or `super_admin` email and password. There is no API-key system. The connected agent keeps that account’s normal permissions. This path exists only on `admin-staging.kaiyuemacau.com`. Production hosts, including `admin.kaiyuemacau.com`, do not offer it.
+
+1. Use a login already saved in the agent vault, or collect the staff email and password in a secure in-chat form. Do not visit `/login` or `/admin/agent-connect`, and do not put the password in a URL.
+2. `POST` JSON `{ "email", "password" }` to `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp-session`. Disabled or unprovisioned accounts fail closed. The response token lasts 30 minutes and stands in for that staff session.
+3. Add `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` using Streamable HTTP and enter the token in the MCP client’s secure bearer-token setting.
+4. On connection, the MCP server supplies the working instructions and the ten tool schemas. When a write tool returns a review link, the same staff user reviews and approves the exact change in the browser. Then the agent retries the same tool call.
 
 ### What the ten tools can do
 
@@ -90,4 +94,4 @@ codex plugin marketplace add "$PWD"
 codex plugin add kaiyue-travel-staging@kaiyue-travel-local
 ```
 
-Use a generic password item in the macOS login keychain with the service name `Kai Yue Travel Staging Plugin` and account `kaiyue-staging-agent`. The password field holds a JSON object with the approved staff account's `email` and `password`. Enter the values in Keychain Access. For local booking writes, the MCP client needs to support a human confirmation form. Quote approval uses the same browser review as hosted MCP.
+Prefer a saved vault login in `KAIYUE_STAGING_STAFF_EMAIL` and `KAIYUE_STAGING_STAFF_PASSWORD`. If those are unset, a generic macOS keychain item still works: service `Kai Yue Travel Staging Plugin`, account `kaiyue-staging-agent`, with a JSON object of the staff `email` and `password`. If neither is present, collect email and password in a secure in-chat form and set the vault variables. Do not visit the admin sign-in page. For local booking writes, the MCP client needs to support a human confirmation form. Quote approval uses the same browser review as hosted MCP.
