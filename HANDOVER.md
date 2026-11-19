@@ -2,7 +2,17 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 production release (operationally activated)
+## Current state — 2026-11-19 hosted MCP OAuth renewal candidate (staging, not deployed)
+
+- **task_id:** `kaiyue-mcp-oauth-renewal-20261119`; **event_id:** `kaiyue-mcp-oauth-renewal-20261119-candidate-01` (as of 2026-11-19 Asia/Macau).
+- **Writer:** the cloud agent is the sole writer after owner handover `t262u`. Codex PR #51 (`7d847dfd`) is preserved, and the successor branch is `cursor/mcp-oauth-renewal-a72c`.
+- **Live:** unchanged. `official-staging` is `c9173c0`, staging Worker version `a8cf1194`, `main`/production `ff119f2c`.
+- **Verified locally:** lint, typecheck, full tests, plugin tests, staging build, guard, and the e2e replay all pass. Independent review: PASS WITH NOTES.
+- **Not verified:** the staging deploy, the e2e run against staging, and real MCP-client human consent.
+- **Next:** PM approval, then the owner/ops non-force fast-forward of `official-staging`, then the PM e2e run. No migration, secret or mail change. Rollback is Worker version `a8cf1194`.
+- **Record:** `docs/records/2026-11-19-mcp-oauth-renewal/CANDIDATE.md`.
+
+## Previous state — 2026-11-16 production release (operationally activated)
 
 - **task_id:** `kaiyue-production-release-20261116` (as of 18:58 Asia/Macau)
 - **Live:** `main` = `official-staging` = `ff119f2c` (PR #45 FF 18:49:19). Worker `kaiyue-travel` version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` since 18:54:51. Entry `ab6e3473…1077`, package `d3aae305…18a9`.

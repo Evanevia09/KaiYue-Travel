@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getPlatformProxy } from "wrangler";
 import {
   PRODUCTION_ADMIN_HOST,
@@ -21,6 +21,9 @@ import {
   issueMcpToken,
   readMcpApproval,
 } from "../../apps/web/src/lib/server/mcp-access.ts";
+import { authorizeMcpClient } from "../../apps/web/src/lib/server/mcp-oauth.ts";
+import { mcpResource } from "../../apps/web/src/lib/server/mcp-oauth-metadata.ts";
+import { createWorkerFetch } from "../../apps/web/src/lib/server/worker-entry.ts";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createTestEnv } from "../helpers/memory-d1.ts";
 
@@ -340,6 +343,153 @@ describe("staging-admin Better Auth min 6 vs production-admin min 12", () => {
     await expect(approveMcpAction(confirmation, target, ticket)).rejects.toMatchObject({
       status: 409,
     });
+    const worker = createWorkerFetch(() => new Response(null, { status: 404 }));
+    const callback = "http://127.0.0.1:4329/callback";
+    const register = (redirect: string) =>
+      worker(
+        new Request(stagingOrigin + "/api/v1/admin/mcp/oauth/register", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            client_name: "fixture",
+            redirect_uris: [redirect],
+            token_endpoint_auth_method: "none",
+          }),
+        }),
+        target,
+        {},
+      );
+    const metadata = await worker(
+      new Request(stagingOrigin + "/.well-known/oauth-authorization-server"),
+      target,
+      {},
+    );
+    expect((await metadata.json()).grant_types_supported).toContain("refresh_token");
+    const resource = await worker(
+      new Request(stagingOrigin + "/.well-known/oauth-protected-resource/api/v1/admin/mcp"),
+      target,
+      {},
+    );
+    expect((await resource.json()).resource).toBe(mcpResource);
+    expect((await register("http://example.invalid/callback")).status).toBe(400);
+    const registration = await register(callback);
+    expect(registration.status).toBe(201);
+    const { client_id: clientId } = (await registration.json()) as { client_id: string };
+    const verifier = "m".repeat(43);
+    const challenge = Buffer.from(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)),
+    ).toString("base64url");
+    const consent = new URL(stagingOrigin + "/admin/agent-authorize");
+    consent.search = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: callback,
+      response_type: "code",
+      resource: mcpResource,
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+      state: "client-state",
+    }).toString();
+    await expect(
+      authorizeMcpClient(
+        new Request(consent, {
+          method: "POST",
+          headers: jsonHeaders("https://example.invalid", login.cookie),
+        }),
+        target,
+      ),
+    ).rejects.toMatchObject({ status: 403 });
+    const redirect = await authorizeMcpClient(
+      new Request(consent, {
+        method: "POST",
+        headers: jsonHeaders(stagingOrigin, login.cookie),
+      }),
+      target,
+    );
+    expect(redirect.status).toBe(303);
+    const callbackUrl = new URL(redirect.headers.get("Location")!);
+    expect(callbackUrl.origin + callbackUrl.pathname).toBe(callback);
+    expect(callbackUrl.searchParams.get("state")).toBe("client-state");
+    const exchangeToken = (data: Record<string, string>) =>
+      worker(
+        new Request(stagingOrigin + "/api/v1/admin/mcp/oauth/token", {
+          method: "POST",
+          body: new URLSearchParams({ client_id: clientId, resource: mcpResource, ...data }),
+        }),
+        target,
+        {},
+      );
+    const exchange = {
+      grant_type: "authorization_code",
+      code: callbackUrl.searchParams.get("code")!,
+      redirect_uri: callback,
+      code_verifier: verifier,
+    };
+    expect((await exchangeToken({ ...exchange, code_verifier: "x".repeat(43) })).status).toBe(400);
+    const exchangeResponse = await exchangeToken(exchange);
+    expect(exchangeResponse.status).toBe(200);
+    expect(exchangeResponse.headers.get("cache-control")).toBe("no-store");
+    const initial = (await exchangeResponse.json()) as {
+      access_token: string;
+      refresh_token: string;
+    };
+    const clock = Date.now() + 31 * 60_000;
+    const time = vi.spyOn(Date, "now").mockReturnValue(clock);
+    let renewed;
+    try {
+      await expect(
+        authenticateMcp(mcpRequest(stagingOrigin, initial.access_token), target),
+      ).rejects.toMatchObject({ status: 401 });
+      const refresh = await exchangeToken({
+        grant_type: "refresh_token",
+        refresh_token: initial.refresh_token,
+      });
+      expect(refresh.status).toBe(200);
+      renewed = (await refresh.json()) as typeof initial;
+      expect(renewed.refresh_token).not.toBe(initial.refresh_token);
+      expect(
+        (await authenticateMcp(mcpRequest(stagingOrigin, renewed.access_token), target)).actor,
+      ).toBe(session.actor);
+      expect(
+        (await exchangeToken({ grant_type: "refresh_token", refresh_token: initial.refresh_token }))
+          .status,
+      ).toBe(400);
+      await expect(
+        authenticateMcp(mcpRequest(stagingOrigin, renewed.access_token), target),
+      ).rejects.toMatchObject({ status: 401 });
+    } finally {
+      time.mockRestore();
+    }
+    const secondConsent = await authorizeMcpClient(
+      new Request(consent, {
+        method: "POST",
+        headers: jsonHeaders(stagingOrigin, login.cookie),
+      }),
+      target,
+    );
+    const nextCode = new URL(secondConsent.headers.get("Location")!).searchParams.get("code")!;
+    const secondExchange = await exchangeToken({ ...exchange, code: nextCode });
+    expect(secondExchange.status).toBe(200);
+    const second = (await secondExchange.json()) as typeof initial;
+    const logout = await createAdminSessionAuth(
+      target,
+      false,
+      new Request(stagingOrigin + "/api/auth/ok"),
+    ).handler(
+      new Request(stagingOrigin + "/api/auth/sign-out", {
+        method: "POST",
+        headers: jsonHeaders(stagingOrigin, login.cookie),
+        body: "{}",
+      }),
+    );
+    expect(logout.status).toBe(200);
+    await expect(
+      authenticateMcp(mcpRequest(stagingOrigin, second.access_token), target),
+    ).rejects.toMatchObject({ status: 401 });
+    expect(
+      (await exchangeToken({ grant_type: "refresh_token", refresh_token: second.refresh_token }))
+        .status,
+    ).toBe(400);
+
     await env.DB.prepare("UPDATE admin_operator SET enabled = 0 WHERE user_id = ?")
       .bind(session.actor)
       .run();

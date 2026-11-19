@@ -114,7 +114,7 @@ export function createStagingApi({ fetchRequest = fetch, getCredentials = readCr
       const jar = session;
       session = undefined;
       if (jar) {
-        const response = await request("/api/auth/sign-out", { jar, method: "POST" });
+        const response = await request("/api/auth/sign-out", { jar, method: "POST", body: {} });
         await response.body?.cancel();
       }
     },

@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-18 plugin checkpoint:** Version 0.3.0 adds a staging Worker MCP endpoint with ten discoverable tools, a public `/plugin` guide, staff-session tokens, browser approvals, new decision statuses, and quote email locked to the owner-approved staging inbox. Staging rollout and receipt checks are in progress. See the dated changes below.
+**2026-11-18 plugin checkpoint:** Version 0.3.0 adds a staging Worker MCP endpoint with ten discoverable tools, a public `/plugin` guide, staff-session tokens, browser approvals, new decision statuses, and quote email locked to the owner-approved staging inbox. Hosted staging is active at source `c9173c0`, Cloudflare version `a8cf1194`. The ten tools and approved inbox delivery passed end-to-end verification. See the dated changes below.
 
 **Last updated:** 2026-11-16 18:58 Asia/Macau (production operationally activated: `kaiyue-travel` version `5eebf7b6` @100%, `main` `ff119f2c`, `admin.kaiyuemacau.com` attached; not project acceptance)
 **Product-status evidence date:** 2026-11-15 freeze `cd33cf8c` / live Worker `f3169afb`; 2026-11-13 for the Version 2 illustrative photos (staging PR #27 preview byte-verified); 2026-11-03 for live booking UX verify on `870c536` (PR #24); 2026-11-03 for staging booking UX QA PASS (PR #23 tip `3fb82362`); 2026-11-03 for live tour-guide verify on `7c9ca1d` (PR #21); 2026-11-03 for the staging→main tour-guide promote; 2026-11-02 for optional Macau tour-guide copy and half-day/full-day booking preference; 2026-10-30 for Traditional Chinese private-car wording and staging→main conflict resolution; 2026-10-22 for hero plate branding and header logo/WhatsApp icon on main; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
@@ -165,6 +165,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+Hosted MCP OAuth renewal (2026-11-19, `task_id` `kaiyue-mcp-oauth-renewal-20261119`, staging only): the cloud agent is the sole writer after owner handover `t262u` and continues Codex PR #51 at `7d847dfd` on `cursor/mcp-oauth-renewal-a72c`. Review fixes are tested locally, and an independent review passed with notes. Next action: PM approves the candidate, then owner/ops fast-forwards `official-staging` from `c9173c0`. After that, PM runs the read-only OAuth e2e script with a temporary staff fixture. No migration, secret or mail change; rollback is Worker version `a8cf1194`. Record: `docs/records/2026-11-19-mcp-oauth-renewal/CANDIDATE.md`.
+
 Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): branch `cursor/agent-api-notifications-a72c` is ready for PM independent review. Next action: after PM review, promote to `official-staging` with mail still off, then run synthetic staging API checks. A real send needs the PM's exact approval of the card in `docs/records/2026-11-16-agent-api-notifications/STAGE.md`. Production and `main` are untouched, and production mail stays off.
 
 Staging cache + production-readiness (2026-11-16, `task_id` `kaiyue-production-readiness-20261116`): `dca860c` is staged and the admin-root fix is verified over HTTP and in the browser without a purge. Next action: parent-run full authenticated staff UAT on admin-staging (staff role, session revocation, Users create/reset, profile password). No credential reset is needed; owner-supplied staging login verified. Do not merge to `main`. Do not attach production admin. LIVE stays `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
@@ -251,12 +253,32 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Change log
 
+### 2026-11-19 — MCP OAuth renewal candidate (one-writer handover)
+
+- The cloud agent took over the Codex checkpoint `7d847dfd` as sole writer (owner ref `t262u`). Codex commits are preserved.
+- Changes:
+  - A reused code, or a lost concurrent exchange of the same code, now revokes the connection.
+  - Non-staging hosts fall through to the existing admin gate.
+  - Internal failures return `server_error`.
+  - The consent page returns 404 off staging.
+- Added host, guard, expiry, concurrency, disabled-operator and storage-failure tests. All local checks pass; the staging deploy and real-client consent are not verified.
+- Next action: PM approval, then the staging fast-forward and the e2e run. Record: `docs/records/2026-11-19-mcp-oauth-renewal/CANDIDATE.md`.
+
+### 2026-11-19 — Hosted MCP OAuth renewal
+
+- Added browser consent with OAuth authorization code and PKCE. OAuth clients rotate the 30-minute access token without a new manual paste, within an eight-hour authorization bound to the existing staff session. Refresh replay revokes the connection. Manual bearer setup remains available.
+- Independent Chromium review reproduced and verified the fixes for native form origin handling and redirect CSP. Isolated D1 tests verify registration, authorization, expiry, renewal, replay, and revocation at sign-out.
+- Next action is authorized staging rollout followed by an end-to-end OAuth connection in the intended MCP client. The deployed staging Worker still uses its current manual-token flow.
+
 ### 2026-11-18 — Hosted staging MCP and booking decisions
 
 - Baseline `official-staging` `a176809`, task branch `codex/kaiyue-staging-plugin`. Added ten discoverable tools, the `/plugin` guide, encrypted short-lived staff sessions, and browser approval for exact hosted writes. The approval workflow retains the existing D1 schema and keeps guest confirmation a human decision.
 - Added Approved, Confirmed, and Denied via audited status events. Staging quote email has a separate flag and a fixed test-inbox lock. The send boundary consumes approval, checks the record revision during the deduplication claim, and records provider submission.
 - Independent source review found approval, revision, and referrer-policy issues, addressed before release checks. Production promotion and general customer delivery remain separate decisions.
-- Next step is CI-backed staging deployment and authenticated hosted verification, including delivery to the owner-approved test inbox.
+- GitHub PR #50 checks passed. The first strict upload stopped on the API provenance of the previous mail-off version. Verified equal Worker ETag, runtime config, and bindings between that version and the previous Wrangler version. A one-time interactive strict upload restored Wrangler provenance without loosening the workflow. Official-staging run `44338792417` attempt 2 verified and activated `a8cf1194-78b1-41f0-8dd5-55cf94f8de16` at 100%.
+- Live verification passed for the public `/plugin` guide, capability JSON, authentication challenge, session issuance, discovery and the connected agent's ten tools. Synthetic bookings `KY-TUKK8YZG` and `KY-Y8RJGQAB` exercised edits, distinct decisions, inventory assignment and the browser approval workflow. The approved inbox received one quote for `KY-TUKK8YZG`; replay did not create a second message. Synthetic inventory was deactivated.
+- Live sign-out with JSON returned 200 and the associated hosted token returned 401. The first test's bodyless sign-out was rejected; its transient session cookie was discarded. Local stdio `0.3.1` uses the verified JSON sign-out request.
+- Next action is owner acceptance on staging before any production decision.
 
 ### 2026-11-18 — Local Kai Yue Travel Staging plugin
 

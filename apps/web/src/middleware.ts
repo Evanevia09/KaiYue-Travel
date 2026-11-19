@@ -1,3 +1,4 @@
+import { mcpLoginReturn } from "./lib/server/mcp-oauth-metadata.ts";
 import { defineMiddleware } from "astro:middleware";
 import { AppError, createRequestId } from "@kaiyue/contracts";
 import { localizeHtml } from "./lib/i18n-html.ts";
@@ -115,7 +116,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
           pathname: context.url.pathname,
         });
       }
-      return finishResponse(context.redirect("/login", 302), {
+      const returnPath = mcpLoginReturn(context.url.pathname + context.url.search);
+      const loginPath =
+        returnPath && dedicatedAdmin
+          ? "/login?" + new URLSearchParams({ next: returnPath })
+          : "/login";
+      return finishResponse(context.redirect(loginPath, 302), {
         dedicatedAdmin,
         pathname: context.url.pathname,
       });

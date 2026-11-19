@@ -4,6 +4,7 @@ import { handleMcp, stagingResponseError } from "@kaiyue/agent-tools/http";
 import { authenticateMcp, consumeMcpApproval } from "../../../../lib/server/mcp-access.ts";
 import { handleApi } from "../../../../lib/server/router.ts";
 import { errorResponse, requestIdFrom } from "../../../../lib/server/http.ts";
+import { mcpChallenge } from "../../../../lib/server/mcp-oauth-metadata.ts";
 import { AppError } from "@kaiyue/contracts";
 
 export const prerender = false;
@@ -64,8 +65,10 @@ export const ALL: APIRoute = async ({ request }) => {
     const response = errorResponse(error, requestId);
     const headers = new Headers(response.headers);
     headers.set("Cache-Control", "no-store");
-    if (response.status === 401)
-      headers.set("WWW-Authenticate", 'Bearer realm="Kai Yue Travel Staging"');
+    if (response.status === 401) {
+      const error = request.headers.has("authorization") ? ', error="invalid_token"' : "";
+      headers.set("WWW-Authenticate", mcpChallenge + error);
+    }
     return new Response(response.body, { status: response.status, headers });
   }
 };
