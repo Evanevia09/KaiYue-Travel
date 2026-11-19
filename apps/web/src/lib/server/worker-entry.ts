@@ -5,9 +5,14 @@ import {
   isDedicatedAdminHostname,
   requestHost,
 } from "./admin-gate.ts";
+import { handleMcpOAuthApi } from "./mcp-oauth.ts";
+import { mcpOauthMetadata } from "./mcp-oauth-metadata.ts";
 import type { AppEnv } from "./env.ts";
 
-type WorkerEnv = Pick<AppEnv, "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD">;
+type WorkerEnv = Pick<
+  AppEnv,
+  "ENVIRONMENT" | "ENV" | "ACCESS_TEAM_DOMAIN" | "ACCESS_AUD" | "PUBLIC_SITE_URL"
+>;
 
 export type WorkerFetch = (
   request: Request,
@@ -67,8 +72,13 @@ export function maybeDedicatedAdminEntryResponse(
 }
 
 export function createWorkerFetch(astroFetch: WorkerFetch): WorkerFetch {
-  return (request, env, ctx) => {
-    const gated = maybeDedicatedAdminEntryResponse(request, env as WorkerEnv);
+  return async (request, env, ctx) => {
+    const workerEnv = env as WorkerEnv;
+    const metadata = mcpOauthMetadata(request, workerEnv?.PUBLIC_SITE_URL);
+    if (metadata) return metadata;
+    const oauth = await handleMcpOAuthApi(request, env as AppEnv);
+    if (oauth) return oauth;
+    const gated = maybeDedicatedAdminEntryResponse(request, workerEnv);
     if (gated) {
       return gated;
     }

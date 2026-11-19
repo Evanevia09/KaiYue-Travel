@@ -12,8 +12,18 @@ const sessionCookieName = "__Secure-better-auth.session_token";
 const tokenLifetime = 30 * 60 * 1000;
 const approvalLifetime = 10 * 60 * 1000;
 
+export type McpStaffSession = { cookie: string; actor: string };
 type Ticket = {
-  session: { cookie: string; actor: string; expires: number };
+  session: McpStaffSession & { expires: number; grant?: string };
+  client: { name: string; redirectUris: string[]; expires: number };
+  code: McpStaffSession & {
+    clientId: string;
+    redirectUri: string;
+    challenge: string;
+    id: string;
+    expires: number;
+  };
+  refresh: McpStaffSession & { clientId: string; grant: string; expires: number };
   approval: { action: string; actor: string; message: string; expires: number };
 };
 
@@ -27,7 +37,7 @@ export function assertMcpHost(request: Request, env: AppEnv) {
   }
 }
 
-function requireBrowserOrigin(request: Request) {
+export function requireBrowserOrigin(request: Request) {
   if (request.method === "POST" && request.headers.get("origin") !== origin) {
     throw new AppError("FORBIDDEN", "Use the staging admin page to confirm this request.");
   }
@@ -43,7 +53,7 @@ async function ticketKey(env: AppEnv, purpose: keyof Ticket): Promise<CryptoKey>
   return crypto.subtle.importKey("raw", digest, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
-function encode(bytes: Uint8Array) {
+export function encodeMcpBytes(bytes: Uint8Array) {
   return btoa(String.fromCharCode(...bytes))
     .replaceAll("+", "-")
     .replaceAll("/", "_")
@@ -56,17 +66,21 @@ function decode(value: string) {
   );
 }
 
-async function seal<P extends keyof Ticket>(env: AppEnv, purpose: P, payload: Ticket[P]) {
+export async function sealMcpTicket<P extends keyof Ticket>(
+  env: AppEnv,
+  purpose: P,
+  payload: Ticket[P],
+) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     await ticketKey(env, purpose),
     encoder.encode(JSON.stringify(payload)),
   );
-  return `${encode(iv)}.${encode(new Uint8Array(ciphertext))}`;
+  return `${encodeMcpBytes(iv)}.${encodeMcpBytes(new Uint8Array(ciphertext))}`;
 }
 
-async function open<P extends keyof Ticket>(
+export async function openMcpTicket<P extends keyof Ticket>(
   env: AppEnv,
   purpose: P,
   ticket: string,
@@ -95,7 +109,7 @@ function staffRequest(cookie: string) {
   return new Request(`${origin}/api/v1/admin/profile`, { headers: { cookie } });
 }
 
-export async function issueMcpToken(request: Request, env: AppEnv) {
+export async function readMcpStaffSession(request: Request, env: AppEnv): Promise<McpStaffSession> {
   assertMcpHost(request, env);
   requireBrowserOrigin(request);
   const identity = await requireAdmin(request, env);
@@ -107,7 +121,27 @@ export async function issueMcpToken(request: Request, env: AppEnv) {
   if (!identity.operatorRole || !cookie) {
     throw new AppError("FORBIDDEN", "A staging staff password session is required.");
   }
-  return seal(env, "session", { cookie, actor: identity.id, expires: Date.now() + tokenLifetime });
+  return { cookie, actor: identity.id };
+}
+
+export function issueMcpAccessToken(env: AppEnv, session: McpStaffSession, grant?: string) {
+  return sealMcpTicket(env, "session", {
+    cookie: session.cookie,
+    actor: session.actor,
+    grant,
+    expires: Date.now() + tokenLifetime,
+  });
+}
+
+export async function issueMcpToken(request: Request, env: AppEnv) {
+  return issueMcpAccessToken(env, await readMcpStaffSession(request, env));
+}
+
+export async function verifyMcpStaffSession(env: AppEnv, session: McpStaffSession) {
+  const identity = await requireAdmin(staffRequest(session.cookie), env);
+  if (!identity.operatorRole || identity.id !== session.actor) {
+    throw new AppError("UNAUTHORIZED", "The staging session is no longer available.");
+  }
 }
 
 export async function authenticateMcp(request: Request, env: AppEnv) {
@@ -115,11 +149,18 @@ export async function authenticateMcp(request: Request, env: AppEnv) {
   const header = request.headers.get("authorization") ?? "";
   if (!header.startsWith("Bearer "))
     throw new AppError("UNAUTHORIZED", "A staging connection token is required.");
-  const session = await open(env, "session", header.slice(7));
-  const identity = await requireAdmin(staffRequest(session.cookie), env);
-  if (!identity.operatorRole || identity.id !== session.actor) {
-    throw new AppError("UNAUTHORIZED", "The staging session is no longer available.");
-  }
+  const session = await openMcpTicket(env, "session", header.slice(7));
+  await verifyMcpStaffSession(env, session);
+  if (
+    session.grant &&
+    !(await first(
+      env.DB,
+      "SELECT key_hash FROM idempotency_keys WHERE key_hash=? AND status_code=200 AND expires_at>?",
+      session.grant,
+      new Date().toISOString(),
+    ))
+  )
+    throw new AppError("UNAUTHORIZED", "The staging connection was revoked.");
   return session;
 }
 
@@ -138,7 +179,7 @@ export async function consumeMcpApproval(
     now,
   );
   if (approved) return null;
-  const ticket = await seal(env, "approval", {
+  const ticket = await sealMcpTicket(env, "approval", {
     action: key,
     actor,
     message,
@@ -150,7 +191,7 @@ export async function consumeMcpApproval(
 export async function readMcpApproval(request: Request, env: AppEnv, ticket: string) {
   assertMcpHost(request, env);
   const identity = await requireAdmin(request, env);
-  const approval = await open(env, "approval", ticket);
+  const approval = await openMcpTicket(env, "approval", ticket);
   if (!identity.operatorRole || identity.id !== approval.actor) {
     throw new AppError("FORBIDDEN", "Sign in with the account that requested this action.");
   }

@@ -11,7 +11,7 @@ try {
   return new Response(null, { status: 404 });
 }
 Astro.response.headers.set("Cache-Control", "no-store");
-Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set("Referrer-Policy", "origin");
 Astro.response.headers.set(
   "Content-Security-Policy",
   "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'",
@@ -33,11 +33,13 @@ const endpoint = new URL("/api/v1/admin/mcp", Astro.url).href;
   <section class="section page-content">
     <div class="wrap page-content__narrow">
       <h1>Connect a staging agent</h1>
-      <p>Add the Streamable HTTP endpoint to your MCP client.</p>
+      <p>
+        Add the Streamable HTTP endpoint to your MCP client. Choose OAuth for automatic renewal.
+      </p>
       <p><code>{endpoint}</code></p>
       <p>
-        Generate a connection token while signed in. Enter it in your client’s secure bearer-token
-        setting. It lasts 30 minutes.
+        For manual setup, generate a connection token while signed in. Enter it in your client’s
+        secure bearer-token setting. It lasts 30 minutes.
       </p>
       {
         failed && (

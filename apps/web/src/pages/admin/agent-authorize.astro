@@ -1,0 +1,51 @@
+---
+import { env } from "cloudflare:workers";
+import AgentSetupLayout from "../../layouts/AgentSetupLayout.astro";
+import { authorizeMcpClient, readMcpAuthorization } from "../../lib/server/mcp-oauth.ts";
+
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Referrer-Policy", "origin");
+let details;
+try {
+  if (Astro.request.method === "POST") return await authorizeMcpClient(Astro.request, env);
+  details = await readMcpAuthorization(Astro.request, env);
+} catch {
+  Astro.response.status = 400;
+}
+const callbackOrigin = details ? new URL(details.redirectUri).origin : "";
+Astro.response.headers.set(
+  "Content-Security-Policy",
+  `default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; form-action 'self' ${callbackOrigin}; base-uri 'none'`,
+);
+---
+
+<AgentSetupLayout title="Authorize a staging agent">
+  <h1>Authorize a staging agent</h1>
+  {
+    details ? (
+      <>
+        <p>
+          <strong>{details.name}</strong> wants to use your Kai Yue Travel staging staff session.
+          The request came from a client that uses{" "}
+          <strong>{new URL(details.redirectUri).host}</strong> for its callback.
+        </p>
+        <p>
+          Authorize only if you recognize this client. Booking changes and quote emails still
+          require your separate approval.
+        </p>
+        <form method="post">
+          <button type="submit">Authorize client</button>
+        </form>
+        <p>
+          <a href="/admin">Cancel and return to admin</a>
+        </p>
+      </>
+    ) : (
+      <p role="alert">
+        This connection request is invalid or expired. Start again from your MCP client.
+      </p>
+    )
+  }
+</AgentSetupLayout>
