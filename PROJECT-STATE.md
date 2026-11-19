@@ -165,6 +165,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 
 ## Next recommended actions
 
+Hosted MCP OAuth renewal (2026-11-19, `task_id` `kaiyue-mcp-oauth-renewal-20261119`, staging only): the cloud agent is the sole writer after owner handover `t262u` and continues Codex PR #51 at `7d847dfd` on `cursor/mcp-oauth-renewal-a72c`. Review fixes are tested locally, and an independent review passed with notes. Next action: PM approves the candidate, then owner/ops fast-forwards `official-staging` from `c9173c0`. After that, PM runs the read-only OAuth e2e script with a temporary staff fixture. No migration, secret or mail change; rollback is Worker version `a8cf1194`. Record: `docs/records/2026-11-19-mcp-oauth-renewal/CANDIDATE.md`.
+
 Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): branch `cursor/agent-api-notifications-a72c` is ready for PM independent review. Next action: after PM review, promote to `official-staging` with mail still off, then run synthetic staging API checks. A real send needs the PM's exact approval of the card in `docs/records/2026-11-16-agent-api-notifications/STAGE.md`. Production and `main` are untouched, and production mail stays off.
 
 Staging cache + production-readiness (2026-11-16, `task_id` `kaiyue-production-readiness-20261116`): `dca860c` is staged and the admin-root fix is verified over HTTP and in the browser without a purge. Next action: parent-run full authenticated staff UAT on admin-staging (staff role, session revocation, Users create/reset, profile password). No credential reset is needed; owner-supplied staging login verified. Do not merge to `main`. Do not attach production admin. LIVE stays `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
@@ -250,6 +252,17 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-19 — MCP OAuth renewal candidate (one-writer handover)
+
+- The cloud agent took over the Codex checkpoint `7d847dfd` as sole writer (owner ref `t262u`). Codex commits are preserved.
+- Changes:
+  - A reused code, or a lost concurrent exchange of the same code, now revokes the connection.
+  - Non-staging hosts fall through to the existing admin gate.
+  - Internal failures return `server_error`.
+  - The consent page returns 404 off staging.
+- Added host, guard, expiry, concurrency, disabled-operator and storage-failure tests. All local checks pass; the staging deploy and real-client consent are not verified.
+- Next action: PM approval, then the staging fast-forward and the e2e run. Record: `docs/records/2026-11-19-mcp-oauth-renewal/CANDIDATE.md`.
 
 ### 2026-11-19 — Hosted MCP OAuth renewal
 
