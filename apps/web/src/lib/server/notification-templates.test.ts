@@ -93,4 +93,38 @@ describe("branded notification templates", () => {
     });
     expect(en.text).toContain("We have received your inquiry.");
   });
+
+  it("omits the staging prefix and uses the production logo origin on production site mail", () => {
+    const logo = emailLogoUrl("https://kaiyuemacau.com");
+    const staff = renderStaffMessage(
+      "production",
+      {
+        kind: "booking",
+        reference: "KY-PROD0001",
+        summary: "A new chauffeur booking request is waiting for review.",
+        details: [{ label: "Name", value: "Guest" }],
+      },
+      { logoUrl: logo },
+    );
+    expect(staff.subject).toBe("New booking request KY-PROD0001");
+    expect(staff.subject).not.toContain("[Staging test]");
+    expect(staff.html).toContain(logo);
+    expect(staff.html).not.toContain("staging.kaiyuemacau.com");
+    const customer = renderCustomerAck(
+      "production",
+      {
+        kind: "booking",
+        reference: "KY-PROD0001",
+        locale: "en",
+        name: "Guest",
+        timezone: "Asia/Macau",
+        siteUrl: "kaiyuemacau.com",
+      },
+      { logoUrl: logo },
+    );
+    expect(customer.subject).toBe("We received your request KY-PROD0001");
+    expect(customer.text).toContain("This is not a booking confirmation.");
+    expect(customer.html).toContain("<!doctype html>");
+    expect(customer.html).toContain("#008c5e");
+  });
 });
