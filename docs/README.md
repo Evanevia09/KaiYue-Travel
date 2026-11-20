@@ -57,6 +57,8 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 37. [2026-11-19 agent login / plugin plaintext (merged PR #56)](records/2026-11-19-agent-login-plugin-fix/REPORT.md)
 38. [2026-11-19 combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (merged PR #57)](records/2026-11-19-mcp-branded-email-combined/REPORT.md)
 39. [2026-11-20 staging deployed checkpoint + production promotion plan (not activated)](records/2026-11-20-staging-checkpoint-production-prep/REPORT.md)
+40. [2026-11-20 live staging mobile Playwright results (PASS)](records/2026-11-20-staging-checkpoint-production-prep/MOBILE-RESULTS.md)
+41. [2026-11-20 production mail path audit (not activated)](records/2026-11-20-staging-checkpoint-production-prep/PRODUCTION-MAIL-AUDIT.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

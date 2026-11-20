@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ORIGIN = "https://staging.kaiyuemacau.com";
@@ -306,6 +306,26 @@ test.describe("live staging mobile contact/home", () => {
         expect(qr.img.w).toBeGreaterThan(80);
         expect(qr.img.x + qr.img.w).toBeLessThanOrEqual(qr.vw + 1);
       }
+      expect(Math.round(enPageQr.frame?.w ?? 0), "page QR CSS square is 9rem").toBe(144);
+      expect(Math.round(enPageQr.frame?.h ?? 0)).toBe(144);
+      expect(Math.round(enFooterQr.frame?.w ?? 0), "footer QR CSS square is 8.5rem").toBe(136);
+      expect(Math.round(enFooterQr.frame?.h ?? 0)).toBe(136);
+      writeFileSync(
+        join(ARTIFACT_DIR, `geometry-${viewport.name}.json`),
+        `${JSON.stringify(
+          {
+            viewport: viewport.name,
+            url: page.url(),
+            header,
+            contactHeader: await headerGeometry(page),
+            pageQr: enPageQr,
+            footerQr: enFooterQr,
+            overflow: await noHorizontalOverflow(page),
+          },
+          null,
+          2,
+        )}\n`,
+      );
       await noHorizontalOverflow(page);
       await page.screenshot({
         path: join(ARTIFACT_DIR, `${viewport.name}-contact-en.png`),

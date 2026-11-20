@@ -2,7 +2,7 @@
 
 **task_id:** `kaiyue-staging-checkpoint-prod-prep-20261120`  
 **Status:** staging `task_verified` for merge + CD + HTTP/security smokes. Not `user_accepted`. Production **not** merged, uploaded, or activated.  
-**As-of:** 2026-11-20 10:20 Asia/Macau (mobile Playwright PASS recorded; production still HOLD)
+**As-of:** 2026-11-20 10:25 Asia/Macau (mobile Playwright PASS + production mail audit committed; production still HOLD)
 
 Owner t308u–t311u (20 Nov 09:47–09:48 Macau): merge to staging, then promote to production only after every stage check and the Kai Yue test-bot workflow pass. Premerge branded quote email was already satisfied (CF `message_id` `<szXFo1mWcb26PysdtxMKxdPFNvDLJ7exjMoh@notify.kaiyuemacau.com>`; Gmail `1a1f6a2b076efed7`). This writer did not send another message.
 
@@ -191,6 +191,8 @@ Normal repo flow. `.github/workflows/production.yml` stays fail-closed. Last pro
 4. Verify live production WhatsApp is `wa.me/85363128081`, QR JPEG hash, office tel unchanged, `/plugin` plaintext with `connection: null`, MCP 404/fail-closed on production hosts, mail still off.
 5. Rollback: previous production version `5eebf7b6` @100%. Schema `0001`–`0010` already on production; this candidate adds **no** migration.
 
+Dedicated results: [`MOBILE-RESULTS.md`](MOBILE-RESULTS.md) (PASS 2/2, 144×144 / 136×136 QR squares, geometry JSON, version `04d98ae0` / `8ac4fe0e`).
+
 ## 8. Live staging mobile Playwright — PASS
 
 Cloud VM, repository Playwright (`@playwright/test` 1.64.1, Chromium 156 headless). Not the PM desktop helper, not a user computer, no DevTools connector workaround. Read-only: no booking submit, no inquiry submit, no WhatsApp click-through, no live business mutations.
@@ -229,9 +231,11 @@ Contact is **not** in the hamburger (desktop primary nav also has no Contact ite
 
 No legitimate layout bug found. No product CSS/HTML change in this addendum.
 
+Dedicated audit (operational path, not “code can ship with mail off”): [`PRODUCTION-MAIL-AUDIT.md`](PRODUCTION-MAIL-AUDIT.md). Live production has no `EMAIL` binding and `NOTIFICATIONS_ENABLED=false` by documented 2026-11-16 fail-closed. After PR #58 overlay upload, staff/customer/quote mail stay **inert**. No documented production `NOTIFY_STAFF_TO`. Do not invent recipients. Do not activate from this PR.
+
 ## 9. Production email path (read-only; do not activate)
 
-Branded template **code** can promote with mail remaining off. Live production mail is **not** working and must not be described as ready.
+Branded template **code** is not operational mail. See the dedicated audit. Summary: live production mail is **not** working.
 
 | Fact | Evidence |
 | --- | --- |
@@ -274,6 +278,6 @@ Operator warnings (procedure, not overlay leaks):
 - Kai Yue test-all-10-tools and booking→quote **actual inbox** still required before production.
 - PR #58 and production remain **unmerged / not uploaded**.
 - Live production still serves old WhatsApp until the operator upload.
-- Production mail still off; enabling it is a separate reviewed gap with an owner-chosen staff inbox.
+- Production mail still off. Concrete audit: [`PRODUCTION-MAIL-AUDIT.md`](PRODUCTION-MAIL-AUDIT.md). Missing owner decision: production `NOTIFY_STAFF_TO` and destination policy for guest acks.
 - Independent overlay + vs-main reviews: **Approve with nits**. CodeRabbit CLI still unauthenticated (not a completed CodeRabbit review).
 - Placeholder `wechat-qr.svg` unused. Not `user_accepted` / not production `released`.

@@ -1,0 +1,139 @@
+{
+  "viewport": "390x844",
+  "url": "https://staging.kaiyuemacau.com/contact/",
+  "header": {
+    "logo": {
+      "x": 20,
+      "y": 25.484375,
+      "w": 128,
+      "h": 25.015625,
+      "display": "flex",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "lang": {
+      "x": 239.453125,
+      "y": 16,
+      "w": 78.546875,
+      "h": 44,
+      "display": "block",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "menu": {
+      "x": 326,
+      "y": 16,
+      "w": 44,
+      "h": 44,
+      "display": "grid",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "chip": {
+      "x": 0,
+      "y": 0,
+      "w": 0,
+      "h": 0,
+      "display": "none",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "logoOverlapsLang": false,
+    "logoOverlapsMenu": false,
+    "langOverlapsMenu": false
+  },
+  "contactHeader": {
+    "logo": {
+      "x": 20,
+      "y": 25.055500030517578,
+      "w": 128,
+      "h": 25.015625,
+      "display": "flex",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "lang": {
+      "x": 239.453125,
+      "y": 16,
+      "w": 78.546875,
+      "h": 44,
+      "display": "block",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "menu": {
+      "x": 326,
+      "y": 16,
+      "w": 44,
+      "h": 44,
+      "display": "grid",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "chip": {
+      "x": 0,
+      "y": 0,
+      "w": 0,
+      "h": 0,
+      "display": "none",
+      "visibility": "visible",
+      "overflow": "visible"
+    },
+    "logoOverlapsLang": false,
+    "logoOverlapsMenu": false,
+    "langOverlapsMenu": false
+  },
+  "pageQr": {
+    "naturalWidth": 774,
+    "naturalHeight": 784,
+    "complete": true,
+    "src": "https://staging.kaiyuemacau.com/images/wechat-qr.jpg",
+    "alt": "WeChat QR code",
+    "objectFit": "contain",
+    "img": {
+      "w": 144,
+      "h": 144,
+      "x": 16,
+      "y": 350.46875
+    },
+    "frame": {
+      "w": 144,
+      "h": 144,
+      "aspect": 1,
+      "overflow": "hidden",
+      "background": "rgb(255, 255, 255)"
+    },
+    "figureBottom": 525.203125,
+    "footerTop": null,
+    "vw": 390
+  },
+  "footerQr": {
+    "naturalWidth": 774,
+    "naturalHeight": 784,
+    "complete": true,
+    "src": "https://staging.kaiyuemacau.com/images/wechat-qr.jpg",
+    "alt": "WeChat QR code",
+    "objectFit": "contain",
+    "img": {
+      "w": 136,
+      "h": 136,
+      "x": 16,
+      "y": 1226.71875
+    },
+    "frame": {
+      "w": 136,
+      "h": 136,
+      "aspect": 1,
+      "overflow": "hidden",
+      "background": "rgb(255, 255, 255)"
+    },
+    "figureBottom": 1393.453125,
+    "footerTop": 832.359375,
+    "vw": 390
+  },
+  "overflow": {
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "clientWidth": 390
+  }
+}
