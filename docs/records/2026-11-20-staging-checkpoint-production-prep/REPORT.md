@@ -176,8 +176,11 @@ Owner t310u/t311u. This writer does not execute the authenticated bot/UI pass.
 1. **Browser UI / DevTools / basic security** on deployed staging `04d98ae0` / Worker `8ac4fe0e`: public booking, Contact QR, header WhatsApp, admin-staging login page, no public admin leak, console errors.
    - PM desktop (owner/PM, not this writer): EN/PT/zh-Hant home+contact+footers PASS. New WA `85363128081`, office TEL `+85328338882`, QR visible with quiet margin. Plugin plaintext/security no issues except expected 403s. Parent downloaded live QR byte-identical SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc`, 774×784.
    - Cloud-VM Playwright mobile: **PASS** (section 8). Complements desktop; does not replace the 10-tool bot or quote-inbox receipt.
-2. **Kai Yue test bot — all 10 tools** via `https://staging.kaiyuemacau.com/plugin` then Streamable HTTP `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` with honest UA: `list_bookings`, `get_booking`, `list_inquiries`, `get_inquiry`, `list_inventory`, `edit_booking`, `change_booking_status`, `assign_booking`, `draft_quote`, `send_quote_email`. Writes should run without a browser ticket. Auth/roles/lockout/allowlist still apply.
-3. **Full booking → quote → actual inbox** persistence to `scalingsmb@gmail.com` only (staging quote lock). Do not send a second premerge preview; this is the bot workflow quote.
+2. **Kai Yue test bot — tools.** PM/testbot (not this writer): **9/9 non-mail MCP tools unchanged PASS**. 10th `send_quote_email` still **UNSENT**, awaiting owner exact draft answer. Source: PM read of `/workspace/kaiyue-full-test-20261120/` (this VM does not hold that file).
+3. **Public WhatsApp / email redirect API** (PM/testbot, not this writer; not email delivery; inbox not checked). File `/workspace/kaiyue-full-test-20261120/whatsapp-email-redirect-result.json`. After fresh GET proof 20 Nov 10:22 Macau against live Worker `8ac4fe0e` #25 / deployment `6023ba11`. Tests 10:24:53–55 Macau **PASS both**:
+   - WhatsApp synthetic `KY-BDBTF2GZ` HTTP **201**, exact `wa.me/85363128081`; decoded ref/service/from/to/pickup **21 Nov 16:00 Asia/Macau**/pax **2**/name/phone/message present; empty optional fields omitted; URL **not opened**, no WhatsApp send.
+   - Email fixture `KY-U33F5TWE` HTTP **201**; **no** `wa.me`; correct awaiting-confirmation copy. General notifications remain off.
+4. **Full booking → quote → actual inbox** persistence to `scalingsmb@gmail.com` only (staging quote lock). Still required. Do not send a second premerge preview; this is the bot 10th-tool quote.
 
 If any fail: same writer continues on a task branch + review + staging retest. Do not promote.
 
@@ -275,7 +278,7 @@ Operator warnings (procedure, not overlay leaks):
 
 ## Residuals
 
-- Kai Yue test-all-10-tools and booking→quote **actual inbox** still required before production.
+- 10th MCP `send_quote_email` still **UNSENT** (owner draft). Quote **actual inbox** still required. 9/9 non-mail tools and public WA/email redirect API are PM/testbot PASS (not this writer).
 - PR #58 and production remain **unmerged / not uploaded**.
 - Live production still serves old WhatsApp until the operator upload.
 - Production mail still off. Concrete audit: [`PRODUCTION-MAIL-AUDIT.md`](PRODUCTION-MAIL-AUDIT.md). Missing owner decision: production `NOTIFY_STAFF_TO` and destination policy for guest acks.

@@ -12,8 +12,9 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Production mail:** inert. Audit: `docs/records/2026-11-20-staging-checkpoint-production-prep/PRODUCTION-MAIL-AUDIT.md`. No documented production staff inbox. Do not activate from this PR.
 - **Production (unchanged):** `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`; live overlay WhatsApp still `+85328338882`; no staging knobs; mail off (no `EMAIL` binding).
 - **Prepared, not merged to traffic:** production overlay WhatsApp `+85363128081` on this docs branch. Staging knobs stay out. `production.yml` fail-closed. Branded email **code** can promote with mail remaining off.
-- **Independent reviews:** overlay vs `04d98ae0` and vs-`main` `ff119f2c` both **Approve with nits**. No overlay leak. CodeRabbit CLI unauthenticated (not used). PR #58 still HOLD pending 10-tool + quote inbox.
-- **PM gates before promote:** desktop browser QA done (PM). Cloud mobile Playwright done. Remaining: all 10 MCP tools; booking→quote actual inbox. Owner t308u–t311u is production auth.
+- **Independent reviews:** overlay vs `04d98ae0` and vs-`main` `ff119f2c` both **Approve with nits**. No overlay leak. CodeRabbit CLI unauthenticated (not used).
+- **PM/testbot (not this writer):** public redirect API PASS 20 Nov 10:24:53–55 Macau on `8ac4fe0e` #25 / `6023ba11` — WhatsApp `KY-BDBTF2GZ` 201 `wa.me/85363128081` (URL not opened); email fixture `KY-U33F5TWE` 201 no `wa.me`. Source `/workspace/kaiyue-full-test-20261120/whatsapp-email-redirect-result.json`. 9/9 non-mail MCP unchanged. 10th `send_quote_email` **UNSENT**. Inbox not checked.
+- **PM gates before promote:** desktop QA PASS (PM). Cloud mobile Playwright PASS. Remaining: owner quote draft + actual inbox. PR #58 HOLD. Owner t308u–t311u is production auth.
 - **Held:** PRs #51/#52/#53 OPEN. No OAuth revival. No production merge/deploy this run.
 - **Record:** `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`
 
