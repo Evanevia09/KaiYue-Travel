@@ -2,14 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-20 email lifecycle DESIGN (PROPOSED, not approved)
+## Current state — 2026-11-20 email lifecycle SPEC (design approved; not implementation)
 
 - **task_id:** `kaiyue-email-lifecycle-design-20261120`
-- **Branch:** `cursor/email-lifecycle-design-f58e` from `official-staging` `3a70cff`. PR #61 `f774f69` left frozen (no reset/rebase). PRs #51–#53 untouched.
-- **Change:** Proposed design only — logo-only header, 2-col table, customer confirm/cancel mails, IN-KY / CF-KY / CL-KY. Recommend separate counters + stable enquiry. **Not approved. No code.**
-- **Live:** staging `3b9240e7` `"true"` / scalingsmb only. Production `5eebf7b6` `"false"` / no `EMAIL`. Pair PASS `KY-JWM6M8AT` does not cover new templates.
-- **Not done:** owner/parent approval of the six material decisions; implementation; migration; merge; deploy; actual email; quote widget (SKIPPED).
-- **Record:** `docs/records/2026-11-20-email-lifecycle-design/PROPOSAL.md`
+- **Branch:** `cursor/email-lifecycle-design-f58e` / PR #62 from `official-staging` `3a70cff`. PR #61 `f774f69` frozen. PRs #51–#53 untouched.
+- **Change:** Final spec — shared serial `IN-KY0042` / `CF-KY00042` / `CL-KY00042`; original enquiry kept; white header, logo only, gold divider; customer confirm/cancel on authorized `confirmed`/`cancelled`. **Not Option A. No code.**
+- **Live:** staging `3b9240e7` `"true"` / scalingsmb only. Production `5eebf7b6` `"false"` / no `EMAIL`.
+- **Not done:** parent presents spec for owner review; implementation plan; migration; merge; deploy; actual email; quote widget (SKIPPED).
+- **Record:** `docs/records/2026-11-20-email-lifecycle-design/SPEC.md`
 
 ## Previous state — 2026-11-20 staging ack+admin notifications overlay on
 
