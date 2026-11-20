@@ -1125,6 +1125,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 346/346; plugin 9/9; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` of the changed diff vs `01cd9576`: Approve with nits (logo ratio applied). QR SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc`. GitHub CI [44560209556](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44560209556) success. Premerge quote independently verified. Staging CD and HTTP smokes recorded 2026-11-20.
 - Not verified or follow-up: PM browser / 10-tool bot / booking→quote inbox; production promote.
 
+### 2026-11-20 — Overlay re-review keep_vars assert (HOLD)
+
+- Changed: Overlay test now `expect(config.keep_vars).toBe(false)`. Confirmatory independent overlay review of `c7d5119` was Approve with nits; no leak.
+- Decision/evidence: Duplicate overlay review after docs/e2e commits; runtime overlay unchanged.
+- Verified: production-operator-release overlay cases.
+- Not verified or follow-up: PR #58 merge; 10th quote; production.
+
 ### 2026-11-20 — PM/testbot public redirect PASS (quote still UNSENT)
 
 - Changed: Closeout only. Recorded PM-read `/workspace/kaiyue-full-test-20261120/whatsapp-email-redirect-result.json` (file not on this VM). No product code. Did not rerun mobile/mail audit.

@@ -266,7 +266,7 @@ Both Cursor `code-reviewer` passes completed. CodeRabbit CLI 0.9.6 remained unau
 | PR #58 overlay | `04d98ae0` … `c7d5119` | **Approve with nits** — no Critical, no Warning, no overlay leak |
 | vs-`main` production candidate | `ff119f2c` … `c7d5119` (129 files) | **Approve with nits** — no blockers for upload of `deploy/production/wrangler.jsonc` only |
 
-Nits accepted, not blockers: changelog heading still labeled agent-login `(unmerged)` (fixed in this follow-up); overlay test denylist now also names `NOTIFY_FROM_EMAIL` / `NOTIFY_FROM_NAME`; historical `docs/records/wrangler.production-artifact.jsonc` still has old WA — **do not upload that artifact**.
+Nits accepted, not blockers: changelog heading still labeled agent-login `(unmerged)` (fixed); overlay test denylist now also names `NOTIFY_FROM_EMAIL` / `NOTIFY_FROM_NAME` and asserts `keep_vars === false`; historical `docs/records/wrangler.production-artifact.jsonc` still has old WA — **do not upload that artifact**. Confirmatory overlay re-review of `c7d5119` matched the first Approve-with-nits (later docs/e2e commits did not change overlay knobs).
 
 Operator warnings (procedure, not overlay leaks):
 
