@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-20 staging deployed checkpoint (production not activated):** PR #57 squash-merged to `official-staging` as `04d98ae0b2e3d71f93b5db881affeabbfe327080`. CD [44656548128](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44656548128) SUCCESS. Worker `kaiyue-travel-staging` version `8ac4fe0e-b90e-441a-be21-7e3cbdfef7dc` @100% / deployment `6023ba11-9c0e-4852-b321-3fc8982aa59a`. HTTP/security smokes PASS. **Live mobile Playwright PASS** (390×844 + 320×844, EN/PT/zh-Hant home+contact, no challenge, QR 774×784 contain in square frame, no overflow/header overlap). Production remains `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`. Overlay prep sets production `WHATSAPP_NUMBER=+85363128081` and keeps staging knobs out. Mail stays off (no production `EMAIL` binding). Do not promote until 10-tool bot + booking→quote inbox PASS. PR #58 HOLD. Held PRs #51/#52/#53 stay open. Record: `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`.
+**2026-11-20 staging deployed checkpoint (production not activated):** PR #57 squash-merged to `official-staging` as `04d98ae0b2e3d71f93b5db881affeabbfe327080`. CD [44656548128](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44656548128) SUCCESS. Worker `kaiyue-travel-staging` version `8ac4fe0e-b90e-441a-be21-7e3cbdfef7dc` @100% / deployment `6023ba11-9c0e-4852-b321-3fc8982aa59a`. HTTP/security smokes PASS. **Live mobile Playwright PASS** (390×844 + 320×844, EN/PT/zh-Hant home+contact, no challenge, QR 774×784 contain in square frame, no overflow/header overlap). Production remains `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`. Overlay prep sets production `WHATSAPP_NUMBER=+85363128081` and keeps staging knobs out. Mail stays off (no production `EMAIL` binding). Independent overlay + vs-main reviews: Approve with nits. Do not promote until 10-tool bot + booking→quote inbox PASS. PR #58 HOLD. Held PRs #51/#52/#53 stay open. Record: `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`.
 
 **2026-11-19 combined staging candidate (merged PR #57):** Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Premerge quote email independently verified (CF `<szXFo1mWcb26PysdtxMKxdPFNvDLJ7exjMoh@notify.kaiyuemacau.com>`; Gmail `1a1f6a2b076efed7`). Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
 
@@ -1125,12 +1125,19 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 346/346; plugin 9/9; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` of the changed diff vs `01cd9576`: Approve with nits (logo ratio applied). QR SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc`. GitHub CI [44560209556](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44560209556) success. Premerge quote independently verified. Staging CD and HTTP smokes recorded 2026-11-20.
 - Not verified or follow-up: PM browser / 10-tool bot / booking→quote inbox; production promote.
 
+### 2026-11-20 — Independent overlay and vs-main reviews (Approve with nits)
+
+- Changed: Recorded Cursor `code-reviewer` verdicts for PR #58 overlay and vs-`main` candidate. Tightened production overlay denylist to include `NOTIFY_FROM_EMAIL` / `NOTIFY_FROM_NAME`. Corrected changelog heading that still labeled PR #56 unmerged.
+- Decision/evidence: Independent reviews of `c7d5119` vs `04d98ae0` and vs `ff119f2c`. CodeRabbit CLI unauthenticated. No overlay leak. Mail stays off.
+- Verified: Review returns — overlay Approve with nits (no Critical/Warning); vs-main Approve with nits (no blockers if operator uploads `deploy/production/wrangler.jsonc` only, built with production `PUBLIC_SITE_URL`).
+- Not verified or follow-up: 10-tool bot; quote inbox; PR #58 merge; production upload.
+
 ### 2026-11-20 — Live staging mobile Playwright PASS (production still HOLD)
 
 - Changed: Added gated live-staging Playwright spec `tests/e2e/staging-mobile-contact.spec.ts` (`LIVE_STAGING_E2E=1`). No product CSS/HTML change — no layout bug found. Recorded computed geometry and cloud-VM screenshots. Email/promotion readiness addendum: branded code may promote with mail off; production `EMAIL` binding absent.
 - Decision/evidence: Owner release-verification gap — deterministic mobile on cloud VM against live `https://staging.kaiyuemacau.com/` at 390×844 and 320px, EN/PT/zh-Hant, read-only. Task `kaiyue-staging-checkpoint-prod-prep-20261120`.
 - Verified: Playwright 2/2 PASS in 17.2s on Chromium 156; no Cloudflare challenge; `scrollWidth` equals viewport; header logo/lang/menu no overlap at 320; QR natural 774×784, CSS box 1:1 `object-fit:contain`; `wa.me/85363128081` present, office `tel:+85328338882` present, old WA absent; console/mixed-content empty. Screenshots `/opt/cursor/artifacts/kaiyue-staging-mobile-20261120/`. Geometry `docs/records/2026-11-20-staging-checkpoint-production-prep/mobile-geometry.json`.
-- Not verified or follow-up: 10-tool bot; quote email actual inbox; PR #58 merge; production upload. CodeRabbit CLI still unauthenticated. Independent overlay reviewer in flight. Do not promote.
+- Not verified or follow-up: 10-tool bot; quote email actual inbox; PR #58 merge; production upload. Independent overlay + vs-main reviews recorded as Approve with nits. CodeRabbit CLI still unauthenticated. Do not promote.
 
 ### 2026-11-20 — Staging CD checkpoint and production promotion prep (not activated)
 
@@ -1139,7 +1146,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Verified: CD SUCCESS; independent CF GET of version `8ac4fe0e` bindings; HTTP/security smokes (public 200 + new WA, public `/login` 403, admin-staging `/` 302 `/login`, plugin plaintext on marketing host, QR hash, production Worker unchanged). Targeted production-overlay test updated for the new WhatsApp number.
 - Not verified or follow-up: PM live browser/DevTools/basic security; Kai Yue test-all-10-tools; booking→quote actual inbox. Do not merge/upload production until those PASS. Production mail stays off.
 
-### 2026-11-19 — Agent login 1010 + plugin plaintext (unmerged)
+### 2026-11-19 — Agent login 1010 + plugin plaintext (merged PR #56 as `01cd9576`)
 
 - Changed: `/plugin` and `/plugin.txt` are `text/plain; charset=utf-8` with `X-Robots-Tag: noindex, nofollow, noarchive`. Capabilities JSON stays consistent. Clients must send an honest application User-Agent. 401/429/1010 stop copy. Local plugin sets `KaiYue-staging-mcp/1.0` and refuses browser impersonation. Password lockout, permissions, production MCP 404, and write approval unchanged.
 - Decision/evidence: Owner t289u/t290u 2026-11-19 Macau. Cloudflare GraphQL verified BIC 403 on `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`); PM 21:21 200 with `KaiYue-staging-mcp-auth-test/1.0`. Owner 22:27 approved the narrow `bic: false` configuration rule; operator applied 22:28:27 ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` rule `40c580d7c4f747dd838ddb380ca534af` ref `staging_mcp_bic_off`. This writer did not apply it. Zone `browser_check` remains on.

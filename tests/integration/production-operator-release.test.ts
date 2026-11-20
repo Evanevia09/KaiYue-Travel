@@ -91,6 +91,8 @@ describe("production overlay", () => {
     expect(config.vars).not.toHaveProperty("ADMIN_STAGING_TEST_PASSWORD_MIN");
     expect(config.vars).not.toHaveProperty("NOTIFY_ALLOWED_RECIPIENTS");
     expect(config.vars).not.toHaveProperty("NOTIFY_STAFF_TO");
+    expect(config.vars).not.toHaveProperty("NOTIFY_FROM_EMAIL");
+    expect(config.vars).not.toHaveProperty("NOTIFY_FROM_NAME");
     expect(config.send_email).toBeUndefined();
     for (const forbidden of [stagingD1, obsoleteD1, "@", "kaiyue-offers-staging"]) {
       expect(JSON.stringify(config), forbidden).not.toContain(forbidden);

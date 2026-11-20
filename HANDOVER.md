@@ -11,7 +11,8 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Live mobile Playwright:** **PASS** 2/2 (390×844 + 320×844, EN/PT/zh-Hant home + Contact). No challenge. QR intrinsic 774×784 in square `object-fit:contain` frame. No horizontal overflow / header overlap / blocked booking controls. Spec `tests/e2e/staging-mobile-contact.spec.ts` with `LIVE_STAGING_E2E=1`. Screenshots `/opt/cursor/artifacts/kaiyue-staging-mobile-20261120/`.
 - **Production (unchanged):** `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`; live overlay WhatsApp still `+85328338882`; no staging knobs; mail off (no `EMAIL` binding).
 - **Prepared, not merged to traffic:** production overlay WhatsApp `+85363128081` on this docs branch. Staging knobs stay out. `production.yml` fail-closed. Branded email **code** can promote with mail remaining off.
-- **PM gates before promote:** desktop browser QA done (PM). Cloud mobile Playwright done. Remaining: all 10 MCP tools; booking→quote actual inbox. Owner t308u–t311u is production auth. PR #58 HOLD.
+- **Independent reviews:** overlay vs `04d98ae0` and vs-`main` `ff119f2c` both **Approve with nits**. No overlay leak. CodeRabbit CLI unauthenticated (not used). PR #58 still HOLD pending 10-tool + quote inbox.
+- **PM gates before promote:** desktop browser QA done (PM). Cloud mobile Playwright done. Remaining: all 10 MCP tools; booking→quote actual inbox. Owner t308u–t311u is production auth.
 - **Held:** PRs #51/#52/#53 OPEN. No OAuth revival. No production merge/deploy this run.
 - **Record:** `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`
 

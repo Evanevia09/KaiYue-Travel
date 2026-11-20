@@ -252,14 +252,20 @@ Cloudflare Email Sending Domains API from this account token returned 10001 auth
 
 ## 10. Independent review status and protected main route
 
-| Item | Status |
-| --- | --- |
-| PR #58 | https://github.com/Evanevia09/KaiYue-Travel/pull/58 head `c7d51192` (plus this mobile-evidence commit). **HOLD — do not merge.** |
-| GitHub CI | check run success on `c7d51192` (green packet ≠ review) |
-| CodeRabbit CLI | 0.9.6 present; `automatic_login_failed` / `not_authenticated` (localhost callback). Not a completed review. |
-| Cursor `code-reviewer` | spawned for overlay vs `04d98ae0` (`bc-afb73a44`); do not treat as complete until that return is recorded |
-| Writer overlay check (not independent) | production `wrangler.jsonc` vars are only ENVIRONMENT, PUBLIC_SITE_URL, BUSINESS_TIMEZONE, BOOKING_NOTICE_HOURS, WHATSAPP `+85363128081`, DEV_ADMIN_BYPASS, NOTIFICATIONS_ENABLED false. No MCP_STAGING_DIRECT_WRITES, STAGING_QUOTE_EMAIL_ENABLED, ADMIN_EMAILS, ADMIN_STAGING_TEST_PASSWORD_MIN, NOTIFY_*, send_email. Test `production-operator-release.test.ts` asserts the same set. |
-| vs-`main` `ff119f2c` | 12 unique stage commits listed in §5 plus this overlay/docs branch. Held PRs #51/#52/#53 are **not** in that range. |
+Both Cursor `code-reviewer` passes completed. CodeRabbit CLI 0.9.6 remained unauthenticated (`automatic_login_failed`; localhost callback timed out) and did **not** review. GitHub CI green is not the review. Heads reviewed: overlay/docs `c7d5119` (mobile evidence `534ebfe` is docs/e2e only).
+
+| Review | Range | Verdict |
+| --- | --- | --- |
+| PR #58 overlay | `04d98ae0` … `c7d5119` | **Approve with nits** — no Critical, no Warning, no overlay leak |
+| vs-`main` production candidate | `ff119f2c` … `c7d5119` (129 files) | **Approve with nits** — no blockers for upload of `deploy/production/wrangler.jsonc` only |
+
+Nits accepted, not blockers: changelog heading still labeled agent-login `(unmerged)` (fixed in this follow-up); overlay test denylist now also names `NOTIFY_FROM_EMAIL` / `NOTIFY_FROM_NAME`; historical `docs/records/wrangler.production-artifact.jsonc` still has old WA — **do not upload that artifact**.
+
+Operator warnings (procedure, not overlay leaks):
+
+- Build production with `PUBLIC_SITE_URL=https://kaiyuemacau.com`. `/plugin` identity is build-time `site`, not live Host. Do not reuse a staging `dist`.
+- Production marketing will serve `/plugin` plaintext with `connection: null` (robots Disallow + noindex already set).
+- Production-admin behavior that **does** go live with this code: 3-fail/5-min lockout; booking `approved`/`confirmed`/`denied` mapped to enquiry/cancelled + audit; status PATCH `expectedUpdatedAt` 409.
 
 **Protected main promotion (after all remaining gates PASS):** open a normal GitHub pull request `official-staging` → `main` (precedent PR #45 / merge `ff119f2c`). Do not force-push `main`, do not use an unprotected fast-forward bypass, do not skip the PR record. Owner t308u–t311u is production authority, not peer self-approval. `.github/workflows/production.yml` stays fail-closed / unconnected. After main merge: operator `versions upload` of **only** `deploy/production/wrangler.jsonc` (build with `PUBLIC_SITE_URL=https://kaiyuemacau.com`), candidate-view the inactive version, then `versions deploy VERSION@100%`. Rollback live production version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100%. No new migration in this candidate.
 
@@ -269,5 +275,5 @@ Cloudflare Email Sending Domains API from this account token returned 10001 auth
 - PR #58 and production remain **unmerged / not uploaded**.
 - Live production still serves old WhatsApp until the operator upload.
 - Production mail still off; enabling it is a separate reviewed gap with an owner-chosen staff inbox.
-- Independent CodeRabbit review not completed (CLI unauthenticated). Cursor reviewer in flight.
+- Independent overlay + vs-main reviews: **Approve with nits**. CodeRabbit CLI still unauthenticated (not a completed CodeRabbit review).
 - Placeholder `wechat-qr.svg` unused. Not `user_accepted` / not production `released`.
