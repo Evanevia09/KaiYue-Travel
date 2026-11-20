@@ -87,6 +87,8 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     tourGuideYes: "Requested",
     tourGuideNo: "Not requested",
     phone: "WhatsApp number",
+    name: "Name",
+    email: "Email",
     message: "Message",
   },
   pt: {
@@ -107,6 +109,8 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     tourGuideYes: "Pedido",
     tourGuideNo: "Não pedido",
     phone: "Número de WhatsApp",
+    name: "Nome",
+    email: "Email",
     message: "Mensagem",
   },
   "zh-Hant": {
@@ -127,6 +131,8 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     tourGuideYes: "需要",
     tourGuideNo: "不需要",
     phone: "WhatsApp 號碼",
+    name: "姓名",
+    email: "電郵",
     message: "備註",
   },
 };
@@ -432,9 +438,11 @@ export async function createBooking(
               }
             : {}),
           details: [
-            { label: "Name", value: parsed.data.contactName ?? "" },
-            { label: "Email", value: parsed.data.email ?? "" },
-            { label: "Phone", value: parsed.data.phoneDisplay ?? "Not provided" },
+            ...(parsed.data.contactName ? [{ label: "Name", value: parsed.data.contactName }] : []),
+            ...(parsed.data.email ? [{ label: "Email", value: parsed.data.email }] : []),
+            ...(parsed.data.phoneDisplay
+              ? [{ label: "Phone", value: parsed.data.phoneDisplay }]
+              : []),
             { label: "Pickup", value: parsed.data.pickupLocation },
             {
               label: "Destination",
@@ -482,9 +490,11 @@ export async function createBooking(
 
   const body = bookingToPublic(row);
   if (parsed.data.communicationChannel === "whatsapp") {
-    const number = (env.WHATSAPP_NUMBER || "+85328338882").replace(/\D/g, "");
+    const number = (env.WHATSAPP_NUMBER || "+85363128081").replace(/\D/g, "");
     const locale = publicLocale(parsed.data.locale);
     const label = whatsappLabels[locale];
+    const timeTag = locale === "pt" ? "pt-PT" : locale === "zh-Hant" ? "zh-Hant" : "en-GB";
+    const timezone = businessTimezone(env);
     const service = whatsappServiceName(
       locale,
       parsed.data.serviceType,
@@ -500,8 +510,10 @@ export async function createBooking(
         : parsed.data.tourPackageTitle
           ? [`${label.package}: ${parsed.data.tourPackageTitle}`]
           : []),
-      `${label.pickup}: ${parsed.data.pickupAt}`,
-      ...(parsed.data.returnAt ? [`${label.return}: ${parsed.data.returnAt}`] : []),
+      `${label.pickup}: ${formatPickup(parsed.data.pickupAt, timeTag, timezone)}`,
+      ...(parsed.data.returnAt
+        ? [`${label.return}: ${formatPickup(parsed.data.returnAt, timeTag, timezone)}`]
+        : []),
       ...((
         parsed.data.serviceType === "city_tour"
           ? parsed.data.tourDurationHours
@@ -527,6 +539,8 @@ export async function createBooking(
       ...(parsed.data.handCarryCount != null
         ? [`${label.handCarry}: ${parsed.data.handCarryCount}`]
         : []),
+      ...(parsed.data.contactName ? [`${label.name}: ${parsed.data.contactName}`] : []),
+      ...(parsed.data.email ? [`${label.email}: ${parsed.data.email}`] : []),
       ...(parsed.data.phoneDisplay ? [`${label.phone}: ${parsed.data.phoneDisplay}`] : []),
       ...(parsed.data.message ? [`${label.message}: ${parsed.data.message}`] : []),
     ];

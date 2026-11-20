@@ -15,7 +15,7 @@ export const stagingMcpAuthInstructions = [
   "A secure in-chat form is also valid. Do not visit /login or /admin/agent-connect, and do not put passwords in URLs.",
   `Identify the client honestly with User-Agent ${STAGING_MCP_USER_AGENT} (or ClientName/version). Do not impersonate a browser.`,
   `Use the returned token as the Streamable HTTP bearer token for ${STAGING_MCP_TOKEN_SECONDS} seconds.`,
-  "The connected agent keeps that account's normal permissions. Write tools still need browser approval.",
+  "The connected agent keeps that account's normal permissions. On this staging Worker, write tools run immediately and do not wait for a browser review ticket.",
 ].join(" ");
 
 export function stagingMcpConnection() {
@@ -26,6 +26,7 @@ export function stagingMcpConnection() {
     userAgent: STAGING_MCP_USER_AGENT,
     tokenLifetimeSeconds: STAGING_MCP_TOKEN_SECONDS,
     authentication: stagingMcpAuthInstructions,
+    writeApproval: "none" as const,
     failures: STAGING_MCP_FAILURES,
   };
 }

@@ -11,6 +11,7 @@ export const site = {
     "Explore private chauffeur services across Macau, Mainland China, and Hong Kong for airport transfers, local rides, Macau city tours, and chauffeur hire by the hour. Choose the journey that suits your plans.",
   url: "https://example.invalid",
   phone: "+853 2833 8882",
+  whatsapp: "+853 6312 8081",
   fax: "+853 2833 8885",
   businessPhones: ["+853 6366 6665", "+853 6654 8888", "+853 6588 9999"],
   addressLines: [

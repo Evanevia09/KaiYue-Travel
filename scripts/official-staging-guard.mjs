@@ -115,6 +115,14 @@ check(
     "overlay STAGING_QUOTE_EMAIL_ENABLED must be the literal string false or true",
   );
   check(
+    vars.MCP_STAGING_DIRECT_WRITES === "true",
+    "overlay MCP_STAGING_DIRECT_WRITES must be the literal string true",
+  );
+  check(
+    vars.WHATSAPP_NUMBER === "+85363128081",
+    "overlay WHATSAPP_NUMBER must be the owner WhatsApp enquiry number",
+  );
+  check(
     approvedSenders.includes(vars.NOTIFY_FROM_EMAIL),
     "overlay NOTIFY_FROM_EMAIL must be the approved sender",
   );

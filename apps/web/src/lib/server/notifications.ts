@@ -8,6 +8,7 @@ import {
   type MailPolicy,
 } from "./notification-policy.ts";
 import {
+  emailLogoUrl,
   renderCustomerAck,
   renderStaffMessage,
   type DetailRow,
@@ -108,12 +109,13 @@ export async function sendNotifications(
     return policy.state;
   }
 
+  const brand = { logoUrl: emailLogoUrl(env.PUBLIC_SITE_URL) };
   const staff = await deliver(
     policy,
     input,
     "staff",
     policy.staffTo,
-    renderStaffMessage(policy.site, input),
+    renderStaffMessage(policy.site, input, brand),
     normalizeAddress(input.replyTo) ?? undefined,
   );
 
@@ -125,16 +127,20 @@ export async function sendNotifications(
           input,
           "customer",
           customerEmail,
-          renderCustomerAck(policy.site, {
-            kind: input.kind,
-            reference: input.reference,
-            locale: input.customer.locale,
-            name: input.customer.name,
-            serviceType: input.customer.serviceType,
-            pickupAt: input.customer.pickupAt,
-            timezone: businessTimezone(env),
-            siteUrl: new URL(env.PUBLIC_SITE_URL!).origin.replace(/^https:\/\//, ""),
-          }),
+          renderCustomerAck(
+            policy.site,
+            {
+              kind: input.kind,
+              reference: input.reference,
+              locale: input.customer.locale,
+              name: input.customer.name,
+              serviceType: input.customer.serviceType,
+              pickupAt: input.customer.pickupAt,
+              timezone: businessTimezone(env),
+              siteUrl: new URL(env.PUBLIC_SITE_URL!).origin.replace(/^https:\/\//, ""),
+            },
+            brand,
+          ),
         )
       : "skipped";
 

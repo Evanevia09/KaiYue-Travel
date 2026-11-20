@@ -1,5 +1,7 @@
 # Kai Yue Travel — Project State
 
+**2026-11-19 combined staging candidate (unmerged):** One PR against `official-staging` `01cd9576eb75428d7f77ae8feecbbf16d7b3f140`: (1) server-owned staging MCP direct writes (`MCP_STAGING_DIRECT_WRITES=true` + admin-staging host + staging site; no per-action browser ticket; production fail-closed); (2) branded HTML email shell on the real quote/staff/ack send path; (3) WhatsApp enquiry `+85363128081` with office tel `+85328338882` unchanged; (4) owner WeChat QR JPEG SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc` on Contact and footer. Premerge Evan test email is PM-owned via Cloudflare REST; this writer did not send mail, merge, or deploy. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
+
 **2026-11-19 agent login / plugin plaintext (unmerged):** `/plugin` is `text/plain` agent instructions. Honest application `User-Agent` required; BIC blocked `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`). Owner approved a narrow staging-admin MCP `bic: false` configuration rule 22:27; operator applied it 22:28:27 (ruleset `a8eec7c4…`, rule `40c580d7…`, ref `staging_mcp_bic_off`). That is operator config, not this PR. Hosted fresh-testbot E2E not verified. Record: `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`.
 
 **2026-11-19 MCP password rate limit (merged PR #55):** Squash `458fe75adb52f5580e38485725fc26726d7dc4ee`. After three failed staff password sign-ins, further attempts wait five minutes. Durable D1 lock on hashed account and `CF-Connecting-IP`. `/login` shows generic wait copy on `429`. Wrong/unknown/disabled/unprovisioned share one generic `401`. Not `user_accepted`. Record: `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`.
@@ -195,7 +197,7 @@ Promote record (2026-10-30, already on `main` as `9521609`): PR 17 merged. Worke
 
 Admin zh-Hant follow-up (2026-10-17, now in the promote): after live deploy, log in only on a preview/staging host with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment). Do not use production `/admin` until Cloudflare Access is configured.
 
-WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
+WeChat QR next action (2026-11-19): owner JPEG is on the unmerged combined staging PR (`apps/web/public/images/wechat-qr.jpg`, original bytes). After authorized staging deploy, review Contact and footer in EN/pt/zh-Hant at mobile and desktop widths. Do not invent a WeChat ID. Do not merge to `main`. Placeholder SVG remains unused in `public/images`.
 
 Special Offers next action (2026-10-16): review the hero, package pages, and enquiry modal on this branch’s Workers preview. Cancel the TEST offer enquiry after checks. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
@@ -1113,6 +1115,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
 - Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+
+### 2026-11-19 — Combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (unmerged)
+
+- Changed: Official-staging overlay `MCP_STAGING_DIRECT_WRITES=true` lets authenticated staging MCP write tools skip browser-review tickets; production/default stay ticketed/fail-closed. Shared branded HTML+text email shell (green/gold, existing PNG logo) on quote send plus staff notices and localized customer acks. WhatsApp enquiry links use `+85363128081`; office tel stays `+85328338882`. Owner WeChat QR JPEG embedded on Contact and footer; coming-soon overlay removed.
+- Decision/evidence: Owner t307u 19 Nov 23:34 Macau (combine into one staging merge); design approved 23:29. Task `kaiyue-mcp-branded-email-combined-20261119`. Base `01cd9576`. No production/`main`. No PRs #51/#52/#53.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 346/346; plugin 9/9; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` of the changed diff vs `01cd9576`: Approve with nits (logo ratio applied). QR SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc`. CodeRabbit CLI auth did not complete. GitHub CI is not a code review.
+- Not verified or follow-up: merge; deploy; PM premerge REST email to Evan; live staging MCP/WhatsApp/QR/browser pass. Production not authorized.
 
 ### 2026-11-19 — Agent login 1010 + plugin plaintext (unmerged)
 

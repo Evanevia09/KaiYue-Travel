@@ -391,3 +391,81 @@ test("MCP previews quotes and requires per-action human approval for writes", as
   assert.equal(mutations[1].body.passengerCount, 3);
   assert.equal(prompts.length, 3);
 });
+
+test("staging direct writes skip elicitation when the server approve callback returns null", async (t) => {
+  const current = {
+    ...booking,
+    pickupLocation: "Test pickup",
+    destination: "Test destination",
+    returnAt: null,
+    contactName: "Test Guest",
+    phone: "Test phone",
+    message: "Test message",
+  };
+  const mutations = [];
+  const api = {
+    async get(path) {
+      if (path.endsWith("/drivers"))
+        return { items: [{ id: "driver-1", name: "Test driver", active: true }] };
+      if (path.endsWith("/vehicles"))
+        return {
+          items: [
+            { id: "vehicle-1", makeModel: "Test vehicle", active: true, passengerCapacity: 4 },
+          ],
+        };
+      return { booking: current };
+    },
+    async patch(path, body) {
+      mutations.push({ path, body });
+      return { booking: current };
+    },
+    async post(path, body) {
+      mutations.push({ path, body });
+      return { ...body, status: "submitted" };
+    },
+  };
+  const server = createServer(api, { approve: async () => null });
+  const client = new Client({ name: "direct-write-test", version: "1.0.0" });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  t.after(async () => {
+    await client.close();
+    await server.close();
+  });
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+  const revision = { reference: booking.reference, expectedUpdatedAt: time };
+  const call = (name, args) => client.callTool({ name, arguments: args });
+  const quote = {
+    reference: booking.reference,
+    currency: "MOP",
+    pricing: { type: "hourly", rate: "215.05", minutes: 90 },
+  };
+  assert.equal(
+    (await call("change_booking_status", { ...revision, status: "assigned" })).isError,
+    undefined,
+  );
+  assert.equal(
+    (await call("edit_booking", { ...revision, changes: { passengerCount: 3 } })).isError,
+    undefined,
+  );
+  assert.equal(
+    (await call("assign_booking", { ...revision, driverId: "driver-1", vehicleId: "vehicle-1" }))
+      .isError,
+    undefined,
+  );
+  assert.equal((await call("send_quote_email", quote)).structuredContent.status, "submitted");
+  assert.equal(
+    (
+      await call("edit_booking", {
+        ...revision,
+        expectedUpdatedAt: "2020-01-01T00:00:00Z",
+        changes: { passengerCount: 2 },
+      })
+    ).isError,
+    true,
+  );
+  assert.deepEqual(
+    mutations.map(({ path }) => path.split("/").pop()),
+    ["status", booking.reference, "assignment", "email"],
+  );
+});

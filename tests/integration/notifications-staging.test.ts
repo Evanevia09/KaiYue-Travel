@@ -136,6 +136,10 @@ describe("staging delivery through the EMAIL binding", () => {
     expect(staff!.replyTo).toBe(LOCK);
     expect(staff!.html).toContain("&lt;script&gt;");
     expect(staff!.html).not.toContain("<script>");
+    expect(staff!.html).toContain("#008c5e");
+    expect(staff!.html).toContain(
+      "https://staging.kaiyuemacau.com/images/kai-yue-travel-group-logo.png",
+    );
     expect(customer!.subject).toBe("[Staging test] We received your request KY-TEST0001");
     expect(customer!.text).toContain("This is not a booking confirmation.");
     expect(customer!.replyTo).toBeUndefined();

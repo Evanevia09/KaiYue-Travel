@@ -30,6 +30,8 @@ describe("plugin public instructions", () => {
     expect(body).toContain("error 1010");
     expect(body).toContain("cannot inject credentials into HTTP APIs");
     expect(body).toMatch(/1800 seconds/);
+    expect(body).toMatch(/do not wait for a browser review ticket/i);
+    expect(body).not.toMatch(/Write tools still need/);
     expect(body).not.toMatch(/staff@|password=/i);
   });
 
@@ -47,6 +49,8 @@ describe("plugin public instructions", () => {
     expect(connection?.tokenLifetimeSeconds).toBe(1800);
     expect(connection?.session).toContain("/api/v1/admin/mcp-session");
     expect(connection?.authentication).toMatch(/cannot inject credentials/i);
+    expect(connection?.authentication).toMatch(/do not wait for a browser review ticket/i);
+    expect(connection?.writeApproval).toBe("none");
     expect(connection?.failures.browserIntegrity).toMatch(/1010/);
   });
 
@@ -79,7 +83,10 @@ describe("plugin public instructions", () => {
     expect(txt.headers.get("content-type")).toContain("text/plain");
     expect(await index.text()).toBe(await txt.text());
     expect(capabilities.headers.get("x-robots-tag")).toContain("noindex");
-    const json = (await capabilities.json()) as { connection: { userAgent: string } };
+    const json = (await capabilities.json()) as {
+      connection: { userAgent: string; writeApproval: string };
+    };
     expect(json.connection.userAgent).toBe(STAGING_MCP_USER_AGENT);
+    expect(json.connection.writeApproval).toBe("none");
   });
 });

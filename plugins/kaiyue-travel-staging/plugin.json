@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "kaiyue-travel-staging",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Staging booking and inquiry tools using the existing staff email and password.",
   "author": {
     "name": "Kai Yue Travel"

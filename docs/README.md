@@ -55,10 +55,11 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 35. [2026-11-16 production operator release candidate (review packet)](records/2026-11-16-production-operator-release.md)
 36. [2026-11-19 staff password sign-in lockout (merged PR #55)](records/2026-11-19-mcp-password-rate-limit/REPORT.md)
 37. [2026-11-19 agent login / plugin plaintext (unmerged)](records/2026-11-19-agent-login-plugin-fix/REPORT.md)
+38. [2026-11-19 combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (unmerged)](records/2026-11-19-mcp-branded-email-combined/REPORT.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 
-WeChat QR placeholder: [2026-10-16 record](records/2026-10-16-wechat-qr-placeholder.md). Replace `apps/web/public/images/wechat-qr.svg` with the real code when supplied; do not invent a WeChat ID.
+WeChat QR: owner-supplied JPEG at `apps/web/public/images/wechat-qr.jpg` (Contact and footer). Do not invent a WeChat ID. Placeholder history: [2026-10-16 record](records/2026-10-16-wechat-qr-placeholder.md).
 
 [Agent API and Kai Yue Travel Staging plugin](13-agent-api.md) covers staff sessions, staging MCP email/password connection, and local installation.
 
