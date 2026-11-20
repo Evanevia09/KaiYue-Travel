@@ -1,8 +1,8 @@
 # Staging acknowledgement + admin notifications enable
 
 **task_id:** `kaiyue-staging-ack-admin-email-20261120`  
-**Status:** **LIVE ENABLED** on official staging. `NOTIFICATIONS_ENABLED="true"` with delivery locked to `scalingsmb@gmail.com`. Not `user_accepted`. Production **off**. Inbox proof not done (this writer did not send).  
-**As-of:** 2026-11-20 13:13 Asia/Macau (CF GET after CD)
+**Status:** **LIVE ENABLED** on official staging. `NOTIFICATIONS_ENABLED="true"` with delivery locked to `scalingsmb@gmail.com`. PM/executor staging staff+ack pair **PASS** 14:08 Macau (not this writer). Not `user_accepted`. Production **off**.  
+**As-of:** 2026-11-20 14:08 Asia/Macau
 
 Owner t320u/t321u/t322u + parent: switch on **staging** staff notifications and customer request-received acks, delivery locked to `scalingsmb@gmail.com`. Production mail stays off until tests pass. Quote widget remains SKIPPED; this writer does not send.
 
@@ -45,7 +45,7 @@ Independent review (`bc-64bb1bfc`): Approve with nits (docs nits applied). Would
 
 ## Preview messages (not submitted)
 
-Rendered with current `renderStaffMessage` / `renderCustomerAck` (`mailSite=staging`). Both destinations `scalingsmb@gmail.com`. Preview token `KY-STGACK01` is **not** a D1 row; a live POST would allocate `KY-[A-Z2-9]{8}`. Planned idempotency key `stg-ack-admin-20261120-001` unused.
+Rendered with current `renderStaffMessage` / `renderCustomerAck` (`mailSite=staging`). Both destinations `scalingsmb@gmail.com`. Preview token `KY-STGACK01` was **not** a D1 row. Executor later used planned idempotency-key `stg-ack-admin-20261120-001` (unused in D1) and received generated ref `KY-JWM6M8AT`.
 
 Files: `preview-messages.json`, `staff.html`, `staff.txt`, `customer-ack.html`, `customer-ack.txt`.
 
@@ -58,8 +58,12 @@ Customer copy is request-received, **not** a booking confirmation. Locale: en (o
 
 No form submit, no REST substitute, no new quote mail.
 
+## Inbox pair (PM/executor, 14:06–14:08 Macau)
+
+This writer did not POST or send. Parent-reported executor: one `POST` 201, reference `KY-JWM6M8AT`, `notification_state=sent`, both messages To `scalingsmb@gmail.com` only. Proof file is on the parent box (`delivery-proof.json` SHA256 `b451beea835d3b249c0ad817802bf7b4767a9f9c775584dc5e0df7d2e3638572`). Compact record: `docs/records/2026-11-20-production-mail-candidate/STAGING-PAIR-PASS.md`.
+
 ## Residuals
 
-- Inbox proof of staff+ack is a later PM send card. This writer does not send.
-- 10th `send_quote_email` still SKIPPED.
-- PR #58 / production mail PREP remains HOLD. Production mail remains **OFF**.
+- 10th MCP `send_quote_email` (`KY-PYPM8Y3E`) never called; native quote question SKIPPED/CLOSED, not waived.
+- Staging pair PASS does not authorize `all PASS`, PR #61 merge, or production upload.
+- PR #58 remains HOLD. Production mail remains **OFF**.

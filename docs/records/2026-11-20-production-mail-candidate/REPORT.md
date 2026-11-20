@@ -1,8 +1,8 @@
 # Production mail candidate vs current official-staging
 
 **task_id:** `kaiyue-production-mail-candidate-20261120`  
-**Status:** source candidate prepared. **HOLD** merge to `official-staging` / `main` and production upload. Not `user_accepted`. Live production **off**.  
-**As-of:** 2026-11-20 13:30 Asia/Macau
+**Status:** source candidate prepared. Staging ack+admin pair **PASS** (PM/executor 14:08 Macau). **HOLD** merge to `official-staging` / `main` and production upload until parent operational handoff. Not `user_accepted`. Live production **off**.  
+**As-of:** 2026-11-20 14:10 Asia/Macau
 
 Owner t324u 20 Nov 13:27 Macau: proceed until all changes can land to production. Parent: remaining email checks / promote / verify; test-email previews before actual send. Quote widget SKIPPED/CLOSED. This writer does not POST or send.
 
@@ -47,18 +47,31 @@ Rendered with current `renderStaffMessage` / `renderCustomerAck` (`mailSite=prod
 
 Files: `preview-messages.json`, `staff.html`, `staff.txt`, `customer-ack.html`, `customer-ack.txt`.
 
-## Deploy order (HOLD until parent verification PASS)
+## Staging pair PASS (PM/executor — not this writer)
 
-1. Staging ack+admin native preview + real-app inbox evidence (parent). Quote stays SKIPPED/CLOSED.
-2. Independent review vs `official-staging` `3a70cff` and `main` `ff119f2c`: **Approve with nits** (applied). Still HOLD merge until parent staging delivery evidence.
-3. Merge **this** PR to `official-staging` (not PR #58). Staging CD will re-upload with existing `"true"` lock; do not merge PR #60 alone.
-4. Reviewed PR `official-staging` → `main`.
-5. Operator upload `deploy/production/wrangler.jsonc` only (`PUBLIC_SITE_URL=https://kaiyuemacau.com` build). Candidate-view must show production D1/R2, EMAIL sender-only, Daniel staff, `NOTIFICATIONS_ENABLED=true`, no staging knobs.
-6. Independent CF GET of live `kaiyue-travel` after activation. Rollback version `5eebf7b6`.
+Record: [`STAGING-PAIR-PASS.md`](STAGING-PAIR-PASS.md). `KY-JWM6M8AT` 201 / `notification_state=sent`; both inbox messages To `scalingsmb@gmail.com` only. Parent-box `delivery-proof.json` SHA256 `b451beea835d3b249c0ad817802bf7b4767a9f9c775584dc5e0df7d2e3638572`. This writer did not POST, send, or read that path.
+
+Staging pair PASS does **not** drop the MCP quote gate, authorize `all PASS`, or authorize production merge/upload.
+
+## Remaining policy gate
+
+10th MCP `send_quote_email` for `KY-PYPM8Y3E` was **never called**. Native quote question stays **SKIPPED/CLOSED**, not waived, not re-asked.
+
+## Deploy order (HOLD until parent explicit operational handoff)
+
+Independent review vs `official-staging` `3a70cff` and `main` `ff119f2c`: **Approve with nits** (applied). PR #61 CI SUCCESS on `22ee115` is not review and is not activation.
+
+Do **not** merge this PR, do **not** merge PR #58, do **not** upload production, until parent says so after legit checks and owner decision.
+
+Then, only if handed off:
+
+1. Merge **this** PR to `official-staging` (not PR #58). Do not merge PR #60 alone.
+2. Reviewed PR `official-staging` → `main`.
+3. Operator upload `deploy/production/wrangler.jsonc` only (`PUBLIC_SITE_URL=https://kaiyuemacau.com` build). Candidate-view: production D1/R2, EMAIL sender-only, Daniel staff, `NOTIFICATIONS_ENABLED=true`, no staging knobs.
+4. Independent CF GET of live `kaiyue-travel`. Rollback version `5eebf7b6`.
 
 ## Residuals
 
 - Live production still `"false"` / no `EMAIL`.
-- Inbox proof of staging staff+ack is parent send-card work.
-- 10th `send_quote_email` SKIPPED/CLOSED.
+- MCP quote 10/10 never called; SKIPPED/CLOSED.
 - PR #58 remains OPEN unmerged as the published checkpoint; do not rebase it.

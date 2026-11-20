@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-20 production mail candidate (source true, upload HOLD):** Owner t324u: proceed until all changes can land to production. Reconciled PR #58 overlay onto current `official-staging` `3a70cff` + PR #60 docs without rebasing published `b0f9f40`. Production overlay source now has `EMAIL` sender `bookings@notify.kaiyuemacau.com`, staff `daniel@kaiyuemacau.com`, guest acks, `WHATSAPP_NUMBER=+85363128081`, `NOTIFICATIONS_ENABLED="true"`. Live production `5eebf7b6` still `"false"` / no `EMAIL`. Live staging `3b9240e7` stays `"true"` locked to `scalingsmb@gmail.com`. Quote SKIPPED/CLOSED. No send. Record: `docs/records/2026-11-20-production-mail-candidate/REPORT.md`.
+**2026-11-20 production mail candidate (source true; staging pair PASS; merge HOLD):** Owner t324u proceed-to-production. PR #61 source overlay `NOTIFICATIONS_ENABLED="true"`, staff `daniel@kaiyuemacau.com`, sender `bookings@notify.kaiyuemacau.com`. Live production `5eebf7b6` still `"false"` / no `EMAIL`. Live staging `3b9240e7` `"true"` locked to `scalingsmb@gmail.com`. PM/executor staging ack+admin pair **PASS** 14:08 (`KY-JWM6M8AT`); this writer did not POST/send. MCP quote 10/10 never called — SKIPPED/CLOSED, not waived. Staging pair PASS does not authorize `all PASS` or production merge. Record: `docs/records/2026-11-20-production-mail-candidate/STAGING-PAIR-PASS.md`.
 
 **2026-11-19 combined staging candidate (merged PR #57):** Live `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080`. Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
 
@@ -1122,16 +1122,16 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 - Changed: Production overlay copied from PR #58 onto current official-staging + PR #60 docs. `NOTIFICATIONS_ENABLED="true"` in source (owner t324u). `EMAIL` sender-only `bookings@notify.kaiyuemacau.com`; `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`; no destination lock; `WHATSAPP_NUMBER=+85363128081`. Policy pins production staff and forbids a production recipient lock; staging still refuses Daniel. Staging overlay/lock unchanged.
 - Decision/evidence: Owner t324u 20 Nov 13:27 Macau proceed-to-production; t315u staff inbox Daniel. Quote SKIPPED/CLOSED. PR #58 published branch not rebased. PR #60 not merged alone (no docs-only CD).
-- Verified: Live CF GET staging `"true"` / scalingsmb lock; production `"false"` / no EMAIL. Focused overlay + notification tests. Production branded previews from current render functions. This writer did not POST or send.
-- Verified (review): independent overlay vs `official-staging` and vs-`main` **Approve with nits** (docs nits applied). CodeRabbit CLI unauthenticated.
-- Not verified or follow-up: parent staging ack+admin inbox proof; merge; production upload. Quote SKIPPED/CLOSED.
+- Verified: Live CF GET staging `"true"` / scalingsmb lock; production `"false"` / no EMAIL. Focused overlay + notification tests. Production branded previews from current render functions. Independent overlay vs `official-staging` and vs-`main` **Approve with nits** (docs nits applied). PR #61 CI SUCCESS on `22ee115`. PM/executor staging pair PASS 14:08 Macau (`KY-JWM6M8AT`, both inbox To scalingsmb only) — parent-reported, not this writer's run. CodeRabbit CLI unauthenticated.
+- Not verified or follow-up: MCP quote 10/10 never called (SKIPPED/CLOSED, not waived). Merge of PR #61, `main`, and production upload remain HOLD until parent operational handoff. Staging pair PASS does not drop that policy gate.
 
 ### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (LIVE ENABLED)
 
 - Changed: Official-staging `NOTIFICATIONS_ENABLED` `"false"` → `"true"`. Recipient/sender lock unchanged (`scalingsmb@gmail.com` / `bookings@notify.kaiyuemacau.com`). Overlay regenerated. Candidate test now expects `"true"`. No app code rewrite. Production overlay not in this diff.
 - Decision/evidence: Owner t320u–t322u 20 Nov 13:03 Macau; parent: switch staging acks+admin notifications, keep delivery locked to `scalingsmb@gmail.com`, production stays off. Task `kaiyue-staging-ack-admin-email-20261120`. Squash-merged PR #59 `3a70cff`. PR #58 production mail PREP left unmerged.
 - Verified: Independent CF GET after CD 44679278925 SUCCESS: live `kaiyue-travel-staging` `3b9240e7` @100% / `4ffbb3e7`, `NOTIFICATIONS_ENABLED="true"`, dest/staff/allowed = scalingsmb only, sender `bookings@notify.kaiyuemacau.com`, D1 `043cd0ff`, R2 `kaiyue-offers-staging`, hosts staging + admin-staging. Production `5eebf7b6` still `"false"` / no `EMAIL`. Preview HTML/text from current `renderStaffMessage` / `renderCustomerAck`. This writer did not POST a booking or send mail.
-- Not verified or follow-up: inbox proof (PM send card); quote widget still SKIPPED.
+- Verified (later, PM/executor 14:08): staging staff+ack pair PASS `KY-JWM6M8AT`. This writer did not POST or send.
+- Not verified or follow-up: MCP quote 10/10 never called; SKIPPED/CLOSED. Production mail off.
 
 ### 2026-11-19 — Combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (unmerged)
 

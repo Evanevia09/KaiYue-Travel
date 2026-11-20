@@ -2,14 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-20 production mail candidate (source true; upload HOLD)
+## Current state — 2026-11-20 production mail candidate (staging pair PASS; merge HOLD)
 
 - **task_id:** `kaiyue-production-mail-candidate-20261120`
-- **Branch:** `cursor/prod-mail-candidate-f58e` from PR #60 `84596e8` (`official-staging` `3a70cff` + live-enable docs). PR #58 `b0f9f40` not rebased.
-- **Change:** Production overlay source `NOTIFICATIONS_ENABLED="true"`, staff `daniel@kaiyuemacau.com`, sender `bookings@notify.kaiyuemacau.com`, guest acks, WA `+85363128081`. Staging lock unchanged.
+- **Branch / PR:** `cursor/prod-mail-candidate-f58e` / [#61](https://github.com/Evanevia09/KaiYue-Travel/pull/61). PR #58 `b0f9f40` not rebased. PR #60 not merged alone.
 - **Live:** staging `3b9240e7` `"true"` / scalingsmb only. Production `5eebf7b6` `"false"` / no `EMAIL`.
-- **HOLD:** merge to official-staging/`main`, production upload/activation, until parent staging delivery evidence + owner PASS.
-- **Record:** `docs/records/2026-11-20-production-mail-candidate/REPORT.md`
+- **Staging pair:** PM/executor PASS 14:08 Macau, `KY-JWM6M8AT`, both To `scalingsmb@gmail.com`. This writer did not POST/send. Parent-box proof SHA256 `b451beea835d3b249c0ad817802bf7b4767a9f9c775584dc5e0df7d2e3638572`.
+- **Remaining policy gate:** MCP quote 10/10 never called (`KY-PYPM8Y3E`); SKIPPED/CLOSED, not waived. Pair PASS does not authorize `all PASS` or production merge.
+- **HOLD:** merge #61 / `main` / production upload until parent explicit operational handoff.
+- **Record:** `docs/records/2026-11-20-production-mail-candidate/STAGING-PAIR-PASS.md`
 
 ## Previous state — 2026-11-20 staging ack+admin notifications LIVE ENABLED
 
