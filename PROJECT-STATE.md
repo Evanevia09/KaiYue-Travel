@@ -1123,7 +1123,8 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Changed: Production overlay copied from PR #58 onto current official-staging + PR #60 docs. `NOTIFICATIONS_ENABLED="true"` in source (owner t324u). `EMAIL` sender-only `bookings@notify.kaiyuemacau.com`; `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`; no destination lock; `WHATSAPP_NUMBER=+85363128081`. Policy pins production staff and forbids a production recipient lock; staging still refuses Daniel. Staging overlay/lock unchanged.
 - Decision/evidence: Owner t324u 20 Nov 13:27 Macau proceed-to-production; t315u staff inbox Daniel. Quote SKIPPED/CLOSED. PR #58 published branch not rebased. PR #60 not merged alone (no docs-only CD).
 - Verified: Live CF GET staging `"true"` / scalingsmb lock; production `"false"` / no EMAIL. Focused overlay + notification tests. Production branded previews from current render functions. This writer did not POST or send.
-- Not verified or follow-up: independent review of this candidate; parent staging ack+admin inbox proof; merge; production upload.
+- Verified (review): independent overlay vs `official-staging` and vs-`main` **Approve with nits** (docs nits applied). CodeRabbit CLI unauthenticated.
+- Not verified or follow-up: parent staging ack+admin inbox proof; merge; production upload. Quote SKIPPED/CLOSED.
 
 ### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (LIVE ENABLED)
 

@@ -69,7 +69,7 @@ afterEach(() => {
 });
 
 describe("mocked production mail policy", () => {
-  it("keeps the overlay switch off as skipped even when EMAIL and staff are present", async () => {
+  it("skips when NOTIFICATIONS_ENABLED is false even when EMAIL and staff are present", async () => {
     const { env, send } = productionEnv({ NOTIFICATIONS_ENABLED: "false" });
     await expect(sendNotifications(env, input)).resolves.toBe("skipped");
     expect(send).not.toHaveBeenCalled();

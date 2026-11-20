@@ -2,7 +2,7 @@
 
 **task_id:** `kaiyue-staging-checkpoint-prod-prep-20261120`  
 **Status:** staging `task_verified` for merge + CD + HTTP/security smokes. Not `user_accepted`. Production **not** merged, uploaded, or activated.  
-**As-of:** 2026-11-20 11:30 Asia/Macau (production-mail PREP overlay+tests; mail-on still pending; production still HOLD)
+**As-of:** 2026-11-20 11:30 Asia/Macau (historical production-mail PREP with source `"false"`). Later candidate `docs/records/2026-11-20-production-mail-candidate/REPORT.md` sets source `"true"`; live production still HOLD.
 
 Owner t308u–t311u (20 Nov 09:47–09:48 Macau): merge to staging, then promote to production only after every stage check and the Kai Yue test-bot workflow pass. Premerge branded quote email was already satisfied (CF `message_id` `<szXFo1mWcb26PysdtxMKxdPFNvDLJ7exjMoh@notify.kaiyuemacau.com>`; Gmail `1a1f6a2b076efed7`). This writer did not send another message.
 

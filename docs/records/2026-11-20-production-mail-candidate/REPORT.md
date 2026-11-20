@@ -34,6 +34,8 @@ Copied from reviewed PR #58 with one owner-directed delta: `NOTIFICATIONS_ENABLE
 - Tests: production overlay, mocked production send path, staging isolation.
 - Staging recipient lock and live staging Worker unchanged by this PR.
 
+Independent reviews: overlay vs `official-staging` (`bc-400aa1dc`) **Approve with nits**; vs-`main` (`bc-93ca51ea`) **Approve with nits**. Docs nits applied. CodeRabbit CLI unauthenticated. CI green is not review. Merging to official-staging would not change staging destinations. Uploading the production overlay would send staff to `daniel@kaiyuemacau.com` plus the guest on email-channel bookings.
+
 ## Production previews (not submitted)
 
 Rendered with current `renderStaffMessage` / `renderCustomerAck` (`mailSite=production`). Preview token `KY-PRODMAIL01` is **not** a D1 row. Planned unused idempotency `prod-ack-admin-20261120-001`. Request-received ack, **not** a confirmation. Guest destination in the fixture is `guest.ack@example.com` (synthetic, not sent). Parent owns the staging scalingsmb ack+admin native approval pair.
@@ -48,7 +50,7 @@ Files: `preview-messages.json`, `staff.html`, `staff.txt`, `customer-ack.html`, 
 ## Deploy order (HOLD until parent verification PASS)
 
 1. Staging ack+admin native preview + real-app inbox evidence (parent). Quote stays SKIPPED/CLOSED.
-2. Independent review of this candidate vs `official-staging` `3a70cff` and `main` `ff119f2c`.
+2. Independent review vs `official-staging` `3a70cff` and `main` `ff119f2c`: **Approve with nits** (applied). Still HOLD merge until parent staging delivery evidence.
 3. Merge **this** PR to `official-staging` (not PR #58). Staging CD will re-upload with existing `"true"` lock; do not merge PR #60 alone.
 4. Reviewed PR `official-staging` → `main`.
 5. Operator upload `deploy/production/wrangler.jsonc` only (`PUBLIC_SITE_URL=https://kaiyuemacau.com` build). Candidate-view must show production D1/R2, EMAIL sender-only, Daniel staff, `NOTIFICATIONS_ENABLED=true`, no staging knobs.
