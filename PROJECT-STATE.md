@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
+**2026-11-20 staging ack+admin notifications (LIVE ENABLED):** Owner t322u / parent: staging staff notices and customer request-received acks on, lock `scalingsmb@gmail.com`. Official-staging overlay and live Worker `kaiyue-travel-staging` `3b9240e7` @100% / `4ffbb3e7`: `NOTIFICATIONS_ENABLED="true"`. Destinations/staff/allowed still `scalingsmb@gmail.com` only; sender `bookings@notify.kaiyuemacau.com`. Production `5eebf7b6` stays `"false"` with no `EMAIL`. Quote widget SKIPPED. No send from this writer. Inbox proof pending PM send card. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
 
 **2026-11-19 combined staging candidate (merged PR #57):** Live `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080`. Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
 
@@ -1118,12 +1118,12 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
 - Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
 
-### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (HOLD until CD)
+### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (LIVE ENABLED)
 
 - Changed: Official-staging `NOTIFICATIONS_ENABLED` `"false"` → `"true"`. Recipient/sender lock unchanged (`scalingsmb@gmail.com` / `bookings@notify.kaiyuemacau.com`). Overlay regenerated. Candidate test now expects `"true"`. No app code rewrite. Production overlay not in this diff.
-- Decision/evidence: Owner t320u–t322u 20 Nov 13:03 Macau; parent: switch staging acks+admin notifications, keep delivery locked to `scalingsmb@gmail.com`, production stays off. Task `kaiyue-staging-ack-admin-email-20261120`. Branch from `04d98ae0`. PR #58 production mail PREP left unmerged.
-- Verified: Fresh CF GET lock proof (staging dest/staff/allowed = scalingsmb only; production mail off). Overlay `--check`. Focused official-staging tests. Preview HTML/text from current `renderStaffMessage` / `renderCustomerAck`. This writer did not POST a booking or send mail.
-- Not verified or follow-up: live Worker still `"false"` until merge+CD; inbox proof; quote widget still SKIPPED.
+- Decision/evidence: Owner t320u–t322u 20 Nov 13:03 Macau; parent: switch staging acks+admin notifications, keep delivery locked to `scalingsmb@gmail.com`, production stays off. Task `kaiyue-staging-ack-admin-email-20261120`. Squash-merged PR #59 `3a70cff`. PR #58 production mail PREP left unmerged.
+- Verified: Independent CF GET after CD 44679278925 SUCCESS: live `kaiyue-travel-staging` `3b9240e7` @100% / `4ffbb3e7`, `NOTIFICATIONS_ENABLED="true"`, dest/staff/allowed = scalingsmb only, sender `bookings@notify.kaiyuemacau.com`, D1 `043cd0ff`, R2 `kaiyue-offers-staging`, hosts staging + admin-staging. Production `5eebf7b6` still `"false"` / no `EMAIL`. Preview HTML/text from current `renderStaffMessage` / `renderCustomerAck`. This writer did not POST a booking or send mail.
+- Not verified or follow-up: inbox proof (PM send card); quote widget still SKIPPED.
 
 ### 2026-11-19 — Combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (unmerged)
 
