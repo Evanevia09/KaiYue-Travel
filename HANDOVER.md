@@ -2,12 +2,23 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-20 staging ack+admin notifications overlay on
+## Current state — 2026-11-20 production mail candidate (staging pair PASS; merge HOLD)
+
+- **task_id:** `kaiyue-production-mail-candidate-20261120`
+- **Branch / PR:** `cursor/prod-mail-candidate-f58e` / [#61](https://github.com/Evanevia09/KaiYue-Travel/pull/61). PR #58 `b0f9f40` not rebased. PR #60 not merged alone.
+- **Live:** staging `3b9240e7` `"true"` / scalingsmb only. Production `5eebf7b6` `"false"` / no `EMAIL`.
+- **Staging pair:** PM/executor PASS 14:08 Macau, `KY-JWM6M8AT`, both To `scalingsmb@gmail.com`. This writer did not POST/send. Parent-box proof SHA256 `b451beea835d3b249c0ad817802bf7b4767a9f9c775584dc5e0df7d2e3638572`.
+- **Remaining policy gate:** MCP quote 10/10 never called (`KY-PYPM8Y3E`); SKIPPED/CLOSED, not waived. Pair PASS does not authorize `all PASS` or production merge.
+- **HOLD:** merge #61 / `main` / production upload until parent explicit operational handoff.
+- **Record:** `docs/records/2026-11-20-production-mail-candidate/STAGING-PAIR-PASS.md`
+
+## Previous state — 2026-11-20 staging ack+admin notifications LIVE ENABLED
 
 - **task_id:** `kaiyue-staging-ack-admin-email-20261120`
-- **Branch:** `cursor/staging-ack-admin-email-f58e` from live `official-staging` `04d98ae0`. PR #58 `b0f9f40` left unmerged (production mail PREP).
-- **Change:** Official-staging overlay `NOTIFICATIONS_ENABLED="true"`. Lock stays `scalingsmb@gmail.com`. Production stays off.
-- **Not done until CD:** live Worker still `"false"`. No booking POST. No mail send. Quote widget SKIPPED.
+- **Merged:** PR #59 squash `3a70cffca8ff6a8cc4b0a6d4958db7375c7d2fd2` on `official-staging`. CD [44679278925](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44679278925) SUCCESS.
+- **Live:** Worker `kaiyue-travel-staging` `3b9240e7-2f67-408c-a16c-92fa9645974d` @100% / deployment `4ffbb3e7-9a10-40b0-8cac-594a48db509a`. `NOTIFICATIONS_ENABLED="true"`. Lock `scalingsmb@gmail.com` (staff + allowed + EMAIL dest). Sender `bookings@notify.kaiyuemacau.com`. D1 `043cd0ff`, R2 `kaiyue-offers-staging`.
+- **Production:** `kaiyue-travel` `5eebf7b6` still `"false"`, no `EMAIL`. PR #58 `b0f9f40` unmerged.
+- **Not done:** booking POST / mail send / inbox proof (PM send card). Quote widget SKIPPED.
 - **Record:** `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`
 
 ## Previous state — 2026-11-19 combined staging candidate (merged PR #57)

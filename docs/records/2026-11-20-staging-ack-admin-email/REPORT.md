@@ -1,8 +1,8 @@
 # Staging acknowledgement + admin notifications enable
 
 **task_id:** `kaiyue-staging-ack-admin-email-20261120`  
-**Status:** source overlay switch prepared; live `NOTIFICATIONS_ENABLED` still `"false"` until official-staging CD. Not `user_accepted`. Production **off**.  
-**As-of:** 2026-11-20 13:10 Asia/Macau
+**Status:** **LIVE ENABLED** on official staging. `NOTIFICATIONS_ENABLED="true"` with delivery locked to `scalingsmb@gmail.com`. PM/executor staging staff+ack pair **PASS** 14:08 Macau (not this writer). Not `user_accepted`. Production **off**.  
+**As-of:** 2026-11-20 14:08 Asia/Macau
 
 Owner t320u/t321u/t322u + parent: switch on **staging** staff notifications and customer request-received acks, delivery locked to `scalingsmb@gmail.com`. Production mail stays off until tests pass. Quote widget remains SKIPPED; this writer does not send.
 
@@ -11,40 +11,41 @@ Owner t320u/t321u/t322u + parent: switch on **staging** staff notifications and 
 | Item | Value |
 | --- | --- |
 | Writer | this agent only (`bc-efa1f054` RUNNING). No other RUNNING writers. |
-| PR #58 checkpoint | `b0f9f4016621db0e390785847e1bac99270575ab` clean, left unmerged (production mail PREP). Not included here. |
-| Base | `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080` |
-| Branch | `cursor/staging-ack-admin-email-f58e` |
+| PR #59 | squash-merged `3a70cffca8ff6a8cc4b0a6d4958db7375c7d2fd2` into `official-staging` (head was `e3fd2d1a768c59fb62311c92350383b0c959169f`) |
+| CD | [official-staging.yml 44679278925](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44679278925) SUCCESS (checks → upload → verify → activate + smoke) |
+| PR #58 checkpoint | `b0f9f4016621db0e390785847e1bac99270575ab` clean, left unmerged (production mail PREP). Not included. |
 | Held | PRs #51/#52/#53 OPEN. OAuth not revived. Production Worker untouched. |
 
-## Fresh lock proof (CF GET 2026-11-20T05:05Z, account `33ecc`)
+## Live result (CF GET 2026-11-20T05:13Z, account `33ecc75158a1cdd23ba1a62eb70c5103`)
 
-Live Worker `kaiyue-travel-staging` version `8ac4fe0e-b90e-441a-be21-7e3cbdfef7dc` @100% / deployment `6023ba11-9c0e-4852-b321-3fc8982aa59a`.
+Live Worker `kaiyue-travel-staging` version `3b9240e7-2f67-408c-a16c-92fa9645974d` @100% / deployment `4ffbb3e7-9a10-40b0-8cac-594a48db509a` (created 2026-11-20T05:13:26Z). Hosts `staging.kaiyuemacau.com` and `admin-staging.kaiyuemacau.com`.
 
 | Knob | Live value |
 | --- | --- |
 | `PUBLIC_SITE_URL` | `https://staging.kaiyuemacau.com` |
-| `NOTIFICATIONS_ENABLED` | `"false"` (before this CD) |
+| `NOTIFICATIONS_ENABLED` | **`"true"`** |
 | `NOTIFY_STAFF_TO` | `scalingsmb@gmail.com` |
 | `NOTIFY_ALLOWED_RECIPIENTS` | `scalingsmb@gmail.com` |
 | `NOTIFY_FROM_EMAIL` | `bookings@notify.kaiyuemacau.com` |
 | `EMAIL.allowed_destination_addresses` | `["scalingsmb@gmail.com"]` only |
 | `EMAIL.allowed_sender_addresses` | `["bookings@notify.kaiyuemacau.com"]` |
+| Hosts | `staging.kaiyuemacau.com`, `admin-staging.kaiyuemacau.com` |
 | D1 / R2 | `043cd0ff` / `kaiyue-offers-staging` |
 | Secret names | `BETTER_AUTH_SECRET` only |
 
-Never Daniel / real customers: overlay `NOTIFY_ALLOWED_RECIPIENTS` + `EMAIL.allowed_destination_addresses` both `scalingsmb@gmail.com` only. Recipients outside that lock are skipped.
+Never Daniel / real customers from staging: overlay `NOTIFY_ALLOWED_RECIPIENTS` + `EMAIL.allowed_destination_addresses` both `scalingsmb@gmail.com` only. Recipients outside that lock are skipped.
 
-Live production `kaiyue-travel`: `NOTIFICATIONS_ENABLED=false`, **no** `EMAIL`, no `NOTIFY_*`. Unchanged by this task.
+Live production `kaiyue-travel` version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` (unchanged since 2026-11-16): `NOTIFICATIONS_ENABLED=false`, **no** `EMAIL`, no `NOTIFY_*`, D1 `06cf879d`, R2 `kaiyue-offers-production`.
 
 ## Source change (staging overlay only)
 
-`deploy/official-staging/constants.json` `vars.NOTIFICATIONS_ENABLED` `"false"` → `"true"`. Overlay regenerated. Guard already allows `"true"`. Candidate test now expects `"true"` and still pins the scalingsmb lock. No app policy rewrite. Production overlay not in this diff.
+`deploy/official-staging/constants.json` `vars.NOTIFICATIONS_ENABLED` `"false"` → `"true"`. Overlay regenerated. Guard already allows `"true"`. Candidate test expects `"true"` and still pins the scalingsmb lock. No app send-path rewrite. Production overlay not in this diff. Next official-staging CD will keep `"true"`.
 
-Next official-staging CD must not revert the switch because the committed overlay is `"true"`.
+Independent review (`bc-64bb1bfc`): Approve with nits (docs nits applied). Would not send to anyone other than `scalingsmb@gmail.com`. Production not enabled.
 
 ## Preview messages (not submitted)
 
-Rendered with current `renderStaffMessage` / `renderCustomerAck` (`mailSite=staging`). Both destinations `scalingsmb@gmail.com`. Preview token `KY-STGACK01` is **not** a D1 row; a live POST would allocate `KY-[A-Z2-9]{8}`. Planned idempotency key `stg-ack-admin-20261120-001` unused.
+Rendered with current `renderStaffMessage` / `renderCustomerAck` (`mailSite=staging`). Both destinations `scalingsmb@gmail.com`. Preview token `KY-STGACK01` was **not** a D1 row. Executor later used planned idempotency-key `stg-ack-admin-20261120-001` (unused in D1) and received generated ref `KY-JWM6M8AT`.
 
 Files: `preview-messages.json`, `staff.html`, `staff.txt`, `customer-ack.html`, `customer-ack.txt`.
 
@@ -57,9 +58,12 @@ Customer copy is request-received, **not** a booking confirmation. Locale: en (o
 
 No form submit, no REST substitute, no new quote mail.
 
+## Inbox pair (PM/executor, 14:06–14:08 Macau)
+
+This writer did not POST or send. Parent-reported executor: one `POST` 201, reference `KY-JWM6M8AT`, `notification_state=sent`, both messages To `scalingsmb@gmail.com` only. Proof file is on the parent box (`delivery-proof.json` SHA256 `b451beea835d3b249c0ad817802bf7b4767a9f9c775584dc5e0df7d2e3638572`). Compact record: `docs/records/2026-11-20-production-mail-candidate/STAGING-PAIR-PASS.md`.
+
 ## Residuals
 
-- Live enable = official-staging merge + CD SUCCESS + independent CF GET `NOTIFICATIONS_ENABLED=true` with lock unchanged.
-- Inbox proof of staff+ack is a later PM send card. This writer does not send.
-- 10th `send_quote_email` still SKIPPED.
-- PR #58 / production mail PREP remains HOLD.
+- 10th MCP `send_quote_email` (`KY-PYPM8Y3E`) never called; native quote question SKIPPED/CLOSED, not waived.
+- Staging pair PASS does not authorize `all PASS`, PR #61 merge, or production upload.
+- PR #58 remains HOLD. Production mail remains **OFF**.

@@ -56,7 +56,12 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 36. [2026-11-19 staff password sign-in lockout (merged PR #55)](records/2026-11-19-mcp-password-rate-limit/REPORT.md)
 37. [2026-11-19 agent login / plugin plaintext (unmerged)](records/2026-11-19-agent-login-plugin-fix/REPORT.md)
 38. [2026-11-19 combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (merged PR #57)](records/2026-11-19-mcp-branded-email-combined/REPORT.md)
-39. [2026-11-20 staging ack+admin notifications overlay on (production off)](records/2026-11-20-staging-ack-admin-email/REPORT.md)
+39. [2026-11-20 staging ack+admin notifications LIVE ENABLED; pair PASS 14:08 (PM/executor)](records/2026-11-20-staging-ack-admin-email/REPORT.md)
+40. [2026-11-20 staging deployed checkpoint + production promotion plan (not activated)](records/2026-11-20-staging-checkpoint-production-prep/REPORT.md)
+41. [2026-11-20 live staging mobile Playwright results (PASS)](records/2026-11-20-staging-checkpoint-production-prep/MOBILE-RESULTS.md)
+42. [2026-11-20 production mail candidate (staff `daniel@kaiyuemacau.com`; source true; upload HOLD)](records/2026-11-20-staging-checkpoint-production-prep/PRODUCTION-MAIL-AUDIT.md)
+43. [2026-11-20 production mail candidate vs current official-staging (HOLD)](records/2026-11-20-production-mail-candidate/REPORT.md)
+44. [2026-11-20 staging ack+admin pair PASS (PM/executor; not this writer)](records/2026-11-20-production-mail-candidate/STAGING-PAIR-PASS.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

@@ -1,0 +1,142 @@
+{
+  "capturedAt": "2026-11-20T02:19:10.890Z",
+  "origin": "https://staging.kaiyuemacau.com",
+  "viewports": {
+    "390x844": {
+      "url": "https://staging.kaiyuemacau.com/contact",
+      "consoleErrors": [],
+      "mixed": [],
+      "metrics": {
+        "innerWidth": 390,
+        "innerHeight": 844,
+        "scrollWidth": 390,
+        "clientWidth": 390
+      },
+      "title": "Contact · Kai Yue Travel",
+      "htmlWa": true,
+      "htmlOldWa": false,
+      "htmlOfficeTel": true,
+      "pageQr": {
+        "naturalWidth": 774,
+        "naturalHeight": 784,
+        "complete": true,
+        "src": "https://staging.kaiyuemacau.com/images/wechat-qr.jpg",
+        "alt": "WeChat QR code",
+        "objectFit": "contain",
+        "imgAspect": 1,
+        "frameAspect": 1,
+        "naturalAspect": 0.9872448979591837,
+        "ownerAspect": 0.9872448979591837,
+        "img": {
+          "w": 144,
+          "h": 144,
+          "x": 16
+        },
+        "frame": {
+          "w": 144,
+          "h": 144
+        },
+        "frameOverflow": "hidden",
+        "frameBg": "rgb(255, 255, 255)"
+      },
+      "footerQr": {
+        "naturalWidth": 774,
+        "naturalHeight": 784,
+        "objectFit": "contain",
+        "frameAspect": 1,
+        "img": {
+          "w": 136,
+          "h": 136
+        },
+        "frame": {
+          "w": 136,
+          "h": 136
+        }
+      },
+      "header": {
+        "logo": {
+          "w": 128,
+          "h": 25.02,
+          "x": 20
+        },
+        "lang": {
+          "w": 78.55,
+          "x": 239.45
+        },
+        "menu": {
+          "w": 44,
+          "x": 326
+        },
+        "chipDisplay": "none"
+      }
+    },
+    "320x844": {
+      "url": "https://staging.kaiyuemacau.com/contact",
+      "consoleErrors": [],
+      "mixed": [],
+      "metrics": {
+        "innerWidth": 320,
+        "innerHeight": 844,
+        "scrollWidth": 320,
+        "clientWidth": 320
+      },
+      "title": "Contact · Kai Yue Travel",
+      "htmlWa": true,
+      "htmlOldWa": false,
+      "htmlOfficeTel": true,
+      "pageQr": {
+        "naturalWidth": 774,
+        "naturalHeight": 784,
+        "complete": true,
+        "src": "https://staging.kaiyuemacau.com/images/wechat-qr.jpg",
+        "alt": "WeChat QR code",
+        "objectFit": "contain",
+        "imgAspect": 1,
+        "frameAspect": 1,
+        "naturalAspect": 0.9872448979591837,
+        "ownerAspect": 0.9872448979591837,
+        "img": {
+          "w": 144,
+          "h": 144,
+          "x": 16
+        },
+        "frame": {
+          "w": 144,
+          "h": 144
+        },
+        "frameOverflow": "hidden",
+        "frameBg": "rgb(255, 255, 255)"
+      },
+      "footerQr": {
+        "naturalWidth": 774,
+        "naturalHeight": 784,
+        "objectFit": "contain",
+        "frameAspect": 1,
+        "img": {
+          "w": 136,
+          "h": 136
+        },
+        "frame": {
+          "w": 136,
+          "h": 136
+        }
+      },
+      "header": {
+        "logo": {
+          "w": 128,
+          "h": 25.02,
+          "x": 20
+        },
+        "lang": {
+          "w": 78.55,
+          "x": 169.45
+        },
+        "menu": {
+          "w": 44,
+          "x": 256
+        },
+        "chipDisplay": "none"
+      }
+    }
+  }
+}
