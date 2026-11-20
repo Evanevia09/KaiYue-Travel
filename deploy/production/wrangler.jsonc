@@ -1,9 +1,12 @@
 // Production upload overlay for kaiyue-travel on account 33ecc. Not wired to any workflow.
 // Build first with PUBLIC_SITE_URL=https://kaiyuemacau.com (baked into the client build).
 // Do not upload git wrangler.jsonc. Secrets stay Worker-only and are never listed here.
-// No ACCESS_*, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, ADMIN_STAGING_TEST_PASSWORD_MIN, or
-// TEMP_ADMIN_EXPIRES_AT: live admin admits enabled admin_operator rows only, minimum 12.
+// No ACCESS_*, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, ADMIN_STAGING_TEST_PASSWORD_MIN,
+// TEMP_ADMIN_EXPIRES_AT, MCP_STAGING_DIRECT_WRITES, STAGING_QUOTE_EMAIL_ENABLED, or
+// NOTIFY_* locks: live admin admits enabled admin_operator rows only, minimum 12.
+// WHATSAPP_NUMBER is the owner enquiry number; office telephone stays site.phone.
 // NOTIFICATIONS_ENABLED stays "false" until delivery is reviewed and validated.
+// Do not add send_email here until a reviewed production mail cutover.
 {
   "name": "kaiyue-travel",
   "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
@@ -35,7 +38,7 @@
     "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
     "BUSINESS_TIMEZONE": "Asia/Macau",
     "BOOKING_NOTICE_HOURS": "24",
-    "WHATSAPP_NUMBER": "+85328338882",
+    "WHATSAPP_NUMBER": "+85363128081",
     "DEV_ADMIN_BYPASS": "false",
     "NOTIFICATIONS_ENABLED": "false",
   },

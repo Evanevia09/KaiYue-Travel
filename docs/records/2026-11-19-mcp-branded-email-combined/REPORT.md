@@ -1,8 +1,8 @@
 # Combined staging candidate — MCP direct writes + branded email / WhatsApp / WeChat QR
 
 **task_id:** `kaiyue-mcp-branded-email-combined-20261119`  
-**Status:** `task_verified` locally (review-ready, unmerged). Not `user_accepted`. Not `released`.  
-**As-of:** 2026-11-19 (UTC)
+**Status:** squash-merged to `official-staging` as `04d98ae0` and activated on staging CD (see 2026-11-20 checkpoint). Not `user_accepted`. Production not `released`.  
+**As-of:** 2026-11-20 (UTC)
 
 ## Request
 
@@ -45,7 +45,7 @@ HTTPS logo: `https://staging.kaiyuemacau.com/images/kai-yue-travel-group-logo.pn
 
 Owner number **+853 6312 8081** for header/general enquiry and form redirects. Office telephone **+853 2833 8882** unchanged. WhatsApp channel returns `wa.me/85363128081?text=` with locale labels and known submitted fields only. Email channel does not return or open WhatsApp.
 
-Staging overlay `WHATSAPP_NUMBER=+85363128081`. Production overlay remains `+85328338882`.
+Staging overlay `WHATSAPP_NUMBER=+85363128081`. Production overlay source is prepared to `+85363128081` on the 2026-11-20 checkpoint branch; live production Worker still has `+85328338882` until operator upload.
 
 ### WeChat QR
 
@@ -90,8 +90,9 @@ Artifacts: `/opt/cursor/artifacts/kaiyue-email-previews-20261119/` (HTML+text pe
 
 ## Residuals
 
-- Premerge test email not sent (PM).
-- Hosted MCP / plugin / QR / WhatsApp not verified on live staging (not deployed).
+- Premerge test email independently verified 20 Nov; do not send another preview.
+- Staging CD + public HTTP smokes recorded in `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`.
+- PM still owns authenticated browser / 10-tool bot / booking→quote inbox before production.
 - Placeholder `wechat-qr.svg` still in `public/images` (unused).
 - Unused “WeChat QR – coming soon” translation keys remain.
-- Not `user_accepted` / not `released`.
+- Not `user_accepted` / not production `released`.

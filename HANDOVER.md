@@ -2,22 +2,33 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-19 combined staging candidate (unmerged)
+## Current state — 2026-11-20 staging deployed; production promotion prepared (not executed)
+
+- **task_id:** `kaiyue-staging-checkpoint-prod-prep-20261120`
+- **Live staging:** git `04d98ae0b2e3d71f93b5db881affeabbfe327080` (PR #57 squash). CD [44656548128](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44656548128) SUCCESS 01:53:54Z. Worker `kaiyue-travel-staging` `8ac4fe0e-b90e-441a-be21-7e3cbdfef7dc` @100% / `6023ba11-9c0e-4852-b321-3fc8982aa59a`. Hosts `staging.kaiyuemacau.com` / `admin-staging.kaiyuemacau.com`.
+- **Config:** `MCP_STAGING_DIRECT_WRITES=true`, `WHATSAPP_NUMBER=+85363128081`, mail off except staging quote lock to `scalingsmb@gmail.com`.
+- **HTTP smokes:** public 200 + owner WhatsApp; public `/login` 403; admin-staging `/` 302 `/login`; marketing `/plugin` plaintext `writeApproval=none`; QR SHA256 `3877f629…`.
+- **Production (unchanged):** `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`; live overlay WhatsApp still `+85328338882`; no staging knobs; mail off.
+- **Prepared, not merged to traffic:** production overlay WhatsApp `+85363128081` on this docs branch. Staging knobs stay out. `production.yml` fail-closed.
+- **PM gates before promote:** browser UI/DevTools/basic security; all 10 MCP tools; booking→quote actual inbox. Owner t308u–t311u is production auth.
+- **Held:** PRs #51/#52/#53 OPEN. No OAuth revival. No production merge/deploy this run.
+- **Record:** `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`
+
+## Previous state — 2026-11-19 combined staging candidate (merged PR #57)
 
 - **task_id:** `kaiyue-mcp-branded-email-combined-20261119`
-- **Branch:** `cursor/mcp-staging-direct-writes-f58e` from verified `official-staging` `01cd9576eb75428d7f77ae8feecbbf16d7b3f140`
-- **Change:** One candidate: staging MCP direct writes (overlay `MCP_STAGING_DIRECT_WRITES=true`; auth/roles/lockout/idempotency/allowlist kept; production fail-closed) + branded HTML email on the real send path + WhatsApp `+85363128081` (office tel unchanged) + owner WeChat QR JPEG on Contact and footer.
-- **Premerge email:** PM sends via Cloudflare REST to `scalingsmb@gmail.com` only. Artifacts in `/opt/cursor/artifacts/kaiyue-email-previews-20261119/`. This writer did not send mail.
-- **Not done:** merge, deploy, production, PRs #51/#52/#53.
+- **Merged:** squash `04d98ae0` on `official-staging` from reviewed head `cc573298`.
+- **Change:** Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` (office tel unchanged) + owner WeChat QR JPEG.
+- **Premerge email:** satisfied (CF `<szXFo1mWcb26PysdtxMKxdPFNvDLJ7exjMoh@notify.kaiyuemacau.com>`; Gmail `1a1f6a2b076efed7`). No further preview mail.
 - **Record:** `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`
 
-## Previous state — 2026-11-19 agent login / plugin plaintext (unmerged)
+## Previous state — 2026-11-19 agent login / plugin plaintext (merged PR #56)
 
 - **task_id:** `kaiyue-agent-login-plugin-fix-20261119`
 - **Branch:** `cursor/agent-login-plugin-fix-f58e` from verified `official-staging` `458fe75adb52f5580e38485725fc26726d7dc4ee` (PR #55 squash)
 - **Change:** `/plugin` and `/plugin.txt` are `text/plain` public agent instructions (noindex). Honest `User-Agent: KaiYue-staging-mcp/1.0`. 401/429/1010 stop guidance. Verified BIC block of `Python-urllib/3.13` on rays `a5cfc9652fbb7c97` and `a5cfce47dbc574d1`.
 - **Operator config (not this PR):** owner 22:27 approved; applied 22:28:27 ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` rule `40c580d7c4f747dd838ddb380ca534af` ref `staging_mcp_bic_off`, `bic: false` on `admin-staging` MCP session/MCP paths only. Zone `browser_check` still on. Rollback: disable/delete that one rule.
-- **Not done:** merge, deploy, further Cloudflare writes, hosted `/plugin` of this PR, testbot result (authorized once, not waited on), production. Hosted workflow is not `task_verified`.
+- **Merged:** squash `01cd9576` (PR #56). Hosted `/plugin` plaintext is live on staging marketing after the 20 Nov CD. 10-tool bot remains the PM gate.
 - **Record:** `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`
 
 ## Previous state — 2026-11-19 staff password lockout (merged PR #55)

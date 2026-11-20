@@ -81,11 +81,16 @@ describe("production overlay", () => {
       PUBLIC_SITE_URL: "https://kaiyuemacau.com",
       BUSINESS_TIMEZONE: "Asia/Macau",
       BOOKING_NOTICE_HOURS: "24",
-      WHATSAPP_NUMBER: "+85328338882",
+      WHATSAPP_NUMBER: "+85363128081",
       DEV_ADMIN_BYPASS: "false",
       NOTIFICATIONS_ENABLED: "false",
     });
     expect(config.vars).not.toHaveProperty("MCP_STAGING_DIRECT_WRITES");
+    expect(config.vars).not.toHaveProperty("STAGING_QUOTE_EMAIL_ENABLED");
+    expect(config.vars).not.toHaveProperty("ADMIN_EMAILS");
+    expect(config.vars).not.toHaveProperty("ADMIN_STAGING_TEST_PASSWORD_MIN");
+    expect(config.vars).not.toHaveProperty("NOTIFY_ALLOWED_RECIPIENTS");
+    expect(config.vars).not.toHaveProperty("NOTIFY_STAFF_TO");
     expect(config.send_email).toBeUndefined();
     for (const forbidden of [stagingD1, obsoleteD1, "@", "kaiyue-offers-staging"]) {
       expect(JSON.stringify(config), forbidden).not.toContain(forbidden);
