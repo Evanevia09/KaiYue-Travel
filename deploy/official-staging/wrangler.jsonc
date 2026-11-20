@@ -50,7 +50,7 @@
     "DEV_ADMIN_BYPASS": "false",
     "ADMIN_STAGING_TEST_PASSWORD_MIN": "6",
     "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com",
-    "NOTIFICATIONS_ENABLED": "false",
+    "NOTIFICATIONS_ENABLED": "true",
     "STAGING_QUOTE_EMAIL_ENABLED": "true",
     "MCP_STAGING_DIRECT_WRITES": "true",
     "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",

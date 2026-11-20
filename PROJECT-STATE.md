@@ -1,6 +1,8 @@
 # Kai Yue Travel — Project State
 
-**2026-11-19 combined staging candidate (unmerged):** One PR against `official-staging` `01cd9576eb75428d7f77ae8feecbbf16d7b3f140`: (1) server-owned staging MCP direct writes (`MCP_STAGING_DIRECT_WRITES=true` + admin-staging host + staging site; no per-action browser ticket; production fail-closed); (2) branded HTML email shell on the real quote/staff/ack send path; (3) WhatsApp enquiry `+85363128081` with office tel `+85328338882` unchanged; (4) owner WeChat QR JPEG SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc` on Contact and footer. Premerge Evan test email is PM-owned via Cloudflare REST; this writer did not send mail, merge, or deploy. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
+**2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
+
+**2026-11-19 combined staging candidate (merged PR #57):** Live `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080`. Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
 
 **2026-11-19 agent login / plugin plaintext (unmerged):** `/plugin` is `text/plain` agent instructions. Honest application `User-Agent` required; BIC blocked `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`). Owner approved a narrow staging-admin MCP `bic: false` configuration rule 22:27; operator applied it 22:28:27 (ruleset `a8eec7c4…`, rule `40c580d7…`, ref `staging_mcp_bic_off`). That is operator config, not this PR. Hosted fresh-testbot E2E not verified. Record: `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`.
 
@@ -1115,6 +1117,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
 - Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+
+### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (HOLD until CD)
+
+- Changed: Official-staging `NOTIFICATIONS_ENABLED` `"false"` → `"true"`. Recipient/sender lock unchanged (`scalingsmb@gmail.com` / `bookings@notify.kaiyuemacau.com`). Overlay regenerated. Candidate test now expects `"true"`. No app code rewrite. Production overlay not in this diff.
+- Decision/evidence: Owner t320u–t322u 20 Nov 13:03 Macau; parent: switch staging acks+admin notifications, keep delivery locked to `scalingsmb@gmail.com`, production stays off. Task `kaiyue-staging-ack-admin-email-20261120`. Branch from `04d98ae0`. PR #58 production mail PREP left unmerged.
+- Verified: Fresh CF GET lock proof (staging dest/staff/allowed = scalingsmb only; production mail off). Overlay `--check`. Focused official-staging tests. Preview HTML/text from current `renderStaffMessage` / `renderCustomerAck`. This writer did not POST a booking or send mail.
+- Not verified or follow-up: live Worker still `"false"` until merge+CD; inbox proof; quote widget still SKIPPED.
 
 ### 2026-11-19 — Combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (unmerged)
 

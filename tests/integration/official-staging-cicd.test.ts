@@ -444,9 +444,9 @@ describe("official staging native email lock", () => {
     );
   });
 
-  it("keeps mail off and locked to the approved staging inbox in committed config", () => {
+  it("keeps ordinary mail on and locked to the approved staging inbox in committed config", () => {
     expect(constants.vars.MCP_STAGING_DIRECT_WRITES).toBe("true");
-    expect(constants.vars.NOTIFICATIONS_ENABLED).toBe("false");
+    expect(constants.vars.NOTIFICATIONS_ENABLED).toBe("true");
     expect(constants.vars.NOTIFY_ALLOWED_RECIPIENTS).toBe("scalingsmb@gmail.com");
     expect(constants.vars.NOTIFY_STAFF_TO).toBe("scalingsmb@gmail.com");
     expect(constants.vars.NOTIFY_FROM_EMAIL).toBe("bookings@notify.kaiyuemacau.com");
