@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-20 staging ack+admin notifications (LIVE ENABLED):** Owner t322u / parent: staging staff notices and customer request-received acks on, lock `scalingsmb@gmail.com`. Official-staging overlay and live Worker `kaiyue-travel-staging` `3b9240e7` @100% / `4ffbb3e7`: `NOTIFICATIONS_ENABLED="true"`. Destinations/staff/allowed still `scalingsmb@gmail.com` only; sender `bookings@notify.kaiyuemacau.com`. Production `5eebf7b6` stays `"false"` with no `EMAIL`. Quote widget SKIPPED. No send from this writer. Inbox proof pending PM send card. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
+**2026-11-20 production mail candidate (source true, upload HOLD):** Owner t324u: proceed until all changes can land to production. Reconciled PR #58 overlay onto current `official-staging` `3a70cff` + PR #60 docs without rebasing published `b0f9f40`. Production overlay source now has `EMAIL` sender `bookings@notify.kaiyuemacau.com`, staff `daniel@kaiyuemacau.com`, guest acks, `WHATSAPP_NUMBER=+85363128081`, `NOTIFICATIONS_ENABLED="true"`. Live production `5eebf7b6` still `"false"` / no `EMAIL`. Live staging `3b9240e7` stays `"true"` locked to `scalingsmb@gmail.com`. Quote SKIPPED/CLOSED. No send. Record: `docs/records/2026-11-20-production-mail-candidate/REPORT.md`.
 
 **2026-11-19 combined staging candidate (merged PR #57):** Live `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080`. Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
 
@@ -1117,6 +1117,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
 - Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+
+### 2026-11-20 — Production mail candidate (source true; upload HOLD)
+
+- Changed: Production overlay copied from PR #58 onto current official-staging + PR #60 docs. `NOTIFICATIONS_ENABLED="true"` in source (owner t324u). `EMAIL` sender-only `bookings@notify.kaiyuemacau.com`; `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`; no destination lock; `WHATSAPP_NUMBER=+85363128081`. Policy pins production staff and forbids a production recipient lock; staging still refuses Daniel. Staging overlay/lock unchanged.
+- Decision/evidence: Owner t324u 20 Nov 13:27 Macau proceed-to-production; t315u staff inbox Daniel. Quote SKIPPED/CLOSED. PR #58 published branch not rebased. PR #60 not merged alone (no docs-only CD).
+- Verified: Live CF GET staging `"true"` / scalingsmb lock; production `"false"` / no EMAIL. Focused overlay + notification tests. Production branded previews from current render functions. This writer did not POST or send.
+- Not verified or follow-up: independent review of this candidate; parent staging ack+admin inbox proof; merge; production upload.
 
 ### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (LIVE ENABLED)
 

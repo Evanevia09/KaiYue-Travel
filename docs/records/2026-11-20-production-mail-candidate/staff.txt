@@ -1,0 +1,13 @@
+A new chauffeur booking request is waiting for review.
+
+Name: Production Test Guest
+Email: guest.ack@example.com
+Phone: +853 6234 5678
+Pickup: Macau International Airport
+Destination: Synthetic Test Hotel
+Pickup time: 15 Dec 2026, 10:30 (Asia/Macau)
+Passengers: 1
+Message: Synthetic production ack+staff preview. Not a real booking.
+
+Reference: KY-PRODMAIL01
+Review it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.
