@@ -59,6 +59,8 @@ Fetch [https://staging.kaiyuemacau.com/plugin](https://staging.kaiyuemacau.com/p
 
 Staging MCP uses the existing staff or `super_admin` email and password. There is no API-key system. The connected agent keeps that account’s normal permissions. This path exists only on `admin-staging.kaiyuemacau.com`. Production hosts, including `admin.kaiyuemacau.com`, do not offer it.
 
+Production AI read/action, if needed later, uses the **existing HTTP admin API** on `admin.kaiyuemacau.com` with a normal enabled `staff` or `super_admin` account (session cookie, same permissions as the browser). That is not a new production MCP product. Do not copy `MCP_STAGING_DIRECT_WRITES`, do not attach Streamable HTTP MCP to production, do not revive held OAuth PRs #51/#52/#53, and do not run production business writes from this prep. Quote email stays staging-admin only (`sendStagingQuote`).
+
 Browser vaults, including Grok Bot Vault, fill browser fields only. They cannot inject credentials into HTTP APIs. Generic agent clients are supported; this is not Grok-exclusive.
 
 1. Map a secure secret field to environment password and email, or collect them in a secure in-chat form. Do not visit `/login` or `/admin/agent-connect`, and do not put the password in a URL.

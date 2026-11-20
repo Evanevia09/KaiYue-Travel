@@ -54,7 +54,12 @@ describe("production overlay", () => {
     assets: { directory: string; run_worker_first: unknown };
     d1_databases: Array<{ database_id: string; database_name: string }>;
     r2_buckets: Array<{ bucket_name: string }>;
-    send_email?: unknown;
+    send_email?: Array<{
+      name: string;
+      allowed_sender_addresses?: string[];
+      allowed_destination_addresses?: string[];
+      destination_address?: string;
+    }>;
     vars: Record<string, string>;
   };
 
@@ -75,7 +80,7 @@ describe("production overlay", () => {
     ]);
   });
 
-  it("keeps vars to the reviewed set with mail off and no admin, Access, or staging knobs", () => {
+  it("keeps vars to the reviewed set with mail prepared, switch off, and no staging knobs", () => {
     expect(config.vars).toEqual({
       ENVIRONMENT: "production",
       PUBLIC_SITE_URL: "https://kaiyuemacau.com",
@@ -84,18 +89,30 @@ describe("production overlay", () => {
       WHATSAPP_NUMBER: "+85363128081",
       DEV_ADMIN_BYPASS: "false",
       NOTIFICATIONS_ENABLED: "false",
+      NOTIFY_FROM_EMAIL: "bookings@notify.kaiyuemacau.com",
+      NOTIFY_FROM_NAME: "Kai Yue Travel",
+      NOTIFY_STAFF_TO: "daniel@kaiyuemacau.com",
     });
     expect(config.vars).not.toHaveProperty("MCP_STAGING_DIRECT_WRITES");
     expect(config.vars).not.toHaveProperty("STAGING_QUOTE_EMAIL_ENABLED");
     expect(config.vars).not.toHaveProperty("ADMIN_EMAILS");
     expect(config.vars).not.toHaveProperty("ADMIN_STAGING_TEST_PASSWORD_MIN");
     expect(config.vars).not.toHaveProperty("NOTIFY_ALLOWED_RECIPIENTS");
-    expect(config.vars).not.toHaveProperty("NOTIFY_STAFF_TO");
-    expect(config.vars).not.toHaveProperty("NOTIFY_FROM_EMAIL");
-    expect(config.vars).not.toHaveProperty("NOTIFY_FROM_NAME");
     expect(config.keep_vars).toBe(false);
-    expect(config.send_email).toBeUndefined();
-    for (const forbidden of [stagingD1, obsoleteD1, "@", "kaiyue-offers-staging"]) {
+    expect(config.send_email).toEqual([
+      {
+        name: "EMAIL",
+        allowed_sender_addresses: ["bookings@notify.kaiyuemacau.com"],
+      },
+    ]);
+    expect(config.send_email?.[0]).not.toHaveProperty("allowed_destination_addresses");
+    expect(config.send_email?.[0]).not.toHaveProperty("destination_address");
+    for (const forbidden of [
+      stagingD1,
+      obsoleteD1,
+      "scalingsmb@gmail.com",
+      "kaiyue-offers-staging",
+    ]) {
       expect(JSON.stringify(config), forbidden).not.toContain(forbidden);
     }
   });

@@ -39,8 +39,14 @@ No layout bug. No product CSS/HTML change.
 ## Artifacts
 
 - Spec: `tests/e2e/staging-mobile-contact.spec.ts` (skipped unless `LIVE_STAGING_E2E=1`; not in `ci.yml`)
-- Computed geometry: `geometry-390x844.json`, `geometry-320x844.json`, `mobile-geometry.json` in this folder
-- Screenshots: `/opt/cursor/artifacts/kaiyue-staging-mobile-20261120/` (12 full-page PNGs)
+- Repo geometry: `geometry-390x844.json`, `geometry-320x844.json`, `mobile-geometry.json` in this folder
+- Cloud-VM files under `/opt/cursor/artifacts/kaiyue-staging-mobile-20261120/`:
+  - `390x844-home-en.png`, `390x844-home-pt.png`, `390x844-home-zh.png`
+  - `390x844-contact-en.png`, `390x844-contact-pt.png`, `390x844-contact-zh.png`
+  - `320x844-home-en.png`, `320x844-home-pt.png`, `320x844-home-zh.png`
+  - `320x844-contact-en.png`, `320x844-contact-pt.png`, `320x844-contact-zh.png`
+  - `computed-geometry.json`, `geometry-390x844.json`, `geometry-320x844.json`, `PASS.txt`
+- Cursor URLs (encode the absolute path): `https://cursor.com/agents/bc-efa1f054-1bf7-5417-ae29-f3d6e04df58e/artifacts?path=%2Fopt%2Fcursor%2Fartifacts%2Fkaiyue-staging-mobile-20261120%2F390x844-home-en.png` (repeat per filename). Full table: `REPORT.md` section 8.1.
 
 ## Not this suite
 
