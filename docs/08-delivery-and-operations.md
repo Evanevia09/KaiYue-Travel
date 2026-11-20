@@ -63,7 +63,7 @@ A successful build or deployment is not sufficient. Verify:
 - admin authentication and authorization, lists, calendar, detail, and status update;
 - email acknowledgement/staff alert or the documented test substitute;
 - error reporting, correlation IDs, and no sensitive data in logs;
-- a small set of mobile/desktop accessibility and performance smoke checks.
+- a small set of mobile/desktop accessibility and performance smoke checks. Live staging mobile Playwright (`tests/e2e/staging-mobile-contact.spec.ts`) is opt-in (`LIVE_STAGING_E2E=1`) and hits `https://staging.kaiyuemacau.com/` read-only; it is not part of `ci.yml`.
 
 ## Rollback and recovery
 

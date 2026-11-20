@@ -2,7 +2,7 @@
 
 **task_id:** `kaiyue-staging-checkpoint-prod-prep-20261120`  
 **Status:** staging `task_verified` for merge + CD + HTTP/security smokes. Not `user_accepted`. Production **not** merged, uploaded, or activated.  
-**As-of:** 2026-11-20 10:00 Asia/Macau
+**As-of:** 2026-11-20 10:20 Asia/Macau (mobile Playwright PASS recorded; production still HOLD)
 
 Owner t308u–t311u (20 Nov 09:47–09:48 Macau): merge to staging, then promote to production only after every stage check and the Kai Yue test-bot workflow pass. Premerge branded quote email was already satisfied (CF `message_id` `<szXFo1mWcb26PysdtxMKxdPFNvDLJ7exjMoh@notify.kaiyuemacau.com>`; Gmail `1a1f6a2b076efed7`). This writer did not send another message.
 
@@ -174,6 +174,8 @@ No production customer mail, no live booking writes, no synthetic production rec
 Owner t310u/t311u. This writer does not execute the authenticated bot/UI pass.
 
 1. **Browser UI / DevTools / basic security** on deployed staging `04d98ae0` / Worker `8ac4fe0e`: public booking, Contact QR, header WhatsApp, admin-staging login page, no public admin leak, console errors.
+   - PM desktop (owner/PM, not this writer): EN/PT/zh-Hant home+contact+footers PASS. New WA `85363128081`, office TEL `+85328338882`, QR visible with quiet margin. Plugin plaintext/security no issues except expected 403s. Parent downloaded live QR byte-identical SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc`, 774×784.
+   - Cloud-VM Playwright mobile: **PASS** (section 8). Complements desktop; does not replace the 10-tool bot or quote-inbox receipt.
 2. **Kai Yue test bot — all 10 tools** via `https://staging.kaiyuemacau.com/plugin` then Streamable HTTP `https://admin-staging.kaiyuemacau.com/api/v1/admin/mcp` with honest UA: `list_bookings`, `get_booking`, `list_inquiries`, `get_inquiry`, `list_inventory`, `edit_booking`, `change_booking_status`, `assign_booking`, `draft_quote`, `send_quote_email`. Writes should run without a browser ticket. Auth/roles/lockout/allowlist still apply.
 3. **Full booking → quote → actual inbox** persistence to `scalingsmb@gmail.com` only (staging quote lock). Do not send a second premerge preview; this is the bot workflow quote.
 
@@ -189,10 +191,83 @@ Normal repo flow. `.github/workflows/production.yml` stays fail-closed. Last pro
 4. Verify live production WhatsApp is `wa.me/85363128081`, QR JPEG hash, office tel unchanged, `/plugin` plaintext with `connection: null`, MCP 404/fail-closed on production hosts, mail still off.
 5. Rollback: previous production version `5eebf7b6` @100%. Schema `0001`–`0010` already on production; this candidate adds **no** migration.
 
+## 8. Live staging mobile Playwright — PASS
+
+Cloud VM, repository Playwright (`@playwright/test` 1.64.1, Chromium 156 headless). Not the PM desktop helper, not a user computer, no DevTools connector workaround. Read-only: no booking submit, no inquiry submit, no WhatsApp click-through, no live business mutations.
+
+| Item | Value |
+| --- | --- |
+| Result | **PASS** 2/2 in 17.2s (`LIVE_STAGING_E2E=1 pnpm exec playwright test tests/e2e/staging-mobile-contact.spec.ts`) |
+| Source | git `04d98ae0b2e3d71f93b5db881affeabbfe327080` |
+| Worker | `kaiyue-travel-staging` `8ac4fe0e-b90e-441a-be21-7e3cbdfef7dc` @100% |
+| Origin | `https://staging.kaiyuemacau.com/` |
+| Viewports | 390×844 and 320×844 |
+| Locales | EN, PT, zh-Hant home via language switcher; Contact via footer Company link (localized href) then language switcher |
+| Challenge | none — pages loaded; no Cloudflare interstitial |
+| Spec | `tests/e2e/staging-mobile-contact.spec.ts` (gated; skipped unless `LIVE_STAGING_E2E=1`) |
+| Geometry | `mobile-geometry.json` (computed `getBoundingClientRect` / `naturalWidth`, not source CSS guess) |
+| Screenshots | `/opt/cursor/artifacts/kaiyue-staging-mobile-20261120/` (12 full-page PNGs) |
+
+Contact is **not** in the hamburger (desktop primary nav also has no Contact item; Company Contact lives in the footer). The suite therefore uses the live footer Contact path, which HTML rewriter localizes (`/contact` → `/pt/contact` / `/zh-Hant/contact`). Header WhatsApp chip is `display:none` below 1024px by design; `wa.me/85363128081` remains in the DOM. Office `tel:+85328338882` is in the footer. Booking controls were not overlapped by header/footer; sticky `.mobile-book` did not cover the footer QR after `scrollIntoView`.
+
+### Computed geometry (contact page, 2026-11-20T02:19:10Z)
+
+| Check | 390×844 | 320×844 |
+| --- | --- | --- |
+| `scrollWidth` vs `innerWidth` | 390 = 390 | 320 = 320 |
+| Header logo vs lang vs menu overlap | logo x20 w128; lang x239.45 w78.55; menu x326 w44 — no overlap | logo x20 w128; lang x169.45 w78.55; menu x256 w44 — no overlap (8px lang–menu gap) |
+| Header chip | `display:none` | `display:none` |
+| Page QR natural | 774×784 complete | 774×784 complete |
+| Page QR CSS box | 144×144 square, `object-fit:contain`, frame bg `#ffffff`, overflow hidden | same 144×144 |
+| Intrinsic aspect | 774/784 = 0.9872448979591837 matches owner ratio | same |
+| Footer QR | 136×136 square, contain, 774×784 natural | same |
+| Console errors | none | none |
+| Mixed content (`http://` requests) | none | none |
+| HTML `wa.me/85363128081` | present | present |
+| HTML `wa.me/85328338882` | absent | absent |
+| HTML `tel:+85328338882` | present | present |
+
+No legitimate layout bug found. No product CSS/HTML change in this addendum.
+
+## 9. Production email path (read-only; do not activate)
+
+Branded template **code** can promote with mail remaining off. Live production mail is **not** working and must not be described as ready.
+
+| Fact | Evidence |
+| --- | --- |
+| Live production Worker | `NOTIFICATIONS_ENABLED=false`; **no** `EMAIL` / `send_email` binding; `WHATSAPP_NUMBER=+85328338882` still (CF script settings GET 2026-11-20) |
+| Candidate overlay | `deploy/production/wrangler.jsonc`: mail still `false`, still no `send_email`; WA becomes `+85363128081` |
+| `sendNotifications` | returns `skipped` when `resolveMailPolicy` is not ok (`notifications.ts`) |
+| Policy enable | requires `NOTIFICATIONS_ENABLED` exact `"true"` **and** `EMAIL.send` **and** `NOTIFY_FROM_EMAIL` + `NOTIFY_STAFF_TO` (`notification-policy.ts`) |
+| Site identity | `PUBLIC_SITE_URL` host in `{kaiyuemacau.com, www.kaiyuemacau.com}` — never `ENVIRONMENT` (staging overlay uses `ENVIRONMENT=production`) |
+| `sendStagingQuote` | refuses unless `resolveHostRole === "staging-admin"` and staging-quote policy; recipient must equal `policy.staffTo` and the allowlist. **Cannot run on production hosts.** |
+| Logo URL | `emailLogoUrl(PUBLIC_SITE_URL)` → production would use `https://kaiyuemacau.com/images/kai-yue-travel-group-logo.png` |
+| Subject prefix | `[Staging test] ` only when `mailSite === "staging"` |
+| Staging lock | `scalingsmb@gmail.com` is the staging quote/recipient lock, **not** a production staff inbox |
+| `daniel@kaiyuemacau.com` | `VERIFIED_PRODUCTION_PRIMARY_EMAIL` — operator identity, **not** an approved mail destination |
+
+Minimum **future** production mail cutover (owner decision, not this run): add a reviewed `send_email` binding on Worker `kaiyue-travel`; set `NOTIFICATIONS_ENABLED=true`; set `NOTIFY_FROM_EMAIL=bookings@notify.kaiyuemacau.com` (verified sending domain already used on staging); set `NOTIFY_STAFF_TO` to an owner-chosen production staff inbox (**do not invent**; do not copy `scalingsmb@gmail.com`; do not assume `daniel@kaiyuemacau.com`). Then a dedicated mail-on review. Do not turn this on as part of the WA/QR/branded-template promote.
+
+Cloudflare Email Sending Domains API from this account token returned 10001 authenticate / 10404 no route — destination list was **not** independently enumerated here. Do not invent recipients from that gap.
+
+## 10. Independent review status and protected main route
+
+| Item | Status |
+| --- | --- |
+| PR #58 | https://github.com/Evanevia09/KaiYue-Travel/pull/58 head `c7d51192` (plus this mobile-evidence commit). **HOLD — do not merge.** |
+| GitHub CI | check run success on `c7d51192` (green packet ≠ review) |
+| CodeRabbit CLI | 0.9.6 present; `automatic_login_failed` / `not_authenticated` (localhost callback). Not a completed review. |
+| Cursor `code-reviewer` | spawned for overlay vs `04d98ae0` (`bc-afb73a44`); do not treat as complete until that return is recorded |
+| Writer overlay check (not independent) | production `wrangler.jsonc` vars are only ENVIRONMENT, PUBLIC_SITE_URL, BUSINESS_TIMEZONE, BOOKING_NOTICE_HOURS, WHATSAPP `+85363128081`, DEV_ADMIN_BYPASS, NOTIFICATIONS_ENABLED false. No MCP_STAGING_DIRECT_WRITES, STAGING_QUOTE_EMAIL_ENABLED, ADMIN_EMAILS, ADMIN_STAGING_TEST_PASSWORD_MIN, NOTIFY_*, send_email. Test `production-operator-release.test.ts` asserts the same set. |
+| vs-`main` `ff119f2c` | 12 unique stage commits listed in §5 plus this overlay/docs branch. Held PRs #51/#52/#53 are **not** in that range. |
+
+**Protected main promotion (after all remaining gates PASS):** open a normal GitHub pull request `official-staging` → `main` (precedent PR #45 / merge `ff119f2c`). Do not force-push `main`, do not use an unprotected fast-forward bypass, do not skip the PR record. Owner t308u–t311u is production authority, not peer self-approval. `.github/workflows/production.yml` stays fail-closed / unconnected. After main merge: operator `versions upload` of **only** `deploy/production/wrangler.jsonc` (build with `PUBLIC_SITE_URL=https://kaiyuemacau.com`), candidate-view the inactive version, then `versions deploy VERSION@100%`. Rollback live production version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100%. No new migration in this candidate.
+
 ## Residuals
 
-- PM browser + 10-tool + booking→quote inbox not done.
-- This docs/overlay PR is **not** merged to `official-staging` in the merge run, so live staging stays `04d98ae0` / `8ac4fe0e` for those tests.
+- Kai Yue test-all-10-tools and booking→quote **actual inbox** still required before production.
+- PR #58 and production remain **unmerged / not uploaded**.
 - Live production still serves old WhatsApp until the operator upload.
-- Production mail still off; enabling it is a separate reviewed gap.
+- Production mail still off; enabling it is a separate reviewed gap with an owner-chosen staff inbox.
+- Independent CodeRabbit review not completed (CLI unauthenticated). Cursor reviewer in flight.
 - Placeholder `wechat-qr.svg` unused. Not `user_accepted` / not production `released`.

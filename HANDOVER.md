@@ -8,9 +8,10 @@ Newest first. Public-safe notes only. Do not add secrets, passwords, private hos
 - **Live staging:** git `04d98ae0b2e3d71f93b5db881affeabbfe327080` (PR #57 squash). CD [44656548128](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/44656548128) SUCCESS 01:53:54Z. Worker `kaiyue-travel-staging` `8ac4fe0e-b90e-441a-be21-7e3cbdfef7dc` @100% / `6023ba11-9c0e-4852-b321-3fc8982aa59a`. Hosts `staging.kaiyuemacau.com` / `admin-staging.kaiyuemacau.com`.
 - **Config:** `MCP_STAGING_DIRECT_WRITES=true`, `WHATSAPP_NUMBER=+85363128081`, mail off except staging quote lock to `scalingsmb@gmail.com`.
 - **HTTP smokes:** public 200 + owner WhatsApp; public `/login` 403; admin-staging `/` 302 `/login`; marketing `/plugin` plaintext `writeApproval=none`; QR SHA256 `3877f629…`.
-- **Production (unchanged):** `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`; live overlay WhatsApp still `+85328338882`; no staging knobs; mail off.
-- **Prepared, not merged to traffic:** production overlay WhatsApp `+85363128081` on this docs branch. Staging knobs stay out. `production.yml` fail-closed.
-- **PM gates before promote:** browser UI/DevTools/basic security; all 10 MCP tools; booking→quote actual inbox. Owner t308u–t311u is production auth.
+- **Live mobile Playwright:** **PASS** 2/2 (390×844 + 320×844, EN/PT/zh-Hant home + Contact). No challenge. QR intrinsic 774×784 in square `object-fit:contain` frame. No horizontal overflow / header overlap / blocked booking controls. Spec `tests/e2e/staging-mobile-contact.spec.ts` with `LIVE_STAGING_E2E=1`. Screenshots `/opt/cursor/artifacts/kaiyue-staging-mobile-20261120/`.
+- **Production (unchanged):** `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`; live overlay WhatsApp still `+85328338882`; no staging knobs; mail off (no `EMAIL` binding).
+- **Prepared, not merged to traffic:** production overlay WhatsApp `+85363128081` on this docs branch. Staging knobs stay out. `production.yml` fail-closed. Branded email **code** can promote with mail remaining off.
+- **PM gates before promote:** desktop browser QA done (PM). Cloud mobile Playwright done. Remaining: all 10 MCP tools; booking→quote actual inbox. Owner t308u–t311u is production auth. PR #58 HOLD.
 - **Held:** PRs #51/#52/#53 OPEN. No OAuth revival. No production merge/deploy this run.
 - **Record:** `docs/records/2026-11-20-staging-checkpoint-production-prep/REPORT.md`
 
