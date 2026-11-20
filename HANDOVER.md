@@ -2,7 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-19 combined staging candidate (unmerged)
+## Current state — 2026-11-20 staging ack+admin notifications overlay on
+
+- **task_id:** `kaiyue-staging-ack-admin-email-20261120`
+- **Branch:** `cursor/staging-ack-admin-email-f58e` from live `official-staging` `04d98ae0`. PR #58 `b0f9f40` left unmerged (production mail PREP).
+- **Change:** Official-staging overlay `NOTIFICATIONS_ENABLED="true"`. Lock stays `scalingsmb@gmail.com`. Production stays off.
+- **Not done until CD:** live Worker still `"false"`. No booking POST. No mail send. Quote widget SKIPPED.
+- **Record:** `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`
+
+## Previous state — 2026-11-19 combined staging candidate (merged PR #57)
 
 - **task_id:** `kaiyue-mcp-branded-email-combined-20261119`
 - **Branch:** `cursor/mcp-staging-direct-writes-f58e` from verified `official-staging` `01cd9576eb75428d7f77ae8feecbbf16d7b3f140`

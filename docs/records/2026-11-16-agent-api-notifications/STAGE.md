@@ -35,7 +35,7 @@
 ### Official staging config (generated overlay, guarded)
 
 - `send_email: [{ name: "EMAIL", allowed_destination_addresses: ["scalingsmb@gmail.com"], allowed_sender_addresses: ["bookings@notify.kaiyuemacau.com"] }]`.
-- Vars: `NOTIFICATIONS_ENABLED="false"`, `NOTIFY_FROM_EMAIL=bookings@notify.kaiyuemacau.com`, `NOTIFY_FROM_NAME=Kai Yue Travel`, `NOTIFY_STAFF_TO=scalingsmb@gmail.com`, `NOTIFY_ALLOWED_RECIPIENTS=scalingsmb@gmail.com`.
+- Vars: `NOTIFICATIONS_ENABLED="true"` (owner t322u 20 Nov 2026 staging switch; lock unchanged), `NOTIFY_FROM_EMAIL=bookings@notify.kaiyuemacau.com`, `NOTIFY_FROM_NAME=Kai Yue Travel`, `NOTIFY_STAFF_TO=scalingsmb@gmail.com`, `NOTIFY_ALLOWED_RECIPIENTS=scalingsmb@gmail.com`.
 - The guard pins the approved recipient and sender, the binding shape, and the lock vars. The candidate check requires exactly one `EMAIL` `send_email` binding and the exact lock vars. It rejects widened restrictions or a `destination_address` outside the approved set. Restriction fields may be omitted in the versions view; in that case the exact var lock is the visible layer.
 - Production `deploy/production/wrangler.jsonc` is unchanged: no `send_email`, `NOTIFICATIONS_ENABLED="false"`. A test asserts this.
 - `wrangler deploy --dry-run` (4.132.0) on the staging overlay lists `env.EMAIL (scalingsmb@gmail.com - senders: bookings@notify.kaiyuemacau.com) Send Email`.
@@ -46,11 +46,13 @@ The Wrangler 4.132 schema describes `allowed_destination_addresses` as "verified
 
 ## Send approval card (prepared, NOT sent)
 
-**Bounded staging enable:**
+**Bounded staging enable (historical card).** Owner t322u 20 Nov 2026 made the overlay `"true"` a durable staging on-switch (lock unchanged). Do not auto-revert to `"false"` after a test send unless the owner asks.
+
+Historical one-shot steps (superseded for the revert):
 1. Change only `vars.NOTIFICATIONS_ENABLED` to `"true"` in `deploy/official-staging/constants.json`, regenerate the overlay, update the committed-config test, and promote through the official-staging gates.
 2. Submit exactly one booking with the request body below to `POST https://staging.kaiyuemacau.com/api/v1/bookings` (`Origin: https://staging.kaiyuemacau.com`, a fresh `Idempotency-Key`).
 3. Read `notification_state` in admin.
-4. Set `NOTIFICATIONS_ENABLED` back to `"false"` the same way.
+4. ~~Set `NOTIFICATIONS_ENABLED` back to `"false"` the same way.~~ Not the 20 Nov owner instruction.
 
 That produces exactly two messages, both to `scalingsmb@gmail.com`. `KY-XXXXXXXX` is the reference the Worker assigns at submit. The exact `text` and `html` bodies captured from the real handler are in [`send-fixture-messages.json`](send-fixture-messages.json).
 
