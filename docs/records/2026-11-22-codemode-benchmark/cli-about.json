@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-11-22T07:22:00Z",
+  "command": "agent about --format json",
+  "cliVersion": "2026.11.22-e9042b2",
+  "latestStatus": "up_to_date",
+  "latestVersion": "2026.11.22-e9042b2",
+  "agentHost": null,
+  "model": "Auto",
+  "subscriptionTier": null,
+  "osPlatform": "linux",
+  "osArch": "x64",
+  "userEmail": null,
+  "terminalProgram": "unknown",
+  "shell": "bash",
+  "lastRequestId": null
+}

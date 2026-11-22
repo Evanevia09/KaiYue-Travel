@@ -57,6 +57,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 37. [2026-11-19 agent login / plugin plaintext (unmerged)](records/2026-11-19-agent-login-plugin-fix/REPORT.md)
 38. [2026-11-19 combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (merged PR #57)](records/2026-11-19-mcp-branded-email-combined/REPORT.md)
 39. [2026-11-20 staging ack+admin notifications overlay on (production off)](records/2026-11-20-staging-ack-admin-email/REPORT.md)
+40. [2026-11-22 application MCP Code Mode feasibility + CLI measurement STOP (unauthenticated)](records/2026-11-22-codemode-benchmark/REPORT.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.
 

@@ -1,0 +1,93 @@
+{
+  "capturedAt": "2026-11-22T07:10:00Z",
+  "source": "plugins/kaiyue-travel-staging in-memory tools/list against packages/agent-tools createServer (synthetic empty GET, no hosted call)",
+  "sdk": "@modelcontextprotocol/sdk 1.32.2 (plugin package.json pin)",
+  "toolCount": 10,
+  "instructionsChars": 1066,
+  "tools": [
+    {
+      "name": "list_bookings",
+      "descriptionChars": 140,
+      "jsonBytes": 3456,
+      "estimatedTokensCharsDiv4": 864,
+      "readOnlyHint": true,
+      "destructiveHint": false
+    },
+    {
+      "name": "get_booking",
+      "descriptionChars": 102,
+      "jsonBytes": 2904,
+      "estimatedTokensCharsDiv4": 726,
+      "readOnlyHint": true,
+      "destructiveHint": false
+    },
+    {
+      "name": "list_inquiries",
+      "descriptionChars": 81,
+      "jsonBytes": 2200,
+      "estimatedTokensCharsDiv4": 550,
+      "readOnlyHint": true,
+      "destructiveHint": false
+    },
+    {
+      "name": "get_inquiry",
+      "descriptionChars": 52,
+      "jsonBytes": 1636,
+      "estimatedTokensCharsDiv4": 409,
+      "readOnlyHint": true,
+      "destructiveHint": false
+    },
+    {
+      "name": "list_inventory",
+      "descriptionChars": 145,
+      "jsonBytes": 1128,
+      "estimatedTokensCharsDiv4": 282,
+      "readOnlyHint": true,
+      "destructiveHint": false
+    },
+    {
+      "name": "edit_booking",
+      "descriptionChars": 89,
+      "jsonBytes": 3829,
+      "estimatedTokensCharsDiv4": 958,
+      "readOnlyHint": false,
+      "destructiveHint": true
+    },
+    {
+      "name": "change_booking_status",
+      "descriptionChars": 125,
+      "jsonBytes": 2953,
+      "estimatedTokensCharsDiv4": 739,
+      "readOnlyHint": false,
+      "destructiveHint": true
+    },
+    {
+      "name": "assign_booking",
+      "descriptionChars": 126,
+      "jsonBytes": 2977,
+      "estimatedTokensCharsDiv4": 745,
+      "readOnlyHint": false,
+      "destructiveHint": true
+    },
+    {
+      "name": "draft_quote",
+      "descriptionChars": 147,
+      "jsonBytes": 1428,
+      "estimatedTokensCharsDiv4": 357,
+      "readOnlyHint": true,
+      "destructiveHint": false
+    },
+    {
+      "name": "send_quote_email",
+      "descriptionChars": 86,
+      "jsonBytes": 1358,
+      "estimatedTokensCharsDiv4": 340,
+      "readOnlyHint": false,
+      "destructiveHint": true
+    }
+  ],
+  "toolsListJsonBytes": 23890,
+  "toolsListEstimatedTokensCharsDiv4": 5973,
+  "instructionsEstimatedTokensCharsDiv4": 267,
+  "note": "estimatedTokensCharsDiv4 is a SCHEMA SIZE ESTIMATE (UTF-8 bytes/4), not a model tokenizer, not billed usage."
+}
