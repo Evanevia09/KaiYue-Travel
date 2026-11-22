@@ -2,7 +2,15 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-20 staging ack+admin notifications overlay on
+## Current state — 2026-11-22 application MCP Code Mode feasibility (no pilot)
+
+- **task_id:** `kaiyue-codemode-benchmark-20261122`
+- **Branch:** `cursor/codemode-benchmark-f58e` from `official-staging` `3a70cff`. Email/release PRs #61/#62 frozen. Held #51–#53 untouched.
+- **Finding:** Keep direct MCP. Ten-tool catalogue is the docs’ “small known set.” Do not wrap writes in `code`. No `@cloudflare/codemode` / Worker Loader in repo. Token **savings not measurable** with authorized tools (schema ESTIMATE only).
+- **Not done:** pilot implementation; hosted rollout; paid model A/B; Agent Lab queue publish (PM/Mika).
+- **Record:** `docs/records/2026-11-22-codemode-benchmark/REPORT.md`
+
+## Previous state — 2026-11-20 staging ack+admin notifications overlay on
 
 - **task_id:** `kaiyue-staging-ack-admin-email-20261120`
 - **Branch:** `cursor/staging-ack-admin-email-f58e` from live `official-staging` `04d98ae0`. PR #58 `b0f9f40` left unmerged (production mail PREP).
