@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-22 application MCP Code Mode feasibility (no pilot code):** Task `kaiyue-codemode-benchmark-20261122`. Isolated branch `cursor/codemode-benchmark-f58e` from `official-staging` `3a70cff`. Assessment only: wrap Kai Yue’s 10-tool application MCP, not Cloudflare infra MCP. Official docs + catalogue say **keep direct tools**; Code Mode not justified at this size; per-write approval cannot move to outer `code`. Schema ESTIMATE ~6k tokens (not billed). No Worker Loader / `@cloudflare/codemode` in repo. Email/release PRs #61/#62 and held #51–#53 untouched. Record: `docs/records/2026-11-22-codemode-benchmark/REPORT.md`.
+**2026-11-22 application MCP Code Mode + CLI measurement STOP:** Task `kaiyue-codemode-benchmark-20261122`. Isolated branch `cursor/codemode-benchmark-f58e` / PR #63 from `official-staging` `3a70cff`. Assessment: keep direct MCP tools; Code Mode not justified at 10 tools. Official Cursor Agent CLI installed in this cloud VM (`2026.11.22-e9042b2` from `https://cursor.com/install`). Supported `agent status --format json`: **unauthenticated**. Included-only usage **cannot be affirmed**. **Stopped before `-p`**. No CLI token baseline. App MCP still has no token counters. No Worker Loader / `@cloudflare/codemode`. Email/release PRs #61/#62 and held #51–#53 untouched. Record: `docs/records/2026-11-22-codemode-benchmark/REPORT.md` §9.
 
 **2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
 
@@ -1126,6 +1126,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Evan via Mika 22 Nov 2026 15:09 Asia/Macau. Task `kaiyue-codemode-benchmark-20261122`. First run is design/feasibility only.
 - Verified: Sole RUNNING writer `bc-efa1f054`; Agent Lab `main` `70ca2c41` read-only; Cloudflare Code Mode docs 2026-06-24 / 2026-10-27; ten-tool catalogue; sdk `1.32.2`; no `LOADER`; in-memory baseline 23890 bytes / ~5973 ESTIMATE tokens.
 - Not verified or follow-up: actual model token telemetry (unavailable); billed USD; hosted E2E; any later isolated read-only sidecar (needs parent continuation). t328u lifecycle sends are a different task.
+
+### 2026-11-22 — Cursor Agent CLI install; measurement STOP (unauthenticated)
+
+- Changed: Official CLI installed in the existing approved cloud VM (`curl https://cursor.com/install -fsS | bash` → `2026.11.22-e9042b2`). Report §9 corrects the earlier “no accessible telemetry” wording: app-level MCP still has none; documented CLI stream-json usage exists; this VM observed install/status only. Evidence: `cli-status.json`, `cli-about.json`. No application/MCP/runtime/overlay change.
+- Decision/evidence: Evan via Mika 22 Nov 2026 15:21 Asia/Macau. Install CLI, check existing sign-in, small included-use baseline; stop if a new login or paid usage is needed.
+- Verified: Installer script + docs; `agent --version` `2026.11.22-e9042b2`; `agent status --format json` `isAuthenticated: false` / `Not logged in`; `about` `subscriptionTier: null`; `CURSOR_API_KEY` unset; `--list-models` / `login` / `-p` not run.
+- Not verified or follow-up: CLI token fields (`usage`, cache, `reasoningTokens`, `duration_ms`) — blocked on missing existing CLI sign-in. Included-only usage not affirmable. No alternative credential route. Parent must supply a later signed-in included-only authorization if a `-p` probe is wanted. Email/release/held PRs untouched.
 
 ### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (HOLD until CD)
 

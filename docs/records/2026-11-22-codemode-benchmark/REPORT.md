@@ -1,7 +1,7 @@
 # Kai Yue application MCP Code Mode — feasibility / baseline (no pilot code)
 
 **task_id:** `kaiyue-codemode-benchmark-20261122`  
-**Authority:** Evan via Mika chat, 22 Nov 2026 15:09 Asia/Macau. Assessment + measurement preparation only. **No** merge, deploy, hosted rollout, production MCP, access expansion, or pilot implementation in this first run.  
+**Authority:** Evan via Mika chat, 22 Nov 2026 15:09 Asia/Macau (assessment). Follow-up 15:21 Asia/Macau: install official Cursor Agent CLI, check existing sign-in, small included-use baseline; **stop** if a new login or paid usage is needed. **No** merge, deploy, hosted rollout, production MCP, access expansion, or Code Mode pilot code.  
 **Not this task:** owner t328u (20 Nov 14:37) lifecycle test-email permission. Do not conflate.
 
 **Returns:** through PM/Mika. This writer does not publish Agent Lab queue events or write the vault.
@@ -81,7 +81,7 @@ Offline in-memory `tools/list` (synthetic empty GET; **no hosted MCP**, **no mod
 
 **Reproduce (offline):** from `plugins/kaiyue-travel-staging`, in-memory `createServer` + MCP client `listTools()` as in `server.test.mjs`. Do not label this hosted E2E.
 
-**Not captured (unavailable with authorized tools, no new credentials/paid model calls):** actual input/output/cached/reasoning tokens for staff MCP agent sessions; billed USD; hosted E2E latency; application usage totals. Cursor `run-info` / GitHub / Cloudflare docs MCP do not expose those session tokens. **No savings claim.** Marketing “99.9%” / “1 000 tokens” is **not** Kai Yue evidence.
+**Not captured in the first pass (app-level tools only):** actual input/output/cached/reasoning tokens for staff MCP agent sessions; billed USD; hosted E2E latency; application usage totals. Cursor `run-info` / GitHub / Cloudflare docs MCP do not expose those session tokens. That does **not** mean Cursor Agent CLI telemetry is absent as a product. See §9: CLI is now installed here; usage fields remain **unobserved** because supported status is unauthenticated and this run stopped before `-p`. **No savings claim.** Marketing “99.9%” / “1 000 tokens” is **not** Kai Yue evidence.
 
 ---
 
@@ -116,6 +116,103 @@ Same representative **read-only/synthetic** workflows on both arms; same model/v
 
 ---
 
-## 8. Next
+## 8. Next (superseded for measurement; still true for Code Mode code)
 
-Parent continuation after this feasibility/design gate. **No implementation plan started.** No Code Mode packages installed. No Worker Loader added. No hosted MCP change.
+Parent continuation after this feasibility/design gate. **No Code Mode implementation plan started.** No `@cloudflare/codemode` installed. No Worker Loader added. No hosted MCP change. Measurement follow-up §9 **stopped** on missing CLI sign-in.
+
+---
+
+## 9. CLI measurement follow-up — install + auth STOP (22 Nov 2026)
+
+**Authority (first-hand):** Evan, Mika newest user message 22 Nov 2026 15:21 Asia/Macau (reply to widget t1841s6860): install Cursor Agent CLI in Kai Yue’s cloud test environment, check existing sign-in, small included-use baseline; **stop** if a new login or paid usage is needed. No deployment or production changes. Isolated branch `cursor/codemode-benchmark-f58e` / PR #63. No code after-arm. No hosted Loader. No mail/quote/PII/live app writes.
+
+### 9.1 Three layers (must not be collapsed)
+
+| Layer | What it is | This run |
+| --- | --- | --- |
+| **App telemetry** | Kai Yue application MCP / Worker / D1 has no model token counters | Unchanged. Offline `tools/list` schema ESTIMATE only (§4) |
+| **Documented CLI** | Official Cursor Agent CLI `agent -p --output-format stream-json`. Result `duration_ms`. `duration_api_ms` currently **equals** `duration_ms` (never label API-only). Changelog Feb 2026: per-turn input/output/cache + `request_id`. Changelog v2026.10.28: `reasoningTokens` in per-turn and total `usage`. Output-format **reference still omits** `usage` (docs lag changelog) | Source only until a signed-in `-p` emits JSON |
+| **Observed CLI** | Official install + `--version` / `--help` / `status` / `about` in this VM | Installed **2026.11.22-e9042b2**. **`isAuthenticated`: false**. No `-p`. Usage fields **not captured** |
+
+External monotonic wall clock remains a valid separate timer. It was not started because inference did not run.
+
+### 9.2 Official install source (verified before curl)
+
+- Docs: https://cursor.com/docs/cli/installation and https://cursor.com/docs/cli/overview — `curl https://cursor.com/install -fsS | bash`
+- Installer script (fetched https://cursor.com/install): Cursor Agent Installer; linux/x64; package `https://downloads.cursor.com/lab/2026.11.22-e9042b2/linux/x64/agent-cli-package.tar.gz`; dest `~/.local/share/cursor-agent/versions/2026.11.22-e9042b2`; symlink `~/.local/bin/agent`
+- Auth check (docs): https://cursor.com/docs/cli/reference/authentication — `agent status` / `agent about`; **`agent login` not run**
+- Parameters / output-format / changelog: https://cursor.com/docs/cli/reference/parameters https://cursor.com/docs/cli/reference/output-format https://cursor.com/docs/cli/changelog
+
+No unofficial URL, npm package, or GitHub release was used.
+
+### 9.3 Observed installation / version / status
+
+| Item | Value |
+| --- | --- |
+| Install command | `curl https://cursor.com/install -fsS \| bash` (exit 0) |
+| Binary | `/home/ubuntu/.local/bin/agent` → `…/versions/2026.11.22-e9042b2/cursor-agent` |
+| `agent --version` | `2026.11.22-e9042b2` |
+| `agent about` `latestStatus` | `up_to_date` / `latestVersion` `2026.11.22-e9042b2` |
+| Default `model` in about (unsigned) | `Auto` (not used; no inference) |
+| `subscriptionTier` | `null` |
+| `userEmail` | `null` |
+| `CURSOR_API_KEY` env | **unset** (name check only; no key files read) |
+| `agent status --format json` | `status: unauthenticated`, `isAuthenticated: false`, `hasAccessToken: false`, `hasRefreshToken: false`, `message: Not logged in` |
+| Evidence files | `cli-status.json`, `cli-about.json` (no secrets) |
+
+Help confirms `-p`, `--output-format text|json|stream-json`, `--model`, `--mode ask|plan`, `status`/`about --format json`. `--list-models` / `agent models` **not run** (do not browse paid models). `agent login` **not run**. No account settings changed. On-demand **not** turned on.
+
+### 9.4 Included-usage determination — **cannot affirm → STOP**
+
+Supported observable evidence does **not** establish an existing authorized CLI sign-in, a plan tier, included remaining quota, or that a `-p` call would stay on included use without paid expansion.
+
+**Final state of this run:** no inference, no usage-schema probe, no direct-MCP CLI baseline. Owner instruction: do not ask to sign in; do not infer sign-in from this Cloud Agent session; no alternative credentials/routes.
+
+Codex CLI remains absent (`codex: command not found`) and would be a separate arm.
+
+### 9.5 Call / error / discovery count (this follow-up)
+
+| Step | Result |
+| --- | --- |
+| Official docs + installer fetch | 7 pages (install, overview, headless, authentication, parameters, output-format, `cursor.com/install` script) |
+| Context7 library resolve | failed (quota); ignored |
+| Official CLI install | 1 success |
+| `agent --version` / `--help` / `help` / `status --help` / `about --help` / `whoami --help` | 6 success |
+| `agent status --format json` | 1 success, unauthenticated |
+| `agent about --format json` | 1 success, no tier |
+| `agent -p` / `--list-models` / `login` / MCP probe | **0** (stopped) |
+| Errors | none on allowed commands |
+
+Offline in-memory MCP `tools/list` from the first pass remains the only synthetic catalogue baseline. It is **not** a CLI token baseline.
+
+### 9.6 Commands to reproduce this STOP (no inference)
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+curl https://cursor.com/install -fsS | bash
+agent --version
+agent --help
+agent status --format json
+agent about --format json
+# STOP here unless status shows authenticated AND included-only usage is observable.
+# Do not: agent login | agent --list-models | agent -p
+```
+
+If a **later** owner-authorized signed-in included-only run is approved, the intended probe (not executed) is:
+
+```bash
+# pick one already-available included model from signed-in status/about — do not browse paid catalogs
+start_ns=$(date +%s%N)
+agent -p --output-format stream-json --mode ask --model '<FIXED_INCLUDED>' --trust \
+  'Reply with the single word OK. Do not use tools.'
+end_ns=$(date +%s%N)
+# parse NDJSON type=result: duration_ms, duration_api_ms (record both; not API-only),
+# any emitted usage/input/output/cache/reasoningTokens (missing stays unavailable)
+# wall_ms=$(( (end_ns - start_ns) / 1000000 ))
+```
+
+Then a small **local trusted read-only** in-memory MCP `tools/list` arm (fixture only; no hosted MCP; no writes). **Not run.**
+
+### 9.7 What this does **not** change
+
+No deployment, production, `main`, held PRs #51–#53, email/release PRs #61/#62, Worker Loader, `@cloudflare/codemode`, mail, quote, bookings, PII, or access policy. Cloud Agent `bc-efa1f054` remains sole writer. Returns through PM/Mika; this writer does not publish Agent Lab queue/vault.

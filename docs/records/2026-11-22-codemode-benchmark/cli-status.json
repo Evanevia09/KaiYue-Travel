@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-11-22T07:22:00Z",
+  "command": "agent status --format json",
+  "status": "unauthenticated",
+  "isAuthenticated": false,
+  "hasAccessToken": false,
+  "hasRefreshToken": false,
+  "message": "Not logged in"
+}
