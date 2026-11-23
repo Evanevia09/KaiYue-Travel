@@ -57,7 +57,7 @@ Owner-only staging mail dest **preserved** (not widened, not Daniel):
 | `NOTIFY_FROM_EMAIL` | `bookings@notify.kaiyuemacau.com` |
 | `WHATSAPP_NUMBER` | `+85363128081` |
 | `MCP_STAGING_DIRECT_WRITES` | `true` (staging only) |
-| `ADMIN_EMAILS` | includes `daniel@kaiyuemacau.com` as **operator admission**, not a mail dest |
+| `ADMIN_EMAILS` | includes `daniel@kaiyuemacau.com` as **operator admission** (staging mail dest remains `scalingsmb@gmail.com`) |
 
 D1 SELECT-only (`changed_db: false`, `rows_written: 0`):
 
@@ -80,12 +80,12 @@ D1 SELECT-only (`changed_db: false`, `rows_written: 0`):
 | WhatsApp on live HTML | `+85328338882` (office). Candidate WA `+85363128081` is **not** live. |
 | WeChat JPEG | **not** on live production HTML |
 
-`daniel@kaiyuemacau.com` is `VERIFIED_PRODUCTION_PRIMARY_EMAIL` (admission). It is **not** a production mail dest.
+Live production Worker still has no `EMAIL` / no `NOTIFY_STAFF_TO` / mail off. That is **runtime**, not dest authority. Owner t315u 20 Nov 11:20 Macau: production staff inbox is **`daniel@kaiyuemacau.com`** (notification dest). Git candidate on this branch encodes that in `deploy/production/wrangler.jsonc`. Do not treat dest as OPEN. Do not re-ask.
 
 ## Next (not this VM)
 
-1. Parent BOX browser staging QA / actual send permission (dest `scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
-2. Production candidate plan (docs only): `PRODUCTION-CANDIDATE.md` in this folder. Do **not** merge prod PR #61. Do **not** deploy `main`. Do **not** write production D1 from this writer.
+1. Parent BOX browser staging QA / actual send (dest `scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
+2. HOLD: parent technical review of the production overlay/policy on this PR. Then `PRODUCTION-CANDIDATE.md` checkpoints. Do **not** merge prod PR #61. Do **not** deploy `main`. Do **not** write production D1 from this writer.
 3. Owner: **one** live production booking after a verified production release of this feature.
 
 Held: PRs #51–#53, CodeMode #63 `16e06ba`, prod #61 `f774f69`. Quote widget SKIPPED.

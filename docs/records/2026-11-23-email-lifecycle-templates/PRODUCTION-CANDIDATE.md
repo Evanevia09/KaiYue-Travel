@@ -1,92 +1,55 @@
-# Minimal production candidate from official-staging `ef70396`
+# Production promotion candidate from official-staging `ef70396`
 
-**Status:** plan / overlay diff only. **Not** applied. **Not** uploaded. **Not** a `main` merge. **Not** a production D1 write.  
-**Base:** live `official-staging` `ef703969381894597f0ed5db3d8023232253862c` (PR #64 squash of reviewed `3823d48`).  
-**Do not** blind-merge PR #61 (`f774f69` prod-mail umbrella). Preserve prod MCP off and other holds (#51–#53, CodeMode #63).
+**Status:** source candidate prepared. **HOLD** for parent technical review and staging browser QA.  
+**Not** a `main` merge. **Not** uploaded. **Not** activated. **Not** a production D1 write. **Do not** merge PR #61 (`f774f69`) or held #51–#53 / CodeMode #63.
 
-## What production is now (must stay until an authorized promote)
+**Authority (not OPEN):** Owner t315u 20 Nov 2026 11:20 Macau, answering *Which inbox should receive staff booking and enquiry notifications in production?* → **the admin email. daniel@**. Same-day instructions and PR #61 `f774f69` / `22ee115` encode `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`. That is **notification inbox approval**, not admission-only. Do not re-ask. Do not reopen tourist-board / MGTO 15 Nov widget approval.
 
-Live Worker `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c`. Overlay `deploy/production/wrangler.jsonc`:
+**Tree:** live `official-staging` `ef703969381894597f0ed5db3d8023232253862c` (KY##### persist, lifecycle-mail claim, WeChat JPEG). Overlay shape taken from the reviewed PR #61 dest/sender encoding, applied onto this tree. Staging owner-only lock is **unchanged**.
 
-- D1 `06cf879d-8fea-4088-8881-7d382e1b8c11`, R2 `kaiyue-offers-production` — **keep these IDs**
-- No `EMAIL` binding
-- `NOTIFICATIONS_ENABLED=false`
-- No `NOTIFY_*`
-- `WHATSAPP_NUMBER=+85328338882`
-- No `ADMIN_EMAILS` / no `daniel@` in overlay JSON (tests forbid it)
-- No `MCP_STAGING_DIRECT_WRITES`
-- Production D1 schema `0001`–`0010` only
+Canonical overlay: `deploy/production/wrangler.jsonc` (also snapshotted as `wrangler.production-lifecycle-candidate.jsonc`).
 
-## Intended delta (operator, after parent staging browser QA)
+## Live production today (must stay until an authorized promote)
 
-Copy **git tree** from `ef70396` (KY##### persist, lifecycle mail claim, WeChat JPEG `apps/web/public/images/wechat-qr.jpg` SHA-256 `3877f629…`). Do not copy staging overlay, staging D1 contents, or staging serial counter.
+Worker `kaiyue-travel` `5eebf7b6` @100% / `main` `ff119f2c` / deployment `494bc151`. Mail **off**. No `EMAIL`. No `NOTIFY_STAFF_TO`. D1 `06cf879d-8fea-4088-8881-7d382e1b8c11` schema `0001`–`0010` only. WhatsApp on live HTML `+85328338882`. WeChat JPEG not on live HTML.
 
-### 1. Schema `0011` on production PIN `06cf879d` (preserve resource IDs)
+## Git candidate (this branch; not live)
 
-Apply `migrations/0011_chauffeur_booking_serial.sql` to production D1 **`06cf879d-8fea-4088-8881-7d382e1b8c11`** only, before activating a Worker that allocates `KY#####`.
-
-- Additive: creates `chauffeur_booking_serial` with `last_issued=0`, nullable lifecycle columns.
-- **Do not** copy staging `last_issued` or staging booking rows.
-- **Do not** reuse `rate_limits`.
-- **Do not** rewrite legacy `KY-xxxxxxxx` rows.
-- CD does not apply migrations; this is an explicit operator D1 step with a SELECT-only readback (`0001`–`0011`, `last_issued=0`) before Worker traffic.
-
-### 2. Overlay — EMAIL + sender; Daniel is **not** a mail dest
-
-Keep `deploy/production/wrangler.jsonc` name / account / D1 / R2 / `keep_vars: false` / Worker-first assets.
-
-Add:
-
-```jsonc
-"send_email": [
-  {
-    "name": "EMAIL",
-    "allowed_sender_addresses": ["bookings@notify.kaiyuemacau.com"]
-    // Do NOT copy staging dest lock scalingsmb@gmail.com.
-    // Do NOT set allowed_destination_addresses to daniel@kaiyuemacau.com.
-    // Production dest is an OPEN owner decision; leave unrestricted or set
-    // the owner-chosen production inbox explicitly at promote time.
-  }
-]
-```
-
-Vars to add or change (proposed):
-
-| Var | From (live overlay) | To (candidate) |
+| Item | Candidate | Must not copy from staging |
 | --- | --- | --- |
-| `WHATSAPP_NUMBER` | `+85328338882` | `+85363128081` |
-| `NOTIFICATIONS_ENABLED` | `false` | stay `false` until dest is written; then `true` |
-| `NOTIFY_FROM_EMAIL` | absent | `bookings@notify.kaiyuemacau.com` |
-| `NOTIFY_FROM_NAME` | absent | `Kai Yue Travel` |
-| `NOTIFY_STAFF_TO` | absent | **OPEN** — owner production inbox. Not `daniel@kaiyuemacau.com` unless the owner explicitly names that address as a **mail dest** (today it is admission only). Not the staging lock. |
-| `NOTIFY_ALLOWED_RECIPIENTS` | absent | same as chosen dest, if a lock is required |
-| `MCP_STAGING_DIRECT_WRITES` | absent | **keep absent** |
-| `ADMIN_EMAILS` / `daniel@` | absent | **keep absent** from overlay JSON |
+| Worker / account | `kaiyue-travel` / `33ecc75158a1cdd23ba1a62eb70c5103` | staging Worker name |
+| D1 | **`06cf879d-8fea-4088-8881-7d382e1b8c11`** | `043cd0ff-a1e6-4b5e-98c1-968c286e0c70` |
+| R2 | `kaiyue-offers-production` | `kaiyue-offers-staging` |
+| `EMAIL` | sender-only `bookings@notify.kaiyuemacau.com` | `allowed_destination_addresses` / staging dest lock |
+| `NOTIFY_STAFF_TO` | **`daniel@kaiyuemacau.com`** (t315u) | `scalingsmb@gmail.com` |
+| `NOTIFY_ALLOWED_RECIPIENTS` | **absent** (guest acks) | staging lock |
+| `NOTIFICATIONS_ENABLED` | `true` (activation source) | — |
+| `NOTIFY_FROM_EMAIL` / `NAME` | `bookings@notify.kaiyuemacau.com` / `Kai Yue Travel` | — |
+| `WHATSAPP_NUMBER` | `+85363128081` | — |
+| Office tel | `site.phone` `+853 2833 8882` unchanged | — |
+| WeChat JPEG | `apps/web/public/images/wechat-qr.jpg` SHA-256 `3877f629…` | — |
+| MCP | **off** (no `MCP_STAGING_DIRECT_WRITES`) | staging MCP flag |
+| `ADMIN_EMAILS` | **absent** | staging admission list |
 
-Office telephone `+85328338882` in site copy is separate from enquiry WhatsApp.
+Runtime pin (this tree): production `NOTIFY_STAFF_TO` must be `daniel@kaiyuemacau.com` or send fails closed; a production recipient lock fails closed so guests can be acked. Staging dest remains `scalingsmb@gmail.com`; staging cannot staff-To Daniel.
 
-Exact proposed overlay file (still unused by any workflow): `wrangler.production-lifecycle-candidate.jsonc` in this folder. `NOTIFICATIONS_ENABLED` remains `"false"` and `NOTIFY_STAFF_TO` is omitted until dest is decided, so a mistaken upload cannot mail.
+## Schema `0011` on production PIN `06cf879d` (operator step; not this VM)
 
-### 3. WeChat JPEG
+Apply `migrations/0011_chauffeur_booking_serial.sql` to **`06cf879d-8fea-4088-8881-7d382e1b8c11` only**, before activating a Worker that allocates `KY#####`.
 
-Already in the `ef70396` tree: `apps/web/public/images/wechat-qr.jpg`. Promoting that tree is enough. Do not invent a WeChat ID.
+- Additive. Inserts `chauffeur_booking_serial` id=1 **`last_issued=0`**.
+- Do **not** copy staging `last_issued` or staging booking rows.
+- Do **not** rewrite legacy `KY-xxxxxxxx` rows. Contacts stay `INQ-`.
+- CD does not apply migrations. SELECT-only readback before traffic: `d1_migrations` includes `0011_chauffeur_booking_serial.sql`; `last_issued=0`.
 
-### 4. Holds to preserve
+## Promotion checkpoints (parent / owner after this HOLD)
 
-- Production MCP remains off (no staging MCP flag, no production plugin writes).
-- Do not merge PR #61 as the promote vehicle.
-- Do not merge held #51–#53 or CodeMode #63 into production.
-- Tourist-board / MGTO 15 Nov widget verification: preserve; do not re-ask as a new product question.
-- Quote widget SKIPPED; never call `KY-PYPM8Y3E`.
-
-### 5. Promote sequence (parent / owner; not this writer)
-
-1. Parent staging browser QA + actual send on staging dest `scalingsmb@gmail.com`.
-2. Owner names production `NOTIFY_STAFF_TO` (Daniel policy: admission ≠ dest).
+1. Parent staging browser QA / actual send on dest `scalingsmb@gmail.com` only. Quote widget SKIPPED; never `KY-PYPM8Y3E`.
+2. Independent technical review of **this PR HEAD** (overlay + policy pin + tests). Self-test is not review.
 3. Apply `0011` to `06cf879d`; SELECT-only confirm `last_issued=0`.
 4. Build with `PUBLIC_SITE_URL=https://kaiyuemacau.com`.
-5. Upload + activate `kaiyue-travel` using the filled production overlay (same D1/R2 IDs).
-6. Read-back: version @100%, `EMAIL` + sender, dest as decided, WA `+85363128081`, mail flag, D1 `0011` still `last_issued=0`.
+5. Upload + activate `kaiyue-travel` using `deploy/production/wrangler.jsonc` (same D1/R2 IDs). Do not upload git `wrangler.jsonc`. Do not merge #61 as the vehicle.
+6. Read-back: version @100%; `EMAIL` sender-only; no dest lock; `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`; `NOTIFICATIONS_ENABLED=true`; WA `+85363128081`; MCP absent; D1 still `06cf879d`; `0011` `last_issued=0`.
 7. Owner: **one** live booking from https://kaiyuemacau.com/ (t338u). Not from this VM.
 
-No production deploy, `main` merge, or production D1 write is authorized in this closeout PR.
+This writer does not deploy production, merge `main`, apply production D1, or send mail.

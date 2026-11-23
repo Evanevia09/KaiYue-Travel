@@ -132,7 +132,7 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 3. Parent staging browser / inbox check (not this VM).
 4. Production promotion of **this feature only**, after tourist-board/licence-claims verification is preserved (15 Nov widget board approval is not re-asked as a new product question):
    - Apply `0011` to production D1 `06cf879d` (today still `0001`–`0010` only). Start `last_issued=0`. Never copy staging serials.
-   - Overlay: `NOTIFICATIONS_ENABLED=true`, `EMAIL` binding, `NOTIFY_STAFF_TO` + recipient allowlist for the owner-approved production dest (currently **unset**; live Worker has mail off). `PUBLIC_SITE_URL=https://kaiyuemacau.com`.
+   - Overlay: `NOTIFICATIONS_ENABLED=true`, `EMAIL` sender-only (`bookings@notify.kaiyuemacau.com`; **no** staging dest lock), `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com` (owner t315u). No `NOTIFY_ALLOWED_RECIPIENTS`. `PUBLIC_SITE_URL=https://kaiyuemacau.com`. Live Worker still mail-off until an authorized promote.
    - Deploy the reviewed Worker revision that contains this SHA (or its merge commit), not `5eebf7b6`.
 5. Parent t338u: **one** live synthetic browser booking from `https://kaiyuemacau.com/` after that production Worker is verified. No duplicate from this VM.
 
@@ -143,7 +143,7 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 3. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
 4. Native wording review of confirm/cancel sentences.
 5. Dedicated mail-retry after `confirm_mail_state=failed` — **done in t339u** (`POST /api/v1/admin/bookings/{reference}/lifecycle-mail`). Do not re-PATCH a terminal `confirmed`.
-6. Production: see `PRODUCTION-CANDIDATE.md`. Tourist-board gate preserved. `0011` on `06cf879d` with `last_issued=0`; EMAIL + sender; dest OPEN (not Daniel unless owner names it as mail dest); WA `+85363128081`; WeChat JPEG from this tree. Do not merge prod #61. This writer does not deploy `main` or write production D1.
+6. Production: see `PRODUCTION-CANDIDATE.md`. Tourist-board gate preserved (do not re-ask). `0011` on `06cf879d` with `last_issued=0`; EMAIL sender-only; **`NOTIFY_STAFF_TO=daniel@kaiyuemacau.com` (t315u, not OPEN)**; WA `+85363128081`; WeChat JPEG from this tree; MCP off. Do not merge prod #61. HOLD parent review/QA. This writer does not deploy `main` or write production D1.
 7. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
 
 ## Self-review (this head)
@@ -154,7 +154,7 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 - Contact INQ unchanged; quote widget SKIPPED. **Pass.**
 - CodeMode63 / prod61 / held 51–53 not touched. **Pass.**
 - Staging live **claimed** after parent merge + CD `45127576945` SUCCESS (`256f1788` @100%). Production **not** claimed.
-- Local verification this increment: `pnpm test` 367/367; `pnpm typecheck` 0 errors (6 existing hints).
+- Local verification this increment: `pnpm test` 381/381; `pnpm typecheck` 0 errors (6 existing hints). Staging dest lock unchanged. Production git dest `daniel@kaiyuemacau.com` (t315u). **HOLD** upload.
 - t338u: this VM did not submit a booking, did not start computerUse, did not send mail, did not PATCH status.
 - HOLD-1: concurrent cancel-after-read cannot send confirmation; claim guards workflow+version. **Pass in tests.** In-flight `pending` after a later cancel remains a residual (not retracted).
 - GitHub review/merge of PR #64: parent completed native squash to `ef70396`. Staging CD SUCCESS. Production still not authorized.
@@ -194,11 +194,13 @@ Staging live: squash `ef703969381894597f0ed5db3d8023232253862c`. Worker `kaiyue-
 
 ### Actual production staff notification recipient
 
-**None configured.** Live Worker settings (GET `/workers/scripts/kaiyue-travel/settings`) and overlay `deploy/production/wrangler.jsonc` both have `NOTIFICATIONS_ENABLED=false`, no `EMAIL`, no `NOTIFY_STAFF_TO`. Do **not** treat `daniel@kaiyuemacau.com` (`VERIFIED_PRODUCTION_PRIMARY_EMAIL`, operator admission) as a mail dest.
+**Authority (t315u 20 Nov 11:20 Macau):** `daniel@kaiyuemacau.com`. Owner answer to *Which inbox should receive staff booking and enquiry notifications in production?* was *the admin email. daniel@*. Encoded as `NOTIFY_STAFF_TO` in PR #61 and now in `deploy/production/wrangler.jsonc` on this branch. This is **inbox approval**, not admission-only. Dest is **not OPEN**. Do not re-ask.
 
-Staging staff dest (verified live, not the t338u production test): `scalingsmb@gmail.com` (`NOTIFY_STAFF_TO` + `EMAIL.allowed_destination_addresses`). Staging `NOTIFICATIONS_ENABLED=true`.
+**Live Worker (unchanged until promote):** `NOTIFICATIONS_ENABLED=false`; no `EMAIL`; no `NOTIFY_STAFF_TO`. Inbox will not fire until an authorized activation of the git candidate.
 
-On current production, “receive the enquiry” means **D1 persist + admin detail**, not inbox. Inbox will not fire until a later authorized production mail activation with an explicit `NOTIFY_STAFF_TO`. After this PR is production-promoted (not authorized), the production overlay still has mail off and no `EMAIL`.
+Staging staff dest (verified live, not the t338u production test): `scalingsmb@gmail.com` (`NOTIFY_STAFF_TO` + `EMAIL.allowed_destination_addresses`). Staging `NOTIFICATIONS_ENABLED=true`. Staging lock is unchanged.
+
+On current production runtime, “receive the enquiry” means **D1 persist + admin detail**, not inbox.
 
 ### Read-only receipt verification path
 

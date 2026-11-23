@@ -59,7 +59,7 @@ Homepage visual direction follows the Transfeero-inspired booking-first layout i
 39. [2026-11-20 staging ack+admin notifications overlay on (production off)](records/2026-11-20-staging-ack-admin-email/REPORT.md)
 40. [2026-11-23 email lifecycle templates + durable KY##### allocation (PR #64, staging live `ef70396`)](records/2026-11-23-email-lifecycle-templates/REPORT.md)
 40a. [2026-11-23 official-staging CD closeout](records/2026-11-23-email-lifecycle-templates/CLOSEOUT-20261123-staging.md)
-40b. [2026-11-23 production candidate from `ef70396` (docs only; do not merge #61)](records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md)
+40b. [2026-11-23 production candidate from `ef70396` (HOLD; t315u dest `daniel@`; do not merge #61)](records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md)
 41. [2026-11-20 email lifecycle living spec (t335u/t336u one durable reference)](records/2026-11-20-email-lifecycle-design/SPEC.md)
 
 City Tour planning: [2026-10-03 discussion record — packages, future booking and staff authoring](records/2026-10-03-city-tour-future-planning.md). The later package-page request flow is recorded in [2026-10-05 City Tour booking](records/2026-10-05-city-tour-booking.md). Staff package editing remains unimplemented.

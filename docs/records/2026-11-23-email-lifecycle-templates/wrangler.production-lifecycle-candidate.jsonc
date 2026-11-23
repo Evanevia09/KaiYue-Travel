@@ -1,10 +1,8 @@
-// DOCUMENTATION ONLY. Not wired to any workflow. Do not upload.
-// Minimal production overlay candidate from official-staging ef70396.
-// Preserves production D1 06cf879d and R2 kaiyue-offers-production.
-// EMAIL + sender included; dest omitted until owner names a production inbox.
-// daniel@kaiyuemacau.com must not appear here (admission, not mail dest).
-// MCP_STAGING_DIRECT_WRITES must stay absent. NOTIFICATIONS_ENABLED stays false
-// until dest is written so a mistaken upload cannot send.
+// Snapshot of deploy/production/wrangler.jsonc for this record folder. Canonical upload
+// config is deploy/production/wrangler.jsonc. Not wired to any workflow. Do not upload
+// until parent staging QA and technical review PASS. Do not merge prod PR #61.
+// Owner t315u: NOTIFY_STAFF_TO=daniel@kaiyuemacau.com is the production staff inbox.
+// EMAIL sender-only; no staging dest lock; no MCP; D1 pin 06cf879d.
 {
   "name": "kaiyue-travel",
   "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
@@ -44,8 +42,9 @@
     "BOOKING_NOTICE_HOURS": "24",
     "WHATSAPP_NUMBER": "+85363128081",
     "DEV_ADMIN_BYPASS": "false",
-    "NOTIFICATIONS_ENABLED": "false",
+    "NOTIFICATIONS_ENABLED": "true",
     "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
     "NOTIFY_FROM_NAME": "Kai Yue Travel",
+    "NOTIFY_STAFF_TO": "daniel@kaiyuemacau.com",
   },
 }

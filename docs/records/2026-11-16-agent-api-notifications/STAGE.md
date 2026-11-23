@@ -37,7 +37,7 @@
 - `send_email: [{ name: "EMAIL", allowed_destination_addresses: ["scalingsmb@gmail.com"], allowed_sender_addresses: ["bookings@notify.kaiyuemacau.com"] }]`.
 - Vars: `NOTIFICATIONS_ENABLED="true"` (owner t322u 20 Nov 2026 staging switch; lock unchanged), `NOTIFY_FROM_EMAIL=bookings@notify.kaiyuemacau.com`, `NOTIFY_FROM_NAME=Kai Yue Travel`, `NOTIFY_STAFF_TO=scalingsmb@gmail.com`, `NOTIFY_ALLOWED_RECIPIENTS=scalingsmb@gmail.com`.
 - The guard pins the approved recipient and sender, the binding shape, and the lock vars. The candidate check requires exactly one `EMAIL` `send_email` binding and the exact lock vars. It rejects widened restrictions or a `destination_address` outside the approved set. Restriction fields may be omitted in the versions view; in that case the exact var lock is the visible layer.
-- Production `deploy/production/wrangler.jsonc` is unchanged: no `send_email`, `NOTIFICATIONS_ENABLED="false"`. A test asserts this.
+- Production overlay (historical at this staging-email increment): no `send_email`, `NOTIFICATIONS_ENABLED="false"`. **Superseded in git on PR #65:** owner t315u dest `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`, EMAIL sender-only, mail `true` in `deploy/production/wrangler.jsonc`. Live Worker still mail-off until an authorized promote. Do not merge PR #61.
 - `wrangler deploy --dry-run` (4.132.0) on the staging overlay lists `env.EMAIL (scalingsmb@gmail.com - senders: bookings@notify.kaiyuemacau.com) Send Email`.
 
 ### Residual risk to confirm only during the approved send

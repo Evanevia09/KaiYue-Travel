@@ -1,9 +1,17 @@
 // Production upload overlay for kaiyue-travel on account 33ecc. Not wired to any workflow.
 // Build first with PUBLIC_SITE_URL=https://kaiyuemacau.com (baked into the client build).
 // Do not upload git wrangler.jsonc. Secrets stay Worker-only and are never listed here.
-// No ACCESS_*, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, ADMIN_STAGING_TEST_PASSWORD_MIN, or
-// TEMP_ADMIN_EXPIRES_AT: live admin admits enabled admin_operator rows only, minimum 12.
-// NOTIFICATIONS_ENABLED stays "false" until delivery is reviewed and validated.
+// No ACCESS_*, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, ADMIN_STAGING_TEST_PASSWORD_MIN,
+// TEMP_ADMIN_EXPIRES_AT, MCP_STAGING_DIRECT_WRITES, STAGING_QUOTE_EMAIL_ENABLED, or
+// NOTIFY_ALLOWED_RECIPIENTS: live admin admits enabled admin_operator rows only, minimum 12.
+// WHATSAPP_NUMBER is the owner enquiry number; office telephone stays site.phone (+853 2833 8882).
+// Owner t315u 20 Nov 11:20 Macau: production staff inbox is daniel@kaiyuemacau.com
+// (notification dest, not admission-only). Customer request-received acks (not confirmations)
+// are in scope. Guest destinations cannot use the staging single-inbox lock. Binding
+// restricts sender only; code pins staff To.
+// Tree: official-staging ef70396 (KY##### + lifecycle mail). Do not merge prod PR #61.
+// HOLD: do not upload, activate, apply 0011 to 06cf879d, or send mail until parent
+// staging browser QA and technical review PASS.
 {
   "name": "kaiyue-travel",
   "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
@@ -30,13 +38,22 @@
       "bucket_name": "kaiyue-offers-production",
     },
   ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["bookings@notify.kaiyuemacau.com"],
+    },
+  ],
   "vars": {
     "ENVIRONMENT": "production",
     "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
     "BUSINESS_TIMEZONE": "Asia/Macau",
     "BOOKING_NOTICE_HOURS": "24",
-    "WHATSAPP_NUMBER": "+85328338882",
+    "WHATSAPP_NUMBER": "+85363128081",
     "DEV_ADMIN_BYPASS": "false",
-    "NOTIFICATIONS_ENABLED": "false",
+    "NOTIFICATIONS_ENABLED": "true",
+    "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
+    "NOTIFY_FROM_NAME": "Kai Yue Travel",
+    "NOTIFY_STAFF_TO": "daniel@kaiyuemacau.com",
   },
 }
