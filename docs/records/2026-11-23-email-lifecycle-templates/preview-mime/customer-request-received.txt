@@ -4,20 +4,20 @@ Hello Synthetic Preview Guest,
 
 Thank you for contacting Kai Yue Travel. We have received your booking request.
 
-Your reference: IN-KY0042
-Service       : Airport transfer
-Pickup time   : Dec 15, 2026, 10:30 AM (Asia/Macau)
-Guest         : Synthetic Preview Guest
-Pickup        : Macau International Airport (arrivals)
-Destination   : Synthetic Hotel, Cotai
-Passengers    : 2
-Big luggage   : 1
-Hand carry    : 1
-Message       : Synthetic preview only — not a stored booking.
+Reference number: KY00042
+Service         : Airport transfer
+Pickup time     : Dec 15, 2026, 10:30 AM (Asia/Macau)
+Guest           : Synthetic Preview Guest
+Pickup          : Macau International Airport (arrivals)
+Destination     : Synthetic Hotel, Cotai
+Passengers      : 2
+Big luggage     : 1
+Hand carry      : 1
+Message         : Synthetic preview only — not a stored booking.
 
 This is not a booking confirmation. Our team will check availability and contact you to confirm the details.
 
-To change your request, contact us through staging.kaiyuemacau.com and quote your reference.
+To change your request, contact us through staging.kaiyuemacau.com and quote this reference number.
 
 Kai Yue Travel
 

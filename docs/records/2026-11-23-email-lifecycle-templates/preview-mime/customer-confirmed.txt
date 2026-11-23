@@ -4,19 +4,18 @@ Hello Synthetic Preview Guest,
 
 We have confirmed your chauffeur booking. The confirmed details are below.
 
-Confirmation number: CF-KY00042
-Original enquiry   : IN-KY0042
-Guest              : Synthetic Preview Guest
-Service            : Airport transfer
-Pickup             : Macau International Airport (arrivals)
-Destination        : Synthetic Hotel, Cotai
-Pickup time        : Dec 15, 2026, 10:30 AM (Asia/Macau)
-Passengers         : 2
-Big luggage        : 1
-Hand carry         : 1
-Message            : Synthetic preview only — not a stored booking.
+Reference number: KY00042
+Guest           : Synthetic Preview Guest
+Service         : Airport transfer
+Pickup          : Macau International Airport (arrivals)
+Destination     : Synthetic Hotel, Cotai
+Pickup time     : Dec 15, 2026, 10:30 AM (Asia/Macau)
+Passengers      : 2
+Big luggage     : 1
+Hand carry      : 1
+Message         : Synthetic preview only — not a stored booking.
 
-If you need to speak with us, contact us through staging.kaiyuemacau.com and quote these numbers.
+If you need to speak with us, contact us through staging.kaiyuemacau.com and quote this reference number.
 
 Kai Yue Travel
 

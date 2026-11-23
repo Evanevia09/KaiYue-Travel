@@ -3,7 +3,7 @@ import path from "node:path";
 import type { EmailAddress } from "./env.ts";
 import {
   emailLogoUrl,
-  formatLifecycleNumber,
+  formatBookingReference,
   formatPickup,
   renderCustomerAck,
   renderCustomerCancelled,
@@ -44,9 +44,7 @@ export type PreviewManifest = {
   purpose: "owner-preview-synthetic-not-a-stored-booking";
   site: "staging";
   serial: number;
-  enquiryReference: string;
-  confirmationNumber: string;
-  cancellationNumber: string;
+  reference: string;
   from: EmailAddress;
   recipients: [typeof PREVIEW_TO];
   messages: PreviewMessage[];
@@ -90,16 +88,12 @@ function wrap(
 
 export function buildLifecyclePreviewSet(generatedAt = new Date().toISOString()): PreviewManifest {
   const brand = previewBrand();
-  const enquiryReference = formatLifecycleNumber("enquiry", PREVIEW_SERIAL);
-  const confirmationNumber = formatLifecycleNumber("confirmation", PREVIEW_SERIAL);
-  const cancellationNumber = formatLifecycleNumber("cancellation", PREVIEW_SERIAL);
+  const reference = formatBookingReference(PREVIEW_SERIAL);
   const details = previewDetails();
   const guest = {
     locale: "en",
     name: "Synthetic Preview Guest",
-    enquiryReference,
-    confirmationNumber,
-    cancellationNumber,
+    reference,
     timezone: PREVIEW_TIMEZONE,
     siteUrl: PREVIEW_SITE_URL,
     details,
@@ -113,7 +107,7 @@ export function buildLifecyclePreviewSet(generatedAt = new Date().toISOString())
       "staging",
       {
         kind: "booking",
-        reference: enquiryReference,
+        reference,
         summary: "A new chauffeur booking request is waiting for review.",
         details,
         syntheticPreview: true,
@@ -129,7 +123,7 @@ export function buildLifecyclePreviewSet(generatedAt = new Date().toISOString())
       "staging",
       {
         kind: "booking",
-        reference: enquiryReference,
+        reference,
         locale: "en",
         name: guest.name,
         serviceType: "airport_transfer",
@@ -158,9 +152,7 @@ export function buildLifecyclePreviewSet(generatedAt = new Date().toISOString())
     purpose: "owner-preview-synthetic-not-a-stored-booking",
     site: "staging",
     serial: PREVIEW_SERIAL,
-    enquiryReference,
-    confirmationNumber,
-    cancellationNumber,
+    reference,
     from: PREVIEW_FROM,
     recipients: [PREVIEW_TO],
     messages: [staff, receipt, confirmed, cancelled],

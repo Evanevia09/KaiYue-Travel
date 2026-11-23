@@ -8,7 +8,7 @@ export type DetailRow = { label: string; value: string };
 
 export type EmailBrand = { logoUrl?: string; siteUrl?: string };
 
-export type LifecycleNumberKind = "enquiry" | "confirmation" | "cancellation";
+export const ENGLISH_REFERENCE_LABEL = "Reference number";
 
 export type StaffMessageInput = {
   kind: "booking" | "contact";
@@ -34,9 +34,7 @@ export type CustomerAckInput = {
 export type CustomerLifecycleInput = {
   locale: string;
   name: string | null;
-  enquiryReference: string;
-  confirmationNumber?: string;
-  cancellationNumber?: string;
+  reference: string;
   timezone: string;
   siteUrl: string;
   details?: DetailRow[];
@@ -70,23 +68,12 @@ export function emailLogoUrl(siteUrl: string | undefined): string {
   }
 }
 
-export function formatLifecycleNumber(kind: LifecycleNumberKind, serial: number): string {
+/** Display-only chauffeur booking reference: KY + at least 5 digits, no hyphen. Overflow widens. */
+export function formatBookingReference(serial: number): string {
   if (!Number.isInteger(serial) || serial < 1) {
-    throw new Error("invalid_lifecycle_serial");
+    throw new Error("invalid_booking_reference_serial");
   }
-  const digits = String(serial);
-  switch (kind) {
-    case "enquiry":
-      return `IN-KY${digits.padStart(4, "0")}`;
-    case "confirmation":
-      return `CF-KY${digits.padStart(5, "0")}`;
-    case "cancellation":
-      return `CL-KY${digits.padStart(5, "0")}`;
-    default: {
-      const unreachable: never = kind;
-      return unreachable;
-    }
-  }
+  return `KY${String(serial).padStart(5, "0")}`;
 }
 
 function escapeHtml(value: string): string {
@@ -179,7 +166,7 @@ function rowsHtml(rows: DetailRow[]): string {
   const cells = visible
     .map(
       ({ label, value }) =>
-        `<tr><td valign="top" width="38%" style="width:38%;padding:8px 12px 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#555555;border-bottom:1px solid #eeeeee;">${escapeHtml(label)}</td><td valign="top" style="padding:8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:${BRAND_TEXT};border-bottom:1px solid #eeeeee;">${escapeHtml(value)}</td></tr>`,
+        `<tr><td valign="top" width="44%" style="width:44%;padding:8px 12px 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#555555;border-bottom:1px solid #eeeeee;">${escapeHtml(label)}</td><td valign="top" style="padding:8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:${BRAND_TEXT};border-bottom:1px solid #eeeeee;white-space:nowrap;">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:16px 0;">${cells}</table>`;
@@ -216,7 +203,10 @@ export function renderStaffMessage(
 ): RenderedEmail {
   const heading = input.kind === "booking" ? "New booking request" : "New inquiry";
   const subject = `${prefix(site)}${heading} ${input.reference}`;
-  const rows = mergeDetailRows([{ label: "Reference", value: input.reference }], input.details);
+  const rows = mergeDetailRows(
+    [{ label: ENGLISH_REFERENCE_LABEL, value: input.reference }],
+    input.details,
+  );
   const adminUrl = adminDashboardUrl(brand.siteUrl);
   const review = adminUrl
     ? `Review it in the Kai Yue admin dashboard (${adminUrl}). Reply to this email to answer the guest directly.`
@@ -299,7 +289,7 @@ const ACK_COPY: Record<
       booking: "Thank you for contacting Kai Yue Travel. We have received your booking request.",
       contact: "Thank you for contacting Kai Yue Travel. We have received your inquiry.",
     },
-    referenceLabel: "Your reference",
+    referenceLabel: ENGLISH_REFERENCE_LABEL,
     notConfirmed: {
       booking:
         "This is not a booking confirmation. Our team will check availability and contact you to confirm the details.",
@@ -308,7 +298,7 @@ const ACK_COPY: Record<
     service: "Service",
     pickupTime: "Pickup time",
     changes: (site) =>
-      `To change your request, contact us through ${site} and quote your reference.`,
+      `To change your request, contact us through ${site} and quote this reference number.`,
     signoff: "Kai Yue Travel",
     automated: "This is an automated message. Replies to this address are not monitored.",
   },
@@ -320,7 +310,7 @@ const ACK_COPY: Record<
       booking: "Obrigado por contactar a Kai Yue Travel. Recebemos o seu pedido de reserva.",
       contact: "Obrigado por contactar a Kai Yue Travel. Recebemos a sua mensagem.",
     },
-    referenceLabel: "A sua referência",
+    referenceLabel: "Número de referência",
     notConfirmed: {
       booking:
         "Isto não é uma confirmação de reserva. A nossa equipa irá verificar a disponibilidade e contactá-lo para confirmar os detalhes.",
@@ -341,7 +331,7 @@ const ACK_COPY: Record<
       booking: "感謝您聯絡 Kai Yue Travel。我們已收到您的預約申請。",
       contact: "感謝您聯絡 Kai Yue Travel。我們已收到您的查詢。",
     },
-    referenceLabel: "您的參考編號",
+    referenceLabel: "參考編號",
     notConfirmed: {
       booking: "此郵件並非預約確認。我們的團隊會核實車輛安排，並與您聯絡確認詳情。",
       contact: "我們的團隊會查閱您的訊息並回覆您。",
@@ -359,11 +349,10 @@ const CONFIRM_COPY: Record<
   {
     tag: string;
     heading: string;
-    subject: (confirmationNumber: string) => string;
+    subject: (reference: string) => string;
     greeting: (name: string | null) => string;
     body: string;
-    confirmationLabel: string;
-    enquiryLabel: string;
+    referenceLabel: string;
     changes: (site: string) => string;
     signoff: string;
     automated: string;
@@ -372,38 +361,35 @@ const CONFIRM_COPY: Record<
   en: {
     tag: "en",
     heading: "Your chauffeur booking is confirmed",
-    subject: (confirmationNumber) => `Your chauffeur booking is confirmed ${confirmationNumber}`,
+    subject: (reference) => `Your chauffeur booking is confirmed ${reference}`,
     greeting: (name) => (name ? `Hello ${name},` : "Hello,"),
     body: "We have confirmed your chauffeur booking. The confirmed details are below.",
-    confirmationLabel: "Confirmation number",
-    enquiryLabel: "Original enquiry",
+    referenceLabel: ENGLISH_REFERENCE_LABEL,
     changes: (site) =>
-      `If you need to speak with us, contact us through ${site} and quote these numbers.`,
+      `If you need to speak with us, contact us through ${site} and quote this reference number.`,
     signoff: "Kai Yue Travel",
     automated: "This is an automated message. Replies to this address are not monitored.",
   },
   pt: {
     tag: "pt-PT",
     heading: "A sua reserva de motorista está confirmada",
-    subject: (confirmationNumber) =>
-      `A sua reserva de motorista está confirmada ${confirmationNumber}`,
+    subject: (reference) => `A sua reserva de motorista está confirmada ${reference}`,
     greeting: (name) => (name ? `Olá ${name},` : "Olá,"),
     body: "Confirmámos a sua reserva de motorista. Os detalhes confirmados estão abaixo.",
-    confirmationLabel: "Número de confirmação",
-    enquiryLabel: "Pedido original",
-    changes: (site) => `Se precisar de nos contactar, use ${site} e indique estes números.`,
+    referenceLabel: "Número de referência",
+    changes: (site) =>
+      `Se precisar de nos contactar, use ${site} e indique este número de referência.`,
     signoff: "Kai Yue Travel",
     automated: "Esta é uma mensagem automática. As respostas para este endereço não são lidas.",
   },
   "zh-Hant": {
     tag: "zh-Hant",
     heading: "您的專車預約已確認",
-    subject: (confirmationNumber) => `您的專車預約已確認 ${confirmationNumber}`,
+    subject: (reference) => `您的專車預約已確認 ${reference}`,
     greeting: (name) => (name ? `${name} 您好：` : "您好："),
     body: "我們已確認您的專車預約。確認詳情如下。",
-    confirmationLabel: "確認編號",
-    enquiryLabel: "原申請編號",
-    changes: (site) => `如需聯絡我們，請透過 ${site}，並提供這些編號。`,
+    referenceLabel: "參考編號",
+    changes: (site) => `如需聯絡我們，請透過 ${site}，並提供此參考編號。`,
     signoff: "Kai Yue Travel",
     automated: "此為自動發送的郵件，請勿直接回覆。",
   },
@@ -414,12 +400,10 @@ const CANCEL_COPY: Record<
   {
     tag: string;
     heading: string;
-    subject: (cancellationNumber: string) => string;
+    subject: (reference: string) => string;
     greeting: (name: string | null) => string;
     body: string;
-    cancellationLabel: string;
-    confirmationLabel: string;
-    enquiryLabel: string;
+    referenceLabel: string;
     changes: (site: string) => string;
     signoff: string;
     automated: string;
@@ -428,43 +412,35 @@ const CANCEL_COPY: Record<
   en: {
     tag: "en",
     heading: "Your chauffeur booking has been cancelled",
-    subject: (cancellationNumber) =>
-      `Your chauffeur booking has been cancelled ${cancellationNumber}`,
+    subject: (reference) => `Your chauffeur booking has been cancelled ${reference}`,
     greeting: (name) => (name ? `Hello ${name},` : "Hello,"),
-    body: "We have cancelled this chauffeur booking. The numbers below remain linked to the original enquiry.",
-    cancellationLabel: "Cancellation number",
-    confirmationLabel: "Confirmation number",
-    enquiryLabel: "Original enquiry",
+    body: "We have cancelled this chauffeur booking.",
+    referenceLabel: ENGLISH_REFERENCE_LABEL,
     changes: (site) =>
-      `If you still need a chauffeur, contact us through ${site} and quote your original enquiry.`,
+      `If you still need a chauffeur, contact us through ${site} and quote this reference number.`,
     signoff: "Kai Yue Travel",
     automated: "This is an automated message. Replies to this address are not monitored.",
   },
   pt: {
     tag: "pt-PT",
     heading: "A sua reserva de motorista foi cancelada",
-    subject: (cancellationNumber) =>
-      `A sua reserva de motorista foi cancelada ${cancellationNumber}`,
+    subject: (reference) => `A sua reserva de motorista foi cancelada ${reference}`,
     greeting: (name) => (name ? `Olá ${name},` : "Olá,"),
-    body: "Cancelámos esta reserva de motorista. Os números abaixo continuam ligados ao pedido original.",
-    cancellationLabel: "Número de cancelamento",
-    confirmationLabel: "Número de confirmação",
-    enquiryLabel: "Pedido original",
+    body: "Cancelámos esta reserva de motorista.",
+    referenceLabel: "Número de referência",
     changes: (site) =>
-      `Se ainda precisar de um motorista, contacte-nos através de ${site} e indique o pedido original.`,
+      `Se ainda precisar de um motorista, contacte-nos através de ${site} e indique este número de referência.`,
     signoff: "Kai Yue Travel",
     automated: "Esta é uma mensagem automática. As respostas para este endereço não são lidas.",
   },
   "zh-Hant": {
     tag: "zh-Hant",
     heading: "您的專車預約已取消",
-    subject: (cancellationNumber) => `您的專車預約已取消 ${cancellationNumber}`,
+    subject: (reference) => `您的專車預約已取消 ${reference}`,
     greeting: (name) => (name ? `${name} 您好：` : "您好："),
-    body: "我們已取消此專車預約。以下編號仍與原申請連結。",
-    cancellationLabel: "取消編號",
-    confirmationLabel: "確認編號",
-    enquiryLabel: "原申請編號",
-    changes: (site) => `如仍需要專車，請透過 ${site} 聯絡我們，並提供原申請編號。`,
+    body: "我們已取消此專車預約。",
+    referenceLabel: "參考編號",
+    changes: (site) => `如仍需要專車，請透過 ${site} 聯絡我們，並提供此參考編號。`,
     signoff: "Kai Yue Travel",
     automated: "此為自動發送的郵件，請勿直接回覆。",
   },
@@ -556,16 +532,10 @@ export function renderCustomerConfirmed(
 ): RenderedEmail {
   const locale = ackLocale(input.locale);
   const copy = CONFIRM_COPY[locale];
-  const confirmationNumber = singleLine(input.confirmationNumber ?? "");
+  const reference = singleLine(input.reference);
   const name = input.name ? singleLine(input.name) : null;
-  const subject = `${prefix(site)}${copy.subject(confirmationNumber || input.enquiryReference)}`;
-  const rows = mergeDetailRows(
-    [
-      { label: copy.confirmationLabel, value: confirmationNumber },
-      { label: copy.enquiryLabel, value: input.enquiryReference },
-    ],
-    input.details,
-  );
+  const subject = `${prefix(site)}${copy.subject(reference)}`;
+  const rows = mergeDetailRows([{ label: copy.referenceLabel, value: reference }], input.details);
   const siteDisplay = displaySite(input.siteUrl) || displaySite(brand.siteUrl);
   const text = [
     ...bannerText(locale, input.syntheticPreview),
@@ -597,17 +567,10 @@ export function renderCustomerCancelled(
 ): RenderedEmail {
   const locale = ackLocale(input.locale);
   const copy = CANCEL_COPY[locale];
-  const cancellationNumber = singleLine(input.cancellationNumber ?? "");
+  const reference = singleLine(input.reference);
   const name = input.name ? singleLine(input.name) : null;
-  const subject = `${prefix(site)}${copy.subject(cancellationNumber || input.enquiryReference)}`;
-  const rows = mergeDetailRows(
-    [
-      { label: copy.cancellationLabel, value: cancellationNumber },
-      { label: copy.confirmationLabel, value: input.confirmationNumber ?? "" },
-      { label: copy.enquiryLabel, value: input.enquiryReference },
-    ],
-    input.details,
-  );
+  const subject = `${prefix(site)}${copy.subject(reference)}`;
+  const rows = mergeDetailRows([{ label: copy.referenceLabel, value: reference }], input.details);
   const siteDisplay = displaySite(input.siteUrl) || displaySite(brand.siteUrl);
   const text = [
     ...bannerText(locale, input.syntheticPreview),

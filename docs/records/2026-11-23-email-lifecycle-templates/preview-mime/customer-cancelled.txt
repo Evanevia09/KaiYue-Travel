@@ -2,22 +2,20 @@ SYNTHETIC PREVIEW — this is not a stored booking. Do not treat these details a
 
 Hello Synthetic Preview Guest,
 
-We have cancelled this chauffeur booking. The numbers below remain linked to the original enquiry.
+We have cancelled this chauffeur booking.
 
-Cancellation number: CL-KY00042
-Confirmation number: CF-KY00042
-Original enquiry   : IN-KY0042
-Guest              : Synthetic Preview Guest
-Service            : Airport transfer
-Pickup             : Macau International Airport (arrivals)
-Destination        : Synthetic Hotel, Cotai
-Pickup time        : Dec 15, 2026, 10:30 AM (Asia/Macau)
-Passengers         : 2
-Big luggage        : 1
-Hand carry         : 1
-Message            : Synthetic preview only — not a stored booking.
+Reference number: KY00042
+Guest           : Synthetic Preview Guest
+Service         : Airport transfer
+Pickup          : Macau International Airport (arrivals)
+Destination     : Synthetic Hotel, Cotai
+Pickup time     : Dec 15, 2026, 10:30 AM (Asia/Macau)
+Passengers      : 2
+Big luggage     : 1
+Hand carry      : 1
+Message         : Synthetic preview only — not a stored booking.
 
-If you still need a chauffeur, contact us through staging.kaiyuemacau.com and quote your original enquiry.
+If you still need a chauffeur, contact us through staging.kaiyuemacau.com and quote this reference number.
 
 Kai Yue Travel
 
