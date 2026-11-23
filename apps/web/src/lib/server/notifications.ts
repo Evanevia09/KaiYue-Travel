@@ -109,7 +109,8 @@ export async function sendNotifications(
     return policy.state;
   }
 
-  const brand = { logoUrl: emailLogoUrl(env.PUBLIC_SITE_URL) };
+  const siteUrl = env.PUBLIC_SITE_URL;
+  const brand = { logoUrl: emailLogoUrl(siteUrl), siteUrl };
   const staff = await deliver(
     policy,
     input,
@@ -137,7 +138,8 @@ export async function sendNotifications(
               serviceType: input.customer.serviceType,
               pickupAt: input.customer.pickupAt,
               timezone: businessTimezone(env),
-              siteUrl: new URL(env.PUBLIC_SITE_URL!).origin.replace(/^https:\/\//, ""),
+              siteUrl: new URL(siteUrl!).origin,
+              details: input.details,
             },
             brand,
           ),

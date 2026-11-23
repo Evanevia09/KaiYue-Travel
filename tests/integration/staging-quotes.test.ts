@@ -78,7 +78,8 @@ describe("staging quotation email", () => {
         html: expect.stringContaining("MOP 235.50"),
       }),
     );
-    expect(send.mock.calls[0]?.[0]?.html).toContain("#008c5e");
+    expect(send.mock.calls[0]?.[0]?.html).toContain("#ffffff");
+    expect(send.mock.calls[0]?.[0]?.html).not.toContain("#008c5e");
     expect(send.mock.calls[0]?.[0]?.html).toContain(
       "https://staging.kaiyuemacau.com/images/kai-yue-travel-group-logo.png",
     );

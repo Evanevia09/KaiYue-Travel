@@ -1,0 +1,18 @@
+SYNTHETIC PREVIEW — this is not a stored booking. Do not treat these details as a real reservation.
+
+New booking request
+
+A new chauffeur booking request is waiting for review.
+
+Reference  : IN-KY0042
+Guest      : Synthetic Preview Guest
+Service    : Airport transfer
+Pickup     : Macau International Airport (arrivals)
+Destination: Synthetic Hotel, Cotai
+Pickup time: Dec 15, 2026, 10:30 AM (Asia/Macau)
+Passengers : 2
+Big luggage: 1
+Hand carry : 1
+Message    : Synthetic preview only — not a stored booking.
+
+Review it in the Kai Yue admin dashboard (https://admin-staging.kaiyuemacau.com). Reply to this email to answer the guest directly.
