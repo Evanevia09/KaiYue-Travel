@@ -110,6 +110,27 @@ describe("mail policy gates", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it("never uses the production staff inbox as the staging dest even if the lock lists it", async () => {
+    const { env, send } = stagingEnv({
+      NOTIFY_STAFF_TO: "daniel@kaiyuemacau.com",
+      NOTIFY_ALLOWED_RECIPIENTS: `${LOCK},daniel@kaiyuemacau.com`,
+    });
+    await expect(sendNotifications(env, input)).resolves.toBe("skipped");
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("does not send a customer acknowledgement to the production staff inbox from staging", async () => {
+    const { env, sent } = stagingEnv({
+      NOTIFY_ALLOWED_RECIPIENTS: `${LOCK},daniel@kaiyuemacau.com`,
+    });
+    const state = await sendNotifications(env, {
+      ...input,
+      customer: { ...input.customer!, email: "daniel@kaiyuemacau.com" },
+    });
+    expect(state).toBe("sent");
+    expect(sent.map((message) => message.to)).toEqual([LOCK]);
+  });
+
   it("skips customer acknowledgements to guests outside the staging lock", async () => {
     const { env, sent } = stagingEnv();
     const state = await sendNotifications(env, {

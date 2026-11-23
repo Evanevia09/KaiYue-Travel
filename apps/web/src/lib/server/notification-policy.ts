@@ -1,4 +1,5 @@
 import { STAGING_MARKETING_HOST, productionNotificationsAllowed } from "./admin-gate.ts";
+import { VERIFIED_PRODUCTION_PRIMARY_EMAIL } from "./admin-primary.ts";
 import type { AppEnv, EmailAddress, SendEmailBinding } from "./env.ts";
 
 export type MailSite = "production" | "staging";
@@ -16,6 +17,12 @@ export type MailPolicy =
   | { ok: false; state: "skipped" | "failed"; reason: string };
 
 const EMAIL_SHAPE = /^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]+$/;
+
+/** Owner t315u 20 Nov 11:20 Macau: production staff inbox is the admin email. */
+export const VERIFIED_PRODUCTION_STAFF_TO = VERIFIED_PRODUCTION_PRIMARY_EMAIL;
+
+/** Owner-approved staging test inbox. Never a production destination. */
+export const STAGING_TEST_INBOX = "scalingsmb@gmail.com";
 
 export function normalizeAddress(value: string | undefined | null): string | null {
   const trimmed = (value ?? "").trim().toLowerCase();
@@ -80,6 +87,15 @@ export function resolveMailPolicy(
   if (!fromEmail || !staffTo) {
     return { ok: false, state: "failed", reason: "missing_sender_or_recipient" };
   }
+  if (site === "production" && staffTo !== VERIFIED_PRODUCTION_STAFF_TO) {
+    return { ok: false, state: "failed", reason: "production_staff_mismatch" };
+  }
+  if (site === "production" && allowedRecipients) {
+    return { ok: false, state: "failed", reason: "production_recipient_lock_forbidden" };
+  }
+  if (site === "staging" && staffTo === VERIFIED_PRODUCTION_STAFF_TO) {
+    return { ok: false, state: "skipped", reason: "production_staff_on_staging" };
+  }
   const name = (env.NOTIFY_FROM_NAME ?? "").replace(/[\r\n"<>]/g, "").trim();
 
   return {
@@ -96,5 +112,6 @@ export function recipientAllowed(
   policy: Extract<MailPolicy, { ok: true }>,
   address: string,
 ): boolean {
+  if (policy.site === "staging" && address === VERIFIED_PRODUCTION_STAFF_TO) return false;
   return policy.allowedRecipients === null || policy.allowedRecipients.has(address);
 }

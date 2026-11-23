@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-23 t339u HOLD-1 atomic lifecycle-mail claim on PR #64 (not merged):** Independent re-review of `a7358558512b0876eb87557edbb21794b39a790f` found concurrent cancel between the JS workflow check and an id-only mail claim could send a stale confirmation. Claim now requires matching workflow + `updated_at`; stale returns `409` without send (initial delivery too). Actor-attributed `lifecycle_mail` audit. No new queue/resource. Staging D1 `043cd0ff` `0011` `last_issued=0` **not** reset. No prod/staging booking, status, or mail writes. Do **not** merge until parent new independent targeted review of **this HEAD SHA** (self-test is not review; this agent cannot merge). t338u BOX remains after verified production release. Production Worker still `5eebf7b6` / `main` `ff119f2c`; mail off. Held 51–53, CodeMode63 `16e06ba`, prod61 `f774f69` preserved. Quote widget SKIPPED. Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
+**2026-11-23 sign-in 413 bound on PR #65 (HOLD rereview):** Cumulative `main` review found `peekSignInEmail` buffered/cloned the whole body before the 16KB check and limiter, then swallowed oversize into Better Auth. Fix: bounded UTF-8 byte read, cancel, **413 before auth**. Parent staging visual QA PASS 15:11; `KY00001` created once 15:21:33; owner-only inbox tests in progress. EMAIL preflight unchanged (`recipient_mode=arbitrary`). Live production still `5eebf7b6` / mail off / D1 `06cf879d`. No `main` merge. Record: `docs/records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md`.
 
 **2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
 
@@ -23,7 +23,7 @@
 
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Mika source+byte/static PASS pins runtime `74c3023` and original package `f78d5856` / zip `483686e1` (immutable). Metadata r2 zip `4e8011c9` / docs `2a758879` preserved. Mika independently verified 16:55 evidence hashes, JSON `00`–`11`, and the owner 16:47 answer. Owner approved only new empty D1/R2 + synthetic probes: trial D1 `06aa844b-da6b-4c37-896c-fd13dd265fe6`, R2 `d937f5bc01e448afa679bdbf3769ed50` empty private. Worker not created. Observed one REST `/query` semicolon-joined SQL CHECK rollback (test E) supersedes blanket sequential-autocommit **only** in that mode. Provisioner not fully validated; upload/provisioning not inferred. Sanitized records ≠ live readback. Synth fixture ≠ exact provisioner. Fresh-ID refusal ≠ same-file replay. Interruption / binding batch / REST arrays / wrangler execute UNPROVEN. Trial overlay still **DO_NOT_DEPLOY**. UAT still **DO_NOT_UPLOAD**. `user_accepted` / deploy / `released` not claimed.
-**Current objective:** Keep staged / browser-checked / product-acceptance distinct. Official staging **is staged** on exact `dca860c59b03c0407293f087a158a855b04c60df` (FF 17:47:46, CD 43842973590 SUCCESS 17:50:01, Worker version 15 `c8986696` @100% / `21ff0a46`). Parent HTTP PASS: admin-staging `/` and `/index.html` 302 exact `/login`, `no-store`, `Vary: Host`, no purge. Browser 17:57 PASS (desktop + 390 px). Owner-supplied staging login verified (`super_admin`); no reset writes. Next: full staff/session/revocation UAT. Not `user_accepted` / `released`. Do not push `main`. LIVE must stay `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
+**Current objective:** Sign-in body-bound 413 is on PR #65 awaiting rereview. Parent finishing staging inbox proof (`scalingsmb@gmail.com`, `KY00001`). **HOLD** `main` merge (171-file audit), prod `0011`, overlay upload. Do not merge #61. Not `user_accepted` / `released`.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -263,6 +263,35 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 
 ## Change log
 
+### 2026-11-23 — sign-in oversize 413 before auth (PR #65)
+
+- `peekSignInEmail` no longer `clone().text()`s the whole body. Byte-counted read, cancel remaining chunks, 413 before limiter/Better Auth. In-limit JSON is replayed to auth so lockout still runs.
+- Tests: small JSON peek + limiter; oversized ASCII; multibyte under the character limit; chunked cancel; no rate_limits row on 413.
+- Parent `KY00001` 15:21:33 is parent work. This VM did not book, mail, or PATCH status. HOLD merge/`main`/prod.
+
+### 2026-11-23 — staging visual QA PASS + production EMAIL preflight (PR #65)
+
+- Parent 15:11 Macau: EN/PT/zh-Hant desktop/390/320 PASS; no overlap/overflow/console/mixed-content; WA `+85363128081` and real WeChat JPEG verified. Independent config review PASS exact `3baf3f6`; CI green. Inbox proof still parent.
+- Read-only CF GET: Email Sending `recipient_mode=arbitrary`, quota 200/day sent 8, reputation healthy; `notify.kaiyuemacau.com` enabled, DNS `ready`; Email Routing dests 0 / routing unconfigured; production Worker still no `EMAIL`. Sender-only binding is the correct shape for Daniel + guest acks. Not a send. Billing subscriptions 403.
+- `origin/main...HEAD` = **171** files (165 already on official-staging + 14 PR #65). Narrow overlay review is not a `main` audit. Production D1/Worker/`main` unchanged.
+
+### 2026-11-23 — t315u production staff dest correction on PR #65 (HOLD)
+
+- Authority audit: owner t315u 20 Nov 11:20 Macau named `daniel@kaiyuemacau.com` as the production staff notification inbox. PR #61 `f774f69` / `22ee115` already encoded `NOTIFY_STAFF_TO` that way. Treating dest as OPEN / admission-only was a regression; corrected on this branch without merging #61.
+- `deploy/production/wrangler.jsonc` (ef70396 tree): EMAIL sender-only `bookings@notify.kaiyuemacau.com` (no staging dest lock), `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`, `NOTIFICATIONS_ENABLED=true`, WA `+85363128081`, MCP off, D1 pin `06cf879d`. Office tel unchanged. Staging overlay/lock unchanged.
+- Policy pin: production fails closed unless staff To is Daniel; production recipient lock forbidden (guest acks). Staging cannot staff-To Daniel.
+- **HOLD:** parent staging browser QA + technical review. No production upload, `main` merge, `0011` apply, or mail from this VM.
+- Record: `docs/records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md`.
+
+### 2026-11-23 — official-staging CD of PR #64 squash `ef70396`
+
+- Parent native GitHub merge (no admin bypass / no ruleset change) of PR #64 exact reviewed `3823d48b20a73f699896d86e96590012e3b4b571` → squash `ef703969381894597f0ed5db3d8023232253862c` on `official-staging`.
+- CD https://github.com/Evanevia09/KaiYue-Travel/actions/runs/45127576945 `completed`/`success`. Staging Worker `kaiyue-travel-staging` version `256f1788-34f1-4012-bc32-e97367588c8a` (#27) @100% / deployment `d178b6c2-6e74-4c3c-aa5b-f991be481971` (2026-11-23T06:59:39Z). Public https://staging.kaiyuemacau.com/ .
+- Live settings: D1 `043cd0ff-a1e6-4b5e-98c1-968c286e0c70`; `EMAIL` dest `scalingsmb@gmail.com` only; sender `bookings@notify.kaiyuemacau.com`; `NOTIFICATIONS_ENABLED=true`; WA `+85363128081`; WeChat JPEG present. SELECT-only D1: `0011` present, `last_issued=0` (not reset), 13 bookings.
+- Production **runtime** unchanged: `5eebf7b6` / deployment `494bc151` / `main` `ff119f2c`; no EMAIL; mail off; D1 `06cf879d` `0001`–`0010`. Dest **authority** is t315u `daniel@kaiyuemacau.com` (see following change-log entry).
+- This VM did not submit a booking, send mail, PATCH status, write production D1, or merge `main`. Production plan: `docs/records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md`. Do not merge #61.
+- Next: parent staging browser send. Owner one live booking after a later verified production release.
+
 ### 2026-11-23 — t339u HOLD-1 atomic lifecycle-mail claim (PR #64, not merged)
 
 - Independent re-review of exact `a735855` HOLD: retry checked workflow in JS then claimed by id/`null`/`failed` only. Concurrent cancel between read and claim could send confirmation after cancel.
@@ -286,7 +315,7 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Added `migrations/0011_chauffeur_booking_serial.sql` (per-D1 counter, `lifecycle_serial`, confirm/cancel mail columns). New chauffeur persist stores `KY#####`. Legacy `KY-xxxxxxxx` untouched. MCP `bookingReference` accepts both. Email-channel workflow `confirmed`/`cancelled` send guest lifecycle mail persist-first. English label `Reference number`.
 - Staging D1 `043cd0ff` live readback 2026-11-23: `d1_migrations` includes `0011_chauffeur_booking_serial.sql`; `chauffeur_booking_serial` id=1 `last_issued=0`; bookings has `lifecycle_serial` / `confirm_mail_state` / `cancel_mail_state`. Production D1 `06cf879d` live readback still `0001`–`0010` only, no serial table.
 - CI `check` SUCCESS on `08be249` (Actions `45121078616`). Independent source review PASS. GitHub reviews on PR #64: none. `mergeable_state=blocked`. This agent cannot merge (gh read-only). Staging Worker still `3b9240e7` until parent merge + CD.
-- Live public booking URL (HTTP 200, hero `BookingEmbedded`): `https://kaiyuemacau.com/`. Current production Worker `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` / annotation `production 696c2bd8 / main ff119f2c`. Live `NOTIFICATIONS_ENABLED=false`; no `EMAIL`; no `NOTIFY_STAFF_TO`. Do not treat `daniel@kaiyuemacau.com` as a mail dest.
+- Live public booking URL (HTTP 200, hero `BookingEmbedded`): `https://kaiyuemacau.com/`. Current production Worker `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` / annotation `production 696c2bd8 / main ff119f2c`. Live `NOTIFICATIONS_ENABLED=false`; no `EMAIL`; no `NOTIFY_STAFF_TO`. Owner t315u production staff dest remains `daniel@kaiyuemacau.com` (inbox approval). Git candidate encodes it; live Worker does not send yet.
 - Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
 
 ### 2026-11-18 — Hosted staging MCP and booking decisions

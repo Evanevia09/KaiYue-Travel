@@ -55,6 +55,8 @@ describe("production overlay candidate", () => {
     expect(JSON.stringify(overlayConfig)).not.toContain("41386f");
     expect(JSON.stringify(overlayConfig)).not.toContain("admin-test@kaiyue.test");
     expect(JSON.stringify(overlayConfig)).not.toContain("uat-admin-20261114@kaiyue.test");
+    // 2026-11-15 package has no ADMIN_EMAILS. Production mail dest is t315u
+    // NOTIFY_STAFF_TO on deploy/production/wrangler.jsonc, not this artifact.
     expect(JSON.stringify(overlayConfig)).not.toContain("daniel@kaiyuemacau.com");
     expect(overlayConfig.assets.run_worker_first).toBe(true);
   });

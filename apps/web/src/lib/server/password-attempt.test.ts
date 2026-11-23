@@ -1,16 +1,18 @@
 import { AppError } from "@kaiyue/contracts";
 import { describe, expect, it } from "vitest";
 import { createTestEnv } from "../../../../../tests/helpers/memory-d1.ts";
-import { errorResponse } from "./http.ts";
+import { JSON_LIMIT_BYTES, errorResponse } from "./http.ts";
 import {
   PASSWORD_LOCKOUT_FAILURES,
   PASSWORD_LOCKOUT_MESSAGE,
   PASSWORD_LOCKOUT_MS,
   beginPasswordAttempt,
   clearPasswordAttempts,
+  handlePasswordSignIn,
   isPasswordSignInPath,
   passwordAttemptBuckets,
   passwordAttemptSource,
+  peekSignInEmail,
   rejectIfPasswordLocked,
   trustClientForwardedIp,
 } from "./password-attempt.ts";
@@ -235,5 +237,139 @@ describe("password attempt lockout", () => {
       expect(body.error?.retryAfter).toBe(300);
       expect(JSON.stringify(body)).not.toMatch(/lockout-staff|example\.invalid/i);
     }
+  });
+});
+
+function signInUrl() {
+  return "https://admin-staging.kaiyuemacau.com/api/auth/sign-in/email";
+}
+
+function chunkedSignInRequest(
+  enqueue: (controller: ReadableStreamDefaultController<Uint8Array>) => void,
+  onCancel: () => void,
+) {
+  return new Request(signInUrl(), {
+    method: "POST",
+    headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.90" },
+    duplex: "half",
+    body: new ReadableStream<Uint8Array>({
+      pull(controller) {
+        enqueue(controller);
+      },
+      cancel() {
+        onCancel();
+      },
+    }),
+  } as RequestInit);
+}
+
+describe("password sign-in body bound", () => {
+  it("peeks a normalized email from a small JSON body", async () => {
+    const request = new Request(signInUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: ` ${email.toUpperCase()} `, password: "aaaaaa" }),
+    });
+    await expect(peekSignInEmail(request)).resolves.toBe(email);
+  });
+
+  it("still reserves the limiter for a small JSON sign-in body", async () => {
+    const env = createTestEnv({ BETTER_AUTH_SECRET: secret });
+    const request = new Request(signInUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.92" },
+      body: JSON.stringify({ email, password: "wrong-password" }),
+    });
+    const response = await handlePasswordSignIn(request, env);
+    expect(response.status).not.toBe(413);
+    const buckets = await passwordAttemptBuckets(env, email, "203.0.113.92");
+    expect(await storedCount(env, buckets.account!)).not.toBeNull();
+  });
+
+  it("returns 413 for oversized ASCII without swallowing into auth", async () => {
+    const env = createTestEnv({ BETTER_AUTH_SECRET: secret });
+    const request = new Request(signInUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.91" },
+      body: JSON.stringify({
+        email,
+        password: "a".repeat(JSON_LIMIT_BYTES),
+      }),
+    });
+    const response = await handlePasswordSignIn(request, env);
+    expect(response.status).toBe(413);
+    const body = (await response.json()) as { error?: { code?: string; message?: string } };
+    expect(body.error?.code).toBe("VALIDATION_FAILED");
+    expect(body.error?.message).toBe("Request is too large.");
+    const rows = await env.DB.prepare("SELECT COUNT(*) AS n FROM rate_limits").first<{
+      n: number;
+    }>();
+    expect(Number(rows?.n ?? -1)).toBe(0);
+  });
+
+  it("uses UTF-8 byte length so multibyte JSON under the character limit is still 413", async () => {
+    const pad = "€".repeat(5_459);
+    const payload = `{"email":"${email}","pad":"${pad}"}`;
+    expect(payload.length).toBeLessThanOrEqual(JSON_LIMIT_BYTES);
+    expect(new TextEncoder().encode(payload).byteLength).toBeGreaterThan(JSON_LIMIT_BYTES);
+    const request = new Request(signInUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: payload,
+    });
+    await expect(peekSignInEmail(request)).rejects.toMatchObject({
+      code: "VALIDATION_FAILED",
+      status: 413,
+    });
+  });
+
+  it("cancels a chunked body as soon as the byte bound is exceeded", async () => {
+    const chunk = new Uint8Array(4_096).fill(0x61);
+    let pulls = 0;
+    let cancelled = false;
+    const request = chunkedSignInRequest(
+      (controller) => {
+        pulls += 1;
+        if (pulls > 8) {
+          controller.error(new Error("source read past the sign-in byte bound"));
+          return;
+        }
+        controller.enqueue(chunk);
+      },
+      () => {
+        cancelled = true;
+      },
+    );
+    await expect(peekSignInEmail(request)).rejects.toMatchObject({ status: 413 });
+    expect(cancelled).toBe(true);
+    expect(pulls).toBe(5);
+  });
+
+  it("does not delegate a chunked oversize POST to auth or the limiter", async () => {
+    const env = createTestEnv({ BETTER_AUTH_SECRET: secret });
+    const chunk = new Uint8Array(4_096).fill(0x61);
+    let pulls = 0;
+    let cancelled = false;
+    const request = chunkedSignInRequest(
+      (controller) => {
+        pulls += 1;
+        if (pulls > 8) {
+          controller.error(new Error("auth delegated an unbounded sign-in body"));
+          return;
+        }
+        controller.enqueue(chunk);
+      },
+      () => {
+        cancelled = true;
+      },
+    );
+    const response = await handlePasswordSignIn(request, env);
+    expect(response.status).toBe(413);
+    expect(cancelled).toBe(true);
+    expect(pulls).toBeLessThanOrEqual(5);
+    const rows = await env.DB.prepare("SELECT COUNT(*) AS n FROM rate_limits").first<{
+      n: number;
+    }>();
+    expect(Number(rows?.n ?? -1)).toBe(0);
   });
 });
