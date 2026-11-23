@@ -1,7 +1,7 @@
 # Email lifecycle — one KY##### Reference number (allocation + status mail)
 
 **task_id:** `kaiyue-email-lifecycle-templates-20261123`  
-**Authority:** Owner t333u 23 Nov 2026 12:18 Asia/Macau (implement/preview). Owner t335u/t336u 23 Nov 2026 12:41–12:42 Asia/Macau: one reference through all statuses, KY + 5 digits, label exactly **Reference number**. Owner t337u 23 Nov 2026 13:30 Macau: **ok get this live** — execute allocation, lookup, and status-mail required for a truthful staging live. Previous four + resend deliveries of the IN/CF/CL set are complete. This writer did **not** send.
+**Authority:** Owner t333u 23 Nov 2026 12:18 Asia/Macau (implement/preview). Owner t335u/t336u 23 Nov 2026 12:41–12:42 Asia/Macau: one reference through all statuses, KY + 5 digits, label exactly **Reference number**. Owner t337u 23 Nov 2026 13:30 Macau: **ok get this live** — execute allocation, lookup, and status-mail required for a truthful staging live. Owner t338u 23 Nov 2026 13:58 Macau: once live, one full BOX computerUse booking from the live site to verify enquiry receipt. Previous four + resend deliveries of the IN/CF/CL set are complete. This writer did **not** send and did **not** submit a booking.
 
 **Living spec:** `docs/records/2026-11-20-email-lifecycle-design/SPEC.md` on this branch (t327u IN/CF/CL number model **superseded**). Historical PR #62 `106a217` is not current for numbers.  
 **Branch:** `cursor/email-lifecycle-templates-f58e` (PR #64) from `official-staging` `3a70cffca8ff6a8cc4b0a6d4958db7375c7d2fd2`  
@@ -26,7 +26,7 @@ Production-intended shared shell and four message types, plus the persist path n
 
 Shell: white `#ffffff` header, existing PNG logo only (250×49), gold `#f3a600` divider, dark body, footer brand + staging origin. English table label is exactly `Reference number`. Portuguese `Número de referência`. Traditional Chinese `參考編號`. Guest receipt still says this is not a booking confirmation. Confirm/cancel copy does not invent payment, refund, or cancellation-policy terms. Quote widget stays SKIPPED. Contact `INQ-` refs unchanged. Legacy `KY-xxxxxxxx` rows are never rewritten. Overflow widens (`KY100000`); the five-digit pad never wraps or reuses.
 
-**Not claimed live:** staging merge/deploy until independent review + CI + operator apply of `0011` to D1 `043cd0ff`. Production merge/deploy/mail/`0011`. Any send from this VM. Tourist-board/MGTO production publication (15 Nov 06:06 YES applied only to that dashboard UX site publication). Quote widget.
+**Not claimed live:** staging merge/deploy until GitHub review + merge of PR #64 + CD activation. Production merge/deploy/mail/`0011`. Any send from this VM. Tourist-board/MGTO production publication (15 Nov 06:06 YES applied only to that dashboard UX site publication). Quote widget. Independent source review PASS; CI `check` SUCCESS on `08be249`; staging D1 `0011` applied. GitHub PR still `mergeable_state=blocked` (0 reviews). This agent cannot merge.
 
 ---
 
@@ -94,18 +94,19 @@ English label on every table: **Reference number**. Staging subject prefix `[Sta
 ## Independent review (not CI)
 
 - CodeRabbit CLI 0.9.6 present; **not authenticated**. `coderabbit auth login --agent` failed (`automatic_login_failed`; localhost callback unavailable). Exact CodeRabbit blocker: provision an Agentic API key in this environment or complete browser login on a user-controlled terminal. Do not treat this as a CodeRabbit pass.
-- Independent `code-reviewer` on the execute-live tree vs `a93eec20`: **source of this increment is acceptable**; **staging merge FAIL until** (1) this increment is committed on `cursor/email-lifecycle-templates-f58e`, (2) CI green on that commit, (3) authorized operator applies `0011` to D1 `043cd0ff` **before** CD activation. CD schema check is not a live D1 readback and would otherwise activate a Worker that fail-closes persist.
+- Independent `code-reviewer` on the execute-live tree vs `a93eec20`: **source of this increment is acceptable**. Source review is **not** a GitHub review. Remaining staging-merge gates: GitHub required review (currently 0 reviews; `mergeable_state=blocked`) then parent merge of PR #64 only. This agent cannot merge (`gh` read-only). CI `check` SUCCESS on `08be249` (Actions `45121078616` / check-run `137514764347`). `0011` applied to staging D1 `043cd0ff` 2026-11-23 (live readback). CD schema check is not a live D1 readback.
 - Non-blocking: increment+INSERT are not one D1 `batch()` (MemoryD1 `.run()` drops `RETURNING`; uniqueness still holds; gaps never reuse); no mail-retry for `confirm_mail_state=failed`; quote MCP routing now accepts serial refs but the widget stays SKIPPED.
 
 ## Remaining
 
-1. Commit this increment (B1), then CI on that SHA (not treated as review).
-2. Operator apply `0011` to staging D1 `043cd0ff` **before** merge/activation.
-3. Staging merge of **reviewed PR #64 only**, then parent browser / DevTools / security check.
-4. Parent executes the fixture matrix above; this VM does not send and does not PATCH live staging status.
+1. GitHub review of PR #64 (currently 0 reviews; `mergeable_state=blocked`). Independent source review PASS is not that review. This agent cannot merge.
+2. Parent merge of **reviewed PR #64 only**, then official-staging CD. Staging Worker is still `3b9240e7` until then. Do not merge #61/#62/#63/#51–#53.
+3. Parent staging browser / DevTools / security check after CD. This VM does not send and does not PATCH live staging status.
+4. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
 5. Native wording review of confirm/cancel sentences.
 6. Dedicated mail-retry after `confirm_mail_state=failed` (no re-PATCH of a terminal `confirmed`).
 7. Production: tourist-board gate, production `0011`, mail activation, recipient policy — later parent decision. CodeRabbit auth remains a process gap, not a merge substitute.
+8. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
 
 ## Self-review (this head)
 
@@ -114,5 +115,82 @@ English label on every table: **Reference number**. Staging subject prefix `[Sta
 - No wrap/reuse; overflow widens. **Pass in tests.**
 - Contact INQ unchanged; quote widget SKIPPED. **Pass.**
 - CodeMode63 / prod61 / held 51–53 not touched. **Pass.**
-- Staging live **not** claimed until committed SHA + `0011` apply + CD. Production **not** claimed.
+- Staging live **not** claimed until GitHub merge + CD. Production **not** claimed.
 - Local verification this increment: `pnpm test` 356/356; `pnpm typecheck` 0 errors (6 existing hints).
+- t338u: this VM did not submit a booking, did not start computerUse, did not send mail, did not PATCH status.
+
+---
+
+## t338u live-browser handoff (verify, do not assume)
+
+Owner exact: *once its live test a full browser booking test using the computer. from the live site to verify we can recieve the enquiry.* Parent queued actual BOX computerUse **after** verified production release. This authorizes a future **ONE** clearly marked test booking from the live website. It does **not** lift review/staging/protection gates, held OAuth, or quote restrictions. This VM must not submit.
+
+### Exact live public booking URL
+
+`https://kaiyuemacau.com/`
+
+Verified 2026-11-23: HTTP 200, `link rel="canonical" href="https://kaiyuemacau.com/"`, hero island `BookingEmbedded` (`/_astro/BookingEmbedded.T8j69MmK.js`), English Home. Alias `https://www.kaiyuemacau.com/` is not the canonical. Staging marketing `https://staging.kaiyuemacau.com/` is **not** the authorized live production test.
+
+Desktop: hero embedded widget (`sourceTrigger=hero-embed`, `sourceMode=embedded`). Home has `page-no-mobile-book`; use a desktop viewport so the hero form is the path. Default ride is Point to point (`airport_transfer`). Default communication tab is **WhatsApp** — switch to **Email** for the mail-receipt test.
+
+### Current production release (not this PR)
+
+| Item | Verified live value |
+| --- | --- |
+| Git | `main` `ff119f2c18f075fe5103821d6541625d49986b38` |
+| Worker | `kaiyue-travel` version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% |
+| Deployment | `494bc151-3081-4a26-9d1c-40428e0025e3` since 2026-11-16T10:54:51Z |
+| Version annotation | `production 696c2bd8 / main ff119f2c` (tag `696c2bd8`) |
+| `PUBLIC_SITE_URL` | `https://kaiyuemacau.com` |
+| `BOOKING_NOTICE_HOURS` | `24` |
+| `NOTIFICATIONS_ENABLED` | `false` |
+| `EMAIL` binding | **absent** |
+| `NOTIFY_STAFF_TO` | **absent** |
+| Production D1 `06cf879d-8fea-4088-8881-7d382e1b8c11` | `d1_migrations` `0001`–`0010` only; **no** `chauffeur_booking_serial` |
+
+Current live persist still allocates `KY-xxxxxxxx`. Success copy on live is `Reference <strong>…</strong>` (this PR changes it to **Reference number** after a production promote that is **not** authorized here).
+
+Task branch / not live: `08be2499d728e09f79eba05691e4b7ef53c7d868` PR #64. Staging Worker still `kaiyue-travel-staging` `3b9240e7-2f67-408c-a16c-92fa9645974d` @100% since 2026-11-20T05:13:26Z.
+
+### Actual production staff notification recipient
+
+**None configured.** Live Worker settings (GET `/workers/scripts/kaiyue-travel/settings`) and overlay `deploy/production/wrangler.jsonc` both have `NOTIFICATIONS_ENABLED=false`, no `EMAIL`, no `NOTIFY_STAFF_TO`. Do **not** treat `daniel@kaiyuemacau.com` (`VERIFIED_PRODUCTION_PRIMARY_EMAIL`, operator admission) as a mail dest.
+
+Staging staff dest (verified live, not the t338u production test): `scalingsmb@gmail.com` (`NOTIFY_STAFF_TO` + `EMAIL.allowed_destination_addresses`). Staging `NOTIFICATIONS_ENABLED=true`.
+
+On current production, “receive the enquiry” means **D1 persist + admin detail**, not inbox. Inbox will not fire until a later authorized production mail activation with an explicit `NOTIFY_STAFF_TO`. After this PR is production-promoted (not authorized), the production overlay still has mail off and no `EMAIL`.
+
+### Read-only receipt verification path
+
+Parent only. Do not change booking status. Do not send extra mail from this VM.
+
+1. Public success screen on `https://kaiyuemacau.com/` — capture the displayed reference (`KY-xxxxxxxx` on current live; `KY#####` only after this feature is actually production-live).
+2. Sign in at `https://admin.kaiyuemacau.com/login` (production admin; not the marketing host).
+3. Open `https://admin.kaiyuemacau.com/admin/bookings/<REFERENCE>` (detail route). The HTML list UI does not read `?q=`; the admin **API** `GET /api/v1/admin/bookings?q=<REFERENCE>` does, behind the same session.
+4. Inbox check only after production mail is actually enabled and a dest is configured. Skip inbox on today’s Worker.
+
+Staging analogue (not the t338u live test): `https://admin-staging.kaiyuemacau.com/admin/bookings/<REFERENCE>`.
+
+### Fields the browser test needs (email-channel enquiry)
+
+One booking. Mark it as a test in **Your Message**. Leave honeypot `Website` empty (do not click/fill `#website`). Do not use the WhatsApp tab for this mail-receipt test. Pickup must be at least 24 hours ahead in `Asia/Macau`.
+
+| Step | Control | Required | Notes |
+| --- | --- | --- | --- |
+| Journey | Point to point (default) | yes | Do not switch to hourly/city tour |
+| Journey | **From** `#pickupLocation` | yes | Address, airport, hotel |
+| Journey | **To** `#destination` | yes | Required for point-to-point |
+| Journey | **Pickup date** | yes | Date + time; ≥24h notice |
+| Journey | **Passengers** | yes | Default 2; 1–14 |
+| Journey | **Get a quote →** | yes | Opens Communication |
+| Communication | **Email** tab | yes | Default is WhatsApp; switch |
+| Communication | **Your Name *** `#contactName` | yes | Synthetic owner name (parent supplies) |
+| Communication | **Your Email *** `#email` | yes | Synthetic owner contact (parent supplies) |
+| Communication | Phone (optional) | no | |
+| Communication | Big luggage / Hand carry | no | Default 0 |
+| Communication | **Your Message (optional)** `#message` | yes for this test | Clearly mark TEST / t338u; one booking only |
+| Communication | Consent copy | n/a | No checkbox on booking form |
+| Communication | `#website` honeypot | must stay empty | Hidden; filling it drops the request |
+| Communication | **Send email request →** | yes | POST `/api/v1/bookings` |
+
+Do not PATCH status after submit. Do not create a second booking from this VM. Held quote `KY-PYPM8Y3E` stays skipped.
