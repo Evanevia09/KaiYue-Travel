@@ -17,7 +17,7 @@
   "github_environment": "staging",
   "github_environment_required_reviewers": false,
   "production_github_environment": "production",
-  "production_github_environment_required_reviewers": true,
+  "production_github_environment_required_reviewers": false,
   "forbidden_branches": ["main", "staging"],
   "attested_applied_migrations": [
     "0001_init.sql",

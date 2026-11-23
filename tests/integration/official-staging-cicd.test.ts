@@ -227,16 +227,18 @@ describe("official staging CI/CD source", () => {
     expect(ciWorkflow).not.toContain("CLOUDFLARE_API_TOKEN");
   });
 
-  it("uses GitHub environment staging with no per-run approval; production stays fail-closed", () => {
+  it("uses GitHub environment staging with no per-run approval; production CD lives in production.yml", () => {
     expect(constants.github_environment).toBe("staging");
     expect(constants.github_environment_required_reviewers).toBe(false);
-    expect(constants.production_github_environment_required_reviewers).toBe(true);
+    expect(constants.production_github_environment_required_reviewers).toBe(false);
     expect(workflow).toContain("environment: staging");
     expect(workflow).not.toContain("environment: official-staging");
     expect(workflow).not.toContain("reviewers:");
-    expect(productionWorkflow).toMatch(/owner reviewer/i);
+    expect(workflow).not.toContain("branches: [main]");
+    expect(productionWorkflow).toContain("branches: [main]");
+    expect(productionWorkflow).toContain("environment: production");
     expect(productionWorkflow).toContain("fail-closed");
-    expect(productionWorkflow).not.toContain("CLOUDFLARE_");
+    expect(productionWorkflow).toContain("CLOUDFLARE_API_TOKEN");
   });
 
   it("keeps Worker secrets off GitHub and only names Cloudflare token secrets", () => {
@@ -299,15 +301,14 @@ describe("official staging CI/CD source", () => {
     expect(workflow).not.toContain("wrangler d1");
   });
 
-  it("keeps production automation fail-closed and unconnected", () => {
+  it("leaves official-staging CD off main and off the production overlay", () => {
     expect(existsSync(productionWorkflowPath)).toBe(true);
-    expect(productionWorkflow).toContain("fail-closed");
-    expect(productionWorkflow).toContain("if: false");
+    expect(workflow).not.toContain("branches: [main]");
+    expect(workflow).not.toContain("deploy/production/wrangler.jsonc");
+    expect(productionWorkflow).toContain("branches: [main]");
     expect(productionWorkflow).toContain("environment: production");
-    expect(productionWorkflow).not.toContain("CLOUDFLARE_");
-    expect(productionWorkflow).not.toMatch(/\bwrangler\b/);
-    expect(productionWorkflow).not.toContain("branches: [main]");
-    expect(productionWorkflow).toContain("exit 1");
+    expect(productionWorkflow).toContain("production-upload.mjs");
+    expect(productionWorkflow).not.toContain("if: false");
   });
 
   it("passes overlay generation, schema contract, and guard without Cloudflare credentials", () => {
@@ -912,7 +913,7 @@ describe("official staging fail-closed Cloudflare credential format gate", () =>
     }
   });
 
-  it("keeps the credential gate on every token-bearing script and leaves production credential-free", () => {
+  it("keeps the credential gate on every token-bearing staging script and leaves ci.yml credential-free", () => {
     for (const script of CREDENTIALED_SCRIPTS) {
       const source = readFileSync(join(repoRoot, "scripts", script), "utf8");
       expect(source).toContain("spawnWrangler");
@@ -923,7 +924,6 @@ describe("official staging fail-closed Cloudflare credential format gate", () =>
     expect(lib).toContain("prepareWranglerSpawn");
     expect(lib).toMatch(/refusing to call Wrangler/);
     expect(lib).not.toMatch(/\.trim\(/);
-    expect(productionWorkflow).not.toContain("CLOUDFLARE_");
     expect(ciWorkflow).not.toContain("CLOUDFLARE_API_TOKEN");
   });
 });

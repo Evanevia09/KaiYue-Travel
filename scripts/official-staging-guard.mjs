@@ -177,8 +177,8 @@ check(
   "staging env has no required reviewers",
 );
 check(
-  constants.production_github_environment_required_reviewers === true,
-  "production GitHub environment must require an owner reviewer in UI",
+  constants.production_github_environment_required_reviewers === false,
+  "production GitHub environment has no required reviewers so merge to main can auto-deploy",
 );
 check(
   workflow.includes(`environment: ${constants.github_environment}`),
@@ -374,29 +374,37 @@ for (const name of constants.forbidden_github_secret_names) {
   check(!workflow.includes(`secrets.${name}`), `workflow must not read GitHub secret ${name}`);
 }
 
-check(existsSync(PRODUCTION_WORKFLOW_PATH), "fail-closed production workflow must exist");
+check(existsSync(PRODUCTION_WORKFLOW_PATH), "production workflow must exist");
+check(productionWorkflow.includes("branches: [main]"), "production workflow must trigger on main");
 check(
-  !/CLOUDFLARE_/.test(productionWorkflow),
-  "production workflow must not reference Cloudflare credentials",
-);
-check(!/\bwrangler\b/.test(productionWorkflow), "production workflow must not invoke wrangler");
-check(
-  !productionWorkflow.includes("branches: [main]"),
-  "production workflow must not trigger on main",
+  !productionWorkflow.includes("branches: [official-staging]"),
+  "production workflow must not trigger on official-staging",
 );
 check(
   !productionWorkflow.includes("branches: [staging]"),
   "production workflow must not trigger on staging",
 );
 check(productionWorkflow.includes("fail-closed"), "production workflow must declare fail-closed");
-check(/exit 1/.test(productionWorkflow), "production workflow must fail closed");
 check(
-  productionWorkflow.includes("environment: production") && /if: false/.test(productionWorkflow),
-  "production GitHub environment is reserved and must not activate",
+  productionWorkflow.includes("environment: production") && !/if: false/.test(productionWorkflow),
+  "production GitHub environment must be used and must be allowed to activate",
 );
 check(
-  /owner reviewer/i.test(productionWorkflow),
-  "production workflow must document required owner reviewer without enabling deploy",
+  productionWorkflow.includes("deploy/production/wrangler.jsonc") ||
+    productionWorkflow.includes("production-upload.mjs"),
+  "production workflow must deploy through the canonical production overlay scripts",
+);
+check(
+  productionWorkflow.includes("PUBLIC_SITE_URL: https://kaiyuemacau.com"),
+  "production workflow must bake the live site URL into the build",
+);
+check(
+  !productionWorkflow.includes("example.invalid"),
+  "production workflow must not build with example.invalid",
+);
+check(
+  productionWorkflow.includes("secrets.CLOUDFLARE_API_TOKEN"),
+  "production workflow must read CLOUDFLARE_API_TOKEN from the production environment",
 );
 
 const workflowNames = readdirSync(join(REPO_ROOT, ".github/workflows")).filter((name) =>
@@ -404,12 +412,13 @@ const workflowNames = readdirSync(join(REPO_ROOT, ".github/workflows")).filter((
 );
 for (const name of workflowNames) {
   const text = readFileSync(join(REPO_ROOT, ".github/workflows", name), "utf8");
-  if (name === "ci.yml") {
+  if (name === "ci.yml" || name === "production.yml") {
     continue;
   }
   check(
-    !/branches:\s*\[main\]/.test(text) || !/wrangler/.test(text),
-    `${name} must not combine main push with wrangler`,
+    !/branches:\s*\[main\]/.test(text) ||
+      !/wrangler|production-(upload|activate|migrate)/.test(text),
+    `${name} must not combine main push with production deploy`,
   );
 }
 
