@@ -247,6 +247,24 @@ paths:
       responses:
         "200": { description: Updated booking; audit event recorded }
         default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings/{reference}/lifecycle-mail:
+    post:
+      summary: Retry guest confirmed or cancelled email when delivery is unsent or proven failed
+      parameters:
+        - { $ref: "#/components/parameters/Reference" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind]
+              properties:
+                kind: { type: string, enum: [confirmed, cancelled] }
+      responses:
+        "200": { description: Booking with current mail state; does not change workflow status }
+        default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}/assignment:
     patch:
       summary: Assign an active driver and suitable vehicle, or clear both

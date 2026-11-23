@@ -1,4 +1,9 @@
-import { AppError, BOOKING_STATUSES, CONTACT_STATUSES } from "@kaiyue/contracts";
+import {
+  AppError,
+  BOOKING_STATUSES,
+  CONTACT_STATUSES,
+  type BookingStatus,
+} from "@kaiyue/contracts";
 import { parseSearchQuery, parseUpdatedSince } from "./admin-list-query.ts";
 import type { AppEnv, D1Database } from "./env.ts";
 import { businessTimezone } from "./env.ts";
@@ -9,11 +14,14 @@ import {
   bookingMailDetails,
   bookingStatusSql,
   bookingToAdmin,
+  claimLifecycleMailSend,
   getBookingByReference,
   listBookings,
   setLifecycleMailState,
   updateBookingStatus,
   type BookingRow,
+  type LifecycleMailKind,
+  type LifecycleMailState,
 } from "./bookings.ts";
 import { contactToAdmin, listContacts, updateContactStatus, type ContactRow } from "./contacts.ts";
 import { sendLifecycleCustomerMail } from "./notifications.ts";
@@ -201,26 +209,88 @@ export async function handleAdminBookingStatus(
   const nextStatus = body.status as (typeof BOOKING_STATUSES)[number];
   const updated = await updateBookingStatus(env.DB, row, nextStatus, actorId, requestId);
   if (nextStatus === "confirmed" || nextStatus === "cancelled") {
-    const alreadySent =
-      nextStatus === "confirmed"
-        ? row.confirm_mail_state === "sent"
-        : row.cancel_mail_state === "sent";
-    const outcome = await sendLifecycleCustomerMail(env, {
-      kind: nextStatus,
-      reference: updated.reference,
-      requestId,
-      communicationChannel: updated.communication_channel,
-      locale: updated.locale,
-      name: updated.contact_name,
-      email: updated.email,
-      details: bookingMailDetails(updated, businessTimezone(env)),
-      alreadySent,
-    });
-    await setLifecycleMailState(env.DB, updated, nextStatus, outcome);
+    await deliverLifecycleMail(env, updated, nextStatus, requestId);
     const afterMail = await getBookingByReference(env.DB, updated.reference);
     return { booking: bookingToAdmin(afterMail ?? updated) };
   }
   return { booking: bookingToAdmin(updated) };
+}
+
+export async function handleAdminLifecycleMail(
+  request: Request,
+  env: AppEnv,
+  reference: string,
+  requestId: string,
+) {
+  const row = await getBookingByReference(env.DB, reference);
+  if (!row) {
+    throw new AppError("NOT_FOUND", "Booking not found.");
+  }
+  const body = (await readJson(request)) as { kind?: string };
+  if (body.kind !== "confirmed" && body.kind !== "cancelled") {
+    throw new AppError("VALIDATION_FAILED", "Choose confirmed or cancelled guest email.");
+  }
+  const kind: LifecycleMailKind = body.kind;
+  const workflow = (row.decision_status ?? row.status) as BookingStatus;
+  if (workflow !== kind) {
+    throw new AppError(
+      "INVALID_TRANSITION",
+      `Guest ${kind} email can only be retried when the booking is ${kind}.`,
+    );
+  }
+  const outcome = await deliverLifecycleMail(env, row, kind, requestId);
+  if (outcome === "pending") {
+    throw new AppError(
+      "CONFLICT",
+      "Guest email delivery is unconfirmed. Do not resend this message.",
+    );
+  }
+  if (outcome === "skipped") {
+    throw new AppError("CONFLICT", "Guest email is not sent for this booking channel.");
+  }
+  const after = await getBookingByReference(env.DB, row.reference);
+  return { booking: bookingToAdmin(after ?? row), mailState: outcome };
+}
+
+async function deliverLifecycleMail(
+  env: AppEnv,
+  row: BookingRow,
+  kind: LifecycleMailKind,
+  requestId: string,
+): Promise<LifecycleMailState> {
+  if (row.communication_channel !== "email") {
+    await setLifecycleMailState(env.DB, row, kind, "skipped");
+    return "skipped";
+  }
+  const claim = await claimLifecycleMailSend(env.DB, row, kind);
+  switch (claim) {
+    case "claimed":
+      break;
+    case "sent":
+    case "skipped":
+    case "pending":
+    case "failed":
+      return claim;
+    default: {
+      const unreachable: never = claim;
+      return unreachable;
+    }
+  }
+  const outcome = await sendLifecycleCustomerMail(env, {
+    kind,
+    reference: row.reference,
+    requestId,
+    communicationChannel: row.communication_channel,
+    locale: row.locale,
+    name: row.contact_name,
+    email: row.email,
+    details: bookingMailDetails(row, businessTimezone(env), row.locale),
+    alreadySent: false,
+  });
+  const stored: LifecycleMailState =
+    outcome === "sent" ? "sent" : outcome === "skipped" ? "skipped" : "failed";
+  await setLifecycleMailState(env.DB, row, kind, stored);
+  return stored;
 }
 
 export async function handleAdminContactsList(request: Request, env: AppEnv) {

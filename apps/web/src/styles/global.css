@@ -3279,11 +3279,12 @@ td {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #65737b;
-  white-space: nowrap;
 }
 .admin-bookings-table td {
   vertical-align: middle;
   font-size: 0.87rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .admin-bookings-table tbody tr:hover {
   background: #fbfaf7;
@@ -3307,6 +3308,9 @@ td {
   color: #91641a;
   font-weight: 750;
   text-decoration: none;
+}
+.admin-reference {
+  white-space: nowrap;
 }
 .admin-inline-link:disabled {
   opacity: 0.5;
@@ -4153,6 +4157,8 @@ td {
     align-items: start;
     padding: 0.35rem 0;
     border-bottom: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .admin-bookings-table td::before {
@@ -4172,6 +4178,17 @@ td {
   .admin-bookings-table td:has(.admin-row-link)::before,
   .admin-bookings-table td.admin-table-actions::before {
     display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .admin-bookings-table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .admin-reference {
+    white-space: nowrap;
   }
 }
 

@@ -12,10 +12,10 @@
 
 - Living spec: `docs/records/2026-11-20-email-lifecycle-design/SPEC.md` on this branch. t327u shared-serial IN/CF/CL **superseded** by t335u/t336u (23 Nov 2026 12:41–12:42 Macau). t328u send-to-owner; t333u 23 Nov 2026 12:18 Macau: send revised tests (previous four + resend complete; **no further send this run**).
 - White `#ffffff` header; logo only (`/images/kai-yue-travel-group-logo.png`, 250×49); gold `#f3a600` divider; dark `#1a1a1a` body. No company-name text beside the logo. Footer brand allowed.
-- Email-safe 2-column TABLE (label | value); omit empty fields; plaintext labels padded to a column. No CSS grid/flex. Overflow widens, never wraps.
+- Email-safe 2-column TABLE (label | value); omit empty fields; plaintext labels padded to a column. No CSS grid/flex. Nowrap the reference only; long addresses wrap. Cap is strict `KY` + five digits (`1..99999`); overflow-widens is superseded.
 - Guest receipt is **not** a confirmation. Confirm and cancel copy are distinct. No payment/refund/cancellation-policy invention.
 - Staff notices English; customer copy `en` / `pt` / `zh-Hant`. Staging subject prefix `[Staging test] `.
-- Display example serial 42: **`KY00042`** (KY + five digits, no hyphen) on every message. English label exactly `Reference number`. No confirmation/cancellation aliases. No original-enquiry history rows. Legacy `KY-xxxxxxxx` never rewritten. Contacts stay `INQ-`. Overflow widens, never wraps or reuses.
+- Display example serial 42: **`KY00042`** (KY + five digits, no hyphen) on every message. English label exactly `Reference number`. No confirmation/cancellation aliases. No original-enquiry history rows. Legacy `KY-xxxxxxxx` never rewritten. Contacts stay `INQ-`. Strict five-digit cap; never wrap, reuse, or widen.
 - Four English preview messages only To `scalingsmb@gmail.com`; From `Kai Yue Travel <bookings@notify.kaiyuemacau.com>`. Official staging links. Visible synthetic/preview marking. No quote. No KY-PYPM8Y3E. No send from this VM.
 - Preserve CodeMode63@`16e06ba`, prod61@`f774f69`, held #51–#53. Stay on `cursor/email-lifecycle-templates-f58e`. No reset/rebase/force/autostash. Staging merge only after independent review + CI + `0011` applied to D1 `043cd0ff`. No production.
 
@@ -31,8 +31,8 @@
 - Produces: `formatBookingReference(serial: number): string` → `KY` + `padStart(5, "0")`
 - Removes: `formatLifecycleNumber`, `LifecycleNumberKind`
 
-- [x] **Step 1:** Tests for serial 1 / 42 / 10000 / 100000 and invalid serial.
-- [x] **Step 2:** Implement no-hyphen `KY#####`; extra digits stay.
+- [x] **Step 1:** Tests for serial 1 / 42 / 10000 / 99999 and invalid 0 / 100000.
+- [x] **Step 2:** Implement no-hyphen `KY#####`; extra digits are refused (t339u supersedes widen).
 - [x] **Step 3:** Commit with renderer in the same change set.
 
 ### Task 2: Shared white/logo/gold shell + padded 2-col table
@@ -102,7 +102,7 @@
 - Test: `packages/contracts/src/ids.test.ts`, `tests/integration/bookings.test.ts`, `tests/integration/booking-lifecycle-reference.test.ts`
 
 - [x] **Step 1:** Atomic `UPDATE … RETURNING last_issued`; store `KY#####` + `lifecycle_serial`; unique partial index; start at 0 so first issue is 1.
-- [x] **Step 2:** Overflow widens (`100000` → `KY100000`). Failed insert after increment may gap; never reuse. Do not seed from legacy `KY-` rows.
+- [x] **Step 2:** Strict cap 99999; further creates `503` with no booking row. Failed insert after increment may gap; never reuse. Do not seed from legacy `KY-` rows. Owner t339u superseded overflow-widens.
 - [x] **Step 3:** Attest `0011` on disk contract. CD does not apply it. Operator apply to staging D1 is a later reviewed step.
 
 ### Task 7: Consistent lookup of serial + legacy refs
@@ -121,7 +121,18 @@
 - Test: `tests/integration/booking-lifecycle-reference.test.ts`
 
 - [x] **Step 1:** After successful workflow `confirmed`/`cancelled`, send guest mail if email-channel policy permits. No extra staff blast. WhatsApp/admin skip. Denied skip.
-- [x] **Step 2:** Store `confirm_mail_state` / `cancel_mail_state` separately from create-time `notification_state`. Mail failure does not roll back status. No dedicated retry endpoint in this increment.
+- [x] **Step 2:** Store `confirm_mail_state` / `cancel_mail_state` separately from create-time `notification_state`. Mail failure does not roll back status. Guarded retry is Task 9.
+
+### Task 9: t339u scoped reliability (strict 5, idempotency claim, mail recovery, wrap)
+
+**Files:**
+- Modify: `packages/contracts/src/ids.ts`, `apps/web/src/lib/server/{bookings,idempotency,admin,router,notification-templates}.ts`, admin UI/i18n, CSS, OpenAPI, docs
+- Test: `ids.test.ts`, `notification-templates.test.ts`, `booking-lifecycle-reference.test.ts`, `bookings.test.ts`
+
+- [x] **Step 1:** Strict `KY` + five digits `1..99999`; atomic `WHERE last_issued < 99999`; exhaustion `503`; no wrap/reuse. Owner already decided; overflow-widens recorded as superseded.
+- [x] **Step 2:** Unique `202` claim before persist; bind reference with the booking insert; finish `201`; abandon empty `202` on persist failure; concurrent identical keys one booking.
+- [x] **Step 3:** Claim `pending` before confirm/cancel send; `POST …/lifecycle-mail` retries `null`/`failed` only; PATCH cannot replay a terminal status; no new queue/cron.
+- [x] **Step 4:** Nowrap reference only; wrap long addresses; semantic locale pickup-time dedup in PT/zh-Hant.
 
 ## Self-review
 
@@ -137,5 +148,8 @@
 | D1 serial + unique reference | 6 |
 | Lookup serial + legacy | 7 |
 | Confirm/cancel status mail | 8 |
+| Strict 5 + exhaustion | 9 |
+| Booking-create idempotency claim | 9 |
+| Guarded lifecycle-mail retry | 9 |
 | Four English MIME + manifest | 5 |
-| Remaining: native wording review; staging `0011` apply + reviewed merge; production tourist-board gate | REPORT. |
+| Remaining: native wording review; independent re-review of this SHA then staging merge; production tourist-board gate | REPORT. |

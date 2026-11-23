@@ -421,6 +421,30 @@ export function BookingDetailPanel({
               ))}
             </div>
             {next.length === 0 && <p className="muted">{t(locale, "detail.finalStatus")}</p>}
+            {(booking.status === "confirmed" || booking.status === "cancelled") &&
+              booking.communicationChannel === "email" && (
+                <GuestMailRetry
+                  locale={locale}
+                  kind={booking.status as "confirmed" | "cancelled"}
+                  state={
+                    booking.status === "confirmed"
+                      ? (booking.confirmMailState ?? null)
+                      : (booking.cancelMailState ?? null)
+                  }
+                  saving={saving}
+                  onRetry={() =>
+                    void action(
+                      () =>
+                        adminFetch(`/api/v1/admin/bookings/${reference}/lifecycle-mail`, {
+                          method: "POST",
+                          locale,
+                          body: JSON.stringify({ kind: booking.status }),
+                        }),
+                      t(locale, "detail.mailRetried"),
+                    )
+                  }
+                />
+              )}
           </section>
           <section className="admin-card">
             <p className="admin-eyebrow">{t(locale, "detail.teamNotes")}</p>
@@ -493,6 +517,43 @@ export function BookingDetailPanel({
           </section>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function GuestMailRetry({
+  locale,
+  kind,
+  state,
+  saving,
+  onRetry,
+}: {
+  locale: AdminLocale;
+  kind: "confirmed" | "cancelled";
+  state: string | null;
+  saving: boolean;
+  onRetry: () => void;
+}) {
+  const kindLabel = prefixedLabel(locale, "status", kind);
+  const helpKey =
+    state === "sent"
+      ? "detail.mailSent"
+      : state === "failed"
+        ? "detail.mailFailed"
+        : state === "pending"
+          ? "detail.mailPending"
+          : state === "skipped"
+            ? "detail.mailSkipped"
+            : "detail.mailUnsent";
+  const canRetry = state === "failed" || state == null || state === "";
+  return (
+    <div className="admin-mail-retry">
+      <p className="muted">{t(locale, helpKey, { kind: kindLabel })}</p>
+      {canRetry ? (
+        <button type="button" className="btn btn--secondary" disabled={saving} onClick={onRetry}>
+          {t(locale, "detail.retryGuestMail", { kind: kindLabel })}
+        </button>
+      ) : null}
     </div>
   );
 }

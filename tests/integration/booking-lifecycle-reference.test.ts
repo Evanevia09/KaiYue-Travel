@@ -127,8 +127,12 @@ describe("durable KY##### chauffeur references", () => {
       "UPDATE chauffeur_booking_serial SET last_issued = 99999 WHERE id = 1",
     ).run();
     const overflow = await postBooking(env);
-    expect(overflow.body.reference).toBe("KY100000");
-    expect(overflow.body.reference).not.toMatch(/^KY[0-9]{1,4}$/);
+    expect(overflow.response.status).toBe(503);
+    expect(overflow.body.reference).toBeUndefined();
+    const exhausted = await env.DB.prepare(
+      "SELECT last_issued FROM chauffeur_booking_serial WHERE id = 1",
+    ).first<{ last_issued: number }>();
+    expect(exhausted?.last_issued).toBe(99999);
 
     const listed = await handleApi(
       new Request("http://localhost/api/v1/admin/bookings?q=KY00001", {
@@ -290,5 +294,132 @@ describe("durable KY##### chauffeur references", () => {
       .bind(LEGACY)
       .first<{ reference: string; lifecycle_serial: number | null }>();
     expect(legacyStored).toEqual({ reference: LEGACY, lifecycle_serial: null });
+  });
+
+  it("issues KY99999 then refuses further allocation without wrapping", async () => {
+    const { env } = lifecycleEnv();
+    await env.DB.prepare(
+      "UPDATE chauffeur_booking_serial SET last_issued = 99998 WHERE id = 1",
+    ).run();
+    const last = await postBooking(env);
+    expect(last.response.status).toBe(201);
+    expect(last.body.reference).toBe("KY99999");
+    const [a, b] = await Promise.all([postBooking(env), postBooking(env)]);
+    expect([a.response.status, b.response.status].sort()).toEqual([503, 503]);
+    const counter = await env.DB.prepare(
+      "SELECT last_issued FROM chauffeur_booking_serial WHERE id = 1",
+    ).first<{ last_issued: number }>();
+    expect(counter?.last_issued).toBe(99999);
+    const count = await env.DB.prepare("SELECT COUNT(*) AS n FROM bookings").first<{ n: number }>();
+    expect(Number(count?.n)).toBe(1);
+  });
+});
+
+async function retryLifecycleMail(
+  env: ReturnType<typeof createTestEnv>,
+  reference: string,
+  kind: "confirmed" | "cancelled",
+) {
+  return handleApi(
+    new Request(`http://localhost/api/v1/admin/bookings/${reference}/lifecycle-mail`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://staging.kaiyuemacau.com",
+      },
+      body: JSON.stringify({ kind }),
+    }),
+    env,
+  );
+}
+
+describe("lifecycle mail recovery", () => {
+  it("keeps confirmed status when send fails and retries without a second transition", async () => {
+    const { env, sent, send } = lifecycleEnv();
+    const created = await postBooking(env);
+    const reference = created.body.reference!;
+    const enquiry = await getBooking(env, reference);
+    expect((await patchStatus(env, reference, "approved", enquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    send.mockImplementationOnce(async () => {
+      throw new Error("smtp_down");
+    });
+    const approved = await getBooking(env, reference);
+    const confirmed = await patchStatus(env, reference, "confirmed", approved.booking!.updatedAt);
+    expect(confirmed.status).toBe(200);
+    const afterFail = await getBooking(env, reference);
+    expect(afterFail.booking?.status).toBe("confirmed");
+    const failedState = await env.DB.prepare(
+      "SELECT confirm_mail_state FROM bookings WHERE reference = ?",
+    )
+      .bind(reference)
+      .first<{ confirm_mail_state: string }>();
+    expect(failedState?.confirm_mail_state).toBe("failed");
+    expect(customerMails(sent)).toHaveLength(1);
+
+    const replayStatus = await patchStatus(
+      env,
+      reference,
+      "confirmed",
+      afterFail.booking!.updatedAt,
+    );
+    expect(replayStatus.status).toBe(409);
+    expect(customerMails(sent)).toHaveLength(1);
+
+    const retried = await retryLifecycleMail(env, reference, "confirmed");
+    expect(retried.status).toBe(200);
+    const retriedBody = (await retried.json()) as { mailState?: string };
+    expect(retriedBody.mailState).toBe("sent");
+    expect(customerMails(sent)).toHaveLength(2);
+    const sentState = await env.DB.prepare(
+      "SELECT confirm_mail_state FROM bookings WHERE reference = ?",
+    )
+      .bind(reference)
+      .first<{ confirm_mail_state: string }>();
+    expect(sentState?.confirm_mail_state).toBe("sent");
+
+    const secondRetry = await retryLifecycleMail(env, reference, "confirmed");
+    expect(secondRetry.status).toBe(200);
+    expect(customerMails(sent)).toHaveLength(2);
+  });
+
+  it("refuses to resend while delivery is pending and skips WhatsApp", async () => {
+    const { env, sent } = lifecycleEnv();
+    const created = await postBooking(env);
+    const reference = created.body.reference!;
+    const enquiry = await getBooking(env, reference);
+    expect((await patchStatus(env, reference, "approved", enquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    const approved = await getBooking(env, reference);
+    expect(
+      (await patchStatus(env, reference, "confirmed", approved.booking!.updatedAt)).status,
+    ).toBe(200);
+    await env.DB.prepare("UPDATE bookings SET confirm_mail_state = 'pending' WHERE reference = ?")
+      .bind(reference)
+      .run();
+    const pending = await retryLifecycleMail(env, reference, "confirmed");
+    expect(pending.status).toBe(409);
+    const pendingBody = (await pending.json()) as { error?: { code?: string } };
+    expect(pendingBody.error?.code).toBe("CONFLICT");
+    expect(customerMails(sent)).toHaveLength(2);
+
+    const whatsapp = await postBooking(env, {
+      communicationChannel: "whatsapp",
+      email: undefined,
+      contactName: "WhatsApp Guest",
+    });
+    const waRef = whatsapp.body.reference!;
+    const waEnquiry = await getBooking(env, waRef);
+    expect((await patchStatus(env, waRef, "approved", waEnquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    const waApproved = await getBooking(env, waRef);
+    expect((await patchStatus(env, waRef, "confirmed", waApproved.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    const waRetry = await retryLifecycleMail(env, waRef, "confirmed");
+    expect(waRetry.status).toBe(409);
   });
 });

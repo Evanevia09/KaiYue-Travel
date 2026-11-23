@@ -45,7 +45,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 
 ## Bookings list
 
-- Columns/card fields: **Reference number**, pickup date/time, pickup/destination summary, customer name, service type, passenger count, status, received time. Special-offer enquiries also show the published package title (and id on the detail page) from `offer_title` / `offer_id`. New chauffeur rows use `KY` + at least five digits (`KY00042`). Legacy `KY-xxxxxxxx` rows stay unchanged and remain lookup keys.
+- Columns/card fields: **Reference number**, pickup date/time, pickup/destination summary, customer name, service type, passenger count, status, received time. Special-offer enquiries also show the published package title (and id on the detail page) from `offer_title` / `offer_id`. New chauffeur rows use `KY` + exactly five digits (`KY00042`). Legacy `KY-xxxxxxxx` rows stay unchanged and remain lookup keys. Table nowrap is restricted to the reference; long addresses wrap at 390px and 320px stacked layouts.
 - Filters: date range, status, service type; text lookup by exact/limited reference or approved customer fields.
 - Default sort: nearest relevant pickup first, with overdue/new items visibly flagged.
 - Pagination is server-side. Empty, loading, partial-error, and no-result states are distinct.
@@ -73,7 +73,7 @@ Counts link to pre-filtered lists. Define “today” using the approved busines
 - Operators may edit journey and contact details, with validation and a revision check; edits record only changed field names in the audit trail, not personal data.
 - Operators may assign an active driver and vehicle together, or clear both. Saving with no driver and no vehicle when nothing is assigned is rejected with a visible validation error; the UI must not show a success state for that no-op. Vehicle capacity must cover the current passenger count. Availability and scheduling conflicts still require manual review.
 
-Booking workflow: `enquiry` → `approved` → `confirmed` → `assigned` → `completed`, with `denied` and `cancelled` from the allowed stages. Email-channel bookings send a guest confirmation after the first authorized transition to workflow `confirmed`, and a guest cancellation after the first authorized transition to workflow `cancelled`. WhatsApp-channel and admin-created rows do not send those lifecycle mails. Denied does not send cancellation mail. Status is persisted first; mail failure does not roll back the status. This is not automatic confirmation.
+Booking workflow: `enquiry` → `approved` → `confirmed` → `assigned` → `completed`, with `denied` and `cancelled` from the allowed stages. Email-channel bookings send a guest confirmation after the first authorized transition to workflow `confirmed`, and a guest cancellation after the first authorized transition to workflow `cancelled`. WhatsApp-channel and admin-created rows do not send those lifecycle mails. Denied does not send cancellation mail. Status is persisted first; mail failure does not roll back the status. Repeat PATCH of the same terminal status is `INVALID_TRANSITION`. Failed or unsent guest mail is retried with `POST /api/v1/admin/bookings/{reference}/lifecycle-mail` (`kind: confirmed|cancelled`) without changing status. `pending` means delivery is unconfirmed and must not be resent. This is not automatic confirmation and is not exactly-once without provider idempotency.
 
 ## Contacts
 

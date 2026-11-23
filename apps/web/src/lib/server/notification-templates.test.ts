@@ -18,11 +18,12 @@ const brand = { logoUrl, siteUrl };
 const reference = "KY00042";
 
 describe("booking reference display", () => {
-  it("formats KY plus at least five digits with no hyphen, then expands", () => {
+  it("formats KY plus exactly five digits and rejects overflow", () => {
     expect(formatBookingReference(1)).toBe("KY00001");
     expect(formatBookingReference(42)).toBe("KY00042");
     expect(formatBookingReference(10000)).toBe("KY10000");
-    expect(formatBookingReference(100000)).toBe("KY100000");
+    expect(formatBookingReference(99999)).toBe("KY99999");
+    expect(() => formatBookingReference(100000)).toThrow("invalid_booking_reference_serial");
   });
 
   it("rejects non-positive serials", () => {
@@ -61,7 +62,7 @@ describe("branded notification templates", () => {
     expect(staff.html).not.toContain("Email");
     expect(staff.html).toContain("https://admin-staging.kaiyuemacau.com");
     expect(staff.html).toMatch(/width="44%"/);
-    expect(staff.html).toContain("white-space:nowrap");
+    expect(staff.html).toMatch(/white-space:nowrap/);
     expect(staff.html).toContain(ENGLISH_REFERENCE_LABEL);
     expect(staff.text).toMatch(/Reference number\s*: KY00042/);
     expect(staff.text).toMatch(/Pickup\s*: Macau International Airport/);
@@ -197,5 +198,63 @@ describe("branded notification templates", () => {
     expect(zh.text).toContain(reference);
     expect(zh.text).toContain("參考編號");
     expect(zh.text).not.toContain("原申請");
+  });
+
+  it("nowraps only the reference value and wraps long addresses", () => {
+    const longPickup =
+      "Macau International Airport Arrivals Hall, North Wing, extra-long landmark description for wrapping";
+    const staff = renderStaffMessage("staging", {
+      kind: "booking",
+      reference,
+      summary: "A new chauffeur booking request is waiting for review.",
+      details: [
+        { label: "Pickup", value: longPickup },
+        { label: "Message", value: "Please wait at the extra-long freeform meeting note." },
+      ],
+    });
+    expect(staff.html).toMatch(
+      new RegExp(`Reference number[\\s\\S]*?white-space:nowrap;[\\s\\S]*?${reference}`),
+    );
+    expect(staff.html).toContain("overflow-wrap:anywhere");
+    expect(staff.html).toContain(longPickup);
+    const pickupCell = staff.html.match(
+      new RegExp(`Pickup[\\s\\S]*?${longPickup.slice(0, 24)}`),
+    )?.[0];
+    expect(pickupCell).toBeDefined();
+    expect(pickupCell).not.toContain("white-space:nowrap");
+  });
+
+  it("dedupes pickup time in Portuguese and Traditional Chinese customer mail", () => {
+    const pickupAt = "2026-12-01T02:30:00.000Z";
+    const details = [
+      { label: "Pickup time", value: "Dec 1, 2026, 10:30 AM (Asia/Macau)" },
+      { label: "Pickup", value: "Macau International Airport" },
+    ];
+    const pt = renderCustomerAck("staging", {
+      kind: "booking",
+      reference,
+      locale: "pt",
+      name: "Synthetic Guest",
+      serviceType: "airport_transfer",
+      pickupAt,
+      timezone: "Asia/Macau",
+      siteUrl,
+      details,
+    });
+    expect(pt.text).toContain("Hora de recolha");
+    expect(pt.text).not.toMatch(/Pickup time/i);
+    expect([...pt.text.matchAll(/Hora de recolha/g)]).toHaveLength(1);
+
+    const zh = renderCustomerConfirmed("staging", {
+      locale: "zh-Hant",
+      name: "Synthetic Guest",
+      reference,
+      timezone: "Asia/Macau",
+      siteUrl,
+      details,
+    });
+    expect(zh.text).toContain("接載時間");
+    expect(zh.text).not.toContain("Pickup time");
+    expect([...zh.text.matchAll(/接載時間/g)]).toHaveLength(1);
   });
 });

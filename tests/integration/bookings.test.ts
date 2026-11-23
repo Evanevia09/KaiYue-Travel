@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createMemoryOfferStore } from "../../apps/web/src/lib/server/offers/store.ts";
-import { createTestEnv, futurePickup } from "../helpers/memory-d1.ts";
+import { createTestEnv, futurePickup, setD1StatementFailure } from "../helpers/memory-d1.ts";
 
 const sampleOfferId = "3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33";
 
@@ -79,7 +79,7 @@ describe("POST /api/v1/bookings", () => {
       whatsappUrl?: string;
     };
     expect(firstBody.status).toBe("enquiry");
-    expect(firstBody.reference).toMatch(/^KY[0-9]{5,}$/);
+    expect(firstBody.reference).toMatch(/^KY[0-9]{5}$/);
     expect(firstBody.whatsappUrl).toBeUndefined();
 
     const replay = await handleApi(request(), env);
@@ -117,6 +117,85 @@ describe("POST /api/v1/bookings", () => {
     expect(conflict.status).toBe(409);
     const body = (await conflict.json()) as { error: { code: string } };
     expect(body.error.code).toBe("IDEMPOTENCY_CONFLICT");
+  });
+
+  it("creates one booking for concurrent identical idempotency keys", async () => {
+    const env = createTestEnv();
+    const payload = bookingPayload();
+    const request = () =>
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "test-booking-key-concurrent",
+        },
+        body: JSON.stringify(payload),
+      });
+    const [a, b] = await Promise.all([handleApi(request(), env), handleApi(request(), env)]);
+    const statuses = [a.status, b.status].sort();
+    expect(statuses[0]).toBe(201);
+    expect([201, 409]).toContain(statuses[1]);
+    const bodies = await Promise.all([
+      a.json() as Promise<{ reference?: string; error?: { code?: string } }>,
+      b.json() as Promise<{ reference?: string; error?: { code?: string } }>,
+    ]);
+    const refs = bodies
+      .map((body) => body.reference)
+      .filter((value): value is string => Boolean(value));
+    expect(new Set(refs).size).toBe(1);
+    if (statuses[1] === 409) {
+      const failed = bodies.find((body) => !body.reference);
+      expect(failed?.error?.code).toBe("CONFLICT");
+    }
+    const count = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(count?.count).toBe(1);
+  });
+
+  it("recovers a persisted claim without a second booking after a failed insert", async () => {
+    const env = createTestEnv();
+    const payload = bookingPayload();
+    const key = "test-booking-key-partial-recovery";
+    const request = () =>
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": key,
+        },
+        body: JSON.stringify(payload),
+      });
+    setD1StatementFailure(env.DB, (sql) => /INSERT INTO bookings/i.test(sql));
+    const failed = await handleApi(request(), env);
+    expect(failed.status).toBe(503);
+    setD1StatementFailure(env.DB, null);
+    const claims = await env.DB.prepare("SELECT COUNT(*) as count FROM idempotency_keys").first<{
+      count: number;
+    }>();
+    expect(Number(claims?.count)).toBe(0);
+    const retry = await handleApi(request(), env);
+    expect(retry.status).toBe(201);
+    const body = (await retry.json()) as { reference: string };
+    expect(body.reference).toMatch(/^KY[0-9]{5}$/);
+    const count = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(count?.count).toBe(1);
+
+    await env.DB.prepare(
+      "UPDATE idempotency_keys SET status_code = 202, response_json = ? WHERE status_code = 201",
+    )
+      .bind(JSON.stringify({ state: "persisted", reference: body.reference }))
+      .run();
+    const recovered = await handleApi(request(), env);
+    expect(recovered.status).toBe(201);
+    const recoveredBody = (await recovered.json()) as { reference: string };
+    expect(recoveredBody.reference).toBe(body.reference);
+    const after = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(after?.count).toBe(1);
   });
 
   it("rejects invalid bookings without writing a row", async () => {

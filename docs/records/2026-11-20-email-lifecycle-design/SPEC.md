@@ -1,7 +1,7 @@
 # Email lifecycle — final written spec (design approved; not full implementation)
 
 **Task:** `kaiyue-email-lifecycle-design-20261120`  
-**Status:** Owner t327u 20 Nov 2026 14:31 Asia/Macau approved the product shell, confirm/cancel mail, and a shared serial. **Owner t335u / t336u 23 Nov 2026 12:41–12:42 Asia/Macau supersede the IN/CF/CL display model.** One persistent chauffeur booking reference, labelled exactly **Reference number** in English, format **KY + at least five digits with no hyphen** (example `KY00042`). Same number through every status. No confirmation/cancellation aliases. No displayed original-enquiry history rows.
+**Status:** Owner t327u 20 Nov 2026 14:31 Asia/Macau approved the product shell, confirm/cancel mail, and a shared serial. **Owner t335u / t336u 23 Nov 2026 12:41–12:42 Asia/Macau supersede the IN/CF/CL display model.** One persistent chauffeur booking reference, labelled exactly **Reference number** in English, format **KY + exactly five digits with no hyphen** (example `KY00042`, range `KY00001`–`KY99999`). Same number through every status. No confirmation/cancellation aliases. No displayed original-enquiry history rows. **Owner t339u 23 Nov 2026 14:13 Macau:** overflow-widens (`KY100000`) is **superseded**; cap is strict five digits with controlled exhaustion.
 
 This file on the template branch is the living approved spec. Historical PR #62 commit `106a217` remains the t327u checkpoint; do not treat its IN-KY / CF-KY / CL-KY table as current. **Not** a release waiver, merge, deploy, D1 implementation, or send authorization.
 
@@ -12,7 +12,7 @@ This file on the template branch is the living approved spec. Historical PR #62 
 ## 1. Approved product (unchanged except numbers)
 
 - Shared branded shell: **white `#ffffff` header**, existing PNG logo **only** (`/images/kai-yue-travel-group-logo.png`, 250×49; alt may stay “Kai Yue Travel”), **gold `#f3a600` divider**. No extra company-name text beside the logo. Do not invent a logo. Body sign-off “Kai Yue Travel” stays. Dark `#1a1a1a` text on white.
-- Filled enquiry details in a **2-column email-safe TABLE** (label | value). Omit empty fields. Readable in Gmail, Outlook, and phone. Matching plaintext `Label: value` with labels padded to a column. No CSS grid/flex. Overflow **widens**, never wraps the reference.
+- Filled enquiry details in a **2-column email-safe TABLE** (label | value). Omit empty fields. Readable in Gmail, Outlook, and phone. Matching plaintext `Label: value` with labels padded to a column. No CSS grid/flex. **nowrap the reference value only**; long addresses and freeform wrap.
 - Request-received remains **not a confirmation**.
 - **Customer** confirmation email on the first authorized staff transition **to workflow `confirmed`**.
 - **Customer** cancellation email on the first authorized staff transition **to workflow `cancelled`**.
@@ -26,21 +26,22 @@ This is **not** Option A (independent counters). This is **not** the t327u IN/CF
 
 ## 2. Number model (one durable reference)
 
-One persisted integer serial **per D1**, used only for **new chauffeur bookings** (public form and admin-created chauffeur rows). Display formatter: `KY` immediately followed by the decimal serial padded to **at least five** digits. No hyphen. No stage prefix.
+One persisted integer serial **per D1**, used only for **new chauffeur bookings** (public form and admin-created chauffeur rows). Display formatter: `KY` immediately followed by the decimal serial padded to **exactly five** digits. Range **1..99999**. No hyphen. No stage prefix. Serial `100000` is invalid and is never allocated.
 
 | Serial | Display |
 | --- | --- |
 | 1 | `KY00001` |
 | 42 | `KY00042` |
 | 10000 | `KY10000` |
-| 100000 | `KY100000` |
+| 99999 | `KY99999` |
+| 100000 | **not issued** (`503 UNAVAILABLE`) |
 
 - `bookings.reference` is the **immutable booking reference** for new chauffeur rows (`KY` + digits). Existing `KY-xxxxxxxx` legacy rows keep that exact value forever. Never overwrite, delete, or renumber a stored reference.
 - `lifecycle_serial` (integer, unique, null on legacy) is the numeric base. Allocate **once at persist** of a new chauffeur row (`migrations/0011_chauffeur_booking_serial.sql`).
 - **No** `confirmation_number` / `cancellation_number` columns. **No** IN-/CF-/CL- aliases. **No** original-enquiry history row in mail or admin chrome for the new model.
 - Primary **display** is always that one reference (or the untouched legacy `KY-xxxxxxxx`). Status-specific copy and titles remain; the number does not change.
-- Overflow: expand width, never truncate, wrap, or reuse. `padStart(5, "0")`; extra digits stay.
-- Counters: one chauffeur serial per D1 (`chauffeur_booking_serial.last_issued`). Staging and production independent. Start at **1**. Never reset. Do not seed from the count of legacy `KY-` rows. Do not reuse `rate_limits`. Overflow widens (`KY100000`); never wrap or reuse.
+- Cap: never truncate, wrap, reuse, or widen past five digits. `padStart(5, "0")`. After `last_issued = 99999`, create is refused; the counter is not decremented.
+- Counters: one chauffeur serial per D1 (`chauffeur_booking_serial.last_issued`). Staging and production independent. Start at **1**. Never reset. Do not seed from the count of legacy `KY-` rows. Do not reuse `rate_limits`. Owner t339u strict-5 supersedes overflow-widens.
 - Contacts stay `INQ-xxxxxxxx`. Do not convert contact refs to `KY#####`.
 
 ---
@@ -57,10 +58,12 @@ Key off **workflow** `nextStatus` (`decision_status` / latest `audit_events` `to
 | `enquiry → assigned` skip | None | No confirmation |
 | `denied` | None | No cancellation |
 | `approved` / `completed` | None | None |
-| Repeat PATCH, mail retry | None | Do not reissue numbers; may retry send only |
+| Repeat PATCH of the same terminal status | None | `INVALID_TRANSITION`; does not resend |
+| `POST …/lifecycle-mail` | None | Retry unsent or `failed` only; `pending`/`sent`/`skipped` do not send |
 
-- Persist status **first**. Mail failure does not roll back status or consume a second number. Store status-mail outcome **separately** from create-time `notification_state`. No outbox in this spec.
-- Concurrency: serial increment is a single-row atomic `UPDATE … SET n = n + 1` in the same D1 batch as the booking insert; unique `reference` / `lifecycle_serial` reject duplicates. Status PATCH keeps `updated_at` CAS; the loser gets `CONFLICT` and allocates nothing.
+- Persist status **first**. Mail failure does not roll back status or consume a second number. Store status-mail outcome **separately** from create-time `notification_state`. Claim `pending` before send; `failed` is proven failure (retry OK); `pending` is ambiguous (do not blindly resend). No new queue/cron/Durable Object. Not exactly-once without provider idempotency.
+- Booking create: unique `idempotency_keys` claim (`202`) before persist; bind `reference` in the booking insert batch; finish `201`. Concurrent identical keys create one booking. A `202` with a stored reference recovers without a second persist or notify.
+- Concurrency: serial increment is `UPDATE chauffeur_booking_serial SET last_issued = last_issued + 1 WHERE id = 1 AND last_issued < 99999 RETURNING last_issued`; empty result is exhaustion. Unique `reference` / `lifecycle_serial` reject duplicates. Status PATCH keeps `updated_at` CAS; the loser gets `CONFLICT` and allocates nothing.
 - Terminal states do not re-enter; no reconfirm path in current `BOOKING_TRANSITIONS`.
 - Legacy rows have **no serial**. They keep `KY-xxxxxxxx`. They do **not** get a `KY#####` rewrite. If later confirmed or cancelled, mail (if policy permits) quotes the existing `KY-` reference. See §8.
 

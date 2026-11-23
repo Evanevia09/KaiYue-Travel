@@ -91,6 +91,124 @@ function visibleRows(rows: DetailRow[]): DetailRow[] {
   return rows.filter((row) => singleLine(row.label) !== "" && singleLine(row.value) !== "");
 }
 
+const DETAIL_SEMANTIC_ALIASES: Record<string, string> = {
+  "reference number": "reference",
+  "número de referência": "reference",
+  參考編號: "reference",
+  reference: "reference",
+  "pickup time": "pickup_time",
+  "hora de recolha": "pickup_time",
+  接載時間: "pickup_time",
+  上車時間: "pickup_time",
+  pickup: "pickup",
+  recolha: "pickup",
+  接載地點: "pickup",
+  接載: "pickup",
+  destination: "destination",
+  destino: "destination",
+  目的地: "destination",
+  service: "service",
+  serviço: "service",
+  服務: "service",
+  passengers: "passengers",
+  passageiros: "passengers",
+  乘客: "passengers",
+  guest: "guest",
+  name: "guest",
+  nome: "guest",
+  姓名: "guest",
+  客人: "guest",
+  email: "email",
+  correio: "email",
+  電郵: "email",
+  phone: "phone",
+  telefone: "phone",
+  電話: "phone",
+  message: "message",
+  mensagem: "message",
+  訊息: "message",
+  "big luggage": "luggage",
+  luggage: "luggage",
+  bagagem: "luggage",
+  大行李: "luggage",
+  "hand carry": "hand_carry",
+  手提行李: "hand_carry",
+  "special offer": "offer",
+  特別優惠: "offer",
+  "tour package": "package",
+  "professional tour guide": "tour_guide",
+};
+
+const DETAIL_LABELS: Record<AckLocale, Record<string, string>> = {
+  en: {
+    reference: ENGLISH_REFERENCE_LABEL,
+    pickup_time: "Pickup time",
+    pickup: "Pickup",
+    destination: "Destination",
+    service: "Service",
+    passengers: "Passengers",
+    guest: "Guest",
+    email: "Email",
+    phone: "Phone",
+    message: "Message",
+    luggage: "Big luggage",
+    hand_carry: "Hand carry",
+    offer: "Special offer",
+    package: "Tour package",
+    tour_guide: "Professional tour guide",
+  },
+  pt: {
+    reference: "Número de referência",
+    pickup_time: "Hora de recolha",
+    pickup: "Recolha",
+    destination: "Destino",
+    service: "Serviço",
+    passengers: "Passageiros",
+    guest: "Nome",
+    email: "Email",
+    phone: "Telefone",
+    message: "Mensagem",
+    luggage: "Bagagem grande",
+    hand_carry: "Bagagem de mão",
+    offer: "Oferta especial",
+    package: "Pacote de visita",
+    tour_guide: "Guia profissional",
+  },
+  "zh-Hant": {
+    reference: "參考編號",
+    pickup_time: "接載時間",
+    pickup: "接載地點",
+    destination: "目的地",
+    service: "服務",
+    passengers: "乘客",
+    guest: "客人",
+    email: "電郵",
+    phone: "電話",
+    message: "訊息",
+    luggage: "大行李",
+    hand_carry: "手提行李",
+    offer: "特別優惠",
+    package: "行程套票",
+    tour_guide: "專業導遊",
+  },
+};
+
+function detailSemanticKey(label: string): string {
+  return DETAIL_SEMANTIC_ALIASES[label.toLowerCase()] ?? label.toLowerCase();
+}
+
+function isReferenceDetail(label: string): boolean {
+  return detailSemanticKey(label) === "reference";
+}
+
+function localizeMergedRows(locale: AckLocale, rows: DetailRow[]): DetailRow[] {
+  const labels = DETAIL_LABELS[locale];
+  return rows.map((row) => {
+    const key = detailSemanticKey(row.label);
+    return { label: labels[key] ?? row.label, value: row.value };
+  });
+}
+
 function mergeDetailRows(...groups: Array<DetailRow[] | undefined>): DetailRow[] {
   const seen = new Set<string>();
   const merged: DetailRow[] = [];
@@ -99,7 +217,7 @@ function mergeDetailRows(...groups: Array<DetailRow[] | undefined>): DetailRow[]
       const label = singleLine(row.label);
       const value = singleLine(row.value);
       if (!label || !value) continue;
-      const key = label.toLowerCase();
+      const key = detailSemanticKey(label);
       if (seen.has(key)) continue;
       seen.add(key);
       merged.push({ label, value });
@@ -154,13 +272,20 @@ function brandedEmailHtml(
   return `<!doctype html><html lang="${escapeHtml(lang)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;padding:0;background:#f4f4f4;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;"><tr><td align="center" style="padding:24px 12px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;"><tr><td style="background:${HEADER_BG};padding:20px 24px 16px;">${logo}</td></tr><tr><td style="height:4px;line-height:4px;font-size:0;background:${BRAND_GOLD};">&nbsp;</td></tr><tr><td style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:${BRAND_TEXT};">${inner}${footer}</td></tr></table></td></tr></table></body></html>`;
 }
 
+function valueCellStyle(label: string): string {
+  const wrap = isReferenceDetail(label)
+    ? "white-space:nowrap;"
+    : "white-space:normal;overflow-wrap:anywhere;word-break:break-word;";
+  return `padding:8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:${BRAND_TEXT};border-bottom:1px solid #eeeeee;${wrap}`;
+}
+
 function rowsHtml(rows: DetailRow[]): string {
   const visible = visibleRows(rows);
   if (visible.length === 0) return "";
   const cells = visible
     .map(
       ({ label, value }) =>
-        `<tr><td valign="top" width="44%" style="width:44%;padding:8px 12px 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#555555;border-bottom:1px solid #eeeeee;">${escapeHtml(label)}</td><td valign="top" style="padding:8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:${BRAND_TEXT};border-bottom:1px solid #eeeeee;white-space:nowrap;">${escapeHtml(value)}</td></tr>`,
+        `<tr><td valign="top" width="44%" style="width:44%;padding:8px 12px 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4;color:#555555;border-bottom:1px solid #eeeeee;">${escapeHtml(label)}</td><td valign="top" style="${valueCellStyle(label)}">${escapeHtml(value)}</td></tr>`,
     )
     .join("");
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:16px 0;">${cells}</table>`;
@@ -471,7 +596,7 @@ function customerDetailRows(
       value: formatPickup(input.pickupAt, copy.tag, input.timezone),
     });
   }
-  return mergeDetailRows(extras, input.details);
+  return localizeMergedRows(locale, mergeDetailRows(extras, input.details));
 }
 
 function closingHtml(signoff: string, automated: string): string {
@@ -529,7 +654,10 @@ export function renderCustomerConfirmed(
   const reference = singleLine(input.reference);
   const name = input.name ? singleLine(input.name) : null;
   const subject = `${prefix(site)}${copy.subject(reference)}`;
-  const rows = mergeDetailRows([{ label: copy.referenceLabel, value: reference }], input.details);
+  const rows = localizeMergedRows(
+    locale,
+    mergeDetailRows([{ label: copy.referenceLabel, value: reference }], input.details),
+  );
   const siteDisplay = displaySite(input.siteUrl) || displaySite(brand.siteUrl);
   const text = [
     ...bannerText(locale, input.syntheticPreview),
@@ -564,7 +692,10 @@ export function renderCustomerCancelled(
   const reference = singleLine(input.reference);
   const name = input.name ? singleLine(input.name) : null;
   const subject = `${prefix(site)}${copy.subject(reference)}`;
-  const rows = mergeDetailRows([{ label: copy.referenceLabel, value: reference }], input.details);
+  const rows = localizeMergedRows(
+    locale,
+    mergeDetailRows([{ label: copy.referenceLabel, value: reference }], input.details),
+  );
   const siteDisplay = displaySite(input.siteUrl) || displaySite(brand.siteUrl);
   const text = [
     ...bannerText(locale, input.syntheticPreview),

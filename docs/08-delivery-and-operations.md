@@ -89,7 +89,8 @@ Scrub request bodies and query strings. Do not log names, contact details, full 
 - Assign a request ID at the edge and return it on API errors.
 - Map expected validation/auth/rate errors to stable codes and safe messages.
 - Preserve the booking/contact record when notification fails; mark notification state and alert staff.
-- For unknown submission outcomes, retry with the same idempotency key.
+- For unknown public submission outcomes, retry with the same idempotency key. Concurrent identical keys create one booking.
+- Guest confirm/cancel mail: retry only `null`/`failed` via `POST …/lifecycle-mail`. Do not re-PATCH status. Do not resend `pending`, `sent`, or `skipped`.
 - Public UI gives a safe retry/contact path; admin UI distinguishes empty, unauthorized, unavailable, and partial-failure states.
 - Error details remain server-side, sanitized, and searchable by request ID.
 

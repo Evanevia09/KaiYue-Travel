@@ -36,7 +36,7 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 | Need | Request |
 | --- | --- |
 | New enquiries | `GET /api/v1/admin/bookings?status=enquiry` |
-| Find a guest or reference | `GET /api/v1/admin/bookings?q=<2-100 chars>` (reference, name, email, phone). New chauffeur refs are `KY#####` (example `KY00042`); legacy `KY-xxxxxxxx` still match. |
+| Find a guest or reference | `GET /api/v1/admin/bookings?q=<2-100 chars>` (reference, name, email, phone). New chauffeur refs are exactly `KY` + five digits (`KY00001`–`KY99999`); legacy `KY-xxxxxxxx` still match. |
 | Find an inquiry | `GET /api/v1/admin/contacts?q=<text>` (adds company) |
 | Changes since the last poll | `...?updatedSince=2026-11-16T10:00:00Z` (time zone required) |
 
@@ -48,6 +48,7 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 - Booking edits, assignment, and MCP status changes use `expectedUpdatedAt` from the latest read. A `409 CONFLICT` means someone else changed the record: re-read it, then decide.
 - Every change is audited under the agent's account.
 - Never tell a guest a booking is confirmed from the API alone. Confirmation stays a human decision on WhatsApp or email.
+- Retry failed guest confirm/cancel mail with `POST /api/v1/admin/bookings/{reference}/lifecycle-mail` and `{ "kind": "confirmed" | "cancelled" }`. That does not change workflow status. `409` means delivery is unconfirmed (`pending`) or not applicable to the channel. Do not repeat a terminal status PATCH to resend.
 
 ## Data handling
 

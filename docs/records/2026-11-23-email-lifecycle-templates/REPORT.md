@@ -1,7 +1,7 @@
 # Email lifecycle — one KY##### Reference number (allocation + status mail)
 
 **task_id:** `kaiyue-email-lifecycle-templates-20261123`  
-**Authority:** Owner t333u 23 Nov 2026 12:18 Asia/Macau (implement/preview). Owner t335u/t336u 23 Nov 2026 12:41–12:42 Asia/Macau: one reference through all statuses, KY + 5 digits, label exactly **Reference number**. Owner t337u 23 Nov 2026 13:30 Macau: **ok get this live** — execute allocation, lookup, and status-mail required for a truthful staging live. Owner t338u 23 Nov 2026 13:58 Macau: once live, one full BOX computerUse booking from the live site to verify enquiry receipt. Previous four + resend deliveries of the IN/CF/CL set are complete. This writer did **not** send and did **not** submit a booking.
+**Authority:** Owner t333u 23 Nov 2026 12:18 Asia/Macau (implement/preview). Owner t335u/t336u 23 Nov 2026 12:41–12:42 Asia/Macau: one reference through all statuses, KY + 5 digits, label exactly **Reference number**. Owner t337u 23 Nov 2026 13:30 Macau: **ok get this live** — execute allocation, lookup, and status-mail required for a truthful staging live. Owner t338u 23 Nov 2026 13:58 Macau: once live, one full BOX computerUse booking from the live site to verify enquiry receipt. Owner t339u 23 Nov 2026 14:13 Macau: **ok proceed** lifts implementation HOLD for scoped reliability (strict five-digit cap, booking-create idempotency, guarded confirm/cancel mail retry, wrap/locale). It does **not** lift protected review/prod gates. Previous four + resend deliveries of the IN/CF/CL set are complete. This writer did **not** send and did **not** submit a booking.
 
 **Living spec:** `docs/records/2026-11-20-email-lifecycle-design/SPEC.md` on this branch (t327u IN/CF/CL number model **superseded**). Historical PR #62 `106a217` is not current for numbers.  
 **Branch:** `cursor/email-lifecycle-templates-f58e` (PR #64) from `official-staging` `3a70cffca8ff6a8cc4b0a6d4958db7375c7d2fd2`  
@@ -24,7 +24,7 @@ Production-intended shared shell and four message types, plus the persist path n
 | `isChauffeurBookingReference` | Lookup `KY#####` **and** legacy `KY-xxxxxxxx` |
 | `sendLifecycleCustomerMail` | Email-channel only; no extra staff blast |
 
-Shell: white `#ffffff` header, existing PNG logo only (250×49), gold `#f3a600` divider, dark body, footer brand + staging origin. English table label is exactly `Reference number`. Portuguese `Número de referência`. Traditional Chinese `參考編號`. Guest receipt still says this is not a booking confirmation. Confirm/cancel copy does not invent payment, refund, or cancellation-policy terms. Quote widget stays SKIPPED. Contact `INQ-` refs unchanged. Legacy `KY-xxxxxxxx` rows are never rewritten. Overflow widens (`KY100000`); the five-digit pad never wraps or reuses.
+Shell: white `#ffffff` header, existing PNG logo only (250×49), gold `#f3a600` divider, dark body, footer brand + staging origin. English table label is exactly `Reference number`. Portuguese `Número de referência`. Traditional Chinese `參考編號`. Guest receipt still says this is not a booking confirmation. Confirm/cancel copy does not invent payment, refund, or cancellation-policy terms. Quote widget stays SKIPPED. Contact `INQ-` refs unchanged. Legacy `KY-xxxxxxxx` rows are never rewritten. **t339u:** serials are `KY00001`–`KY99999` only; overflow-widens (`KY100000`) is superseded. Reference values nowrap; long addresses wrap.
 
 **Not claimed live:** staging merge/deploy until GitHub review + merge of PR #64 + CD activation. Production merge/deploy/mail/`0011`. Any send from this VM. Tourist-board/MGTO production publication (15 Nov 06:06 YES applied only to that dashboard UX site publication). Quote widget. Independent source review PASS; CI `check` SUCCESS on `08be249`; staging D1 `0011` applied. GitHub PR still `mergeable_state=blocked` (0 reviews). This agent cannot merge.
 
@@ -95,28 +95,58 @@ English label on every table: **Reference number**. Staging subject prefix `[Sta
 
 - CodeRabbit CLI 0.9.6 present; **not authenticated**. `coderabbit auth login --agent` failed (`automatic_login_failed`; localhost callback unavailable). Exact CodeRabbit blocker: provision an Agentic API key in this environment or complete browser login on a user-controlled terminal. Do not treat this as a CodeRabbit pass.
 - Independent `code-reviewer` on the execute-live tree vs `a93eec20`: **source of this increment is acceptable**. Source review is **not** a GitHub review. Remaining staging-merge gates: GitHub required review (currently 0 reviews; `mergeable_state=blocked`) then parent merge of PR #64 only. This agent cannot merge (`gh` read-only). CI `check` SUCCESS on `08be249` (Actions `45121078616` / check-run `137514764347`). `0011` applied to staging D1 `043cd0ff` 2026-11-23 (live readback). CD schema check is not a live D1 readback.
-- Non-blocking: increment+INSERT are not one D1 `batch()` (MemoryD1 `.run()` drops `RETURNING`; uniqueness still holds; gaps never reuse); no mail-retry for `confirm_mail_state=failed`; quote MCP routing now accepts serial refs but the widget stays SKIPPED.
+- Non-blocking: increment still runs as `first()` `UPDATE … RETURNING` then a booking+claim `batch()` (MemoryD1 `.run()` drops `RETURNING`); uniqueness still holds; gaps never reuse. Quote MCP routing accepts serial refs but the widget stays SKIPPED. t339u added guarded `POST …/lifecycle-mail`.
+
+## t339u scoped reliability (this increment)
+
+Review findings at `0c8494d` were verified in source before edits. Evidence-based pushback: **none**. Overflow-widens was this branch’s prior rule; t339u owner decision already chose strict five digits — recorded as superseded, not reopened as a product question.
+
+| Issue | Fix |
+| --- | --- |
+| Formatter allowed `KY100000` | `formatBookingReference` / `SERIAL_BOOKING_REFERENCE` exact `KY[0-9]{5}`; allocate `WHERE last_issued < 99999`; empty result `503`, no booking row |
+| Concurrent same idempotency key could persist twice | Unique `202` claim → persist+bind reference in one D1 batch → `201`; empty `202` is `409`; persist failure deletes empty claim |
+| Failed confirm/cancel mail had no retry | Status still commits first; `pending` before send; `POST /api/v1/admin/bookings/{reference}/lifecycle-mail`; retry `null`/`failed` only |
+| nowrap overflow + English pickup-time duplicate | nowrap on reference only; addresses wrap; semantic label aliases collapse Pickup time / Hora de recolha / 接載時間 |
+
+**No new hosted resource.** Remaining mail risk: crash after provider accepted the message but before `sent` is stored leaves `pending`; staff must not blindly resend. Not exactly-once without Cloudflare Email idempotency.
+
+**Migration / back-compat:** no `0012`. Existing `0011` on staging `043cd0ff` (`last_issued=0`) is preserved. Legacy `KY-xxxxxxxx` still lookup/mail. Contacts still `INQ-`. Failed insert after increment may still gap.
+
+**Review gate identity:** parent independent re-review of **this PR #64 HEAD SHA** (not self-test, not prior `0c8494d` / `08be249` review). Then staging merge of reviewed PR #64 only + CD. Then parent staging browser. Then production scoping. t338u BOX remains parent after verified production release.
+
+### Required production plan (review only — not execution)
+
+Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` or enable mail from this VM.
+
+1. Independent re-review + GitHub review of this SHA on PR #64.
+2. Merge **PR #64 only** to `official-staging`; CD activates staging Worker. Staging dest stays `scalingsmb@gmail.com`. Staging `0011` already applied; do not reset `last_issued`.
+3. Parent staging browser / inbox check (not this VM).
+4. Production promotion of **this feature only**, after tourist-board/licence-claims verification is preserved (15 Nov widget board approval is not re-asked as a new product question):
+   - Apply `0011` to production D1 `06cf879d` (today still `0001`–`0010` only). Start `last_issued=0`. Never copy staging serials.
+   - Overlay: `NOTIFICATIONS_ENABLED=true`, `EMAIL` binding, `NOTIFY_STAFF_TO` + recipient allowlist for the owner-approved production dest (currently **unset**; live Worker has mail off). `PUBLIC_SITE_URL=https://kaiyuemacau.com`.
+   - Deploy the reviewed Worker revision that contains this SHA (or its merge commit), not `5eebf7b6`.
+5. Parent t338u: **one** live synthetic browser booking from `https://kaiyuemacau.com/` after that production Worker is verified. No duplicate from this VM.
 
 ## Remaining
 
-1. GitHub review of PR #64 (currently 0 reviews; `mergeable_state=blocked`). Independent source review PASS is not that review. This agent cannot merge.
+1. **Exact review gate:** independent re-review of this PR #64 HEAD SHA, then GitHub review (`mergeable_state` currently blocked). Self-test is not review. This agent cannot merge.
 2. Parent merge of **reviewed PR #64 only**, then official-staging CD. Staging Worker is still `3b9240e7` until then. Do not merge #61/#62/#63/#51–#53.
 3. Parent staging browser / DevTools / security check after CD. This VM does not send and does not PATCH live staging status.
 4. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
 5. Native wording review of confirm/cancel sentences.
-6. Dedicated mail-retry after `confirm_mail_state=failed` (no re-PATCH of a terminal `confirmed`).
-7. Production: tourist-board gate, production `0011`, mail activation, recipient policy — later parent decision. CodeRabbit auth remains a process gap, not a merge substitute.
+6. Dedicated mail-retry after `confirm_mail_state=failed` — **done in t339u** (`POST /api/v1/admin/bookings/{reference}/lifecycle-mail`). Do not re-PATCH a terminal `confirmed`.
+7. Production: tourist-board gate (preserve 15 Nov widget verification; do not re-ask as a new product question), production `0011` on `06cf879d`, EMAIL + `NOTIFY_STAFF_TO` + `NOTIFICATIONS_ENABLED=true` overlay — later parent decision. Do not merge prod #61 umbrella. CodeRabbit auth remains a process gap, not a merge substitute.
 8. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
 
 ## Self-review (this head)
 
 - Owner t335u/t336u/t337u: one persistent `KY#####`, English label exactly `Reference number`, four emails, allocation, lookup, status-mail. **Pass in source.**
 - No IN/CF/CL, no Confirmation/Cancellation/Original enquiry fields. **Pass.**
-- No wrap/reuse; overflow widens. **Pass in tests.**
+- No wrap/reuse; strict five-digit cap (overflow-widens superseded). **Pass in tests.**
 - Contact INQ unchanged; quote widget SKIPPED. **Pass.**
 - CodeMode63 / prod61 / held 51–53 not touched. **Pass.**
 - Staging live **not** claimed until GitHub merge + CD. Production **not** claimed.
-- Local verification this increment: `pnpm test` 356/356; `pnpm typecheck` 0 errors (6 existing hints).
+- Local verification this increment: `pnpm test` 363/363; `pnpm typecheck` 0 errors (6 existing hints).
 - t338u: this VM did not submit a booking, did not start computerUse, did not send mail, did not PATCH status.
 
 ---

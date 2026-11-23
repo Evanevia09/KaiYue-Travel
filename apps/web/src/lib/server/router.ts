@@ -5,6 +5,7 @@ import {
   handleAdminBookingDetail,
   handleAdminBookingsList,
   handleAdminBookingStatus,
+  handleAdminLifecycleMail,
   handleAdminContactDetail,
   handleAdminContactsList,
   handleAdminContactStatus,
@@ -258,6 +259,18 @@ export async function handleApi(
             actor.id,
             requestId,
           ),
+          200,
+          requestId,
+        );
+      }
+
+      const lifecycleMailParams = match(
+        pathname,
+        "/api/v1/admin/bookings/:reference/lifecycle-mail",
+      );
+      if (request.method === "POST" && lifecycleMailParams) {
+        return json(
+          await handleAdminLifecycleMail(request, env, lifecycleMailParams.reference!, requestId),
           200,
           requestId,
         );

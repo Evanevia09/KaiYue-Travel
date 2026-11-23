@@ -26,12 +26,13 @@ export function createContactReference(): string {
   return createPublicReference("INQ");
 }
 
-export const SERIAL_BOOKING_REFERENCE = /^KY[0-9]{5,}$/;
+export const MAX_CHAUFFEUR_SERIAL = 99999;
+export const SERIAL_BOOKING_REFERENCE = /^KY[0-9]{5}$/;
 export const LEGACY_BOOKING_REFERENCE = /^KY-[A-Z2-9]{8}$/;
 
-/** Display/store format for new chauffeur bookings: KY + at least five digits, no hyphen. */
+/** Display/store format for new chauffeur bookings: KY + exactly five digits, no hyphen. */
 export function formatBookingReference(serial: number): string {
-  if (!Number.isInteger(serial) || serial < 1) {
+  if (!Number.isInteger(serial) || serial < 1 || serial > MAX_CHAUFFEUR_SERIAL) {
     throw new Error("invalid_booking_reference_serial");
   }
   return `KY${String(serial).padStart(5, "0")}`;

@@ -9,7 +9,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | Field | Notes |
 |---|---|
 | `id` | Internal UUID/text primary key |
-| `reference` | Unique public booking reference. New chauffeur rows use `KY` + at least five digits with no hyphen (`KY00042`). Legacy rows keep `KY-xxxxxxxx` and are never rewritten. |
+| `reference` | Unique public booking reference. New chauffeur rows use `KY` + exactly five digits with no hyphen (`KY00001`–`KY99999`). Legacy rows keep `KY-xxxxxxxx` and are never rewritten. |
 | `status` | `enquiry`, `assigned`, `completed`, `cancelled` |
 | `service_type` | Validated service identifier |
 | `pickup_location` | Required normalized text |
@@ -32,14 +32,14 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `locale` | Submitted locale |
 | `notification_state` | Create-time staff/ack outcome: `pending`, `sent`, `partial`, `failed`, `skipped` |
 | `lifecycle_serial` | Integer serial allocated once at persist for new chauffeur rows; NULL on legacy `KY-xxxxxxxx` rows. Unique when present. |
-| `confirm_mail_state` / `cancel_mail_state` | Separate from create-time `notification_state`. `sent`, `failed`, or `skipped` after the matching workflow transition. |
+| `confirm_mail_state` / `cancel_mail_state` | Separate from create-time `notification_state`. `pending` (send in flight or unconfirmed), `sent`, `failed`, or `skipped` after the matching workflow transition. `pending` is not a proven failure and must not be retried blindly. |
 | `created_at`, `updated_at` | UTC |
 
 Indexes: unique `reference`; unique `lifecycle_serial` where not null; `pickup_at`; `(status, pickup_at)`; `created_at`.
 
 ### `chauffeur_booking_serial` (`migrations/0011_chauffeur_booking_serial.sql`)
 
-One row (`id = 1`). `last_issued` starts at 0 and increments atomically per new chauffeur booking. Per-D1; staging and production must never copy this counter. Overflow widens the display (`100000` → `KY100000`); never wrap or reuse. Do not seed from legacy `KY-` rows. Do not reuse `rate_limits`. Apply `0011` to a D1 before the Worker that allocates serials is activated. Official-staging CD does not apply migrations.
+One row (`id = 1`). `last_issued` starts at 0 and increments atomically per new chauffeur booking (`UPDATE … WHERE last_issued < 99999 RETURNING last_issued`). Per-D1; staging and production must never copy this counter. Serials are **1..99999** displayed as `KY00001`–`KY99999`. After `last_issued = 99999`, further creates return `503 UNAVAILABLE` and do not insert a booking, wrap, or reuse. Owner t339u superseded the earlier widen-to-`KY100000` rule. Failed insert after increment may gap; never decrement. Do not seed from legacy `KY-` rows. Do not reuse `rate_limits`. Apply `0011` to a D1 before the Worker that allocates serials is activated. Official-staging CD does not apply migrations. Staging D1 `043cd0ff` already has `0011` with `last_issued=0`; do not reset it.
 
 ### `contacts`
 
@@ -57,7 +57,7 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ### Optional `idempotency_keys`
 
-`key_hash`, `request_hash`, `response_reference`, `expires_at`, `created_at`. Use if idempotency is not stored directly on the booking/contact record.
+`key_hash` (primary key), `request_hash`, `response_json`, `status_code`, `expires_at`, `created_at`. Booking create claims with `status_code=202` before persist, binds the allocated `reference` in the same D1 batch as the booking insert, then finishes `201` with the public body. A `202` row with a reference is crash recovery (replay the stored booking; do not persist or notify again). A live `202` without a reference is in-progress (`409 CONFLICT`). Expired keys may be replaced. Contacts still write the completed result after persist. Different payload on the same key remains `IDEMPOTENCY_CONFLICT`.
 
 ### `rate_limits` (`migrations/0001_init.sql`)
 

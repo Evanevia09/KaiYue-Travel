@@ -231,7 +231,15 @@ export const adminEn = {
   "detail.manageInventory": "Manage drivers & vehicles →",
   "detail.workflow": "Workflow",
   "detail.status": "Status",
-  "detail.statusHelp": "Status changes do not notify the customer automatically.",
+  "detail.statusHelp":
+    "Confirming or cancelling emails the guest once. Retry a failed send from this page; that does not change status.",
+  "detail.mailSent": "Guest {kind} email was sent.",
+  "detail.mailFailed": "Guest {kind} email failed. Retry without changing status.",
+  "detail.mailPending": "Guest {kind} email delivery is unconfirmed. Do not resend.",
+  "detail.mailSkipped": "Guest {kind} email is not sent for this booking channel.",
+  "detail.mailUnsent": "Guest {kind} email has not been sent.",
+  "detail.retryGuestMail": "Retry guest {kind} email",
+  "detail.mailRetried": "Guest email retry finished.",
   "detail.markStatus": "Mark {status}",
   "detail.cancelConfirm": "Cancel this booking request?",
   "detail.statusActionConfirm": "Change this booking to {status}?",
@@ -444,6 +452,13 @@ export const adminEn = {
   "error.IDEMPOTENCY_CONFLICT": "This request was already processed with different details.",
   "error.INVALID_TRANSITION": "That status change is not allowed.",
   "error.UNAVAILABLE": "Something went wrong. Please try again.",
+  "error.serialExhausted": "No chauffeur reference numbers remain.",
+  "error.idempotencyInProgress":
+    "This request is already being processed. Retry shortly with the same Idempotency-Key.",
+  "error.lifecycleMailPending": "Guest email delivery is unconfirmed. Do not resend this message.",
+  "error.lifecycleMailSkipped": "Guest email is not sent for this booking channel.",
+  "error.lifecycleMailKind": "Choose confirmed or cancelled guest email.",
+  "error.lifecycleMailStatus": "Guest {kind} email can only be retried when the booking is {kind}.",
   "error.bookingNotFound": "Booking not found.",
   "error.inquiryNotFound": "Inquiry not found.",
   "error.offerNotFound": "Offer not found.",
@@ -753,7 +768,14 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "detail.manageInventory": "管理司機與車輛 →",
   "detail.workflow": "流程",
   "detail.status": "狀態",
-  "detail.statusHelp": "更改狀態不會自動通知顧客。",
+  "detail.statusHelp": "確認或取消會向顧客發送一封電郵。失敗時可在此重試，不會再次更改狀態。",
+  "detail.mailSent": "顧客{kind}電郵已發送。",
+  "detail.mailFailed": "顧客{kind}電郵發送失敗。可重試，不會更改狀態。",
+  "detail.mailPending": "顧客{kind}電郵是否送達未確認。請勿重發。",
+  "detail.mailSkipped": "此預約渠道不會發送顧客{kind}電郵。",
+  "detail.mailUnsent": "尚未發送顧客{kind}電郵。",
+  "detail.retryGuestMail": "重試顧客{kind}電郵",
+  "detail.mailRetried": "顧客電郵重試已完成。",
   "detail.markStatus": "標記為{status}",
   "detail.cancelConfirm": "確定取消此預約申請？",
   "detail.statusActionConfirm": "確定將此預約改為「{status}」？",
@@ -965,6 +987,12 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "error.IDEMPOTENCY_CONFLICT": "此要求已用不同內容處理過。",
   "error.INVALID_TRANSITION": "不允許此狀態變更。",
   "error.UNAVAILABLE": "發生問題，請稍後再試。",
+  "error.serialExhausted": "專車參考編號已用盡。",
+  "error.idempotencyInProgress": "此申請正在處理中。請稍後以同一個 Idempotency-Key 再試。",
+  "error.lifecycleMailPending": "顧客電郵是否送達未確認。請勿重發。",
+  "error.lifecycleMailSkipped": "此預約渠道不會發送顧客電郵。",
+  "error.lifecycleMailKind": "請選擇確認或取消顧客電郵。",
+  "error.lifecycleMailStatus": "僅在預約為{kind}時，才可重試顧客{kind}電郵。",
   "error.bookingNotFound": "找不到此預約。",
   "error.inquiryNotFound": "找不到此查詢。",
   "error.offerNotFound": "找不到此優惠。",
@@ -1178,6 +1206,12 @@ const EXACT_ERROR_MESSAGES: Record<string, AdminMessageKey> = {
   "Passenger capacity must be between 1 and 14.": "error.capacityRange",
   "Invalid page cursor.": "error.invalidCursor",
   "Could not store the booking request.": "error.storeBooking",
+  "No chauffeur reference numbers remain.": "error.serialExhausted",
+  "This request is already being processed. Retry shortly with the same Idempotency-Key.":
+    "error.idempotencyInProgress",
+  "Guest email delivery is unconfirmed. Do not resend this message.": "error.lifecycleMailPending",
+  "Guest email is not sent for this booking channel.": "error.lifecycleMailSkipped",
+  "Choose confirmed or cancelled guest email.": "error.lifecycleMailKind",
   "Could not store the inquiry.": "error.storeInquiry",
   "Could not update booking status.": "error.updateBookingStatus",
   "Could not update inquiry status.": "error.updateInquiryStatus",
@@ -1241,6 +1275,16 @@ export function localizeAdminError(
   if (message) {
     const exact = EXACT_ERROR_MESSAGES[message];
     if (exact) return t(locale, exact);
+
+    const guestRetry =
+      /^Guest (confirmed|cancelled) email can only be retried when the booking is \1\.$/.exec(
+        message,
+      );
+    if (guestRetry?.[1]) {
+      return t(locale, "error.lifecycleMailStatus", {
+        kind: prefixedLabel(locale, "status", guestRetry[1]),
+      });
+    }
 
     const check = /^Check (.+)\.$/.exec(message);
     if (check?.[1]) {
