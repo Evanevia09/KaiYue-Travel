@@ -84,12 +84,29 @@ Live production Worker still has no `EMAIL` / no `NOTIFY_STAFF_TO` / mail off. T
 
 ## Parent staging visual QA (23 Nov 15:11 Macau)
 
-PASS. EN / PT / zh-Hant, desktop + 390 + 320: no overlap, overflow, console errors, or mixed content. New WA `+85363128081` and real WeChat JPEG verified on live staging. Independent config review PASS exact `3baf3f6`. Parent created synthetic `KY00001` once 15:21:33; inbox/status tests still parent. This VM did not send, book, or change status.
+PASS. EN / PT / zh-Hant, desktop + 390 + 320: no overlap, overflow, console errors, or mixed content. New WA `+85363128081` and real WeChat JPEG verified on live staging.
+
+## PR #65 squash + CD (23 Nov 15:30–15:34 Macau)
+
+Independent rereview PASS exact `080e1e5`. Parent native squash PR #65 → `official-staging` `33e95e1043126ef9e0956060e611e89e65e07724` (tree `4f42102e` = `080e1e5`). No admin bypass.
+
+| Item | Value |
+| --- | --- |
+| CI (reviewed tip) | `45131262317` SUCCESS 07:29:12Z / `080e1e5` |
+| Staging CD | https://github.com/Evanevia09/KaiYue-Travel/actions/runs/45131645610 SUCCESS 07:34:18Z |
+| Jobs | checks, upload, verify, activate + smoke SUCCESS |
+| Worker | `kaiyue-travel-staging` version `f3866dc9-198c-47c4-866b-08af5ffbb6b5` (#28) @100% |
+| Deployment | `2cfdd30d-c17a-406c-b60e-433c2e8a8040` 07:34:11Z (replaced `256f1788` / `d178b6c2`) |
+| EMAIL dest lock | `scalingsmb@gmail.com` only (unchanged) |
+| D1 `043cd0ff` | `0011` present; **`last_issued=1`** preserved (not reset); `KY00001` `enquiry` |
+| Production | still `5eebf7b6` / `494bc151` / D1 `06cf879d` `0001`–`0010` / no `EMAIL` |
+
+Parent inbox: staff+guest request-received PASS 15:21 owner-only; SPF/DKIM/DMARC proof SHA-256 `b7336538d1756f3b808425f65f711aac2a493fbc9b8851fd02e94bb536019de3`. Confirm/cancel **not** tested (saved admin login rejected once 15:23:53; secure form awaiting owner). This VM did not authenticate, PATCH status, or send mail.
 
 ## Next (not this VM)
 
-1. Parent staging inbox/status proof (`scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
-2. HOLD production upload/`0011`/`main` until sign-in 413 bound is rereviewed with the 171-file audit. Do **not** merge prod PR #61.
-3. Owner: **one** live production booking after a verified production release of this feature.
+1. Owner restores admin login; parent confirm/cancel on `KY00001` only. Quote widget SKIPPED.
+2. HOLD `main` merge / prod `0011` / overlay upload. Promotion PR is the 171-file `33e95e1` tree vs `main` `ff119f2c`. Do **not** merge #61 / #51–#53 / #63.
+3. Owner: **one** live production booking after a verified production release.
 
 Held: PRs #51–#53, CodeMode #63 `16e06ba`, prod #61 `f774f69`. Quote widget SKIPPED.

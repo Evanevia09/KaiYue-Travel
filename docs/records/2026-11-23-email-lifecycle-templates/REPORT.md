@@ -138,12 +138,12 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 
 ## Remaining
 
-1. ~~Exact review gate / merge PR #64~~ **done:** parent native merge of `3823d48` → squash `ef70396`; CD `45127576945` SUCCESS; Worker `256f1788` @100%.
-2. Parent staging browser / DevTools / actual send (dest `scalingsmb@gmail.com` only). This VM does not send and does not PATCH live staging status. Do not merge #61/#62/#63/#51–#53.
-3. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
+1. ~~Exact review gate / merge PR #64~~ **done:** squash `ef70396`; CD `45127576945`; Worker `256f1788`.
+2. ~~PR #65 squash + staging CD~~ **done:** `33e95e1`; CD `45131645610`; Worker `f3866dc9` @100%. Dest lock unchanged; `last_issued=1` / `KY00001` preserved.
+3. ~~Staff+guest request-received inbox~~ **PASS** 15:21 owner-only. Confirm/cancel **not** tested (admin login rejected 15:23:53). This VM does not auth, PATCH, or send.
 4. Native wording review of confirm/cancel sentences.
 5. Dedicated mail-retry after `confirm_mail_state=failed` — **done in t339u** (`POST /api/v1/admin/bookings/{reference}/lifecycle-mail`). Do not re-PATCH a terminal `confirmed`.
-6. Production: see `PRODUCTION-CANDIDATE.md`. Staging visual QA PASS 23 Nov 15:11; parent `KY00001` once 15:21:33. Sign-in oversize now 413-before-auth (rereview). EMAIL preflight: `recipient_mode=arbitrary`. Do not merge prod #61. `main` promote is the cumulative staging delta, not the overlay-only review. HOLD upload/`main`. This writer does not deploy `main` or write production D1.
+6. Production: see `PRODUCTION-CANDIDATE.md`. Promotion PR vs `main` `ff119f2c` is the **171-file** `33e95e1` tree. HOLD merge/`0011`/upload. Do not merge #61.
 7. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
 
 ## Self-review (this head)

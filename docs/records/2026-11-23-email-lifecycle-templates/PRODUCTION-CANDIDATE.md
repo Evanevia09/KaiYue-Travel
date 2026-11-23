@@ -1,7 +1,7 @@
 # Production promotion candidate from official-staging `ef70396`
 
-**Status:** overlay candidate plus sign-in body-bound fix — **HOLD** for rereview, then `main`/`0011`/upload. Parent staging visual QA PASS 23 Nov 15:11; synthetic `KY00001` created once 15:21:33; owner-only inbox/status tests in progress (t328). Independent config review of `3baf3f6` is **not** this availability rereview.  
-**Not** a `main` merge. **Not** uploaded. **Not** activated. **Not** a production D1 write. **Do not** merge PR #61 (`f774f69`) or held #51–#53 / CodeMode #63.
+**Status:** staging tree `33e95e1` (reviewed `080e1e5`) is live. Promotion PR to `main` prepared. **HOLD** `main` merge / prod `0011` / overlay upload / mail. Confirm/cancel not tested.  
+**Not** uploaded. **Not** activated. **Not** a production D1 write. **Do not** merge PR #61 (`f774f69`) or held #51–#53 / CodeMode #63.
 
 **Authority (not OPEN):** Owner t315u 20 Nov 2026 11:20 Macau, answering *Which inbox should receive staff booking and enquiry notifications in production?* → **the admin email. daniel@**. Same-day instructions and PR #61 `f774f69` / `22ee115` encode `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`. That is **notification inbox approval**, not admission-only. Do not re-ask. Do not reopen tourist-board / MGTO 15 Nov widget approval.
 
@@ -69,34 +69,33 @@ Current Cloudflare docs (`send-bindings`, updated 2026-11-17): **no destination 
 
 **Conclusion (entitlement, not a send):** existing account Email Sending **does** support intended production staff `daniel@kaiyuemacau.com` **and** arbitrary guest acks with a **sender-only** binding, because the domain is onboarded/DNS-ready and `recipient_mode` is `arbitrary`. Daniel does **not** need to be added as an Email Routing destination (and was not). Staging dest-lock delivery is **not** this proof. Production Worker still has no `EMAIL` until an authorized upload. This is not a production send.
 
-## Exact `main` promotion / merge-diff verification (171 files)
+## Exact `main` promotion artifact (171 files; HOLD merge)
 
-Do **not** treat the narrow PR #65 review of `3baf3f6` as a full `main` audit.
+Reviewed product tree: squash `33e95e1043126ef9e0956060e611e89e65e07724` (tree `4f42102ec696a5e043f946d768e24afd452bc186` = rereviewed `080e1e5`). Base `main` `ff119f2c18f075fe5103821d6541625d49986b38` (fast-forward; 16 commits; **171** files; +13837/−589). `.github/workflows/production.yml` fail-closed: **`main` merge does not activate production**.
 
-| Compare | Tip | Files | Meaning |
-| --- | --- | --- | --- |
-| `origin/main` | `ff119f2c18f075fe5103821d6541625d49986b38` | — | live production git |
-| `origin/main...origin/official-staging` | `ef70396` | **165** | already on live staging, not yet on `main` |
-| `origin/main...HEAD` (this PR branch) | this SHA | **171+** | cumulative staging + dest overlay + sign-in 413 bound |
-| `origin/official-staging...HEAD` | PR #65 | overlay/policy/tests + sign-in body bound | not a 171-file audit |
+Do **not** treat the overlay-only PR #65 review as this 171-file audit. Sign-in 413 rereview PASS `080e1e5`.
 
-Independent cumulative review found a pre-existing availability issue in `peekSignInEmail`: `request.clone().text()` buffered the whole body (and could stall a tee) **before** the 16KB check and limiter; oversize returned `""` and still called Better Auth. Fix: UTF-8 **byte-counted** read of the original body, cancel remaining chunks, **413 before limiter/auth**, replay only in-limit text. Not an auth bypass. MCP credential path still uses `readJson` + the same limiter. Rereview this before `main`.
+| Pin | Git candidate | Must not copy from staging live |
+| --- | --- | --- |
+| Worker | `kaiyue-travel` | `kaiyue-travel-staging` |
+| Build | `PUBLIC_SITE_URL=https://kaiyuemacau.com` then overlay upload | staging site URL |
+| Overlay | `deploy/production/wrangler.jsonc` (not git `wrangler.jsonc`) | `deploy/official-staging/wrangler.jsonc` |
+| D1 | `06cf879d-8fea-4088-8881-7d382e1b8c11` + additive `0011` `last_issued=0` | `043cd0ff` / staging `last_issued=1` / `KY00001` row |
+| R2 | `kaiyue-offers-production` | `kaiyue-offers-staging` |
+| `EMAIL` | sender-only `bookings@notify.kaiyuemacau.com` | dest lock `scalingsmb@gmail.com` |
+| Staff To | `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com` | staging dest |
+| Guest acks | no `NOTIFY_ALLOWED_RECIPIENTS` | staging lock |
+| MCP | **off** | `MCP_STAGING_DIRECT_WRITES=true` |
+| WA / WeChat | `+85363128081` / JPEG SHA-256 `3877f629…` | — |
 
-`main` is a fast-forward base of official-staging (0 unique `main` commits). 15 commits on official-staging not in `main`. `.github/workflows/production.yml` stays fail-closed: **`main` merge does not activate production**.
-
-Verification plan before any `main` merge:
-
-1. Independent review of the **171-file** `origin/main...` candidate (or 165 on `ef70396` plus the 14 PR #65 files after they land on official-staging). Cover MCP/plugin (8 files, production overlay must keep MCP off), admin/auth, notifications, `migrations/0011`, both overlays, WeChat JPEG.
-2. Confirm production overlay D1 pin `06cf879d`, no staging dest lock, no `MCP_STAGING_DIRECT_WRITES`, `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`, EMAIL sender-only.
-3. Do not merge #61 / #51–#53 / #63 as the vehicle.
-4. After `main` lands: operator `0011` on `06cf879d` (`last_issued=0`), then explicit production overlay upload/activate, then read-back. Owner one live booking.
+Vehicle: this promotion PR from `33e95e1`. **Not** #61 / #51–#53 / #63.
 
 ## Promotion checkpoints (parent / owner)
 
-1. ~~Staging visual browser QA~~ **PASS** 23 Nov 15:11 (EN/PT/zh, desktop/390/320). Parent created synthetic `KY00001` once 15:21:33; inbox/status tests still parent (t328 owner-only lifecycle mail authorized).
-2. ~~Independent config review of `3baf3f6`~~ **PASS**. Sign-in 413 bound needs rereview. Full 171-file `main` audit still required.
-3. Parent finishes staging lifecycle inbox proof (`scalingsmb@gmail.com` only). Quote widget SKIPPED; never `KY-PYPM8Y3E`.
-4. Apply `0011` to `06cf879d`; SELECT-only confirm `last_issued=0`.
+1. ~~Staging visual browser QA~~ **PASS** 23 Nov 15:11.
+2. ~~Sign-in 413 rereview `080e1e5`~~ **PASS**. 171-file `main` audit still required.
+3. ~~Staff+guest request-received inbox~~ **PASS** 15:21 owner-only (`scalingsmb@gmail.com`). Confirm/cancel **not** tested (admin login rejected 15:23:53). Quote SKIPPED.
+4. Apply `0011` to `06cf879d`; SELECT-only confirm `last_issued=0`. Do not copy staging serial `1`.
 5. Build with `PUBLIC_SITE_URL=https://kaiyuemacau.com`.
 6. Upload + activate `kaiyue-travel` using `deploy/production/wrangler.jsonc`. Do not upload git `wrangler.jsonc`. Do not merge #61.
 7. Read-back: version @100%; `EMAIL` sender-only; no dest lock; `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`; `NOTIFICATIONS_ENABLED=true`; WA `+85363128081`; MCP absent; D1 still `06cf879d`; `0011` `last_issued=0`.
