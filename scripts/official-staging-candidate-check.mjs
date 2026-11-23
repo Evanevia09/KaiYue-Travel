@@ -59,6 +59,55 @@ function parseJsonPayload(text) {
   return JSON.parse(text.slice(start, end + 1));
 }
 
+function sameSet(actual, expected) {
+  return (
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    expected.every((entry) => actual.includes(entry))
+  );
+}
+
+/**
+ * Versions view may omit restriction fields, so absence is tolerated here; the
+ * NOTIFY_ALLOWED_RECIPIENTS var (checked exactly above) is the always-visible lock.
+ */
+export function evaluateSendEmail(bindings, constants) {
+  const errors = [];
+  const expected = constants.send_email;
+  const approved = constants.approved_staging_mail_recipients;
+  const mail = bindings.filter((row) => row?.type === "send_email");
+  if (mail.length !== 1 || mail[0].name !== expected.name) {
+    errors.push(
+      `expected exactly one send_email binding named ${expected.name}, found ${mail.map((row) => row.name).join(",") || "none"}`,
+    );
+    return errors;
+  }
+  const [binding] = mail;
+  if (
+    binding.allowed_destination_addresses !== undefined &&
+    !sameSet(binding.allowed_destination_addresses, expected.allowed_destination_addresses)
+  ) {
+    errors.push(
+      `EMAIL allowed_destination_addresses ${JSON.stringify(binding.allowed_destination_addresses)} != ${JSON.stringify(expected.allowed_destination_addresses)}`,
+    );
+  }
+  if (
+    binding.allowed_sender_addresses !== undefined &&
+    !sameSet(binding.allowed_sender_addresses, expected.allowed_sender_addresses)
+  ) {
+    errors.push(
+      `EMAIL allowed_sender_addresses ${JSON.stringify(binding.allowed_sender_addresses)} != ${JSON.stringify(expected.allowed_sender_addresses)}`,
+    );
+  }
+  if (
+    binding.destination_address !== undefined &&
+    !approved.includes(binding.destination_address)
+  ) {
+    errors.push(`EMAIL destination_address ${binding.destination_address} is not approved`);
+  }
+  return errors;
+}
+
 export function evaluateCandidate(version, constants, expectedVersionId) {
   const errors = [];
   if (!version || typeof version !== "object" || Array.isArray(version)) {
@@ -188,6 +237,8 @@ export function evaluateCandidate(version, constants, expectedVersionId) {
       errors.push(`forbidden R2 bucket ${row.bucket_name} on binding ${row.name}`);
     }
   }
+
+  errors.push(...evaluateSendEmail(bindings, constants));
 
   const extraD1 = bindings.filter((row) => row?.type === "d1" && row.name !== "DB");
   const extraR2 = bindings.filter(

@@ -2,11 +2,11 @@
 
 Repository for the new Kai Yue Travel website and its lightweight booking operations system.
 
-The agreed direction is a B2C-first, booking-focused website with secondary corporate content. The desktop home hero embeds the booking widget; on mobile, the same form is reusable as a bottom sheet/modal that can be opened from anywhere. The planned platform uses Astro, React islands, Cloudflare Workers, Cloudflare D1, Resend, and Cloudflare Access for the admin area.
+The agreed direction is a B2C-first, booking-focused website with secondary corporate content. The desktop home hero embeds the booking widget; on mobile, the same form is reusable as a bottom sheet/modal that can be opened from anywhere. The planned platform uses Astro, React islands, Cloudflare Workers, Cloudflare D1, Cloudflare Email Service, and Cloudflare Access for the admin area.
 
 ## Current status
 
-Release 1 is **scaffolded in this repository** and is **not deployed**. The public Astro site, shared booking form, Workers API, D1 migration, Resend placeholders, and lightweight admin are present. Business facts, Cloudflare/Resend accounts, and production verification remain open.
+Release 1 is **scaffolded in this repository** and is **not deployed**. The public Astro site, shared booking form, Workers API, D1 migration, email notification code, and lightweight admin are present. Business facts and production verification remain open.
 
 Read [PROJECT-STATE.md](PROJECT-STATE.md) for the latest status, open decisions, and next action.
 
@@ -24,7 +24,7 @@ pnpm dev
 - Admin (development bypass only): `/admin`
 - API: `/api/v1/*`
 
-Do not put live secrets in Git. Leave `RESEND_API_KEY` empty to stub notifications; bookings and inquiries still persist when a D1 binding is available.
+Do not put live secrets in Git. Email uses the Cloudflare `EMAIL` binding (no API key) and stays off unless `NOTIFICATIONS_ENABLED` is `true`; bookings and inquiries still persist without it.
 
 ## Start here
 
@@ -56,7 +56,7 @@ Read these files in order before making changes:
 - Public service/fleet/trust content and conversion-focused booking calls to action.
 - Shared booking form for desktop embed, mobile bottom sheet, and optional fallback page.
 - General and corporate inquiry paths.
-- Worker APIs with D1 persistence, idempotency, and Resend notifications.
+- Worker APIs with D1 persistence, idempotency, and email notifications.
 - Cloudflare Access-protected dashboard, booking list/calendar/detail, status updates, and contacts.
 - Human confirmation of booking requests; submission is not automatic service confirmation.
 
@@ -69,3 +69,7 @@ Read these files in order before making changes:
 ## Documentation maintenance
 
 `PROJECT-STATE.md` is the living handoff document. Update it after meaningful work so the next person or agent can quickly understand what is confirmed, what changed, what remains open, what was verified, and what should happen next.
+
+## Connect an agent
+
+The [staging plugin instructions](https://staging.kaiyuemacau.com/plugin) are `text/plain` for agents (canonical `/plugin.txt`). They are public machine instructions, not an AI-only security boundary. See [the Agent API guide](docs/13-agent-api.md) for the HTTP MCP session exchange, honest User-Agent, and local Codex option.

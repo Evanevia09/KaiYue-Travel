@@ -1,16 +1,31 @@
-import { AppError, BOOKING_STATUSES, CONTACT_STATUSES } from "@kaiyue/contracts";
+import {
+  AppError,
+  BOOKING_STATUSES,
+  CONTACT_STATUSES,
+  type BookingStatus,
+} from "@kaiyue/contracts";
+import { parseSearchQuery, parseUpdatedSince } from "./admin-list-query.ts";
 import type { AppEnv, D1Database } from "./env.ts";
 import { businessTimezone } from "./env.ts";
 import { all, first, nowIso } from "./db.ts";
 import { readJson } from "./http.ts";
 import {
+  bookingAdminColumns,
+  bookingMailDetails,
+  bookingStatusSql,
   bookingToAdmin,
+  claimLifecycleMailSend,
   getBookingByReference,
+  markLifecycleMailSkipped,
   listBookings,
+  setLifecycleMailState,
   updateBookingStatus,
   type BookingRow,
+  type LifecycleMailKind,
+  type LifecycleMailState,
 } from "./bookings.ts";
 import { contactToAdmin, listContacts, updateContactStatus, type ContactRow } from "./contacts.ts";
+import { sendLifecycleCustomerMail } from "./notifications.ts";
 
 function startOfToday(timezone: string): string {
   const now = new Date();
@@ -35,7 +50,7 @@ export async function adminSummary(env: AppEnv) {
   const monthStart = `${today.slice(0, 8)}01T00:00:00.000Z`;
   const results = await env.DB.batch([
     env.DB.prepare(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'enquiry' AND created_at >= ?",
+      `SELECT COUNT(*) as count FROM bookings WHERE ${bookingStatusSql} = 'enquiry' AND created_at >= ?`,
     ).bind(today),
     env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'assigned' AND pickup_at >= ?",
@@ -44,13 +59,13 @@ export async function adminSummary(env: AppEnv) {
       "SELECT COUNT(*) as count FROM bookings WHERE status = 'completed' AND updated_at >= ?",
     ).bind(monthStart),
     env.DB.prepare(
-      "SELECT COUNT(*) as count FROM bookings WHERE status = 'cancelled' AND updated_at >= ?",
+      `SELECT COUNT(*) as count FROM bookings WHERE ${bookingStatusSql} = 'cancelled' AND updated_at >= ?`,
     ).bind(monthStart),
     env.DB.prepare("SELECT COUNT(*) as count FROM contacts WHERE status = 'new'"),
     env.DB.prepare(
       "SELECT COUNT(*) as count FROM bookings WHERE notification_state IN ('failed', 'pending')",
     ),
-    env.DB.prepare("SELECT * FROM bookings ORDER BY created_at DESC LIMIT 8"),
+    env.DB.prepare(`SELECT ${bookingAdminColumns} FROM bookings ORDER BY created_at DESC LIMIT 8`),
   ]);
 
   return {
@@ -147,6 +162,8 @@ export async function handleAdminBookingsList(request: Request, env: AppEnv) {
     serviceType: url.searchParams.get("serviceType") ?? undefined,
     from: url.searchParams.get("from") ?? undefined,
     to: url.searchParams.get("to") ?? undefined,
+    q: parseSearchQuery(url.searchParams.get("q")),
+    updatedSince: parseUpdatedSince(url.searchParams.get("updatedSince")),
     cursor: url.searchParams.get("cursor") ?? undefined,
     limit: Number(url.searchParams.get("limit") ?? 20),
   });
@@ -180,21 +197,127 @@ export async function handleAdminBookingStatus(
   if (!row) {
     throw new AppError("NOT_FOUND", "Booking not found.");
   }
-  const body = (await readJson(request)) as { status?: string };
+  const body = (await readJson(request)) as { status?: string; expectedUpdatedAt?: string };
+  if (body.expectedUpdatedAt !== undefined && body.expectedUpdatedAt !== row.updated_at) {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
   if (
     !body.status ||
     !BOOKING_STATUSES.includes(body.status as (typeof BOOKING_STATUSES)[number])
   ) {
     throw new AppError("VALIDATION_FAILED", "Choose a valid status.");
   }
-  const updated = await updateBookingStatus(
-    env.DB,
-    row,
-    body.status as (typeof BOOKING_STATUSES)[number],
-    actorId,
-    requestId,
-  );
+  const nextStatus = body.status as (typeof BOOKING_STATUSES)[number];
+  const updated = await updateBookingStatus(env.DB, row, nextStatus, actorId, requestId);
+  if (nextStatus === "confirmed" || nextStatus === "cancelled") {
+    await deliverLifecycleMail(env, updated, nextStatus, requestId, {
+      id: actorId,
+      requestId,
+    });
+    const afterMail = await getBookingByReference(env.DB, updated.reference);
+    return { booking: bookingToAdmin(afterMail ?? updated) };
+  }
   return { booking: bookingToAdmin(updated) };
+}
+
+export async function handleAdminLifecycleMail(
+  request: Request,
+  env: AppEnv,
+  reference: string,
+  actorId: string,
+  requestId: string,
+) {
+  const row = await getBookingByReference(env.DB, reference);
+  if (!row) {
+    throw new AppError("NOT_FOUND", "Booking not found.");
+  }
+  const body = (await readJson(request)) as { kind?: string };
+  if (body.kind !== "confirmed" && body.kind !== "cancelled") {
+    throw new AppError("VALIDATION_FAILED", "Choose confirmed or cancelled guest email.");
+  }
+  const kind: LifecycleMailKind = body.kind;
+  const workflow = (row.decision_status ?? row.status) as BookingStatus;
+  if (workflow !== kind) {
+    throw new AppError(
+      "INVALID_TRANSITION",
+      `Guest ${kind} email can only be retried when the booking is ${kind}.`,
+    );
+  }
+  const outcome = await deliverLifecycleMail(env, row, kind, requestId, {
+    id: actorId,
+    requestId,
+  });
+  if (outcome === "stale") {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
+  if (outcome === "pending") {
+    throw new AppError(
+      "CONFLICT",
+      "Guest email delivery is unconfirmed. Do not resend this message.",
+    );
+  }
+  if (outcome === "skipped") {
+    throw new AppError("CONFLICT", "Guest email is not sent for this booking channel.");
+  }
+  const after = await getBookingByReference(env.DB, row.reference);
+  return { booking: bookingToAdmin(after ?? row), mailState: outcome };
+}
+
+async function deliverLifecycleMail(
+  env: AppEnv,
+  row: BookingRow,
+  kind: LifecycleMailKind,
+  requestId: string,
+  actor: { id: string; requestId: string },
+): Promise<LifecycleMailState | "stale"> {
+  if (row.communication_channel !== "email") {
+    const skipped = await markLifecycleMailSkipped(env.DB, row, kind, actor);
+    switch (skipped) {
+      case "claimed":
+      case "stale":
+        return "stale";
+      case "sent":
+      case "skipped":
+      case "pending":
+      case "failed":
+        return skipped;
+      default: {
+        const unreachable: never = skipped;
+        return unreachable;
+      }
+    }
+  }
+  const claim = await claimLifecycleMailSend(env.DB, row, kind, actor);
+  switch (claim) {
+    case "claimed":
+      break;
+    case "stale":
+      return "stale";
+    case "sent":
+    case "skipped":
+    case "pending":
+    case "failed":
+      return claim;
+    default: {
+      const unreachable: never = claim;
+      return unreachable;
+    }
+  }
+  const outcome = await sendLifecycleCustomerMail(env, {
+    kind,
+    reference: row.reference,
+    requestId,
+    communicationChannel: row.communication_channel,
+    locale: row.locale,
+    name: row.contact_name,
+    email: row.email,
+    details: bookingMailDetails(row, businessTimezone(env), row.locale),
+    alreadySent: false,
+  });
+  const stored: LifecycleMailState =
+    outcome === "sent" ? "sent" : outcome === "skipped" ? "skipped" : "failed";
+  await setLifecycleMailState(env.DB, row, kind, stored, actor);
+  return stored;
 }
 
 export async function handleAdminContactsList(request: Request, env: AppEnv) {
@@ -206,6 +329,8 @@ export async function handleAdminContactsList(request: Request, env: AppEnv) {
   const result = await listContacts(env.DB, {
     status,
     inquiryType: url.searchParams.get("inquiryType") ?? undefined,
+    q: parseSearchQuery(url.searchParams.get("q")),
+    updatedSince: parseUpdatedSince(url.searchParams.get("updatedSince")),
     cursor: url.searchParams.get("cursor") ?? undefined,
     limit: Number(url.searchParams.get("limit") ?? 20),
   });

@@ -322,7 +322,7 @@ export function BookingForm({
       <div className="form" role="status">
         <h3>Request received</h3>
         <p>
-          Reference <strong>{state.result.reference}</strong>
+          Reference number <strong>{state.result.reference}</strong>
         </p>
         <p>{state.result.nextStep}</p>
       </div>

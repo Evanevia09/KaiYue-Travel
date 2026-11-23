@@ -74,7 +74,59 @@ check(
   !("ACCESS_TEAM_DOMAIN" in (overlay.vars ?? {})),
   "overlay must not contain ACCESS_TEAM_DOMAIN",
 );
-check(!("RESEND_API_KEY" in (overlay.vars ?? {})), "overlay must not contain RESEND_API_KEY");
+check(
+  !Object.keys(overlay.vars ?? {}).some((name) => name.startsWith("RESEND_")),
+  "overlay must not contain RESEND_* vars",
+);
+{
+  const approvedRecipients = ["scalingsmb@gmail.com"];
+  const approvedSenders = ["bookings@notify.kaiyuemacau.com"];
+  const sameList = (actual, expected) =>
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    expected.every((entry) => actual.includes(entry));
+  const vars = overlay.vars ?? {};
+  const mail = overlay.send_email ?? [];
+  check(
+    sameList(constants.approved_staging_mail_recipients, approvedRecipients) &&
+      sameList(constants.approved_staging_mail_senders, approvedSenders),
+    "approved staging mail recipients/senders changed; needs owner approval and a guard update",
+  );
+  check(
+    mail.length === 1 &&
+      mail[0].name === "EMAIL" &&
+      sameList(mail[0].allowed_destination_addresses, approvedRecipients) &&
+      sameList(mail[0].allowed_sender_addresses, approvedSenders) &&
+      mail[0].destination_address === undefined &&
+      mail[0].remote === undefined,
+    "overlay must have one EMAIL send_email binding locked to the approved staging recipient and sender",
+  );
+  check(
+    vars.NOTIFICATIONS_ENABLED === "false" || vars.NOTIFICATIONS_ENABLED === "true",
+    "overlay NOTIFICATIONS_ENABLED must be the literal string false or true",
+  );
+  check(
+    vars.NOTIFY_ALLOWED_RECIPIENTS === approvedRecipients.join(",") &&
+      approvedRecipients.includes(vars.NOTIFY_STAFF_TO),
+    "overlay NOTIFY_ALLOWED_RECIPIENTS/NOTIFY_STAFF_TO must stay on the approved staging inbox",
+  );
+  check(
+    vars.STAGING_QUOTE_EMAIL_ENABLED === "true" || vars.STAGING_QUOTE_EMAIL_ENABLED === "false",
+    "overlay STAGING_QUOTE_EMAIL_ENABLED must be the literal string false or true",
+  );
+  check(
+    vars.MCP_STAGING_DIRECT_WRITES === "true",
+    "overlay MCP_STAGING_DIRECT_WRITES must be the literal string true",
+  );
+  check(
+    vars.WHATSAPP_NUMBER === "+85363128081",
+    "overlay WHATSAPP_NUMBER must be the owner WhatsApp enquiry number",
+  );
+  check(
+    approvedSenders.includes(vars.NOTIFY_FROM_EMAIL),
+    "overlay NOTIFY_FROM_EMAIL must be the approved sender",
+  );
+}
 check(!overlayText.includes(constants.production_d1), "overlay must not mention production D1");
 check(!overlayText.includes(constants.obsolete_d1), "overlay must not mention obsolete D1");
 check(!overlayText.includes(constants.trial_d1), "overlay must not mention trial D1");
@@ -300,7 +352,7 @@ check(existsSync(SCHEMA_CONTRACT_PATH), "schema compatibility contract must exis
   check(
     JSON.stringify(contract.attested_applied?.migration_files) ===
       JSON.stringify(constants.attested_applied_migrations),
-    "schema contract must attest exact applied 0001–0010",
+    "schema contract must attest the exact applied migration list",
   );
 }
 check(!workflow.includes("branches: [main]"), "official-staging workflow must not trigger on main");

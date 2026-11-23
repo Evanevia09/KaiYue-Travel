@@ -9,7 +9,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | Field | Notes |
 |---|---|
 | `id` | Internal UUID/text primary key |
-| `reference` | Unique public reference; non-sequential |
+| `reference` | Unique public booking reference. New chauffeur rows use `KY` + exactly five digits with no hyphen (`KY00001`–`KY99999`). Legacy rows keep `KY-xxxxxxxx` and are never rewritten. |
 | `status` | `enquiry`, `assigned`, `completed`, `cancelled` |
 | `service_type` | Validated service identifier |
 | `pickup_location` | Required normalized text |
@@ -30,10 +30,16 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `tour_guide_requested` | Optional 1/0/NULL from `migrations/0008_booking_tour_guide.sql`. Set on half-day and full-day Macau city-tour packages when the guest answers the professional tour-guide question. NULL on other journeys. No published guide price. |
 | `source_page`, `source_trigger` | Attribution without sensitive content |
 | `locale` | Submitted locale |
-| `notification_state` | e.g. `pending`, `sent`, `partial`, `failed` |
+| `notification_state` | Create-time staff/ack outcome: `pending`, `sent`, `partial`, `failed`, `skipped` |
+| `lifecycle_serial` | Integer serial allocated once at persist for new chauffeur rows; NULL on legacy `KY-xxxxxxxx` rows. Unique when present. |
+| `confirm_mail_state` / `cancel_mail_state` | Separate from create-time `notification_state`. `pending` (send in flight or unconfirmed), `sent`, `failed`, or `skipped` after the matching workflow transition. Claim `pending` only when `updated_at` and workflow still match the intended kind and the column is `NULL` or `failed`. `pending` is not a proven failure and must not be retried blindly. |
 | `created_at`, `updated_at` | UTC |
 
-Indexes: unique `reference`; `pickup_at`; `(status, pickup_at)`; `created_at`.
+Indexes: unique `reference`; unique `lifecycle_serial` where not null; `pickup_at`; `(status, pickup_at)`; `created_at`.
+
+### `chauffeur_booking_serial` (`migrations/0011_chauffeur_booking_serial.sql`)
+
+One row (`id = 1`). `last_issued` starts at 0 and increments atomically per new chauffeur booking (`UPDATE … WHERE last_issued < 99999 RETURNING last_issued`). Per-D1; staging and production must never copy this counter. Serials are **1..99999** displayed as `KY00001`–`KY99999`. After `last_issued = 99999`, further creates return `503 UNAVAILABLE` and do not insert a booking, wrap, or reuse. Owner t339u superseded the earlier widen-to-`KY100000` rule. Failed insert after increment may gap; never decrement. Do not seed from legacy `KY-` rows. Do not reuse `rate_limits`. Apply `0011` to a D1 before the Worker that allocates serials is activated. Official-staging CD does not apply migrations. Staging D1 `043cd0ff` already has `0011` with `last_issued=0`; do not reset it.
 
 ### `contacts`
 
@@ -51,7 +57,11 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ### Optional `idempotency_keys`
 
-`key_hash`, `request_hash`, `response_reference`, `expires_at`, `created_at`. Use if idempotency is not stored directly on the booking/contact record.
+`key_hash` (primary key), `request_hash`, `response_json`, `status_code`, `expires_at`, `created_at`. Booking create claims with `status_code=202` before persist, binds the allocated `reference` in the same D1 batch as the booking insert, then finishes `201` with the public body. A `202` row with a reference is crash recovery (replay the stored booking; do not persist or notify again). A live `202` without a reference is in-progress (`409 CONFLICT`). Expired keys may be replaced. Contacts still write the completed result after persist. Different payload on the same key remains `IDEMPOTENCY_CONFLICT`.
+
+### `rate_limits` (`migrations/0001_init.sql`)
+
+`bucket` (primary key), `count`, `window_start`. Public booking/contact throttles use IP buckets. Password sign-in lockout reuses the same table with hashed `signin:acct:<sha256>` and `signin:ip:<sha256>` keys (SHA-256 of `BETTER_AUTH_SECRET` plus the normalized email or IP; no raw email, IP, or password). Three failed password checks lock that account and source IP for five minutes. Failures 1–2 persist until the third failure, a success, or a later lock expiry. Hosted Cloudflare IP buckets use `CF-Connecting-IP` only; missing that header is `untrusted` and client `X-Forwarded-For` is not used. The only local/test exception is hostname `localhost` / `127.0.0.1` / `::1`, which may use the first `X-Forwarded-For` hop. `.workers.dev` and other non-loopback hosts never trust client `X-Forwarded-For` even when `ENVIRONMENT=development`. Password lockout did not add a table; live D1 already has `rate_limits` from `0001`. Chauffeur serials use `migrations/0011_chauffeur_booking_serial.sql`, not this table. The official-staging schema contract lists `0001`–`0011` on disk; live apply of `0011` is a separate staging operator step.
 
 ### `admin_operator` (sidecar, `migrations/0009_admin_operator.sql`)
 
@@ -90,7 +100,7 @@ Staging-only provision executor (source: `scripts/staging-operator-bootstrap-ord
 
 ### `POST /api/v1/bookings`
 
-Creates a booking request. Returns `201` with `reference`, `status: "enquiry"`, `receivedAt`, and safe next-step text. WhatsApp submissions also receive a prefilled `whatsappUrl`; Email submissions trigger the configured Resend staff notification after persistence. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure. Hourly charter requires `durationHours` (2–12); the Worker prepends `Duration: N hours.` to stored notes.
+Creates a booking request. Returns `201` with `reference`, `status: "enquiry"`, `receivedAt`, and safe next-step text. WhatsApp submissions also receive a prefilled `whatsappUrl`; Email submissions trigger the staff notification and the customer acknowledgement through the `EMAIL` binding after persistence, when mail is enabled for the site. A repeated matching idempotent request returns the original successful result. Use `400/422` for invalid input, `409` for conflicting key reuse, `429` for throttling, and `503` for a temporary persistence failure. Hourly charter requires `durationHours` (2–12); the Worker prepends `Duration: N hours.` to stored notes.
 
 WhatsApp's required “Your WhatsApp Number” and Email's optional phone share the `phone` payload and stored `phone`/`phone_display` columns. The WhatsApp number is required on that channel and appears in the prepared deep-link message.
 
@@ -113,7 +123,7 @@ Returns non-sensitive form configuration such as approved service types and book
 | `POST /api/v1/admin/users` | Super-admin create staff (no email invite) |
 | `PATCH /api/v1/admin/users/:id` | Super-admin role and/or enabled flag; field-specific CAS |
 | `POST /api/v1/admin/users/:id/password` | Super-admin credential reset |
-| `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service |
+| `GET /api/v1/admin/bookings` | Paginated/filterable list; date range, status, service, `q` search (reference, name, email, phone), `updatedSince` |
 | `POST /api/v1/admin/bookings` | Add a manually entered booking enquiry |
 | `GET /api/v1/admin/bookings/:reference` | Booking detail, notes, safe event history |
 | `PATCH /api/v1/admin/bookings/:reference/status` | Validated status transition |
@@ -122,7 +132,7 @@ Returns non-sensitive form configuration such as approved service types and book
 | `POST /api/v1/admin/bookings/:reference/notes` | Add internal note |
 | `GET /api/v1/admin/drivers` / `POST /api/v1/admin/drivers` / `PATCH /api/v1/admin/drivers/:id` | List, add, and update driver inventory |
 | `GET /api/v1/admin/vehicles` / `POST /api/v1/admin/vehicles` / `PATCH /api/v1/admin/vehicles/:id` | List, add, and update vehicle inventory |
-| `GET /api/v1/admin/contacts` | Paginated/filterable inquiry list |
+| `GET /api/v1/admin/contacts` | Paginated/filterable inquiry list; `q` (adds company), `updatedSince`, opaque `(created_at, id)` cursor |
 | `GET /api/v1/admin/contacts/:id` | Inquiry detail |
 | `PATCH /api/v1/admin/contacts/:id/status` | Update inquiry status |
 | `POST /api/v1/admin/contacts/:id/notes` | Add internal note |

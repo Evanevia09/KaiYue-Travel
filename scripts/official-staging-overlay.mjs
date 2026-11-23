@@ -35,6 +35,7 @@ export function renderOverlay(constants) {
         bucket_name: constants.r2_bucket,
       },
     ],
+    send_email: [constants.send_email],
     vars: constants.vars,
   };
   return `${HEADER}${JSON.stringify(config, null, 2)}\n`;

@@ -2,8 +2,9 @@ import {
   AppError,
   bookingCreateSchema,
   canTransitionBooking,
-  createBookingReference,
+  formatBookingReference,
   getPublicConfig,
+  MAX_CHAUFFEUR_SERIAL,
   isMacauTourGuidePackage,
   validatePickupNotice,
   type BookingCreatePayload,
@@ -13,16 +14,21 @@ import {
 import { translateCopy } from "../i18n-copy.ts";
 import type { Locale } from "../i18n.ts";
 import type { AppEnv, D1Database } from "./env.ts";
-import { noticeHours } from "./env.ts";
+import { businessTimezone, noticeHours } from "./env.ts";
 import { all, first, nowIso, run } from "./db.ts";
 import { clientIp, fail, logSafe, readJson } from "./http.ts";
 import {
+  abandonBookingCreateClaim,
+  claimBookingCreate,
+  finishBookingCreate,
   hashIdempotency,
   hashRequest,
-  readIdempotency,
+  IDEMPOTENCY_COMPLETE,
+  IDEMPOTENCY_PROCESSING,
   requireIdempotencyKey,
-  writeIdempotency,
 } from "./idempotency.ts";
+import { likePattern } from "./admin-list-query.ts";
+import { formatPickup, type DetailRow } from "./notification-templates.ts";
 import { sendNotifications } from "./notifications.ts";
 import { getPublicOffer } from "./offers/service.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
@@ -31,6 +37,7 @@ export type BookingRow = {
   id: string;
   reference: string;
   status: BookingStatus;
+  decision_status?: BookingStatus | null;
   service_type: string;
   pickup_location: string;
   destination: string | null;
@@ -52,6 +59,9 @@ export type BookingRow = {
   source_mode: string;
   locale: string;
   notification_state: NotificationState;
+  lifecycle_serial?: number | null;
+  confirm_mail_state?: string | null;
+  cancel_mail_state?: string | null;
   created_at: string;
   updated_at: string;
   driver_id: string | null;
@@ -84,6 +94,8 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     tourGuideYes: "Requested",
     tourGuideNo: "Not requested",
     phone: "WhatsApp number",
+    name: "Name",
+    email: "Email",
     message: "Message",
   },
   pt: {
@@ -104,6 +116,8 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     tourGuideYes: "Pedido",
     tourGuideNo: "Não pedido",
     phone: "Número de WhatsApp",
+    name: "Nome",
+    email: "Email",
     message: "Mensagem",
   },
   "zh-Hant": {
@@ -124,6 +138,8 @@ const whatsappLabels: Record<Locale, Record<string, string>> = {
     tourGuideYes: "需要",
     tourGuideNo: "不需要",
     phone: "WhatsApp 號碼",
+    name: "姓名",
+    email: "電郵",
     message: "備註",
   },
 };
@@ -186,11 +202,201 @@ export function bookingToPublic(row: BookingRow) {
   return response;
 }
 
+export function bookingMailDetails(row: BookingRow, timezone: string, locale = "en"): DetailRow[] {
+  const destination =
+    row.destination ??
+    (row.offer_title
+      ? row.offer_title
+      : row.service_type === "city_tour"
+        ? "City tour"
+        : "Hourly service");
+  const timeTag =
+    locale === "pt" || locale.startsWith("pt-")
+      ? "pt-PT"
+      : locale === "zh-Hant" || locale.startsWith("zh")
+        ? "zh-Hant"
+        : "en-GB";
+  return [
+    ...(row.contact_name ? [{ label: "Guest", value: row.contact_name }] : []),
+    ...(row.email ? [{ label: "Email", value: row.email }] : []),
+    ...(row.phone_display ? [{ label: "Phone", value: row.phone_display }] : []),
+    { label: "Pickup", value: row.pickup_location },
+    { label: "Destination", value: destination },
+    ...(row.offer_title ? [{ label: "Special offer", value: row.offer_title }] : []),
+    { label: "Pickup time", value: formatPickup(row.pickup_at, timeTag, timezone) },
+    { label: "Passengers", value: String(row.passenger_count) },
+    ...(row.luggage_count != null
+      ? [{ label: "Big luggage", value: String(row.luggage_count) }]
+      : []),
+    ...(handCarryFromNotes(row.notes) != null
+      ? [{ label: "Hand carry", value: String(handCarryFromNotes(row.notes)) }]
+      : []),
+    ...(row.message ? [{ label: "Message", value: row.message }] : []),
+  ];
+}
+
+export type LifecycleMailKind = "confirmed" | "cancelled";
+export type LifecycleMailState = "pending" | "sent" | "failed" | "skipped";
+
+function lifecycleMailColumn(kind: LifecycleMailKind): "confirm_mail_state" | "cancel_mail_state" {
+  switch (kind) {
+    case "confirmed":
+      return "confirm_mail_state";
+    case "cancelled":
+      return "cancel_mail_state";
+    default: {
+      const unreachable: never = kind;
+      return unreachable;
+    }
+  }
+}
+
+export type LifecycleMailActor = { id: string; requestId: string };
+
+export type LifecycleMailClaim = "claimed" | "stale" | LifecycleMailState;
+
+function lifecycleMailStateOf(
+  row: BookingRow | null | undefined,
+  kind: LifecycleMailKind,
+): string | null | undefined {
+  return kind === "confirmed" ? row?.confirm_mail_state : row?.cancel_mail_state;
+}
+
+export async function setLifecycleMailState(
+  db: D1Database,
+  row: BookingRow,
+  kind: LifecycleMailKind,
+  state: LifecycleMailState,
+  actor?: LifecycleMailActor,
+): Promise<void> {
+  const column = lifecycleMailColumn(kind);
+  const updatedAt = nowIso();
+  const statements = [
+    db
+      .prepare(
+        `UPDATE bookings SET ${column} = ?, updated_at = ? WHERE id = ? AND ${column} = 'pending'`,
+      )
+      .bind(state, updatedAt, row.id),
+  ];
+  if (actor) {
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           SELECT ?, 'booking', ?, 'lifecycle_mail', ?, ?, ?, ?, ? WHERE changes() = 1`,
+        )
+        .bind(crypto.randomUUID(), row.id, actor.id, kind, state, actor.requestId, updatedAt),
+    );
+  }
+  const [result] = await db.batch(statements);
+  if (result?.meta.changes !== 1) return;
+  row.updated_at = updatedAt;
+}
+
+export async function claimLifecycleMailSend(
+  db: D1Database,
+  row: BookingRow,
+  kind: LifecycleMailKind,
+  actor?: LifecycleMailActor,
+): Promise<LifecycleMailClaim> {
+  const column = lifecycleMailColumn(kind);
+  const current = lifecycleMailStateOf(row, kind);
+  if (current === "sent" || current === "skipped" || current === "pending") {
+    return current;
+  }
+  const updatedAt = nowIso();
+  const statements = [
+    db
+      .prepare(
+        `UPDATE bookings SET ${column} = 'pending', updated_at = ?
+         WHERE id = ? AND updated_at = ?
+         AND (${column} IS NULL OR ${column} = 'failed')
+         AND ${bookingStatusSql} = ?`,
+      )
+      .bind(updatedAt, row.id, row.updated_at, kind),
+  ];
+  if (actor) {
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           SELECT ?, 'booking', ?, 'lifecycle_mail', ?, ?, 'pending', ?, ? WHERE changes() = 1`,
+        )
+        .bind(crypto.randomUUID(), row.id, actor.id, kind, actor.requestId, updatedAt),
+    );
+  }
+  const [result] = await db.batch(statements);
+  if (result?.meta.changes === 1) {
+    row.updated_at = updatedAt;
+    row.confirm_mail_state = kind === "confirmed" ? "pending" : row.confirm_mail_state;
+    row.cancel_mail_state = kind === "cancelled" ? "pending" : row.cancel_mail_state;
+    return "claimed";
+  }
+  const latest = await first<BookingRow>(
+    db,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE id = ?`,
+    row.id,
+  );
+  const after = lifecycleMailStateOf(latest, kind);
+  if (after === "sent" || after === "skipped" || after === "pending") {
+    return after;
+  }
+  return "stale";
+}
+
+export async function markLifecycleMailSkipped(
+  db: D1Database,
+  row: BookingRow,
+  kind: LifecycleMailKind,
+  actor?: LifecycleMailActor,
+): Promise<LifecycleMailClaim> {
+  const column = lifecycleMailColumn(kind);
+  const current = lifecycleMailStateOf(row, kind);
+  if (current === "sent" || current === "skipped" || current === "pending") {
+    return current;
+  }
+  const updatedAt = nowIso();
+  const statements = [
+    db
+      .prepare(
+        `UPDATE bookings SET ${column} = 'skipped', updated_at = ?
+         WHERE id = ? AND updated_at = ?
+         AND (${column} IS NULL OR ${column} = 'failed')
+         AND ${bookingStatusSql} = ?`,
+      )
+      .bind(updatedAt, row.id, row.updated_at, kind),
+  ];
+  if (actor) {
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           SELECT ?, 'booking', ?, 'lifecycle_mail', ?, ?, 'skipped', ?, ? WHERE changes() = 1`,
+        )
+        .bind(crypto.randomUUID(), row.id, actor.id, kind, actor.requestId, updatedAt),
+    );
+  }
+  const [result] = await db.batch(statements);
+  if (result?.meta.changes === 1) {
+    return "skipped";
+  }
+  const latest = await first<BookingRow>(
+    db,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE id = ?`,
+    row.id,
+  );
+  const after = lifecycleMailStateOf(latest, kind);
+  if (after === "sent" || after === "skipped" || after === "pending") {
+    return after;
+  }
+  return "stale";
+}
+
 export function bookingToAdmin(row: BookingRow) {
   return {
     id: row.id,
     reference: row.reference,
-    status: row.status,
+    status: row.decision_status ?? row.status,
     serviceType: row.service_type,
     pickupLocation: row.pickup_location,
     destination: row.destination,
@@ -212,6 +418,8 @@ export function bookingToAdmin(row: BookingRow) {
     sourceMode: row.source_mode,
     locale: row.locale,
     notificationState: row.notification_state,
+    confirmMailState: row.confirm_mail_state ?? null,
+    cancelMailState: row.cancel_mail_state ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     driverId: row.driver_id,
@@ -282,46 +490,80 @@ function handCarryFromNotes(notes: string | null): number | null {
   return Number.isInteger(count) && count >= 0 && count <= 20 ? count : null;
 }
 
-async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promise<BookingRow> {
+async function allocateChauffeurSerial(
+  db: D1Database,
+): Promise<{ serial: number; reference: string }> {
+  const issued = await first<{ last_issued: number }>(
+    db,
+    "UPDATE chauffeur_booking_serial SET last_issued = last_issued + 1 WHERE id = 1 AND last_issued < ? RETURNING last_issued",
+    MAX_CHAUFFEUR_SERIAL,
+  );
+  if (!issued) {
+    throw new AppError("UNAVAILABLE", "No chauffeur reference numbers remain.");
+  }
+  if (
+    !Number.isInteger(issued.last_issued) ||
+    issued.last_issued < 1 ||
+    issued.last_issued > MAX_CHAUFFEUR_SERIAL
+  ) {
+    throw new AppError("UNAVAILABLE", "Could not store the booking request.");
+  }
+  return {
+    serial: issued.last_issued,
+    reference: formatBookingReference(issued.last_issued),
+  };
+}
+
+async function persistBooking(
+  env: AppEnv,
+  payload: BookingCreatePayload,
+  keyHash: string,
+): Promise<BookingRow> {
   const id = crypto.randomUUID();
-  const reference = createBookingReference();
+  const { serial, reference } = await allocateChauffeurSerial(env.DB);
   const now = nowIso();
-  await run(
-    env.DB,
-    `INSERT INTO bookings (
-      id, reference, status, service_type, pickup_location, destination, pickup_at, return_at,
+  await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO bookings (
+      id, reference, lifecycle_serial, status, service_type, pickup_location, destination, pickup_at, return_at,
       passenger_count, luggage_count, tour_guide_requested, vehicle_preference, communication_channel, contact_name, phone, phone_display,
       email, company, message, notes, offer_id, offer_title, source_page, source_trigger, source_mode, locale, notification_state,
       created_at, updated_at
-    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
-    id,
-    reference,
-    payload.serviceType,
-    payload.pickupLocation,
-    payload.destination ?? null,
-    payload.pickupAt,
-    payload.returnAt ?? null,
-    payload.passengerCount,
-    payload.luggageCount ?? null,
-    tourGuideStoredValue(payload.tourGuideRequested),
-    payload.vehiclePreference ?? null,
-    payload.communicationChannel,
-    payload.contactName ?? null,
-    payload.phone ?? null,
-    payload.phoneDisplay ?? null,
-    payload.email ?? null,
-    payload.company ?? null,
-    payload.message,
-    bookingNotes(payload),
-    payload.offerId ?? null,
-    payload.offerTitle ?? null,
-    payload.sourcePage,
-    payload.sourceTrigger,
-    payload.sourceMode,
-    payload.locale,
-    now,
-    now,
-  );
+    ) VALUES (?, ?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+    ).bind(
+      id,
+      reference,
+      serial,
+      payload.serviceType,
+      payload.pickupLocation,
+      payload.destination ?? null,
+      payload.pickupAt,
+      payload.returnAt ?? null,
+      payload.passengerCount,
+      payload.luggageCount ?? null,
+      tourGuideStoredValue(payload.tourGuideRequested),
+      payload.vehiclePreference ?? null,
+      payload.communicationChannel,
+      payload.contactName ?? null,
+      payload.phone ?? null,
+      payload.phoneDisplay ?? null,
+      payload.email ?? null,
+      payload.company ?? null,
+      payload.message,
+      bookingNotes(payload),
+      payload.offerId ?? null,
+      payload.offerTitle ?? null,
+      payload.sourcePage,
+      payload.sourceTrigger,
+      payload.sourceMode,
+      payload.locale,
+      now,
+      now,
+    ),
+    env.DB.prepare(
+      `UPDATE idempotency_keys SET response_json = ? WHERE key_hash = ? AND status_code = ?`,
+    ).bind(JSON.stringify({ state: "persisted", reference }), keyHash, IDEMPOTENCY_PROCESSING),
+  ]);
   const row = await first<BookingRow>(env.DB, "SELECT * FROM bookings WHERE id = ?", id);
   if (!row) {
     throw new AppError("UNAVAILABLE", "Could not store the booking request.");
@@ -389,23 +631,33 @@ export async function createBooking(
 
   const keyHash = await hashIdempotency(idempotencyKey);
   const requestHash = await hashRequest(parsed.data);
-  const replay = await readIdempotency(env.DB, keyHash, requestHash);
-  if (replay) {
-    return new Response(JSON.stringify(replay.body), {
-      status: replay.status,
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        "x-request-id": requestId,
-        "cache-control": "no-store",
-      },
+  const claim = await claimBookingCreate(env.DB, keyHash, requestHash);
+  if (claim.kind === "replay") {
+    return createdBookingResponse(requestId, claim.result.body, claim.result.status);
+  }
+  if (claim.kind === "persisted") {
+    const existing = await getBookingByReference(env.DB, claim.reference);
+    if (!existing) {
+      throw new AppError("UNAVAILABLE", "Could not store the booking request.");
+    }
+    const recovered = applyWhatsappUrl(env, existing, parsed.data, bookingToPublic(existing));
+    await finishBookingCreate(env.DB, keyHash, requestHash, {
+      status: IDEMPOTENCY_COMPLETE,
+      body: recovered,
     });
+    return createdBookingResponse(requestId, recovered, IDEMPOTENCY_COMPLETE);
   }
 
   let row: BookingRow;
   try {
-    row = await persistBooking(env, parsed.data);
+    row = await persistBooking(env, parsed.data, keyHash);
   } catch (error) {
-    logSafe("error", "booking_persist_failed", { requestId });
+    await abandonBookingCreateClaim(env.DB, keyHash);
+    logSafe("error", "booking_persist_failed", {
+      requestId,
+      reason: error instanceof Error ? error.message : "unknown",
+    });
+    if (error instanceof AppError) throw error;
     throw new AppError("UNAVAILABLE", "Could not store the booking request.", { cause: error });
   }
 
@@ -417,10 +669,23 @@ export async function createBooking(
           requestId,
           summary: "A new chauffeur booking request is waiting for review.",
           replyTo: parsed.data.email,
+          ...(parsed.data.email
+            ? {
+                customer: {
+                  email: parsed.data.email,
+                  locale: parsed.data.locale,
+                  name: parsed.data.contactName ?? null,
+                  serviceType: parsed.data.serviceType,
+                  pickupAt: parsed.data.pickupAt,
+                },
+              }
+            : {}),
           details: [
-            { label: "Name", value: parsed.data.contactName ?? "" },
-            { label: "Email", value: parsed.data.email ?? "" },
-            { label: "Phone", value: parsed.data.phoneDisplay ?? "Not provided" },
+            ...(parsed.data.contactName ? [{ label: "Name", value: parsed.data.contactName }] : []),
+            ...(parsed.data.email ? [{ label: "Email", value: parsed.data.email }] : []),
+            ...(parsed.data.phoneDisplay
+              ? [{ label: "Phone", value: parsed.data.phoneDisplay }]
+              : []),
             { label: "Pickup", value: parsed.data.pickupLocation },
             {
               label: "Destination",
@@ -437,7 +702,10 @@ export async function createBooking(
               : parsed.data.serviceType === "city_tour" && parsed.data.tourPackageTitle
                 ? [{ label: "Tour package", value: parsed.data.tourPackageTitle }]
                 : []),
-            { label: "Pickup time", value: parsed.data.pickupAt },
+            {
+              label: "Pickup time",
+              value: formatPickup(parsed.data.pickupAt, "en-GB", businessTimezone(env)),
+            },
             { label: "Passengers", value: String(parsed.data.passengerCount) },
             ...(parsed.data.tourGuideRequested === true
               ? [{ label: "Professional tour guide", value: "Requested" }]
@@ -463,66 +731,22 @@ export async function createBooking(
   );
   row.notification_state = notificationState;
 
-  const body = bookingToPublic(row);
-  if (parsed.data.communicationChannel === "whatsapp") {
-    const number = (env.WHATSAPP_NUMBER || "+85328338882").replace(/\D/g, "");
-    const locale = publicLocale(parsed.data.locale);
-    const label = whatsappLabels[locale];
-    const service = whatsappServiceName(
-      locale,
-      parsed.data.serviceType,
-      Boolean(parsed.data.offerId),
-    );
-    const lines = [
-      `${label.heading} ${row.reference}`,
-      `${label.service}: ${service}`,
-      `${label.from}: ${parsed.data.pickupLocation}`,
-      ...(parsed.data.destination ? [`${label.to}: ${parsed.data.destination}`] : []),
-      ...(parsed.data.offerTitle
-        ? [`${label.offer}: ${parsed.data.offerTitle}`]
-        : parsed.data.tourPackageTitle
-          ? [`${label.package}: ${parsed.data.tourPackageTitle}`]
-          : []),
-      `${label.pickup}: ${parsed.data.pickupAt}`,
-      ...(parsed.data.returnAt ? [`${label.return}: ${parsed.data.returnAt}`] : []),
-      ...((
-        parsed.data.serviceType === "city_tour"
-          ? parsed.data.tourDurationHours
-          : parsed.data.durationHours
-      )
-        ? [
-            `${label.duration}: ${
-              parsed.data.serviceType === "city_tour"
-                ? parsed.data.tourDurationHours
-                : parsed.data.durationHours
-            } ${label.hours}`,
-          ]
-        : []),
-      `${label.passengers}: ${parsed.data.passengerCount}`,
-      ...(parsed.data.tourGuideRequested === true
-        ? [`${label.tourGuide}: ${label.tourGuideYes}`]
-        : parsed.data.tourGuideRequested === false
-          ? [`${label.tourGuide}: ${label.tourGuideNo}`]
-          : []),
-      ...(parsed.data.luggageCount != null
-        ? [`${label.bigLuggage}: ${parsed.data.luggageCount}`]
-        : []),
-      ...(parsed.data.handCarryCount != null
-        ? [`${label.handCarry}: ${parsed.data.handCarryCount}`]
-        : []),
-      ...(parsed.data.phoneDisplay ? [`${label.phone}: ${parsed.data.phoneDisplay}`] : []),
-      ...(parsed.data.message ? [`${label.message}: ${parsed.data.message}`] : []),
-    ];
-    body.whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`;
-  }
-  await writeIdempotency(env.DB, keyHash, requestHash, { status: 201, body });
+  const body = applyWhatsappUrl(env, row, parsed.data, bookingToPublic(row));
+  await finishBookingCreate(env.DB, keyHash, requestHash, {
+    status: IDEMPOTENCY_COMPLETE,
+    body,
+  });
   logSafe("info", "booking_created", {
     requestId,
     reference: row.reference,
     notificationState,
   });
+  return createdBookingResponse(requestId, body, IDEMPOTENCY_COMPLETE);
+}
+
+function createdBookingResponse(requestId: string, body: unknown, status = 201): Response {
   return new Response(JSON.stringify(body), {
-    status: 201,
+    status,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "x-request-id": requestId,
@@ -531,12 +755,94 @@ export async function createBooking(
   });
 }
 
+function applyWhatsappUrl(
+  env: AppEnv,
+  row: BookingRow,
+  payload: BookingCreatePayload,
+  body: ReturnType<typeof bookingToPublic>,
+): ReturnType<typeof bookingToPublic> {
+  if (payload.communicationChannel !== "whatsapp" && row.communication_channel !== "whatsapp") {
+    return body;
+  }
+  const number = (env.WHATSAPP_NUMBER || "+85363128081").replace(/\D/g, "");
+  const locale = publicLocale(payload.locale || row.locale);
+  const label = whatsappLabels[locale];
+  const timeTag = locale === "pt" ? "pt-PT" : locale === "zh-Hant" ? "zh-Hant" : "en-GB";
+  const timezone = businessTimezone(env);
+  const service = whatsappServiceName(
+    locale,
+    payload.serviceType || row.service_type,
+    Boolean(payload.offerId || row.offer_id),
+  );
+  const lines = [
+    `${label.heading} ${row.reference}`,
+    `${label.service}: ${service}`,
+    `${label.from}: ${payload.pickupLocation || row.pickup_location}`,
+    ...(payload.destination || row.destination
+      ? [`${label.to}: ${payload.destination || row.destination}`]
+      : []),
+    ...(payload.offerTitle || row.offer_title
+      ? [`${label.offer}: ${payload.offerTitle || row.offer_title}`]
+      : payload.tourPackageTitle
+        ? [`${label.package}: ${payload.tourPackageTitle}`]
+        : []),
+    `${label.pickup}: ${formatPickup(payload.pickupAt || row.pickup_at, timeTag, timezone)}`,
+    ...(payload.returnAt || row.return_at
+      ? [
+          `${label.return}: ${formatPickup(payload.returnAt || row.return_at || "", timeTag, timezone)}`,
+        ]
+      : []),
+    ...((payload.serviceType === "city_tour" ? payload.tourDurationHours : payload.durationHours)
+      ? [
+          `${label.duration}: ${
+            payload.serviceType === "city_tour" ? payload.tourDurationHours : payload.durationHours
+          } ${label.hours}`,
+        ]
+      : []),
+    `${label.passengers}: ${payload.passengerCount || row.passenger_count}`,
+    ...(payload.tourGuideRequested === true
+      ? [`${label.tourGuide}: ${label.tourGuideYes}`]
+      : payload.tourGuideRequested === false
+        ? [`${label.tourGuide}: ${label.tourGuideNo}`]
+        : []),
+    ...(payload.luggageCount != null ? [`${label.bigLuggage}: ${payload.luggageCount}`] : []),
+    ...(payload.handCarryCount != null ? [`${label.handCarry}: ${payload.handCarryCount}`] : []),
+    ...(payload.contactName || row.contact_name
+      ? [`${label.name}: ${payload.contactName || row.contact_name}`]
+      : []),
+    ...(payload.email || row.email ? [`${label.email}: ${payload.email || row.email}`] : []),
+    ...(payload.phoneDisplay || row.phone_display
+      ? [`${label.phone}: ${payload.phoneDisplay || row.phone_display}`]
+      : []),
+    ...(payload.message || row.message
+      ? [`${label.message}: ${payload.message || row.message}`]
+      : []),
+  ];
+  body.whatsappUrl = `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`;
+  return body;
+}
+
 export async function getBookingByReference(
   db: D1Database,
   reference: string,
 ): Promise<BookingRow | null> {
-  return first<BookingRow>(db, "SELECT * FROM bookings WHERE reference = ?", reference);
+  return first<BookingRow>(
+    db,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE reference = ?`,
+    reference,
+  );
 }
+
+// Keep existing booking storage compatible. The latest audited decision supplies
+// the extra workflow states; a subsequent ordinary status takes precedence.
+const decisionStatusSql = `(
+  SELECT CASE WHEN to_value IN ('approved', 'confirmed', 'denied') THEN to_value END
+  FROM audit_events
+  WHERE entity_type = 'booking' AND entity_id = bookings.id AND event_type = 'status_change'
+  ORDER BY created_at DESC, rowid DESC LIMIT 1
+)`;
+export const bookingAdminColumns = `bookings.*, ${decisionStatusSql} AS decision_status`;
+export const bookingStatusSql = `COALESCE(${decisionStatusSql}, bookings.status)`;
 
 export async function listBookings(
   db: D1Database,
@@ -545,6 +851,8 @@ export async function listBookings(
     serviceType?: string;
     from?: string;
     to?: string;
+    q?: string;
+    updatedSince?: string;
     cursor?: string;
     limit?: number;
   },
@@ -553,7 +861,7 @@ export async function listBookings(
   const clauses = ["1 = 1"];
   const params: unknown[] = [];
   if (filters.status) {
-    clauses.push("status = ?");
+    clauses.push(`${bookingStatusSql} = ?`);
     params.push(filters.status);
   }
   if (filters.serviceType) {
@@ -567,6 +875,17 @@ export async function listBookings(
   if (filters.to) {
     clauses.push("pickup_at <= ?");
     params.push(filters.to);
+  }
+  if (filters.q) {
+    const pattern = likePattern(filters.q);
+    clauses.push(
+      "(reference LIKE ? ESCAPE '\\' OR contact_name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR phone_display LIKE ? ESCAPE '\\')",
+    );
+    params.push(pattern, pattern, pattern, pattern, pattern);
+  }
+  if (filters.updatedSince) {
+    clauses.push("updated_at >= ?");
+    params.push(filters.updatedSince);
   }
   if (filters.cursor) {
     let decoded: { pickupAt: string; id: string };
@@ -590,7 +909,7 @@ export async function listBookings(
   );
   const rows = await all<BookingRow>(
     db,
-    `SELECT * FROM bookings WHERE ${clauses.join(" AND ")} ORDER BY pickup_at ASC, id ASC LIMIT ?`,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE ${clauses.join(" AND ")} ORDER BY pickup_at ASC, id ASC LIMIT ?`,
     ...params,
     limit + 1,
   );
@@ -613,25 +932,35 @@ export async function updateBookingStatus(
   actorId: string,
   requestId: string,
 ): Promise<BookingRow> {
-  if (!canTransitionBooking(row.status, nextStatus)) {
+  const previous = row.decision_status ?? row.status;
+  if (!canTransitionBooking(previous, nextStatus)) {
     throw new AppError(
       "INVALID_TRANSITION",
-      `Cannot change status from ${row.status} to ${nextStatus}.`,
+      `Cannot change status from ${previous} to ${nextStatus}.`,
     );
   }
-  const updatedAt = nowIso();
-  await db.batch([
+  const updatedAt = new Date(Math.max(Date.now(), Date.parse(row.updated_at) + 1)).toISOString();
+  const storedStatus =
+    nextStatus === "approved" || nextStatus === "confirmed"
+      ? "enquiry"
+      : nextStatus === "denied"
+        ? "cancelled"
+        : nextStatus;
+  const [result] = await db.batch([
     db
-      .prepare("UPDATE bookings SET status = ?, updated_at = ? WHERE id = ?")
-      .bind(nextStatus, updatedAt, row.id),
+      .prepare("UPDATE bookings SET status = ?, updated_at = ? WHERE id = ? AND updated_at = ?")
+      .bind(storedStatus, updatedAt, row.id, row.updated_at),
     db
       .prepare(
         `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
-         VALUES (?, 'booking', ?, 'status_change', ?, ?, ?, ?, ?)`,
+         SELECT ?, 'booking', ?, 'status_change', ?, ?, ?, ?, ? WHERE changes() = 1`,
       )
-      .bind(crypto.randomUUID(), row.id, actorId, row.status, nextStatus, requestId, updatedAt),
+      .bind(crypto.randomUUID(), row.id, actorId, previous, nextStatus, requestId, updatedAt),
   ]);
-  const updated = await first<BookingRow>(db, "SELECT * FROM bookings WHERE id = ?", row.id);
+  if (result?.meta.changes !== 1) {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
+  const updated = await getBookingByReference(db, row.reference);
   if (!updated) {
     throw new AppError("UNAVAILABLE", "Could not update booking status.");
   }

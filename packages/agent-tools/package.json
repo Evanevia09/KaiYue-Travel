@@ -1,0 +1,21 @@
+{
+  "name": "@kaiyue/agent-tools",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./server.mjs",
+    "./http": {
+      "types": "./http.d.mts",
+      "default": "./http.mjs"
+    },
+    "./guide": "./guide.json",
+    "./client": {
+      "types": "./client.d.mts",
+      "default": "./client.mjs"
+    }
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  }
+}

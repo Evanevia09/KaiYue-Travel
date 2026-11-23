@@ -1,6 +1,20 @@
 # Kai Yue Travel — Project State
 
-**Last updated:** 2026-11-16 (production operator release candidate `696c2bd8` prepared, unreviewed; `dca860c` staged on official staging, version 15 `c8986696`)
+**2026-11-23 official-staging `33e95e1` + main-promotion PR (HOLD merge):** Parent native squash PR #65 → `33e95e1043126ef9e0956060e611e89e65e07724` (tree = reviewed `080e1e5`). CD `45131645610` SUCCESS. Staging Worker `f3866dc9` @100% / `2cfdd30d`. D1 `043cd0ff` `last_issued=1` / `KY00001` `enquiry` preserved. Dest lock `scalingsmb@gmail.com`. Parent staff+guest INBOX PASS 15:21; confirm/cancel not tested (admin login rejected 15:23:53). Live production still `5eebf7b6` / mail off / `06cf879d`. **No `main` merge, prod `0011`, or upload.** Record: `docs/records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md`.
+
+**2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
+
+**2026-11-19 combined staging candidate (merged PR #57):** Live `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080`. Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
+
+**2026-11-19 agent login / plugin plaintext (unmerged):** `/plugin` is `text/plain` agent instructions. Honest application `User-Agent` required; BIC blocked `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`). Owner approved a narrow staging-admin MCP `bic: false` configuration rule 22:27; operator applied it 22:28:27 (ruleset `a8eec7c4…`, rule `40c580d7…`, ref `staging_mcp_bic_off`). That is operator config, not this PR. Hosted fresh-testbot E2E not verified. Record: `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`.
+
+**2026-11-19 MCP password rate limit (merged PR #55):** Squash `458fe75adb52f5580e38485725fc26726d7dc4ee`. After three failed staff password sign-ins, further attempts wait five minutes. Durable D1 lock on hashed account and `CF-Connecting-IP`. `/login` shows generic wait copy on `429`. Wrong/unknown/disabled/unprovisioned share one generic `401`. Not `user_accepted`. Record: `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`.
+
+**2026-11-19 MCP staff-password auth (merged to official-staging):** Squash `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54). Staging MCP can exchange an existing staff or `super_admin` email/password for a 30-minute connection token without visiting `/login` or `/admin/agent-connect`. Production hosts stay closed. Write-tool browser approval unchanged. Not deployed from this follow-up; not `user_accepted`.
+
+**2026-11-18 plugin checkpoint:** Version 0.3.0 adds a staging Worker MCP endpoint with ten discoverable tools, a public `/plugin` guide, staff-session tokens, browser approvals, new decision statuses, and quote email locked to the owner-approved staging inbox. Staging rollout and receipt checks are in progress. See the dated changes below.
+
+**Last updated:** 2026-11-16 18:58 Asia/Macau (production operationally activated: `kaiyue-travel` version `5eebf7b6` @100%, `main` `ff119f2c`, `admin.kaiyuemacau.com` attached; not project acceptance)
 **Product-status evidence date:** 2026-11-15 freeze `cd33cf8c` / live Worker `f3169afb`; 2026-11-13 for the Version 2 illustrative photos (staging PR #27 preview byte-verified); 2026-11-03 for live booking UX verify on `870c536` (PR #24); 2026-11-03 for staging booking UX QA PASS (PR #23 tip `3fb82362`); 2026-11-03 for live tour-guide verify on `7c9ca1d` (PR #21); 2026-11-03 for the staging→main tour-guide promote; 2026-11-02 for optional Macau tour-guide copy and half-day/full-day booking preference; 2026-10-30 for Traditional Chinese private-car wording and staging→main conflict resolution; 2026-10-22 for hero plate branding and header logo/WhatsApp icon on main; 2026-10-17 for admin zh-Hant chrome; 2026-10-16 for GBA copy and special-offer enquiry/pages work; offers photo/cache/dashboard work and WeChat QR placeholder remain in-repo; City Tour booking UI evidence remains 2026-10-05; previous booking/admin evidence remains 2026-09-27.
 
 **Local header revision, 2026-10-22 (now on the promote branch):** At Evan’s request, the General Enquiry WhatsApp icon uses green, and the shared header logo eases out above 8px scroll and returns at the top. Its reserved space prevents navigation movement; hidden link is inert. Reduced-motion users receive an immediate visibility change. Verified locally on Special Offers: green icon, logo hidden after scrolling and restored at top; focused Prettier check and Astro check passed (0 errors, 3 existing hints). Full responsive/regression and production build were not rerun. Evan accepted the header preview and authorized commit/push to `main`. No manual deployment or release verification is included; next action: verify the live header after Workers Builds deploys from `main`.
@@ -9,7 +23,7 @@
 
 **Phase:** 2–3 — booking/API completion, lightweight admin, and staff special-offer catalogue
 **Overall status:** Mika source+byte/static PASS pins runtime `74c3023` and original package `f78d5856` / zip `483686e1` (immutable). Metadata r2 zip `4e8011c9` / docs `2a758879` preserved. Mika independently verified 16:55 evidence hashes, JSON `00`–`11`, and the owner 16:47 answer. Owner approved only new empty D1/R2 + synthetic probes: trial D1 `06aa844b-da6b-4c37-896c-fd13dd265fe6`, R2 `d937f5bc01e448afa679bdbf3769ed50` empty private. Worker not created. Observed one REST `/query` semicolon-joined SQL CHECK rollback (test E) supersedes blanket sequential-autocommit **only** in that mode. Provisioner not fully validated; upload/provisioning not inferred. Sanitized records ≠ live readback. Synth fixture ≠ exact provisioner. Fresh-ID refusal ≠ same-file replay. Interruption / binding batch / REST arrays / wrangler execute UNPROVEN. Trial overlay still **DO_NOT_DEPLOY**. UAT still **DO_NOT_UPLOAD**. `user_accepted` / deploy / `released` not claimed.
-**Current objective:** Keep staged / browser-checked / product-acceptance distinct. Official staging **is staged** on exact `dca860c59b03c0407293f087a158a855b04c60df` (FF 17:47:46, CD 43842973590 SUCCESS 17:50:01, Worker version 15 `c8986696` @100% / `21ff0a46`). Parent HTTP PASS: admin-staging `/` and `/index.html` 302 exact `/login`, `no-store`, `Vary: Host`, no purge. Browser 17:57 PASS (desktop + 390 px). Owner-supplied staging login verified (`super_admin`); no reset writes. Next: full staff/session/revocation UAT. Not `user_accepted` / `released`. Do not push `main`. LIVE must stay `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
+**Current objective:** Staging CD live on `33e95e1`. Promotion PR to `main` prepared (171-file fast-forward). Confirm/cancel still untested. **HOLD** `main` merge, prod `0011`, overlay upload. Do not merge #61. Not `user_accepted` / `released`.
 
 City Tour planning (2026-10-03, documentation only): [Latest discussion record](docs/records/2026-10-03-city-tour-future-planning.md) distinguishes implemented Markdown catalogue/pages from future package-detail presentation, the welcomed but deferred City Tour booking mode, and a reopened staff-editor option. Half-day 6 hours/full-day 10 hours supersede illustrative 4/8-hour examples. Real offers, prices, itineraries, booking placement, content source of truth, staff roles/workflow, hosting publication and costs remain to be clarified. No UI, API, schema, booking or CMS was changed in this planning increment.
 
@@ -83,7 +97,7 @@ Public page-layout refinement (2026-09-21): home and consumer chauffeur service 
 
 ## Quick handoff
 
-Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Resend placeholders, and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark and a compact Point to point / Hourly booking bar. Home and consumer service pages embed Journey and open Communication in one modal; B2B and general inquiry pages use a two-column hero with an inquiry form; FAQ and legal pages have no hero or form. The standalone `/booking` route has been removed. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
+Kai Yue Travel now has an Astro 7 + React-islands public site, a Cloudflare Workers API with D1 persistence, Cloudflare Email Service notification code (off by default), and a lightweight admin area. The public visual system is a dark cinematic, booking-first layout: overlay header with a **Kai Yue** wordmark and a compact Point to point / Hourly booking bar. Home and consumer service pages embed Journey and open Communication in one modal; B2B and general inquiry pages use a two-column hero with an inquiry form; FAQ and legal pages have no hero or form. The standalone `/booking` route has been removed. Public APIs only create bookings and inquiries. Admin APIs require Cloudflare Access claims, with a development-only bypass.
 
 No Cloudflare account, D1 database, Resend domain, or Access policy has been provisioned. Secrets are env placeholders only. B2C copy (2026-10-16) presents chauffeur services across Macau, Mainland China, and Hong Kong; City Tours stay Macau-only; quotes remain after review. B2B pages publish owner-approved group-portfolio claims (alliance, dual-plate GBA, 200+ Alphards, 7×24, Venetian wording). CI uses the single pnpm version from `package.json` (`pnpm@10.15.0`).
 
@@ -147,7 +161,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Public site: English, Portuguese, and Traditional Chinese. Staff admin: English (default) or Traditional Chinese via a persisted switch.
 - 24-hour booking notice, configurable via `BOOKING_NOTICE_HOURS`.
 - Session storage may keep non-sensitive journey fields only.
-- Admin status changes do not email customers in Release 1.
+- Admin status changes do not invent payment/refund terms. Email-channel workflow `confirmed` / `cancelled` send the matching guest lifecycle mail when policy permits; WhatsApp-channel and denied do not.
 
 ## Risks and safeguards
 
@@ -162,6 +176,8 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 | Scope expands into dispatch/CRM/payments prematurely         | Release 1 exclusions unchanged                                                                                                                               |
 
 ## Next recommended actions
+
+Agent API + native email (2026-11-16, `task_id` `kaiyue-agent-api-20261116`, staging only): branch `cursor/agent-api-notifications-a72c` is ready for PM independent review. Next action: after PM review, promote to `official-staging` with mail still off, then run synthetic staging API checks. A real send needs the PM's exact approval of the card in `docs/records/2026-11-16-agent-api-notifications/STAGE.md`. Production and `main` are untouched, and production mail stays off.
 
 Staging cache + production-readiness (2026-11-16, `task_id` `kaiyue-production-readiness-20261116`): `dca860c` is staged and the admin-root fix is verified over HTTP and in the browser without a purge. Next action: parent-run full authenticated staff UAT on admin-staging (staff role, session revocation, Users create/reset, profile password). No credential reset is needed; owner-supplied staging login verified. Do not merge to `main`. Do not attach production admin. LIVE stays `71a66a99` / `f3169afb`. Record: `docs/records/2026-11-16-staging-cache-readiness/CLOSEOUT-20261116-1757.md`.
 
@@ -185,7 +201,7 @@ Promote record (2026-10-30, already on `main` as `9521609`): PR 17 merged. Worke
 
 Admin zh-Hant follow-up (2026-10-17, now in the promote): after live deploy, log in only on a preview/staging host with the existing preview test operator, switch the admin to 繁體中文 on every staff page, then switch back to English. Bilingual offer title/description fields remain a follow-up (no D1 change in this increment). Do not use production `/admin` until Cloudflare Access is configured.
 
-WeChat QR next action (2026-10-16): review the preview footer and contact WeChat entry in English, Portuguese, and Traditional Chinese at mobile and desktop widths. When the owner supplies a real WeChat QR, replace `apps/web/public/images/wechat-qr.svg` only; do not invent a WeChat ID. Do not merge to `main`.
+WeChat QR next action (2026-11-19): owner JPEG is on the unmerged combined staging PR (`apps/web/public/images/wechat-qr.jpg`, original bytes). After authorized staging deploy, review Contact and footer in EN/pt/zh-Hant at mobile and desktop widths. Do not invent a WeChat ID. Do not merge to `main`. Placeholder SVG remains unused in `public/images`.
 
 Special Offers next action (2026-10-16): review the hero, package pages, and enquiry modal on this branch’s Workers preview. Cancel the TEST offer enquiry after checks. Do not merge this branch to `main`. Remove the test operator after Access is live.
 
@@ -246,6 +262,95 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-23 — PR #65 squash live; main-promotion PR prepared (HOLD)
+
+- Native squash `33e95e1`; CD `45131645610` SUCCESS; Worker `f3866dc9` @100% / `2cfdd30d`. Staging dest lock unchanged. `last_issued=1` / `KY00001` enquiry preserved (SELECT-only; CD did not reset).
+- Parent INBOX staff+guest PASS 15:21; SPF/DKIM/DMARC proof `b7336538…`. Confirm/cancel not tested (login rejected 15:23:53). No VM auth bypass or lifecycle send.
+- `origin/main...33e95e1` = **171** files, 16 commits, fast-forward. Production.yml fail-closed. Do not merge #61.
+
+### 2026-11-23 — sign-in oversize 413 before auth (PR #65)
+
+- `peekSignInEmail` no longer `clone().text()`s the whole body. Byte-counted read, cancel remaining chunks, 413 before limiter/Better Auth. In-limit JSON is replayed to auth so lockout still runs.
+- Tests: small JSON peek + limiter; oversized ASCII; multibyte under the character limit; chunked cancel; no rate_limits row on 413.
+- Parent `KY00001` 15:21:33 is parent work. This VM did not book, mail, or PATCH status. HOLD merge/`main`/prod.
+
+### 2026-11-23 — staging visual QA PASS + production EMAIL preflight (PR #65)
+
+- Parent 15:11 Macau: EN/PT/zh-Hant desktop/390/320 PASS; no overlap/overflow/console/mixed-content; WA `+85363128081` and real WeChat JPEG verified. Independent config review PASS exact `3baf3f6`; CI green. Inbox proof still parent.
+- Read-only CF GET: Email Sending `recipient_mode=arbitrary`, quota 200/day sent 8, reputation healthy; `notify.kaiyuemacau.com` enabled, DNS `ready`; Email Routing dests 0 / routing unconfigured; production Worker still no `EMAIL`. Sender-only binding is the correct shape for Daniel + guest acks. Not a send. Billing subscriptions 403.
+- `origin/main...HEAD` = **171** files (165 already on official-staging + 14 PR #65). Narrow overlay review is not a `main` audit. Production D1/Worker/`main` unchanged.
+
+### 2026-11-23 — t315u production staff dest correction on PR #65 (HOLD)
+
+- Authority audit: owner t315u 20 Nov 11:20 Macau named `daniel@kaiyuemacau.com` as the production staff notification inbox. PR #61 `f774f69` / `22ee115` already encoded `NOTIFY_STAFF_TO` that way. Treating dest as OPEN / admission-only was a regression; corrected on this branch without merging #61.
+- `deploy/production/wrangler.jsonc` (ef70396 tree): EMAIL sender-only `bookings@notify.kaiyuemacau.com` (no staging dest lock), `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`, `NOTIFICATIONS_ENABLED=true`, WA `+85363128081`, MCP off, D1 pin `06cf879d`. Office tel unchanged. Staging overlay/lock unchanged.
+- Policy pin: production fails closed unless staff To is Daniel; production recipient lock forbidden (guest acks). Staging cannot staff-To Daniel.
+- **HOLD:** parent staging browser QA + technical review. No production upload, `main` merge, `0011` apply, or mail from this VM.
+- Record: `docs/records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md`.
+
+### 2026-11-23 — official-staging CD of PR #64 squash `ef70396`
+
+- Parent native GitHub merge (no admin bypass / no ruleset change) of PR #64 exact reviewed `3823d48b20a73f699896d86e96590012e3b4b571` → squash `ef703969381894597f0ed5db3d8023232253862c` on `official-staging`.
+- CD https://github.com/Evanevia09/KaiYue-Travel/actions/runs/45127576945 `completed`/`success`. Staging Worker `kaiyue-travel-staging` version `256f1788-34f1-4012-bc32-e97367588c8a` (#27) @100% / deployment `d178b6c2-6e74-4c3c-aa5b-f991be481971` (2026-11-23T06:59:39Z). Public https://staging.kaiyuemacau.com/ .
+- Live settings: D1 `043cd0ff-a1e6-4b5e-98c1-968c286e0c70`; `EMAIL` dest `scalingsmb@gmail.com` only; sender `bookings@notify.kaiyuemacau.com`; `NOTIFICATIONS_ENABLED=true`; WA `+85363128081`; WeChat JPEG present. SELECT-only D1: `0011` present, `last_issued=0` (not reset), 13 bookings.
+- Production **runtime** unchanged: `5eebf7b6` / deployment `494bc151` / `main` `ff119f2c`; no EMAIL; mail off; D1 `06cf879d` `0001`–`0010`. Dest **authority** is t315u `daniel@kaiyuemacau.com` (see following change-log entry).
+- This VM did not submit a booking, send mail, PATCH status, write production D1, or merge `main`. Production plan: `docs/records/2026-11-23-email-lifecycle-templates/PRODUCTION-CANDIDATE.md`. Do not merge #61.
+- Next: parent staging browser send. Owner one live booking after a later verified production release.
+
+### 2026-11-23 — t339u HOLD-1 atomic lifecycle-mail claim (PR #64, not merged)
+
+- Independent re-review of exact `a735855` HOLD: retry checked workflow in JS then claimed by id/`null`/`failed` only. Concurrent cancel between read and claim could send confirmation after cancel.
+- `claimLifecycleMailSend` now `UPDATE … WHERE id AND updated_at AND (NULL|failed) AND workflow = kind`. Conflict without send. Same guard on first confirm/cancel delivery. In-flight `pending` is not retracted. Authenticated `actorId` is audited as `lifecycle_mail` (kind → pending/sent/failed/skipped, no PII).
+- Tests: stale snapshot vs cancel; HTTP retry-after-cancel; concurrent retry barrier; cancel between status commit and mail claim; foreign origin 403; unauthenticated 401. `pnpm test` 367/367; `pnpm typecheck` 0 errors (6 existing hints).
+- Honest residuals (not fixed): abandoned empty idempotency `202` can `409` until 24h expiry (not “retry shortly”); recovered persisted `201` can lack initial staff/ack if crash before send; `pending` lifecycle is non-retryable; no MCP retry tool. No new scheduler/reconciler.
+- Preview HTML/txt/manifest regenerated from current renderers; screenshots recaptured at 320 and 390. No merge, no production/staging D1 or mail writes, `0011` counter preserved.
+- Next: parent new independent targeted GitHub review of **this HEAD SHA** on PR #64. This writer cannot self-approve or merge.
+
+### 2026-11-23 — t339u scoped reliability on PR #64 (strict 5, idempotency, mail retry)
+
+- Owner t339u 14:13 Macau lifted the implementation HOLD for four scoped fixes only. Protected review/prod gates stay. Findings at `0c8494d` verified before edits; no evidence-based pushback. Overflow-widens (`KY100000`) superseded by owner-decided exact five digits.
+- Allocate with `WHERE last_issued < 99999`; exhaustion is `503` and does not insert. Booking create claims `idempotency_keys` `202` then binds the reference in the persist batch. Confirm/cancel mail claims `pending` before send; `POST /api/v1/admin/bookings/{reference}/lifecycle-mail` retries unsent or `failed` only. Email nowrap is reference-only; PT/zh-Hant pickup-time labels collapse.
+- No `0012`. Staging `0011` on `043cd0ff` untouched. No merge, no production D1, no mail, no live booking from this VM.
+- Next: parent independent re-review of this SHA on PR #64, then staging CD, then production scoping. t338u BOX stays after verified production release.
+
+### 2026-11-23 — Durable KY##### allocation + confirm/cancel mail (PR #64) + t338u browser-test handoff
+
+- Owner t337u 13:30 Macau: execute the one-reference templates live on staging after independent review. Same branch `cursor/email-lifecycle-templates-f58e`. t327u IN/CF/CL remains superseded.
+- Owner t338u 13:58 Macau: once production of this feature is live, parent runs one BOX computerUse booking from the live site. This writer does not submit from the VM, does not substitute CLI/Playwright/API, and does not send extra mail or change booking status.
+- Added `migrations/0011_chauffeur_booking_serial.sql` (per-D1 counter, `lifecycle_serial`, confirm/cancel mail columns). New chauffeur persist stores `KY#####`. Legacy `KY-xxxxxxxx` untouched. MCP `bookingReference` accepts both. Email-channel workflow `confirmed`/`cancelled` send guest lifecycle mail persist-first. English label `Reference number`.
+- Staging D1 `043cd0ff` live readback 2026-11-23: `d1_migrations` includes `0011_chauffeur_booking_serial.sql`; `chauffeur_booking_serial` id=1 `last_issued=0`; bookings has `lifecycle_serial` / `confirm_mail_state` / `cancel_mail_state`. Production D1 `06cf879d` live readback still `0001`–`0010` only, no serial table.
+- CI `check` SUCCESS on `08be249` (Actions `45121078616`). Independent source review PASS. GitHub reviews on PR #64: none. `mergeable_state=blocked`. This agent cannot merge (gh read-only). Staging Worker still `3b9240e7` until parent merge + CD.
+- Live public booking URL (HTTP 200, hero `BookingEmbedded`): `https://kaiyuemacau.com/`. Current production Worker `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` / annotation `production 696c2bd8 / main ff119f2c`. Live `NOTIFICATIONS_ENABLED=false`; no `EMAIL`; no `NOTIFY_STAFF_TO`. Owner t315u production staff dest remains `daniel@kaiyuemacau.com` (inbox approval). Git candidate encodes it; live Worker does not send yet.
+- Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
+
+### 2026-11-18 — Hosted staging MCP and booking decisions
+
+- Baseline `official-staging` `a176809`, task branch `codex/kaiyue-staging-plugin`. Added ten discoverable tools, the `/plugin` guide, encrypted short-lived staff sessions, and browser approval for exact hosted writes. The approval workflow retains the existing D1 schema and keeps guest confirmation a human decision.
+- Added Approved, Confirmed, and Denied via audited status events. Staging quote email has a separate flag and a fixed test-inbox lock. The send boundary consumes approval, checks the record revision during the deduplication claim, and records provider submission.
+- Independent source review found approval, revision, and referrer-policy issues, addressed before release checks. Production promotion and general customer delivery remain separate decisions.
+- Next step is CI-backed staging deployment and authenticated hosted verification, including delivery to the owner-approved test inbox.
+
+### 2026-11-18 — Local Kai Yue Travel Staging plugin
+
+- Built on published `official-staging` `a176809` in `codex/kaiyue-staging-plugin`. The local Codex plugin offers three read-only MCP tools with booking and inquiry summaries. The staging API pagination changes in PR #49 are under separate review.
+- Verified the local install, bundled stdio discovery, synthetic tool responses and data filtering, cookie session renewal, and anonymous HTTP 401 from the staging bookings endpoint. With owner approval, verified the existing staging test account's sign-in and authenticated profile (`super_admin`), stored the login in macOS Keychain, and verified an authenticated booking-list call through the installed MCP plugin. A future-only filter returned zero records.
+- Repository lint, type check, and site build passed. The test run passed 290 of 291 tests. The existing 41-photo invariant passed in a clean snapshot, where the local ignored `.DS_Store` was absent.
+- Verified four documented staging test bookings by reference through the installed MCP tool. Next action is to use a dedicated staging staff account when replacing the temporary test login. See [Agent API and plugin setup](docs/13-agent-api.md).
+- Version `0.2.0` adds read-only assignment visibility. The bundle and three plugin tests passed, including missing inventory and contact-field filtering. Installed stdio verified the enquiry list and resolved both assignment labels for completed staging fixture `KY-FGLB4M3S`; three other fixture lookups returned no assignment.
+
+### 2026-11-16 — Agent API search + native Cloudflare email (source + local evidence, staging only)
+
+- Admin lists gain `q` and `updatedSince`; inquiries use a stable `(created_at, id)` cursor. Added the OpenAPI contract (`docs/api/admin-agent-v1.openapi.yaml`) and the agent guide (`docs/13-agent-api.md`). Auth is unchanged (existing admin session; no API keys).
+- Resend replaced by a single Cloudflare `EMAIL` send_email binding. Mail is gated on `PUBLIC_SITE_URL` (never `ENVIRONMENT`), `NOTIFICATIONS_ENABLED=true`, the binding, and a required staging recipient lock. Adds a staff notice plus a customer "not confirmed" acknowledgement. The official-staging overlay, guard, and candidate check pin `EMAIL` to `scalingsmb@gmail.com` and `bookings@notify.kaiyuemacau.com`, with `NOTIFICATIONS_ENABLED="false"`. Production config unchanged.
+- Ops reported `notify.kaiyuemacau.com` onboarded at 19:35:37 (DNS ready 19:36; apex Google mail unchanged; Routing off; quota 200/day). Not verified from this VM, and not an email test.
+- Local only: lint, typecheck, full Vitest, staging build, guard, and Wrangler dry-run. No email sent. Not staged, not `task_verified`. Record: `docs/records/2026-11-16-agent-api-notifications/STAGE.md`.
+
+### 2026-11-16 — Production release closeout (docs only)
+
+- Operations activated production under owner authority; further tests were waived at 18:46. PR #45 fast-forwarded `main` to `ff119f2c` at 18:49:19. Worker `kaiyue-travel` version `5eebf7b6` @100% / deployment `494bc151` since 18:54:51, with entry `ab6e3473…1077`. `admin.kaiyuemacau.com` is attached, and production D1 `06cf879d` has `0001`–`0010` and one enabled `super_admin`. Mail is off.
+- Parent staging UAT on the new runtime at 18:48: password change, reset and session revocation PASS. Direct Users 403 was not rechecked.
+- Not verified: production login, UI, security behaviour and mail. Not `user_accepted`. Rollback: `71a66a99`; no automatic D1 restore. Record: `docs/records/2026-11-16-production-operator-release.md`.
 
 ### 2026-11-16 — Production operator release candidate (source + local evidence)
 
@@ -1061,6 +1166,48 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Evan, 2026-11-02 Asia/Macau. Macau-only, not included by default, quote later, no invented guide price. Squash-merged to `staging` as `be4558287dd4dcc2176b93ff13c5f88c70fc3378` (PR 19; Mika staging-only approval). Remote staging D1 `0008` applied 2026-11-02 11:41:12 UTC.
 - Verified: `pnpm typecheck` 0 errors (3 existing hints); `pnpm test` 108/108; `pnpm build` completed. Built Home, About, City Tours, half-day, and full-day HTML in EN/pt/zh-Hant contain the optional Macau tour-guide wording and no published guide price. Built `/zh-Hant` still uses 包車接送 for transfer labels. Local Chrome on `/services/city-tours/half-day`: step 2 shows the yes/no Macau tour-guide question and hides luggage; switching the same draft to Point to point restores Big luggage / Hand carry. `admin-gate`, middleware, and `wrangler.jsonc` were not edited. No wrangler deploy. Staging D1 column `bookings.tour_guide_requested` INTEGER exists; `d1_migrations` row `0008_booking_tour_guide.sql` recorded.
 - Not verified or follow-up: Workers preview browser pass, live production. Do not re-apply `0008`. Do not apply to production D1. `user_accepted` and `released` are not established.
+
+### 2026-11-19 — Staging MCP staff email/password (merged)
+
+- Changed: `POST /api/v1/admin/mcp-session` on `admin-staging.kaiyuemacau.com` exchanges existing staff email/password for the same 30-minute MCP token, with no browser Origin and no visit to `/login` or `/admin/agent-connect`. Plugin/docs tell an agent to use a saved vault login or a secure in-chat form. Local plugin also reads `KAIYUE_STAGING_STAFF_EMAIL` / `KAIYUE_STAGING_STAFF_PASSWORD` before keychain. Write-tool browser approval, production hosts, and Access/D1/mail/secrets are unchanged.
+- Decision/evidence: Owner (Evan) 2026-11-19 Asia/Macau: MCP authentication must not require the admin sign-in page; keep the signed-in account’s permissions; no API-key system; staging only. Squash-merged to `official-staging` as `2664d32f6715e34a1e90095da6322108f8d7f1d6` (PR #54).
+- Verified (historical, PR #54): `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 307/307 including happy path, bad password, disabled, unprovisioned, URL credentials, and production/non-staging 404; plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`.
+- Not verified or follow-up: live staging after authorized deploy; vault or in-chat form in a real MCP client.
+
+### 2026-11-19 — Staff password sign-in lockout (merged PR #55)
+
+- Changed: Shared durable lockout for `POST /api/v1/admin/mcp-session` and `POST /api/auth/sign-in/email`. Three failed password checks lock the hashed account and source IP for five minutes in existing D1 `rate_limits`. Locked requests return `429` with `Retry-After`, do not verify the password, and do not extend `window_start`. A later success or an expired window resets the counters. No `0011` migration; schema contract remains attested `0001`–`0010`.
+- Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
+- Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+
+### 2026-11-23 — Email lifecycle templates (one KY##### Reference number; no send)
+
+- Changed: Shared email shell is white header + logo only + gold divider. Staff enquiry and guest receipt use a filled 2-column table. `renderCustomerConfirmed` / `renderCustomerCancelled`. Display helper `formatBookingReference` → `KY#####` (example `KY00042`). English label exactly `Reference number` on all four messages. IN/CF/CL aliases and original-enquiry history rows removed. Four English synthetic MIME artifacts regenerated. Living spec supersedes t327u number model. Quote HTML inherits the shell; quote widget remains SKIPPED.
+- Decision/evidence: Owner t333u 23 Nov 2026 12:18 Macau implement/preview; t335u/t336u 12:41–12:42 Macau one reference through all statuses, label `Reference number`. Task `kaiyue-email-lifecycle-templates-20261123`. Living spec `docs/records/2026-11-20-email-lifecycle-design/SPEC.md` on this branch.
+- Verified: Unit/integration template tests; Chrome screenshots of regenerated HTML (desktop + 390px); typecheck 0 errors on this change (existing hints remain). No Email Service call from this VM. Previous IN/CF/CL four+resend deliveries complete; not resent.
+- Not verified or follow-up: actual send; D1 serial; status-triggered mail; lookup regex; merge/deploy. Full lifecycle is **not** implemented. CodeMode PR #63 `16e06ba`, prod PR #61 `f774f69`, held #51–#53 untouched.
+
+### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (HOLD until CD)
+
+- Changed: Official-staging `NOTIFICATIONS_ENABLED` `"false"` → `"true"`. Recipient/sender lock unchanged (`scalingsmb@gmail.com` / `bookings@notify.kaiyuemacau.com`). Overlay regenerated. Candidate test now expects `"true"`. No app code rewrite. Production overlay not in this diff.
+- Decision/evidence: Owner t320u–t322u 20 Nov 13:03 Macau; parent: switch staging acks+admin notifications, keep delivery locked to `scalingsmb@gmail.com`, production stays off. Task `kaiyue-staging-ack-admin-email-20261120`. Branch from `04d98ae0`. PR #58 production mail PREP left unmerged.
+- Verified: Fresh CF GET lock proof (staging dest/staff/allowed = scalingsmb only; production mail off). Overlay `--check`. Focused official-staging tests. Preview HTML/text from current `renderStaffMessage` / `renderCustomerAck`. This writer did not POST a booking or send mail.
+- Not verified or follow-up: live Worker still `"false"` until merge+CD; inbox proof; quote widget still SKIPPED.
+
+### 2026-11-19 — Combined staging MCP direct writes + branded email / WhatsApp / WeChat QR (unmerged)
+
+- Changed: Official-staging overlay `MCP_STAGING_DIRECT_WRITES=true` lets authenticated staging MCP write tools skip browser-review tickets; production/default stay ticketed/fail-closed. Shared branded HTML+text email shell (green/gold, existing PNG logo) on quote send plus staff notices and localized customer acks. WhatsApp enquiry links use `+85363128081`; office tel stays `+85328338882`. Owner WeChat QR JPEG embedded on Contact and footer; coming-soon overlay removed.
+- Decision/evidence: Owner t307u 19 Nov 23:34 Macau (combine into one staging merge); design approved 23:29. Task `kaiyue-mcp-branded-email-combined-20261119`. Base `01cd9576`. No production/`main`. No PRs #51/#52/#53.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 346/346; plugin 9/9; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` of the changed diff vs `01cd9576`: Approve with nits (logo ratio applied). QR SHA256 `3877f629e7dd6a91f9e644ec06da14fd6c444309d8bbe505a76a8d5138cc67dc`. CodeRabbit CLI auth did not complete. GitHub CI is not a code review.
+- Not verified or follow-up: merge; deploy; PM premerge REST email to Evan; live staging MCP/WhatsApp/QR/browser pass. Production not authorized.
+
+### 2026-11-19 — Agent login 1010 + plugin plaintext (unmerged)
+
+- Changed: `/plugin` and `/plugin.txt` are `text/plain; charset=utf-8` with `X-Robots-Tag: noindex, nofollow, noarchive`. Capabilities JSON stays consistent. Clients must send an honest application User-Agent. 401/429/1010 stop copy. Local plugin sets `KaiYue-staging-mcp/1.0` and refuses browser impersonation. Password lockout, permissions, production MCP 404, and write approval unchanged.
+- Decision/evidence: Owner t289u/t290u 2026-11-19 Macau. Cloudflare GraphQL verified BIC 403 on `Python-urllib/3.13` (rays `a5cfc9652fbb7c97`, `a5cfce47dbc574d1`); PM 21:21 200 with `KaiYue-staging-mcp-auth-test/1.0`. Owner 22:27 approved the narrow `bic: false` configuration rule; operator applied 22:28:27 ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` rule `40c580d7c4f747dd838ddb380ca534af` ref `staging_mcp_bic_off`. This writer did not apply it. Zone `browser_check` remains on.
+- Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 332/332; plugin 8/8; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent GET of the live config rule matches the approved host+four-path expression. Post-apply urllib `GET` 405 / empty `POST` CSRF 403 (not 1010). Independent `code-reviewer` Approve after closing the password-POST STOP residual. GitHub CI is not a code review.
+- Not verified or follow-up: merge; deploy of this PR; hosted `/plugin` plaintext on live staging; fresh testbot JSON login + MCP read (authorized once, result not waited on). Production not authorized. Rollback of the operator rule is disable/delete that one rule only.
 
 For the next meaningful change, update the header and relevant sections above, then append:
 

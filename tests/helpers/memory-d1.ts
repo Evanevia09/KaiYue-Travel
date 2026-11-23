@@ -46,24 +46,16 @@ class MemoryPreparedStatement {
     }
   }
 
-  async first<T = Record<string, unknown>>(): Promise<T | null> {
+  executeSync<T = Record<string, unknown>>(): D1QueryResult<T> {
     this.rejectIfInjected();
-    const row = this.db.prepare(this.sql).get(...(this.params as never[]));
-    return (row as T | undefined) ?? null;
-  }
-
-  async all<T = Record<string, unknown>>(): Promise<D1QueryResult<T>> {
-    this.rejectIfInjected();
-    const results = this.db.prepare(this.sql).all(...(this.params as never[])) as T[];
-    return {
-      success: true,
-      results,
-      meta: { changes: results.length, last_row_id: 0, duration: 0 },
-    };
-  }
-
-  async run<T = Record<string, unknown>>(): Promise<D1QueryResult<T>> {
-    this.rejectIfInjected();
+    if (/^\s*select/i.test(this.sql)) {
+      const results = this.db.prepare(this.sql).all(...(this.params as never[])) as T[];
+      return {
+        success: true,
+        results,
+        meta: { changes: results.length, last_row_id: 0, duration: 0 },
+      };
+    }
     const info = this.db.prepare(this.sql).run(...(this.params as never[]));
     return {
       success: true,
@@ -74,6 +66,20 @@ class MemoryPreparedStatement {
         duration: 0,
       },
     };
+  }
+
+  async first<T = Record<string, unknown>>(): Promise<T | null> {
+    this.rejectIfInjected();
+    const row = this.db.prepare(this.sql).get(...(this.params as never[]));
+    return (row as T | undefined) ?? null;
+  }
+
+  async all<T = Record<string, unknown>>(): Promise<D1QueryResult<T>> {
+    return this.executeSync<T>();
+  }
+
+  async run<T = Record<string, unknown>>(): Promise<D1QueryResult<T>> {
+    return this.executeSync<T>();
   }
 }
 
@@ -90,14 +96,7 @@ class MemoryD1 {
     injectedBatchHooks.get(this)?.(this.db);
     this.db.exec("BEGIN IMMEDIATE");
     try {
-      const results: Array<D1QueryResult<T>> = [];
-      for (const statement of statements) {
-        if (/^\s*select/i.test(statement.sql)) {
-          results.push((await statement.all()) as D1QueryResult<T>);
-        } else {
-          results.push((await statement.run()) as D1QueryResult<T>);
-        }
-      }
+      const results = statements.map((statement) => statement.executeSync<T>());
       this.db.exec("COMMIT");
       return results;
     } catch (error) {
@@ -130,8 +129,9 @@ export function createTestEnv(overrides: Partial<AppEnv> = {}): AppEnv {
     BUSINESS_TIMEZONE: "Asia/Macau",
     BOOKING_NOTICE_HOURS: "0",
     DEV_ADMIN_BYPASS: "true",
-    RESEND_FROM: "Kai Yue Travel <notifications@example.invalid>",
-    RESEND_STAFF_TO: "ops@example.invalid",
+    NOTIFY_FROM_EMAIL: "notifications@example.invalid",
+    NOTIFY_FROM_NAME: "Kai Yue Travel",
+    NOTIFY_STAFF_TO: "ops@example.invalid",
     ...overrides,
   };
 }

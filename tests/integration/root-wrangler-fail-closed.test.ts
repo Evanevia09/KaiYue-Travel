@@ -68,6 +68,7 @@ describe("default wrangler configs cannot deploy to a real account, Worker, or d
     const { text, config } = load("apps/web/wrangler.jsonc");
     expectUndeployable(config);
     expect(config.vars?.ENVIRONMENT).toBe("development");
+    expect(config.vars).not.toHaveProperty("MCP_STAGING_DIRECT_WRITES");
     for (const db of config.d1_databases ?? []) {
       expect(realD1).not.toContain(db.database_id);
     }

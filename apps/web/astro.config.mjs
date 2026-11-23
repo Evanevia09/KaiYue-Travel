@@ -21,8 +21,8 @@ const site = process.env.PUBLIC_SITE_URL ?? "http://localhost:4321";
  * Upstream context: withastro/astro#17364. `@astrojs/cloudflare` 14.3.2
  * pre-bundles the renderer server entrypoints and this project's console logger
  * for the same reason; the entries below also cover the dependencies only this
- * project can know about (`resend` was optimized lazily on the first booking
- * POST before it was listed here).
+ * project can know about (a dependency first imported by the booking POST was
+ * once optimized lazily on that request before it was listed here).
  */
 const SERVER_OPTIMIZE_DEPS = [
   "react",
@@ -32,7 +32,6 @@ const SERVER_OPTIMIZE_DEPS = [
   "react/jsx-dev-runtime",
   "@astrojs/react/client.js",
   "@kaiyue/contracts",
-  "resend",
   "better-auth",
   "better-auth/crypto",
   "astro/logger/console",
@@ -71,7 +70,8 @@ export default defineConfig({
       filter: (page) =>
         !page.includes("/admin") &&
         !page.includes("/booking/confirmation") &&
-        !page.includes("/login"),
+        !page.includes("/login") &&
+        !page.includes("/plugin"),
     }),
   ],
   security: {

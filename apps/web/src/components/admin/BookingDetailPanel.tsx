@@ -385,19 +385,28 @@ export function BookingDetailPanel({
                   key={status}
                   type="button"
                   disabled={saving}
-                  className={status === "cancelled" ? "btn btn--danger" : "btn btn--secondary"}
+                  className={
+                    status === "cancelled" || status === "denied"
+                      ? "btn btn--danger"
+                      : "btn btn--secondary"
+                  }
                   onClick={() => {
-                    if (
-                      status === "cancelled" &&
-                      !window.confirm(t(locale, "detail.cancelConfirm"))
-                    )
-                      return;
+                    if (status === "cancelled" || status === "denied" || status === "confirmed") {
+                      if (
+                        !window.confirm(
+                          t(locale, "detail.statusActionConfirm", {
+                            status: prefixedLabel(locale, "status", status),
+                          }),
+                        )
+                      )
+                        return;
+                    }
                     void action(
                       () =>
                         adminFetch(`/api/v1/admin/bookings/${reference}/status`, {
                           method: "PATCH",
                           locale,
-                          body: JSON.stringify({ status }),
+                          body: JSON.stringify({ status, expectedUpdatedAt: booking.updatedAt }),
                         }),
                       t(locale, "detail.statusChanged", {
                         status: prefixedLabel(locale, "status", status),
@@ -412,6 +421,30 @@ export function BookingDetailPanel({
               ))}
             </div>
             {next.length === 0 && <p className="muted">{t(locale, "detail.finalStatus")}</p>}
+            {(booking.status === "confirmed" || booking.status === "cancelled") &&
+              booking.communicationChannel === "email" && (
+                <GuestMailRetry
+                  locale={locale}
+                  kind={booking.status as "confirmed" | "cancelled"}
+                  state={
+                    booking.status === "confirmed"
+                      ? (booking.confirmMailState ?? null)
+                      : (booking.cancelMailState ?? null)
+                  }
+                  saving={saving}
+                  onRetry={() =>
+                    void action(
+                      () =>
+                        adminFetch(`/api/v1/admin/bookings/${reference}/lifecycle-mail`, {
+                          method: "POST",
+                          locale,
+                          body: JSON.stringify({ kind: booking.status }),
+                        }),
+                      t(locale, "detail.mailRetried"),
+                    )
+                  }
+                />
+              )}
           </section>
           <section className="admin-card">
             <p className="admin-eyebrow">{t(locale, "detail.teamNotes")}</p>
@@ -472,7 +505,8 @@ export function BookingDetailPanel({
                   <small>
                     {formatWhen(item.created_at, locale)} · {item.actor_id}
                   </small>
-                  {item.event_type === "status_change" && (
+                  {(item.event_type === "status_change" ||
+                    item.event_type === "lifecycle_mail") && (
                     <small>
                       {prefixedLabel(locale, "status", item.from_value ?? "")} →{" "}
                       {prefixedLabel(locale, "status", item.to_value ?? "")}
@@ -484,6 +518,43 @@ export function BookingDetailPanel({
           </section>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function GuestMailRetry({
+  locale,
+  kind,
+  state,
+  saving,
+  onRetry,
+}: {
+  locale: AdminLocale;
+  kind: "confirmed" | "cancelled";
+  state: string | null;
+  saving: boolean;
+  onRetry: () => void;
+}) {
+  const kindLabel = prefixedLabel(locale, "status", kind);
+  const helpKey =
+    state === "sent"
+      ? "detail.mailSent"
+      : state === "failed"
+        ? "detail.mailFailed"
+        : state === "pending"
+          ? "detail.mailPending"
+          : state === "skipped"
+            ? "detail.mailSkipped"
+            : "detail.mailUnsent";
+  const canRetry = state === "failed" || state == null || state === "";
+  return (
+    <div className="admin-mail-retry">
+      <p className="muted">{t(locale, helpKey, { kind: kindLabel })}</p>
+      {canRetry ? (
+        <button type="button" className="btn btn--secondary" disabled={saving} onClick={onRetry}>
+          {t(locale, "detail.retryGuestMail", { kind: kindLabel })}
+        </button>
+      ) : null}
     </div>
   );
 }

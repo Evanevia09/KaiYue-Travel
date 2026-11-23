@@ -14,6 +14,13 @@ import {
 } from "../../apps/web/src/lib/server/admin-session.ts";
 import { requireAdmin } from "../../apps/web/src/lib/server/auth.ts";
 import type { AppEnv } from "../../apps/web/src/lib/server/env.ts";
+import {
+  approveMcpAction,
+  authenticateMcp,
+  consumeMcpApproval,
+  issueMcpToken,
+  readMcpApproval,
+} from "../../apps/web/src/lib/server/mcp-access.ts";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createTestEnv } from "../helpers/memory-d1.ts";
 
@@ -251,5 +258,91 @@ describe("staging-admin Better Auth min 6 vs production-admin min 12", () => {
     expect(shortChange.status).toBe(422);
     const body = (await shortChange.json()) as { error?: { message?: string } };
     expect(body.error?.message).toBe("New password must be at least 12 characters.");
+  }, 30_000);
+
+  it("binds MCP connections and approvals to the current stage session and consumes approval once", async () => {
+    const now = new Date().toISOString();
+    await env.DB.prepare(
+      `INSERT INTO admin_operator (user_id, role, enabled, created_at, updated_at, updated_by)
+       SELECT id, 'staff', 1, ?, ?, 'test' FROM "user" WHERE email = ?`,
+    )
+      .bind(now, now, stagingEmail)
+      .run();
+    const baseMigration = readFileSync(
+      fileURLToPath(new URL("../../migrations/0001_init.sql", import.meta.url)),
+      "utf8",
+    );
+    const idempotencyTable = baseMigration.slice(
+      baseMigration.indexOf("CREATE TABLE idempotency_keys"),
+      baseMigration.indexOf("CREATE TABLE rate_limits"),
+    );
+    await env.DB.exec(
+      idempotencyTable
+        .split(";")
+        .map((sql) => sql.trim().replace(/\s+/g, " "))
+        .filter(Boolean)
+        .join(";\n"),
+    );
+    const target = { ...env, PUBLIC_SITE_URL: "https://staging.kaiyuemacau.com" };
+    const login = await signIn(target, stagingOrigin, stagingEmail, length6Next);
+    expect(login.status).toBe(200);
+    const form = new Request(`${stagingOrigin}/admin/agent-connect`, {
+      method: "POST",
+      headers: jsonHeaders(stagingOrigin, login.cookie),
+    });
+    const token = await issueMcpToken(form, target);
+    const mcpRequest = (host = stagingOrigin, bearer = token) =>
+      new Request(`${host}/api/v1/admin/mcp`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${bearer}` },
+      });
+    const session = await authenticateMcp(mcpRequest(), target);
+    await expect(authenticateMcp(mcpRequest(productionOrigin), target)).rejects.toMatchObject({
+      status: 404,
+    });
+    await expect(
+      authenticateMcp(mcpRequest(stagingOrigin, token + "x"), target),
+    ).rejects.toMatchObject({ status: 401 });
+    await expect(
+      issueMcpToken(
+        new Request(form.url, {
+          method: "POST",
+          headers: jsonHeaders("https://example.invalid", login.cookie),
+        }),
+        target,
+      ),
+    ).rejects.toMatchObject({ status: 403 });
+
+    const operation = ["status", "KY-ABCDEFGH", "approved"];
+    const approvalUrl = await consumeMcpApproval(
+      target,
+      session.actor,
+      operation,
+      "Approve test booking?",
+    );
+    expect(approvalUrl).toMatch(/agent-review/);
+    const ticket = new URL(approvalUrl!).searchParams.get("ticket")!;
+    const reviewPage = new Request(approvalUrl!, { headers: { cookie: login.cookie } });
+    expect((await readMcpApproval(reviewPage, target, ticket)).message).toBe(
+      "Approve test booking?",
+    );
+    const confirmation = new Request(approvalUrl!, {
+      method: "POST",
+      headers: jsonHeaders(stagingOrigin, login.cookie),
+    });
+    await approveMcpAction(confirmation, target, ticket);
+    expect(
+      await consumeMcpApproval(target, session.actor, operation, "Approve test booking?"),
+    ).toBeNull();
+    expect(
+      await consumeMcpApproval(target, session.actor, operation, "Approve test booking?"),
+    ).toMatch(/agent-review/);
+    await expect(approveMcpAction(confirmation, target, ticket)).rejects.toMatchObject({
+      status: 409,
+    });
+    await env.DB.prepare("UPDATE admin_operator SET enabled = 0 WHERE user_id = ?")
+      .bind(session.actor)
+      .run();
+    await expect(authenticateMcp(mcpRequest(), target)).rejects.toMatchObject({ status: 401 });
   }, 30_000);
 });

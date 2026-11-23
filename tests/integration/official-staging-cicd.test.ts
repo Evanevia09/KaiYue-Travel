@@ -94,6 +94,13 @@ type StagingConstants = {
   compatibility_date: string;
   html_run_worker_first: boolean;
   admin_site_url: string;
+  approved_staging_mail_recipients: string[];
+  approved_staging_mail_senders: string[];
+  send_email: {
+    name: string;
+    allowed_destination_addresses: string[];
+    allowed_sender_addresses: string[];
+  };
   vars: Record<string, string>;
 };
 
@@ -125,6 +132,8 @@ describe("official staging CI/CD source", () => {
     expect(constants.vars.ENVIRONMENT).toBe("production");
     expect(constants.admin_site_url).toBe("https://admin-staging.kaiyuemacau.com");
     expect(overlay.vars.ADMIN_STAGING_TEST_PASSWORD_MIN).toBe("6");
+    expect(overlay.vars.MCP_STAGING_DIRECT_WRITES).toBe("true");
+    expect(overlay.vars.WHATSAPP_NUMBER).toBe("+85363128081");
     expect(overlay.vars).not.toHaveProperty("BETTER_AUTH_SECRET");
     expect(overlayText).not.toContain("06cf879d-8fea-4088-8881-7d382e1b8c11");
     expect(overlayText).not.toContain("069aa442-30c9-4454-ab3a-26eb372b3a1f");
@@ -262,6 +271,7 @@ describe("official staging CI/CD source", () => {
       "0008_booking_tour_guide.sql",
       "0009_admin_operator.sql",
       "0010_admin_operator_last_super.sql",
+      "0011_chauffeur_booking_serial.sql",
     ]);
     expect(contract.required_migration_files.map((row) => row.file)).toEqual(
       constants.attested_applied_migrations,
@@ -340,7 +350,7 @@ describe("official staging schema contract tamper guards", () => {
     };
   }
 
-  it("accepts the attested 0001–0010 contract and rejects live-D1 or list/hash tampers", () => {
+  it("accepts the attested 0001–0011 contract and rejects live-D1 or list/hash tampers", () => {
     expect(evaluateSchemaContract(baseInput())).toEqual([]);
 
     const liveQuery = baseInput();
@@ -362,11 +372,11 @@ describe("official staging schema contract tamper guards", () => {
     );
     dropFile.contract.attested_applied.migration_files =
       dropFile.contract.attested_applied.migration_files.slice(0, 9);
-    expect(evaluateSchemaContract(dropFile).join("\n")).toMatch(/0001/);
+    expect(evaluateSchemaContract(dropFile).join("\n")).toMatch(/order|attest/);
 
     const extraFile = baseInput();
-    extraFile.diskFiles = [...extraFile.diskFiles, "0011_extra.sql"];
-    expect(evaluateSchemaContract(extraFile).join("\n")).toMatch(/0011_extra/);
+    extraFile.diskFiles = [...extraFile.diskFiles, "0012_extra.sql"];
+    expect(evaluateSchemaContract(extraFile).join("\n")).toMatch(/0012_extra/);
 
     const reorder = baseInput();
     const files = [...reorder.contract.required_migration_files];
@@ -398,9 +408,98 @@ type RecordedVersion = {
   };
 };
 
+const MAIL_VAR_NAMES = [
+  "NOTIFICATIONS_ENABLED",
+  "STAGING_QUOTE_EMAIL_ENABLED",
+  "NOTIFY_FROM_EMAIL",
+  "NOTIFY_FROM_NAME",
+  "NOTIFY_STAFF_TO",
+  "NOTIFY_ALLOWED_RECIPIENTS",
+  "MCP_STAGING_DIRECT_WRITES",
+] as const;
+
+/** The recorded 72e580d0 view predates the EMAIL binding; add its rows in the same shape. */
 function validCandidate(): RecordedVersion {
-  return structuredClone(JSON.parse(readFileSync(recordedVersionPath, "utf8")) as RecordedVersion);
+  const version = structuredClone(
+    JSON.parse(readFileSync(recordedVersionPath, "utf8")) as RecordedVersion,
+  );
+  for (const name of MAIL_VAR_NAMES) {
+    version.resources.bindings.push({ type: "plain_text", name, text: constants.vars[name] });
+  }
+  const whatsapp = version.resources.bindings.find(
+    (row) => row.type === "plain_text" && row.name === "WHATSAPP_NUMBER",
+  );
+  if (whatsapp) whatsapp.text = constants.vars.WHATSAPP_NUMBER;
+  version.resources.bindings.push({ type: "send_email", ...constants.send_email });
+  return version;
 }
+
+describe("official staging native email lock", () => {
+  it("rejects a candidate missing MCP_STAGING_DIRECT_WRITES", () => {
+    const version = validCandidate();
+    version.resources.bindings = version.resources.bindings.filter(
+      (row) => row.name !== "MCP_STAGING_DIRECT_WRITES",
+    );
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /MCP_STAGING_DIRECT_WRITES/,
+    );
+  });
+
+  it("keeps ordinary mail on and locked to the approved staging inbox in committed config", () => {
+    expect(constants.vars.MCP_STAGING_DIRECT_WRITES).toBe("true");
+    expect(constants.vars.NOTIFICATIONS_ENABLED).toBe("true");
+    expect(constants.vars.NOTIFY_ALLOWED_RECIPIENTS).toBe("scalingsmb@gmail.com");
+    expect(constants.vars.NOTIFY_STAFF_TO).toBe("scalingsmb@gmail.com");
+    expect(constants.vars.NOTIFY_FROM_EMAIL).toBe("bookings@notify.kaiyuemacau.com");
+    expect(constants.send_email).toEqual({
+      name: "EMAIL",
+      allowed_destination_addresses: ["scalingsmb@gmail.com"],
+      allowed_sender_addresses: ["bookings@notify.kaiyuemacau.com"],
+    });
+    expect(Object.keys(constants.vars).some((name) => name.startsWith("RESEND_"))).toBe(false);
+  });
+
+  it("rejects a missing, duplicated, or widened EMAIL binding on the uploaded version", () => {
+    const missing = validCandidate();
+    missing.resources.bindings = missing.resources.bindings.filter(
+      (row) => row.type !== "send_email",
+    );
+    expect(evaluateCandidate(missing, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /send_email binding named EMAIL/,
+    );
+
+    const duplicated = validCandidate();
+    duplicated.resources.bindings.push({ type: "send_email", name: "EMAIL_OPEN" });
+    expect(evaluateCandidate(duplicated, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /send_email/,
+    );
+
+    const widened = validCandidate();
+    const mail = widened.resources.bindings.find((row) => row.type === "send_email")!;
+    mail.allowed_destination_addresses = ["scalingsmb@gmail.com", "staff@kaiyuemacau.com"];
+    expect(evaluateCandidate(widened, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /allowed_destination_addresses/,
+    );
+
+    const fixed = validCandidate();
+    const fixedMail = fixed.resources.bindings.find((row) => row.type === "send_email")!;
+    fixedMail.destination_address = "guest@example.com";
+    expect(evaluateCandidate(fixed, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /destination_address/,
+    );
+  });
+
+  it("rejects a candidate whose recipient lock var differs from the overlay", () => {
+    const version = validCandidate();
+    const lock = version.resources.bindings.find(
+      (row) => row.type === "plain_text" && row.name === "NOTIFY_ALLOWED_RECIPIENTS",
+    )!;
+    lock.text = "";
+    expect(evaluateCandidate(version, constants, CANDIDATE_VERSION_ID).join("\n")).toMatch(
+      /NOTIFY_ALLOWED_RECIPIENTS/,
+    );
+  });
+});
 
 describe("official staging uploaded-version candidate gate", () => {
   it("accepts the recorded versions-view shape with raw_run_worker_first and ASSETS name/type only", () => {

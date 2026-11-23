@@ -30,14 +30,32 @@
       "bucket_name": "kaiyue-offers-staging"
     }
   ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_destination_addresses": [
+        "scalingsmb@gmail.com"
+      ],
+      "allowed_sender_addresses": [
+        "bookings@notify.kaiyuemacau.com"
+      ]
+    }
+  ],
   "vars": {
     "ENVIRONMENT": "production",
     "PUBLIC_SITE_URL": "https://staging.kaiyuemacau.com",
     "BUSINESS_TIMEZONE": "Asia/Macau",
     "BOOKING_NOTICE_HOURS": "24",
-    "WHATSAPP_NUMBER": "+85328338882",
+    "WHATSAPP_NUMBER": "+85363128081",
     "DEV_ADMIN_BYPASS": "false",
     "ADMIN_STAGING_TEST_PASSWORD_MIN": "6",
-    "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com"
+    "ADMIN_EMAILS": "daniel@kaiyuemacau.com,uat-admin-20261114@kaiyue.test,scalingsmb@gmail.com",
+    "NOTIFICATIONS_ENABLED": "true",
+    "STAGING_QUOTE_EMAIL_ENABLED": "true",
+    "MCP_STAGING_DIRECT_WRITES": "true",
+    "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
+    "NOTIFY_FROM_NAME": "Kai Yue Travel",
+    "NOTIFY_STAFF_TO": "scalingsmb@gmail.com",
+    "NOTIFY_ALLOWED_RECIPIENTS": "scalingsmb@gmail.com"
   }
 }

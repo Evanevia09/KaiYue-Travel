@@ -6,7 +6,7 @@
 
 1. Resolve the checkout and read [AGENTS.md](../AGENTS.md), [PROJECT-STATE.md](../PROJECT-STATE.md), [BUSINESS_INFORMATION.md](../BUSINESS_INFORMATION.md), this [documentation index](README.md), and the relevant design or operating guide. Read current source and recent history for the affected area. The repository is under `C:/cursor/Kaiyue-website/KaiYue-Travel`; confirm that path and `git status` each time rather than assuming the wrapper directory is the repo.
 2. Record the source date and revision, branch, dirty paths, and hashes for any dirty documents that the task may touch. Preserve manual edits and untracked files. Treat the latest dated verification as historical until its revision, environment, and behavior are rechecked.
-3. State the requested outcome, constraints, observable acceptance criteria, data boundary, and what needs owner or staff approval. The site uses Astro/React with Cloudflare Workers, D1, and Resend; local tests use emulated or synthetic data. See [architecture](04-technical-architecture.md), [delivery boundaries](08-delivery-and-operations.md), and [quality gates](09-quality-and-roadmap.md). Do not use real booking records or production services for a routine check.
+3. State the requested outcome, constraints, observable acceptance criteria, data boundary, and what needs owner or staff approval. The site uses Astro/React with Cloudflare Workers, D1, and Cloudflare Email Service; local tests use emulated or synthetic data. See [architecture](04-technical-architecture.md), [delivery boundaries](08-delivery-and-operations.md), and [quality gates](09-quality-and-roadmap.md). Do not use real booking records or production services for a routine check.
 
 ## Coordinate and verify
 

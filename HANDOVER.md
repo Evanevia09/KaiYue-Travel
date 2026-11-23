@@ -2,7 +2,56 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
-## Current state — 2026-11-16 `dca860c` staged, admin root fixed (closeout)
+## Current state — 2026-11-20 staging ack+admin notifications overlay on
+
+- **task_id:** `kaiyue-staging-ack-admin-email-20261120`
+- **Branch:** `cursor/staging-ack-admin-email-f58e` from live `official-staging` `04d98ae0`. PR #58 `b0f9f40` left unmerged (production mail PREP).
+- **Change:** Official-staging overlay `NOTIFICATIONS_ENABLED="true"`. Lock stays `scalingsmb@gmail.com`. Production stays off.
+- **Not done until CD:** live Worker still `"false"`. No booking POST. No mail send. Quote widget SKIPPED.
+- **Record:** `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`
+
+## Previous state — 2026-11-19 combined staging candidate (merged PR #57)
+
+- **task_id:** `kaiyue-mcp-branded-email-combined-20261119`
+- **Branch:** `cursor/mcp-staging-direct-writes-f58e` from verified `official-staging` `01cd9576eb75428d7f77ae8feecbbf16d7b3f140`
+- **Change:** One candidate: staging MCP direct writes (overlay `MCP_STAGING_DIRECT_WRITES=true`; auth/roles/lockout/idempotency/allowlist kept; production fail-closed) + branded HTML email on the real send path + WhatsApp `+85363128081` (office tel unchanged) + owner WeChat QR JPEG on Contact and footer.
+- **Premerge email:** PM sends via Cloudflare REST to `scalingsmb@gmail.com` only. Artifacts in `/opt/cursor/artifacts/kaiyue-email-previews-20261119/`. This writer did not send mail.
+- **Not done:** merge, deploy, production, PRs #51/#52/#53.
+- **Record:** `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`
+
+## Previous state — 2026-11-19 agent login / plugin plaintext (unmerged)
+
+- **task_id:** `kaiyue-agent-login-plugin-fix-20261119`
+- **Branch:** `cursor/agent-login-plugin-fix-f58e` from verified `official-staging` `458fe75adb52f5580e38485725fc26726d7dc4ee` (PR #55 squash)
+- **Change:** `/plugin` and `/plugin.txt` are `text/plain` public agent instructions (noindex). Honest `User-Agent: KaiYue-staging-mcp/1.0`. 401/429/1010 stop guidance. Verified BIC block of `Python-urllib/3.13` on rays `a5cfc9652fbb7c97` and `a5cfce47dbc574d1`.
+- **Operator config (not this PR):** owner 22:27 approved; applied 22:28:27 ruleset `a8eec7c4fb8b4dfcba60c80255ec28fc` rule `40c580d7c4f747dd838ddb380ca534af` ref `staging_mcp_bic_off`, `bic: false` on `admin-staging` MCP session/MCP paths only. Zone `browser_check` still on. Rollback: disable/delete that one rule.
+- **Not done:** merge, deploy, further Cloudflare writes, hosted `/plugin` of this PR, testbot result (authorized once, not waited on), production. Hosted workflow is not `task_verified`.
+- **Record:** `docs/records/2026-11-19-agent-login-plugin-fix/REPORT.md`
+
+## Previous state — 2026-11-19 staff password lockout (merged PR #55)
+
+- **task_id:** `kaiyue-mcp-password-ratelimit-20261119`
+- **Merged:** PR #55 squash `458fe75adb52f5580e38485725fc26726d7dc4ee` on `official-staging`
+- **Change:** Three failed password sign-ins lock that account hash and source IP for five minutes. Shared by staging MCP `/api/v1/admin/mcp-session` and `/api/auth/sign-in/email`. `/login` shows generic wait copy on `429`.
+- **Record:** `docs/records/2026-11-19-mcp-password-rate-limit/REPORT.md`
+
+## Previous state — 2026-11-19 staging MCP staff-password auth (merged)
+
+- **task_id:** staging MCP email/password connection without the admin sign-in page
+- **Merged:** PR #54 squash `2664d32f6715e34a1e90095da6322108f8d7f1d6` on `official-staging`
+- **Change:** Staging-only `POST /api/v1/admin/mcp-session` exchanges existing staff/`super_admin` email and password for the current MCP bearer token. Vault login or secure in-chat form. No API keys. Write-tool browser approval kept. Production hosts closed.
+- **Not done from this follow-up:** deploy, live staging run, production.
+
+## Current state — 2026-11-16 production release (operationally activated)
+
+- **task_id:** `kaiyue-production-release-20261116` (as of 18:58 Asia/Macau)
+- **Live:** `main` = `official-staging` = `ff119f2c` (PR #45 FF 18:49:19). Worker `kaiyue-travel` version `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` since 18:54:51. Entry `ab6e3473…1077`, package `d3aae305…18a9`.
+- **Admin:** `admin.kaiyuemacau.com` attached. Production D1 `06cf879d` has schema `0001`–`0010` and one enabled `super_admin` (the configured primary). Mail off. No Access.
+- **Owner waived further tests/UAT at 18:46.** Operational activation only, not app sign-off or project acceptance. Production login, UI and security behaviour not verified here.
+- **Rollback:** version `71a66a99` and detach the admin hostname. Never restore D1 automatically.
+- **Record:** `docs/records/2026-11-16-production-operator-release.md`.
+
+## Previous state — 2026-11-16 `dca860c` staged, admin root fixed (closeout)
 
 - **task_id:** `kaiyue-production-readiness-20261116`
 - **Staged:** exact `dca860c59b03c0407293f087a158a855b04c60df`. FF `official-staging` 17:47:46, CD run [43842973590](https://github.com/Evanevia09/KaiYue-Travel/actions/runs/43842973590) SUCCESS 17:50:01. Worker version 15 `c8986696-960f-4bd6-944f-9bd1006153d9` @100% / deployment `21ff0a46-f43d-4b39-b934-98156c72b115`.

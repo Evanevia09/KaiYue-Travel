@@ -1,0 +1,47 @@
+---
+const { title } = Astro.props as { title: string };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{title} | Kai Yue Travel</title>
+    <style is:inline>
+      body {
+        margin: 0;
+        background: #f7f6f1;
+        color: #1f2420;
+        font:
+          1rem/1.6 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 40rem;
+        margin: 10vh auto;
+        padding: 1.5rem;
+      }
+      textarea {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      button {
+        font: inherit;
+        color: white;
+        background: #214c36;
+        border: 0;
+        border-radius: 0.4rem;
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+      }
+      code {
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body><main><slot /></main></body>
+</html>

@@ -7,6 +7,10 @@ import {
   passwordAdminAllowed,
 } from "../../../lib/server/admin-gate.ts";
 import { passwordSignupGate } from "../../../lib/server/admin-signup.ts";
+import {
+  handlePasswordSignIn,
+  isPasswordSignInPath,
+} from "../../../lib/server/password-attempt.ts";
 
 export const prerender = false;
 
@@ -27,6 +31,9 @@ export const ALL: APIRoute = async ({ request }) => {
     if (!gate.ok) {
       return new Response(gate.message, { status: gate.status });
     }
+  }
+  if (isPasswordSignInPath(pathname)) {
+    return handlePasswordSignIn(request, env);
   }
   const auth = createAdminSessionAuth(env, signup, request);
   return auth.handler(request);

@@ -14,6 +14,7 @@ import {
 } from "./lib/server/admin-gate.ts";
 import { requireAdmin } from "./lib/server/auth.ts";
 import type { AppEnv } from "./lib/server/env.ts";
+import { isPluginPublicPath } from "./lib/plugin-instructions.ts";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
@@ -28,7 +29,7 @@ function finishResponse(
 ): Response {
   const headers = new Headers(response.headers);
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    headers.set(key, value);
+    if (key !== "referrer-policy" || !headers.has(key)) headers.set(key, value);
   }
   applyHostIsolationHeaders(headers, {
     dedicatedAdmin: options.dedicatedAdmin,
@@ -37,6 +38,9 @@ function finishResponse(
   if (options.pathname.startsWith("/admin")) {
     headers.set("x-robots-tag", "noindex, nofollow");
     headers.set("cache-control", "no-store");
+  }
+  if (isPluginPublicPath(options.pathname)) {
+    headers.set("x-robots-tag", "noindex, nofollow, noarchive");
   }
   const pagePath = stripLocale(options.pathname).replace(/\/$/, "") || "/";
   if (pagePath === "/special-offers" || pagePath.startsWith("/special-offers/")) {

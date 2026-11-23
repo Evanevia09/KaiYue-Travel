@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kaiyue-travel-staging",
+  "version": "0.4.0",
+  "description": "Staging booking and inquiry tools using the existing staff email and password.",
+  "author": {
+    "name": "Kai Yue Travel"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Kai Yue Travel Staging",
+        "shortDescription": "Staging booking and inquiries",
+        "developerName": "Kai Yue Travel",
+        "category": "Productivity"
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ import {
   handleAdminBookingDetail,
   handleAdminBookingsList,
   handleAdminBookingStatus,
+  handleAdminLifecycleMail,
   handleAdminContactDetail,
   handleAdminContactsList,
   handleAdminContactStatus,
@@ -36,6 +37,7 @@ import {
 } from "./inventory.ts";
 import type { AppEnv } from "./env.ts";
 import { noticeHours } from "./env.ts";
+import { sendStagingQuote } from "./quotes.ts";
 import { errorResponse, json, readJson, requestIdFrom } from "./http.ts";
 
 function match(pathname: string, pattern: string): Record<string, string> | null {
@@ -99,6 +101,9 @@ export async function handleApi(
       assertLiveAdminSurface(env, pathname, request);
       requireSameOrigin(request, env);
       const actor = await requireAdmin(request, env);
+      if (pathname === "/api/v1/admin/quotes/email" && request.method === "POST") {
+        return await sendStagingQuote(request, env, actor.id, requestId);
+      }
       const adminOffers = await handleAdminOfferRoutes(request, env, requestId, pathname, actor);
       if (adminOffers) {
         return adminOffers;
@@ -251,6 +256,24 @@ export async function handleApi(
             request,
             env,
             bookingStatusParams.reference!,
+            actor.id,
+            requestId,
+          ),
+          200,
+          requestId,
+        );
+      }
+
+      const lifecycleMailParams = match(
+        pathname,
+        "/api/v1/admin/bookings/:reference/lifecycle-mail",
+      );
+      if (request.method === "POST" && lifecycleMailParams) {
+        return json(
+          await handleAdminLifecycleMail(
+            request,
+            env,
+            lifecycleMailParams.reference!,
             actor.id,
             requestId,
           ),

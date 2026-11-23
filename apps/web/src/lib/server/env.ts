@@ -23,6 +23,23 @@ export type D1Database = {
   exec(query: string): Promise<{ count: number; duration: number }>;
 };
 
+export type EmailAddress = { email: string; name?: string };
+
+export type OutboundEmail = {
+  to: string | string[];
+  from: string | EmailAddress;
+  subject: string;
+  html?: string;
+  text?: string;
+  replyTo?: string | EmailAddress;
+  headers?: Record<string, string>;
+};
+
+/** Cloudflare Email Service `send_email` binding. */
+export type SendEmailBinding = {
+  send(message: OutboundEmail): Promise<{ messageId: string }>;
+};
+
 export type AppEnv = {
   DB: D1Database;
   ENVIRONMENT?: string;
@@ -31,10 +48,14 @@ export type AppEnv = {
   BUSINESS_TIMEZONE?: string;
   BOOKING_NOTICE_HOURS?: string;
   NOTIFICATIONS_ENABLED?: string;
-  RESEND_API_KEY?: string;
-  RESEND_FROM?: string;
-  RESEND_STAFF_TO?: string;
-  RESEND_REPLY_TO?: string;
+  STAGING_QUOTE_EMAIL_ENABLED?: string;
+  /** Official-staging overlay only. Exact `"true"` plus trusted staging host/site skip MCP browser tickets. */
+  MCP_STAGING_DIRECT_WRITES?: string;
+  EMAIL?: SendEmailBinding;
+  NOTIFY_FROM_EMAIL?: string;
+  NOTIFY_FROM_NAME?: string;
+  NOTIFY_STAFF_TO?: string;
+  NOTIFY_ALLOWED_RECIPIENTS?: string;
   WHATSAPP_NUMBER?: string;
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;

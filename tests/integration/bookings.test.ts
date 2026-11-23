@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
 import { createMemoryOfferStore } from "../../apps/web/src/lib/server/offers/store.ts";
-import { createTestEnv, futurePickup } from "../helpers/memory-d1.ts";
+import { createTestEnv, futurePickup, setD1StatementFailure } from "../helpers/memory-d1.ts";
 
 const sampleOfferId = "3f1c2a90-4b71-4d2e-9c1a-8a0f6d2e1b33";
 
@@ -73,9 +73,14 @@ describe("POST /api/v1/bookings", () => {
 
     const first = await handleApi(request(), env);
     expect(first.status).toBe(201);
-    const firstBody = (await first.json()) as { reference: string; status: string };
+    const firstBody = (await first.json()) as {
+      reference: string;
+      status: string;
+      whatsappUrl?: string;
+    };
     expect(firstBody.status).toBe("enquiry");
-    expect(firstBody.reference).toMatch(/^KY-/);
+    expect(firstBody.reference).toMatch(/^KY[0-9]{5}$/);
+    expect(firstBody.whatsappUrl).toBeUndefined();
 
     const replay = await handleApi(request(), env);
     expect(replay.status).toBe(201);
@@ -112,6 +117,85 @@ describe("POST /api/v1/bookings", () => {
     expect(conflict.status).toBe(409);
     const body = (await conflict.json()) as { error: { code: string } };
     expect(body.error.code).toBe("IDEMPOTENCY_CONFLICT");
+  });
+
+  it("creates one booking for concurrent identical idempotency keys", async () => {
+    const env = createTestEnv();
+    const payload = bookingPayload();
+    const request = () =>
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": "test-booking-key-concurrent",
+        },
+        body: JSON.stringify(payload),
+      });
+    const [a, b] = await Promise.all([handleApi(request(), env), handleApi(request(), env)]);
+    const statuses = [a.status, b.status].sort();
+    expect(statuses[0]).toBe(201);
+    expect([201, 409]).toContain(statuses[1]);
+    const bodies = await Promise.all([
+      a.json() as Promise<{ reference?: string; error?: { code?: string } }>,
+      b.json() as Promise<{ reference?: string; error?: { code?: string } }>,
+    ]);
+    const refs = bodies
+      .map((body) => body.reference)
+      .filter((value): value is string => Boolean(value));
+    expect(new Set(refs).size).toBe(1);
+    if (statuses[1] === 409) {
+      const failed = bodies.find((body) => !body.reference);
+      expect(failed?.error?.code).toBe("CONFLICT");
+    }
+    const count = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(count?.count).toBe(1);
+  });
+
+  it("recovers a persisted claim without a second booking after a failed insert", async () => {
+    const env = createTestEnv();
+    const payload = bookingPayload();
+    const key = "test-booking-key-partial-recovery";
+    const request = () =>
+      new Request("http://localhost/api/v1/bookings", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "idempotency-key": key,
+        },
+        body: JSON.stringify(payload),
+      });
+    setD1StatementFailure(env.DB, (sql) => /INSERT INTO bookings/i.test(sql));
+    const failed = await handleApi(request(), env);
+    expect(failed.status).toBe(503);
+    setD1StatementFailure(env.DB, null);
+    const claims = await env.DB.prepare("SELECT COUNT(*) as count FROM idempotency_keys").first<{
+      count: number;
+    }>();
+    expect(Number(claims?.count)).toBe(0);
+    const retry = await handleApi(request(), env);
+    expect(retry.status).toBe(201);
+    const body = (await retry.json()) as { reference: string };
+    expect(body.reference).toMatch(/^KY[0-9]{5}$/);
+    const count = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(count?.count).toBe(1);
+
+    await env.DB.prepare(
+      "UPDATE idempotency_keys SET status_code = 202, response_json = ? WHERE status_code = 201",
+    )
+      .bind(JSON.stringify({ state: "persisted", reference: body.reference }))
+      .run();
+    const recovered = await handleApi(request(), env);
+    expect(recovered.status).toBe(201);
+    const recoveredBody = (await recovered.json()) as { reference: string };
+    expect(recoveredBody.reference).toBe(body.reference);
+    const after = await env.DB.prepare("SELECT COUNT(*) as count FROM bookings").first<{
+      count: number;
+    }>();
+    expect(after?.count).toBe(1);
   });
 
   it("rejects invalid bookings without writing a row", async () => {
@@ -190,7 +274,7 @@ describe("POST /api/v1/bookings", () => {
   });
 
   it("rejects a WhatsApp enquiry without a WhatsApp number", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
@@ -212,7 +296,7 @@ describe("POST /api/v1/bookings", () => {
   });
 
   it("persists a WhatsApp enquiry and returns a formatted deep link", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
@@ -231,7 +315,7 @@ describe("POST /api/v1/bookings", () => {
     );
     expect(response.status).toBe(201);
     const body = (await response.json()) as { whatsappUrl: string };
-    expect(body.whatsappUrl).toContain("https://wa.me/85328338882?text=");
+    expect(body.whatsappUrl).toContain("https://wa.me/85363128081?text=");
     expect(decodeURIComponent(body.whatsappUrl)).toContain("Two suitcases and a child seat.");
     expect(decodeURIComponent(body.whatsappUrl)).toContain("WhatsApp number: +853 6234 5678");
     const row = await env.DB.prepare(
@@ -254,7 +338,7 @@ describe("POST /api/v1/bookings", () => {
   ])(
     "localizes the %s WhatsApp request and confirmation",
     async (locale, heading, service, confirmation) => {
-      const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+      const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
       const response = await handleApi(
         new Request("http://localhost/api/v1/bookings", {
           method: "POST",
@@ -281,7 +365,7 @@ describe("POST /api/v1/bookings", () => {
   );
 
   it("accepts an optional message and omits empty Message text from WhatsApp", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",
@@ -360,7 +444,7 @@ describe("POST /api/v1/bookings", () => {
 
   it("labels a special-offer WhatsApp enquiry as special offer, not city tour", async () => {
     const env = createTestEnv({
-      WHATSAPP_NUMBER: "+853 2833 8882",
+      WHATSAPP_NUMBER: "+853 6312 8081",
       offerStore: publishedOfferStore(),
     });
     const response = await handleApi(
@@ -398,7 +482,7 @@ describe("POST /api/v1/bookings", () => {
     ["zh-Hant", "服務: 特別優惠"],
   ])("localizes the %s special-offer WhatsApp service label", async (locale, service) => {
     const env = createTestEnv({
-      WHATSAPP_NUMBER: "+853 2833 8882",
+      WHATSAPP_NUMBER: "+853 6312 8081",
       offerStore: publishedOfferStore(),
     });
     const response = await handleApi(
@@ -436,7 +520,7 @@ describe("POST /api/v1/bookings", () => {
   });
 
   it("keeps city tour on a City Tours WhatsApp enquiry", async () => {
-    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 2833 8882" });
+    const env = createTestEnv({ WHATSAPP_NUMBER: "+853 6312 8081" });
     const response = await handleApi(
       new Request("http://localhost/api/v1/bookings", {
         method: "POST",

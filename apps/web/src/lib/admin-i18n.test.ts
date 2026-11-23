@@ -93,6 +93,9 @@ describe("admin i18n dictionaries", () => {
     expect(t("zh-Hant", "status.enquiry")).toBe("查詢");
     expect(t("zh-Hant", "status.cancelled")).toBe("已取消");
     expect(t("zh-Hant", "login.submit")).toBe("登入");
+    expect(t("zh-Hant", "login.errorLockout", { minutes: 5 })).toBe(
+      "登入嘗試次數過多。請等待 5 分鐘後再試。",
+    );
     expect(t("en", "nav.dashboard")).toBe("Dashboard");
     expect(t("zh-Hant", "bookings.specialOffer", { title: "Harbour" })).toBe("特別優惠：Harbour");
   });
@@ -142,6 +145,8 @@ describe("admin error and label localization", () => {
   });
 
   it("localizes status and service labels used in the dashboard", () => {
+    expect(prefixedLabel("en", "event", "lifecycle_mail")).toBe("Guest email");
+    expect(prefixedLabel("zh-Hant", "event", "lifecycle_mail")).toBe("顧客電郵");
     expect(prefixedLabel("zh-Hant", "status", "enquiry")).toBe("查詢");
     expect(prefixedLabel("zh-Hant", "service", "airport_transfer")).toBe("機場包車接送");
     expect(prefixedLabel("en", "service", "airport_transfer")).toBe("Airport transfer");

@@ -24,7 +24,7 @@ Create a trustworthy, conversion-focused website that helps individual travelers
 ### Backend and admin
 
 - Booking and inquiry persistence in D1.
-- Email notifications through Resend.
+- Email notifications through Cloudflare Email Service (Worker `send_email` binding): a staff notice and a customer "request received, not confirmed" acknowledgement.
 - Protected admin pages for dashboard summary, bookings list, booking calendar, booking detail/status updates, and contacts.
 - Booking statuses: `new`, `confirmed`, `in_progress`, `completed`, `cancelled`.
 - Contact statuses: `new`, `replied`, `closed`.

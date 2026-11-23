@@ -2161,29 +2161,8 @@ html[lang="zh-Hant"] astro-island[ssr] {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1;
   object-fit: contain;
-}
-
-.wechat-qr__label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0.32rem 0.4rem 0.38rem;
-  background: rgb(11 11 13 / 82%);
-  color: #ffffff;
-  font-size: 0.62rem;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  line-height: 1.25;
-  text-align: center;
-  text-wrap: balance;
-}
-
-.wechat-qr--footer .wechat-qr__label {
-  padding: 0.3rem 0.35rem 0.34rem;
-  font-size: 0.6rem;
+  background: #ffffff;
 }
 
 .wechat-qr__caption {
@@ -3300,11 +3279,12 @@ td {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #65737b;
-  white-space: nowrap;
 }
 .admin-bookings-table td {
   vertical-align: middle;
   font-size: 0.87rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .admin-bookings-table tbody tr:hover {
   background: #fbfaf7;
@@ -3328,6 +3308,9 @@ td {
   color: #91641a;
   font-weight: 750;
   text-decoration: none;
+}
+.admin-reference {
+  white-space: nowrap;
 }
 .admin-inline-link:disabled {
   opacity: 0.5;
@@ -4174,6 +4157,8 @@ td {
     align-items: start;
     padding: 0.35rem 0;
     border-bottom: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .admin-bookings-table td::before {
@@ -4193,6 +4178,17 @@ td {
   .admin-bookings-table td:has(.admin-row-link)::before,
   .admin-bookings-table td.admin-table-actions::before {
     display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .admin-bookings-table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .admin-reference {
+    white-space: nowrap;
   }
 }
 

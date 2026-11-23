@@ -1,0 +1,53 @@
+{
+  "status": "PREVIEW_NOT_SUBMITTED",
+  "note": "Reference KY-STGACK01 is a preview token only. Live POST allocates KY-[A-Z2-9]{8}. Do not invent a D1 row.",
+  "endpoint": "POST https://staging.kaiyuemacau.com/api/v1/bookings",
+  "headers": {
+    "content-type": "application/json",
+    "origin": "https://staging.kaiyuemacau.com",
+    "idempotency-key": "stg-ack-admin-20261120-001"
+  },
+  "payload": {
+    "serviceType": "airport_transfer",
+    "pickupLocation": "Macau International Airport",
+    "destination": "Synthetic Test Hotel",
+    "pickupAt": "2026-12-15T02:30:00.000Z",
+    "passengerCount": 1,
+    "communicationChannel": "email",
+    "contactName": "Staging Test Guest",
+    "phone": "+853 6234 5678",
+    "email": "scalingsmb@gmail.com",
+    "message": "Synthetic staging ack+staff test. Not a real booking.",
+    "privacyAccepted": true,
+    "sourcePage": "/",
+    "sourceTrigger": "hero-embed",
+    "sourceMode": "embedded",
+    "locale": "en"
+  },
+  "messages": [
+    {
+      "audience": "staff",
+      "to": "scalingsmb@gmail.com",
+      "from": {
+        "email": "bookings@notify.kaiyuemacau.com",
+        "name": "Kai Yue Travel"
+      },
+      "replyTo": "scalingsmb@gmail.com",
+      "subject": "[Staging test] New booking request KY-STGACK01",
+      "text": "A new chauffeur booking request is waiting for review.\n\nName: Staging Test Guest\nEmail: scalingsmb@gmail.com\nPhone: +853 6234 5678\nPickup: Macau International Airport\nDestination: Synthetic Test Hotel\nPickup time: 15 Dec 2026, 10:30 (Asia/Macau)\nPassengers: 1\nMessage: Synthetic staging ack+staff test. Not a real booking.\n\nReference: KY-STGACK01\nReview it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.",
+      "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>[Staging test] New booking request KY-STGACK01</title></head><body style=\"margin:0;padding:0;background:#f4f4f4;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f4f4;\"><tr><td align=\"center\" style=\"padding:24px 12px;\"><table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;\"><tr><td style=\"background:#008c5e;padding:20px 24px;\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"><tr><td style=\"padding-right:12px;vertical-align:middle;\"><img src=\"https://staging.kaiyuemacau.com/images/kai-yue-travel-group-logo.png\" alt=\"Kai Yue Travel\" width=\"250\" height=\"49\" style=\"display:block;border:0;width:250px;height:49px;\"></td><td style=\"vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;color:#ffffff;\">Kai Yue Travel</td></tr></table></td></tr><tr><td style=\"height:4px;line-height:4px;font-size:0;background:#f3a600;\">&nbsp;</td></tr><tr><td style=\"padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a;\"><h1 style=\"font-size:20px;margin:0 0 12px\">[Staging test] New booking request KY-STGACK01</h1><p>A new chauffeur booking request is waiting for review.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Name</th><td style=\"padding:4px 0\">Staging Test Guest</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Email</th><td style=\"padding:4px 0\">scalingsmb@gmail.com</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Phone</th><td style=\"padding:4px 0\">+853 6234 5678</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Pickup</th><td style=\"padding:4px 0\">Macau International Airport</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Destination</th><td style=\"padding:4px 0\">Synthetic Test Hotel</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Pickup time</th><td style=\"padding:4px 0\">15 Dec 2026, 10:30 (Asia/Macau)</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Passengers</th><td style=\"padding:4px 0\">1</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Message</th><td style=\"padding:4px 0\">Synthetic staging ack+staff test. Not a real booking.</td></tr></table><p>Reference: <strong>KY-STGACK01</strong></p><p>Review it in the Kai Yue admin dashboard. Reply to this email to answer the guest directly.</p></td></tr></table></td></tr></table></body></html>"
+    },
+    {
+      "audience": "customer-ack",
+      "to": "scalingsmb@gmail.com",
+      "from": {
+        "email": "bookings@notify.kaiyuemacau.com",
+        "name": "Kai Yue Travel"
+      },
+      "replyTo": null,
+      "subject": "[Staging test] We received your request KY-STGACK01",
+      "text": "Hello Staging Test Guest,\n\nThank you for contacting Kai Yue Travel. We have received your booking request.\n\nYour reference: KY-STGACK01\nService: Airport transfer\nPickup time: Dec 15, 2026, 10:30 AM (Asia/Macau)\n\nThis is not a booking confirmation. Our team will check availability and contact you to confirm the details.\n\nTo change your request, contact us through staging.kaiyuemacau.com and quote your reference.\n\nKai Yue Travel\n\nThis is an automated message. Replies to this address are not monitored.",
+      "html": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>[Staging test] We received your request KY-STGACK01</title></head><body style=\"margin:0;padding:0;background:#f4f4f4;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f4f4;\"><tr><td align=\"center\" style=\"padding:24px 12px;\"><table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;\"><tr><td style=\"background:#008c5e;padding:20px 24px;\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"><tr><td style=\"padding-right:12px;vertical-align:middle;\"><img src=\"https://staging.kaiyuemacau.com/images/kai-yue-travel-group-logo.png\" alt=\"Kai Yue Travel\" width=\"250\" height=\"49\" style=\"display:block;border:0;width:250px;height:49px;\"></td><td style=\"vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;color:#ffffff;\">Kai Yue Travel</td></tr></table></td></tr><tr><td style=\"height:4px;line-height:4px;font-size:0;background:#f3a600;\">&nbsp;</td></tr><tr><td style=\"padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1a;\"><p>Hello Staging Test Guest,</p><p>Thank you for contacting Kai Yue Travel. We have received your booking request.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\"><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Your reference</th><td style=\"padding:4px 0\">KY-STGACK01</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Service</th><td style=\"padding:4px 0\">Airport transfer</td></tr><tr><th align=\"left\" style=\"padding:4px 12px 4px 0;vertical-align:top\">Pickup time</th><td style=\"padding:4px 0\">Dec 15, 2026, 10:30 AM (Asia/Macau)</td></tr></table><p><strong>This is not a booking confirmation. Our team will check availability and contact you to confirm the details.</strong></p><p>To change your request, contact us through staging.kaiyuemacau.com and quote your reference.</p><p>Kai Yue Travel</p><p style=\"font-size:12px;color:#666\">This is an automated message. Replies to this address are not monitored.</p></td></tr></table></td></tr></table></body></html>"
+    }
+  ]
+}

@@ -29,7 +29,7 @@ Proposed launch budgets, measured on representative mobile conditions:
 
 - Server-side schema validation, output escaping, parameterized D1 queries, strict method/content-type checks, and bounded payload sizes.
 - Same-origin APIs, restrictive CORS, secure headers/CSP, HTTPS, and no secrets in browser code.
-- Rate limiting and anti-automation tuned for public forms; do not rely on a CAPTCHA alone.
+- Rate limiting and anti-automation tuned for public forms; do not rely on a CAPTCHA alone. Staff password sign-in uses a durable D1 lock (3 failures / 5 minutes) on the account hash and source IP, shared by the admin sign-in route and staging MCP session exchange. Staging MCP clients must send an honest application `User-Agent`; they must not impersonate a browser. Zone Browser Integrity Check stays on. A 2026-11-19 operator configuration rule (`staging_mcp_bic_off`) sets `bic: false` only on `admin-staging` MCP session and MCP paths; that is not a git change. Rollback is disable or delete that one rule.
 - Idempotency prevents duplicate submission effects.
 - Cloudflare Access plus API-side token/claim verification for every admin route.
 - Least-privilege bindings, recipient lists, repository permissions, and staff access.
@@ -90,7 +90,7 @@ A feature is done only when behavior and edge cases match this documentation, te
 
 ### Phase 2 — Public site and booking
 
-- Implement approved content, booking/contact forms, validation, D1 migrations/API, idempotency, confirmation states, and Resend notifications.
+- Implement approved content, booking/contact forms, validation, D1 migrations/API, idempotency, confirmation states, and email notifications.
 - Add metadata, structured data, sitemap/robots, error pages, accessibility/performance controls, and observability.
 
 **Exit:** end-to-end test submissions persist exactly once and notification failures are recoverable.

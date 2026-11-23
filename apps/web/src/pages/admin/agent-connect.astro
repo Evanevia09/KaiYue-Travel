@@ -1,0 +1,67 @@
+---
+import { env } from "cloudflare:workers";
+import AgentSetupLayout from "../../layouts/AgentSetupLayout.astro";
+import { assertMcpHost, issueMcpToken } from "../../lib/server/mcp-access.ts";
+
+export const prerender = false;
+
+try {
+  assertMcpHost(Astro.request, env);
+} catch {
+  return new Response(null, { status: 404 });
+}
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set(
+  "Content-Security-Policy",
+  "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'",
+);
+let token: string | undefined;
+let failed = false;
+if (Astro.request.method === "POST") {
+  try {
+    token = await issueMcpToken(Astro.request, env);
+  } catch {
+    failed = true;
+    Astro.response.status = 403;
+  }
+}
+const endpoint = new URL("/api/v1/admin/mcp", Astro.url).href;
+---
+
+<AgentSetupLayout title="Connect a staging agent">
+  <section class="section page-content">
+    <div class="wrap page-content__narrow">
+      <h1>Connect a staging agent</h1>
+      <p>Add the Streamable HTTP endpoint to your MCP client.</p>
+      <p><code>{endpoint}</code></p>
+      <p>
+        Generate a connection token while signed in. Enter it in your client’s secure bearer-token
+        setting. It lasts 30 minutes.
+      </p>
+      {
+        failed && (
+          <p role="alert">
+            The token could not be created. Sign in again with a staging staff account.
+          </p>
+        )
+      }
+      {
+        token ? (
+          <label>
+            Connection token
+            <textarea readonly rows="6" spellcheck="false">
+              {token}
+            </textarea>
+          </label>
+        ) : (
+          <form method="post">
+            <button type="submit" class="btn btn--primary">
+              Generate connection token
+            </button>
+          </form>
+        )
+      }
+    </div>
+  </section>
+</AgentSetupLayout>

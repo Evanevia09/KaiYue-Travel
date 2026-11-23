@@ -3,6 +3,7 @@ import {
   canTransitionContact,
   contactCreateSchema,
   createContactReference,
+  INQUIRY_LABELS,
   type ContactStatus,
   type NotificationState,
 } from "@kaiyue/contracts";
@@ -16,6 +17,7 @@ import {
   requireIdempotencyKey,
   writeIdempotency,
 } from "./idempotency.ts";
+import { decodeCreatedCursor, encodeCreatedCursor, likePattern } from "./admin-list-query.ts";
 import { sendNotifications } from "./notifications.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
 
@@ -151,6 +153,23 @@ export async function createContact(
     requestId,
     summary: "A new website inquiry is waiting for review.",
     replyTo: parsed.data.email,
+    details: [
+      { label: "Type", value: INQUIRY_LABELS[parsed.data.inquiryType] },
+      { label: "Name", value: parsed.data.name },
+      { label: "Email", value: parsed.data.email ?? "Not provided" },
+      { label: "Phone", value: parsed.data.phoneDisplay },
+      ...(parsed.data.company ? [{ label: "Company", value: parsed.data.company }] : []),
+      { label: "Message", value: parsed.data.message },
+    ],
+    ...(parsed.data.email
+      ? {
+          customer: {
+            email: parsed.data.email,
+            locale: parsed.data.locale,
+            name: parsed.data.name,
+          },
+        }
+      : {}),
   });
   await run(
     env.DB,
@@ -180,7 +199,14 @@ export async function createContact(
 
 export async function listContacts(
   db: D1Database,
-  filters: { status?: string; inquiryType?: string; cursor?: string; limit?: number },
+  filters: {
+    status?: string;
+    inquiryType?: string;
+    q?: string;
+    updatedSince?: string;
+    cursor?: string;
+    limit?: number;
+  },
 ): Promise<{ items: ContactRow[]; nextCursor: string | null }> {
   const limit = Math.min(Math.max(filters.limit ?? 20, 1), 50);
   const clauses = ["1 = 1"];
@@ -193,19 +219,36 @@ export async function listContacts(
     clauses.push("inquiry_type = ?");
     params.push(filters.inquiryType);
   }
+  if (filters.q) {
+    const pattern = likePattern(filters.q);
+    clauses.push(
+      "(reference LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR phone LIKE ? ESCAPE '\\' OR phone_display LIKE ? ESCAPE '\\' OR company LIKE ? ESCAPE '\\')",
+    );
+    params.push(pattern, pattern, pattern, pattern, pattern, pattern);
+  }
+  if (filters.updatedSince) {
+    clauses.push("updated_at >= ?");
+    params.push(filters.updatedSince);
+  }
   if (filters.cursor) {
-    clauses.push("created_at < ?");
-    params.push(filters.cursor);
+    const cursor = decodeCreatedCursor(filters.cursor);
+    clauses.push("(created_at < ? OR (created_at = ? AND id < ?))");
+    params.push(cursor.createdAt, cursor.createdAt, cursor.id);
   }
   const rows = await all<ContactRow>(
     db,
-    `SELECT * FROM contacts WHERE ${clauses.join(" AND ")} ORDER BY created_at DESC LIMIT ?`,
+    `SELECT * FROM contacts WHERE ${clauses.join(" AND ")} ORDER BY created_at DESC, id DESC LIMIT ?`,
     ...params,
     limit + 1,
   );
   const extra = rows.length > limit;
   const items = extra ? rows.slice(0, limit) : rows;
-  return { items, nextCursor: extra ? (items.at(-1)?.created_at ?? null) : null };
+  const last = items.at(-1);
+  return {
+    items,
+    nextCursor:
+      extra && last ? encodeCreatedCursor({ createdAt: last.created_at, id: last.id }) : null,
+  };
 }
 
 export async function updateContactStatus(
