@@ -352,7 +352,7 @@ check(existsSync(SCHEMA_CONTRACT_PATH), "schema compatibility contract must exis
   check(
     JSON.stringify(contract.attested_applied?.migration_files) ===
       JSON.stringify(constants.attested_applied_migrations),
-    "schema contract must attest exact applied 0001–0010",
+    "schema contract must attest the exact applied migration list",
   );
 }
 check(!workflow.includes("branches: [main]"), "official-staging workflow must not trigger on main");

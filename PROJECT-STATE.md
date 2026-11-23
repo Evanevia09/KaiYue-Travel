@@ -1,5 +1,7 @@
 # Kai Yue Travel — Project State
 
+**2026-11-23 t339u HOLD-1 atomic lifecycle-mail claim on PR #64 (not merged):** Independent re-review of `a7358558512b0876eb87557edbb21794b39a790f` found concurrent cancel between the JS workflow check and an id-only mail claim could send a stale confirmation. Claim now requires matching workflow + `updated_at`; stale returns `409` without send (initial delivery too). Actor-attributed `lifecycle_mail` audit. No new queue/resource. Staging D1 `043cd0ff` `0011` `last_issued=0` **not** reset. No prod/staging booking, status, or mail writes. Do **not** merge until parent new independent targeted review of **this HEAD SHA** (self-test is not review; this agent cannot merge). t338u BOX remains after verified production release. Production Worker still `5eebf7b6` / `main` `ff119f2c`; mail off. Held 51–53, CodeMode63 `16e06ba`, prod61 `f774f69` preserved. Quote widget SKIPPED. Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
+
 **2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
 
 **2026-11-19 combined staging candidate (merged PR #57):** Live `official-staging` `04d98ae0b2e3d71f93b5db881affeabbfe327080`. Staging MCP direct writes + branded HTML email + WhatsApp `+85363128081` + owner WeChat QR. Record: `docs/records/2026-11-19-mcp-branded-email-combined/REPORT.md`.
@@ -159,7 +161,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Public site: English, Portuguese, and Traditional Chinese. Staff admin: English (default) or Traditional Chinese via a persisted switch.
 - 24-hour booking notice, configurable via `BOOKING_NOTICE_HOURS`.
 - Session storage may keep non-sensitive journey fields only.
-- Admin status changes do not email customers in Release 1.
+- Admin status changes do not invent payment/refund terms. Email-channel workflow `confirmed` / `cancelled` send the matching guest lifecycle mail when policy permits; WhatsApp-channel and denied do not.
 
 ## Risks and safeguards
 
@@ -260,6 +262,32 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-23 — t339u HOLD-1 atomic lifecycle-mail claim (PR #64, not merged)
+
+- Independent re-review of exact `a735855` HOLD: retry checked workflow in JS then claimed by id/`null`/`failed` only. Concurrent cancel between read and claim could send confirmation after cancel.
+- `claimLifecycleMailSend` now `UPDATE … WHERE id AND updated_at AND (NULL|failed) AND workflow = kind`. Conflict without send. Same guard on first confirm/cancel delivery. In-flight `pending` is not retracted. Authenticated `actorId` is audited as `lifecycle_mail` (kind → pending/sent/failed/skipped, no PII).
+- Tests: stale snapshot vs cancel; HTTP retry-after-cancel; concurrent retry barrier; cancel between status commit and mail claim; foreign origin 403; unauthenticated 401. `pnpm test` 367/367; `pnpm typecheck` 0 errors (6 existing hints).
+- Honest residuals (not fixed): abandoned empty idempotency `202` can `409` until 24h expiry (not “retry shortly”); recovered persisted `201` can lack initial staff/ack if crash before send; `pending` lifecycle is non-retryable; no MCP retry tool. No new scheduler/reconciler.
+- Preview HTML/txt/manifest regenerated from current renderers; screenshots recaptured at 320 and 390. No merge, no production/staging D1 or mail writes, `0011` counter preserved.
+- Next: parent new independent targeted GitHub review of **this HEAD SHA** on PR #64. This writer cannot self-approve or merge.
+
+### 2026-11-23 — t339u scoped reliability on PR #64 (strict 5, idempotency, mail retry)
+
+- Owner t339u 14:13 Macau lifted the implementation HOLD for four scoped fixes only. Protected review/prod gates stay. Findings at `0c8494d` verified before edits; no evidence-based pushback. Overflow-widens (`KY100000`) superseded by owner-decided exact five digits.
+- Allocate with `WHERE last_issued < 99999`; exhaustion is `503` and does not insert. Booking create claims `idempotency_keys` `202` then binds the reference in the persist batch. Confirm/cancel mail claims `pending` before send; `POST /api/v1/admin/bookings/{reference}/lifecycle-mail` retries unsent or `failed` only. Email nowrap is reference-only; PT/zh-Hant pickup-time labels collapse.
+- No `0012`. Staging `0011` on `043cd0ff` untouched. No merge, no production D1, no mail, no live booking from this VM.
+- Next: parent independent re-review of this SHA on PR #64, then staging CD, then production scoping. t338u BOX stays after verified production release.
+
+### 2026-11-23 — Durable KY##### allocation + confirm/cancel mail (PR #64) + t338u browser-test handoff
+
+- Owner t337u 13:30 Macau: execute the one-reference templates live on staging after independent review. Same branch `cursor/email-lifecycle-templates-f58e`. t327u IN/CF/CL remains superseded.
+- Owner t338u 13:58 Macau: once production of this feature is live, parent runs one BOX computerUse booking from the live site. This writer does not submit from the VM, does not substitute CLI/Playwright/API, and does not send extra mail or change booking status.
+- Added `migrations/0011_chauffeur_booking_serial.sql` (per-D1 counter, `lifecycle_serial`, confirm/cancel mail columns). New chauffeur persist stores `KY#####`. Legacy `KY-xxxxxxxx` untouched. MCP `bookingReference` accepts both. Email-channel workflow `confirmed`/`cancelled` send guest lifecycle mail persist-first. English label `Reference number`.
+- Staging D1 `043cd0ff` live readback 2026-11-23: `d1_migrations` includes `0011_chauffeur_booking_serial.sql`; `chauffeur_booking_serial` id=1 `last_issued=0`; bookings has `lifecycle_serial` / `confirm_mail_state` / `cancel_mail_state`. Production D1 `06cf879d` live readback still `0001`–`0010` only, no serial table.
+- CI `check` SUCCESS on `08be249` (Actions `45121078616`). Independent source review PASS. GitHub reviews on PR #64: none. `mergeable_state=blocked`. This agent cannot merge (gh read-only). Staging Worker still `3b9240e7` until parent merge + CD.
+- Live public booking URL (HTTP 200, hero `BookingEmbedded`): `https://kaiyuemacau.com/`. Current production Worker `5eebf7b6-8495-4902-bd1e-bd057aed73cd` @100% / deployment `494bc151-3081-4a26-9d1c-40428e0025e3` / annotation `production 696c2bd8 / main ff119f2c`. Live `NOTIFICATIONS_ENABLED=false`; no `EMAIL`; no `NOTIFY_STAFF_TO`. Do not treat `daniel@kaiyuemacau.com` as a mail dest.
+- Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
 
 ### 2026-11-18 — Hosted staging MCP and booking decisions
 
@@ -1117,6 +1145,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 - Decision/evidence: Owner (Evan) via Mika 2026-11-19 20:08 Macau: “yes please add a rate limit make it strict to avoid bruteforce. 3 retry fail will have to wait 5 minute.” Task `kaiyue-mcp-password-ratelimit-20261119`.
 - Verified: `pnpm lint`; `pnpm typecheck` 0 errors (6 existing hints); `pnpm test` 327/327 including lockout matrix, `/login` 429 generic wait copy, uniform 401 (wrong/unknown/disabled/unprovisioned), hosted IP fail-closed (missing `CF-Connecting-IP` + client XFF → `untrusted`; `.workers.dev` does not trust XFF); plugin 6/6; `pnpm official-staging:guard`; `PUBLIC_SITE_URL=https://example.invalid pnpm build`. Independent `code-reviewer` changed-diff vs `2664d32`: no remaining Important (`/login` 429 residual closed). CodeRabbit CLI auth did not complete (`automatic_login_failed`). GitHub CI is not a code review. No pstack in this repo.
 - Not verified or follow-up: live D1 apply (not authorized); `/login` browser pass against a live Better Auth client. Hosted lockout/auth checks after CD are recorded in the agent-login report, not re-run here. Better Auth still emits distinct console WARNs (`Invalid password` vs `User not found`) that are not returned on the wire.
+
+### 2026-11-23 — Email lifecycle templates (one KY##### Reference number; no send)
+
+- Changed: Shared email shell is white header + logo only + gold divider. Staff enquiry and guest receipt use a filled 2-column table. `renderCustomerConfirmed` / `renderCustomerCancelled`. Display helper `formatBookingReference` → `KY#####` (example `KY00042`). English label exactly `Reference number` on all four messages. IN/CF/CL aliases and original-enquiry history rows removed. Four English synthetic MIME artifacts regenerated. Living spec supersedes t327u number model. Quote HTML inherits the shell; quote widget remains SKIPPED.
+- Decision/evidence: Owner t333u 23 Nov 2026 12:18 Macau implement/preview; t335u/t336u 12:41–12:42 Macau one reference through all statuses, label `Reference number`. Task `kaiyue-email-lifecycle-templates-20261123`. Living spec `docs/records/2026-11-20-email-lifecycle-design/SPEC.md` on this branch.
+- Verified: Unit/integration template tests; Chrome screenshots of regenerated HTML (desktop + 390px); typecheck 0 errors on this change (existing hints remain). No Email Service call from this VM. Previous IN/CF/CL four+resend deliveries complete; not resent.
+- Not verified or follow-up: actual send; D1 serial; status-triggered mail; lookup regex; merge/deploy. Full lifecycle is **not** implemented. CodeMode PR #63 `16e06ba`, prod PR #61 `f774f69`, held #51–#53 untouched.
 
 ### 2026-11-20 — Staging acknowledgement and admin notifications overlay on (HOLD until CD)
 

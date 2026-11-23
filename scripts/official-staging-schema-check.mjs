@@ -44,8 +44,8 @@ export function evaluateSchemaContract({
   if (contract.target?.account_id !== constants.account_id) {
     errors.push("contract account_id mismatch");
   }
-  if (attested.length !== 10) {
-    errors.push("constants must attest exactly 10 applied migrations (0001–0010)");
+  if (attested.length < 10) {
+    errors.push("constants must attest at least applied migrations 0001–0010");
   }
 
   const contractRows = contract.required_migration_files ?? [];
@@ -53,14 +53,14 @@ export function evaluateSchemaContract({
   const attestedApplied = contract.attested_applied?.migration_files ?? [];
 
   if (JSON.stringify(contractFiles) !== JSON.stringify(attested)) {
-    errors.push("contract file list must match attested applied 0001–0010 in order");
+    errors.push("contract file list must match attested applied migrations in order");
   }
   if (JSON.stringify(attestedApplied) !== JSON.stringify(attested)) {
-    errors.push("attested_applied.migration_files must match 0001–0010 in order");
+    errors.push("attested_applied.migration_files must match attested applied migrations in order");
   }
   if (JSON.stringify(diskFiles) !== JSON.stringify(attested)) {
     errors.push(
-      `migrations/ files ${JSON.stringify(diskFiles)} do not match attested 0001–0010 ${JSON.stringify(attested)}`,
+      `migrations/ files ${JSON.stringify(diskFiles)} do not match attested ${JSON.stringify(attested)}`,
     );
   }
   if (new Set(contractFiles).size !== contractFiles.length) {
@@ -76,13 +76,13 @@ export function evaluateSchemaContract({
     }
     const number = Number(match[1]);
     if (number !== previousNumber + 1) {
-      errors.push(`attested migrations must be sequential 0001–0010; gap at ${name}`);
+      errors.push(`attested migrations must be sequential from 0001; gap at ${name}`);
     }
     previousNumber = number;
   }
-  if (previousNumber !== 0 && previousNumber !== 10) {
+  if (previousNumber !== 0 && previousNumber !== attested.length) {
     errors.push(
-      `attested migrations must end at 0010, got ${String(previousNumber).padStart(4, "0")}`,
+      `attested migrations must end at ${String(attested.length).padStart(4, "0")}, got ${String(previousNumber).padStart(4, "0")}`,
     );
   }
 
@@ -153,7 +153,7 @@ function main() {
     );
   }
   console.log(
-    `official-staging schema contract passed for ${diskFiles.length} migration files (source hashes of attested 0001–0010 only; live D1 not queried; not tamperproof; ${SCHEMA_CONTRACT_PATH} is not a connection)`,
+    `official-staging schema contract passed for ${diskFiles.length} migration files (source hashes of attested ${diskFiles[0] ?? ""}–${diskFiles.at(-1) ?? ""} only; live D1 not queried; not tamperproof; ${SCHEMA_CONTRACT_PATH} is not a connection)`,
   );
 }
 

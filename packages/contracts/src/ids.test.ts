@@ -1,12 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { createBookingReference, createContactReference, sha256Hex } from "./ids.ts";
+import {
+  createBookingReference,
+  createContactReference,
+  formatBookingReference,
+  isChauffeurBookingReference,
+  sha256Hex,
+} from "./ids.ts";
 
 describe("ids", () => {
-  it("creates non-sequential booking references", () => {
+  it("keeps the legacy random formatter for historical KY-xxxxxxxx values", () => {
     const a = createBookingReference();
     const b = createBookingReference();
     expect(a).toMatch(/^KY-[A-Z2-9]{8}$/);
     expect(a).not.toEqual(b);
+  });
+
+  it("formats the durable KY##### chauffeur reference with a strict five-digit cap", () => {
+    expect(formatBookingReference(1)).toBe("KY00001");
+    expect(formatBookingReference(42)).toBe("KY00042");
+    expect(formatBookingReference(10000)).toBe("KY10000");
+    expect(formatBookingReference(99999)).toBe("KY99999");
+    expect(() => formatBookingReference(0)).toThrow("invalid_booking_reference_serial");
+    expect(() => formatBookingReference(100000)).toThrow("invalid_booking_reference_serial");
+  });
+
+  it("accepts new serial refs and legacy KY-xxxxxxxx, and rejects contact refs", () => {
+    expect(isChauffeurBookingReference("KY00042")).toBe(true);
+    expect(isChauffeurBookingReference("KY99999")).toBe(true);
+    expect(isChauffeurBookingReference("KY100000")).toBe(false);
+    expect(isChauffeurBookingReference("KY-ABCDEFGH")).toBe(true);
+    expect(isChauffeurBookingReference("KY0001")).toBe(false);
+    expect(isChauffeurBookingReference("INQ-ABCDEFGH")).toBe(false);
   });
 
   it("creates inquiry references", () => {

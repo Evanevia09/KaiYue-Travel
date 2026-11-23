@@ -47,6 +47,8 @@ export type AdminBooking = {
   message: string;
   notes: string | null;
   notificationState: string;
+  confirmMailState?: string | null;
+  cancelMailState?: string | null;
   createdAt: string;
   updatedAt: string;
   driverId: string | null;

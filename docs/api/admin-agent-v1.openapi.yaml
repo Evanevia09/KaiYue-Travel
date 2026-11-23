@@ -53,7 +53,7 @@ components:
       name: reference
       in: path
       required: true
-      schema: { type: string, example: KY-ABCD1234 }
+      schema: { type: string, example: KY00042, description: "New chauffeur refs are KY + at least five digits. Legacy KY-xxxxxxxx still resolve." }
     ContactId:
       name: id
       in: path
@@ -246,6 +246,25 @@ paths:
                 expectedUpdatedAt: { type: string, format: date-time }
       responses:
         "200": { description: Updated booking; audit event recorded }
+        default: { $ref: "#/components/responses/Error" }
+  /api/v1/admin/bookings/{reference}/lifecycle-mail:
+    post:
+      summary: Retry guest confirmed or cancelled email when delivery is unsent or proven failed
+      parameters:
+        - { $ref: "#/components/parameters/Reference" }
+        - { $ref: "#/components/parameters/Origin" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind]
+              properties:
+                kind: { type: string, enum: [confirmed, cancelled] }
+      responses:
+        "200": { description: Booking with current mail state; does not change workflow status }
+        "409": { description: Booking changed since the claim, delivery is pending/unconfirmed, or the channel does not send guest mail }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}/assignment:
     patch:
