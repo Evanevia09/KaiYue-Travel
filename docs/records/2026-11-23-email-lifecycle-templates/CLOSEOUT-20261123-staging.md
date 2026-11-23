@@ -82,10 +82,14 @@ D1 SELECT-only (`changed_db: false`, `rows_written: 0`):
 
 Live production Worker still has no `EMAIL` / no `NOTIFY_STAFF_TO` / mail off. That is **runtime**, not dest authority. Owner t315u 20 Nov 11:20 Macau: production staff inbox is **`daniel@kaiyuemacau.com`** (notification dest). Git candidate on this branch encodes that in `deploy/production/wrangler.jsonc`. Do not treat dest as OPEN. Do not re-ask.
 
+## Parent staging visual QA (23 Nov 15:11 Macau)
+
+PASS. EN / PT / zh-Hant, desktop + 390 + 320: no overlap, overflow, console errors, or mixed content. New WA `+85363128081` and real WeChat JPEG verified on live staging. Independent config review PASS exact `3baf3f6`; CI green. Parent still resolving staging **lifecycle inbox** proof (dest `scalingsmb@gmail.com` only). This VM did not send.
+
 ## Next (not this VM)
 
-1. Parent BOX browser staging QA / actual send (dest `scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
-2. HOLD: parent technical review of the production overlay/policy on this PR. Then `PRODUCTION-CANDIDATE.md` checkpoints. Do **not** merge prod PR #61. Do **not** deploy `main`. Do **not** write production D1 from this writer.
+1. Parent staging inbox proof (`scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
+2. HOLD production upload/`0011`/`main`. Email Sending preflight (arbitrary + notify DNS ready) is in `PRODUCTION-CANDIDATE.md`. Narrow PR #65 review is **not** the 171-file `main` audit. Do **not** merge prod PR #61.
 3. Owner: **one** live production booking after a verified production release of this feature.
 
 Held: PRs #51–#53, CodeMode #63 `16e06ba`, prod #61 `f774f69`. Quote widget SKIPPED.
