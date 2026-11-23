@@ -223,10 +223,87 @@ export function isPasswordSignInPath(pathname: string): boolean {
   return pathname.replace(/\/+$/, "") === "/api/auth/sign-in/email";
 }
 
-export async function peekSignInEmail(request: Request): Promise<string> {
+function payloadTooLarge(): AppError {
+  return new AppError("VALIDATION_FAILED", "Request is too large.", { status: 413 });
+}
+
+function declaredContentLength(request: Request): number | null {
+  const raw = request.headers.get("content-length");
+  if (!raw || !/^[0-9]+$/.test(raw)) return null;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value)) return null;
+  return value;
+}
+
+async function cancelBody(stream: ReadableStream<Uint8Array> | null): Promise<void> {
+  if (!stream) return;
   try {
-    const text = await request.clone().text();
-    if (text.length > JSON_LIMIT_BYTES) return "";
+    await stream.cancel();
+  } catch {
+    // Already cancelled or locked by an in-flight reader.
+  }
+}
+
+async function readBoundedUtf8(
+  stream: ReadableStream<Uint8Array> | null,
+  limitBytes: number,
+): Promise<string> {
+  if (!stream) return "";
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value || value.byteLength === 0) continue;
+      if (total + value.byteLength > limitBytes) {
+        await reader.cancel();
+        throw payloadTooLarge();
+      }
+      chunks.push(value);
+      total += value.byteLength;
+    }
+  } catch (error) {
+    if (!(error instanceof AppError && error.status === 413)) {
+      await cancelBody(stream);
+    }
+    throw error;
+  } finally {
+    try {
+      reader.releaseLock();
+    } catch {
+      // cancel() may already have released the lock.
+    }
+  }
+  if (total === 0) return "";
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+async function readPasswordSignInText(request: Request): Promise<string> {
+  const declared = declaredContentLength(request);
+  if (declared != null && declared > JSON_LIMIT_BYTES) {
+    await cancelBody(request.body);
+    throw payloadTooLarge();
+  }
+  try {
+    return await readBoundedUtf8(request.body, JSON_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof AppError && error.status === 413) {
+      await cancelBody(request.body);
+    }
+    throw error;
+  }
+}
+
+function emailFromSignInText(text: string): string {
+  try {
     const body: unknown = JSON.parse(text);
     if (body && typeof body === "object" && !Array.isArray(body)) {
       const email = (body as { email?: unknown }).email;
@@ -236,6 +313,14 @@ export async function peekSignInEmail(request: Request): Promise<string> {
     // Invalid JSON is not an account-existence signal.
   }
   return "";
+}
+
+export async function peekSignInEmail(request: Request): Promise<string> {
+  return emailFromSignInText(await readPasswordSignInText(request));
+}
+
+function replayPasswordSignIn(request: Request, text: string): Request {
+  return new Request(request, { body: text });
 }
 
 function passwordSignInFailed(): AppError {
@@ -273,9 +358,11 @@ export async function handlePasswordSignIn(
     if (request.method !== "POST") {
       return createAdminSessionAuth(env, false, request).handler(request);
     }
-    const email = await peekSignInEmail(request);
+    const text = await readPasswordSignInText(request);
+    const email = emailFromSignInText(text);
     const attempt = await beginPasswordAttempt(env, request, email, now);
-    const response = await createAdminSessionAuth(env, false, request).handler(request);
+    const replay = replayPasswordSignIn(request, text);
+    const response = await createAdminSessionAuth(env, false, replay).handler(replay);
     if (response.ok) {
       try {
         await admitPasswordSignIn(request, env, response);

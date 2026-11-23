@@ -1,6 +1,6 @@
 # Production promotion candidate from official-staging `ef70396`
 
-**Status:** overlay candidate `3baf3f6` — independent config review PASS; parent staging **visual** browser QA PASS 23 Nov 15:11 Macau. **HOLD** production upload/`0011`/`main`. Parent still resolving staging **inbox** proof on dest `scalingsmb@gmail.com`.  
+**Status:** overlay candidate plus sign-in body-bound fix — **HOLD** for rereview, then `main`/`0011`/upload. Parent staging visual QA PASS 23 Nov 15:11; synthetic `KY00001` created once 15:21:33; owner-only inbox/status tests in progress (t328). Independent config review of `3baf3f6` is **not** this availability rereview.  
 **Not** a `main` merge. **Not** uploaded. **Not** activated. **Not** a production D1 write. **Do not** merge PR #61 (`f774f69`) or held #51–#53 / CodeMode #63.
 
 **Authority (not OPEN):** Owner t315u 20 Nov 2026 11:20 Macau, answering *Which inbox should receive staff booking and enquiry notifications in production?* → **the admin email. daniel@**. Same-day instructions and PR #61 `f774f69` / `22ee115` encode `NOTIFY_STAFF_TO=daniel@kaiyuemacau.com`. That is **notification inbox approval**, not admission-only. Do not re-ask. Do not reopen tourist-board / MGTO 15 Nov widget approval.
@@ -77,8 +77,10 @@ Do **not** treat the narrow PR #65 review of `3baf3f6` as a full `main` audit.
 | --- | --- | --- | --- |
 | `origin/main` | `ff119f2c18f075fe5103821d6541625d49986b38` | — | live production git |
 | `origin/main...origin/official-staging` | `ef70396` | **165** | already on live staging, not yet on `main` |
-| `origin/main...HEAD` (this PR branch) | `3baf3f6` | **171** | cumulative staging + dest-correction overlay/policy |
-| `origin/official-staging...HEAD` | PR #65 only | **14** | overlay/policy/docs/tests only |
+| `origin/main...HEAD` (this PR branch) | this SHA | **171+** | cumulative staging + dest overlay + sign-in 413 bound |
+| `origin/official-staging...HEAD` | PR #65 | overlay/policy/tests + sign-in body bound | not a 171-file audit |
+
+Independent cumulative review found a pre-existing availability issue in `peekSignInEmail`: `request.clone().text()` buffered the whole body (and could stall a tee) **before** the 16KB check and limiter; oversize returned `""` and still called Better Auth. Fix: UTF-8 **byte-counted** read of the original body, cancel remaining chunks, **413 before limiter/auth**, replay only in-limit text. Not an auth bypass. MCP credential path still uses `readJson` + the same limiter. Rereview this before `main`.
 
 `main` is a fast-forward base of official-staging (0 unique `main` commits). 15 commits on official-staging not in `main`. `.github/workflows/production.yml` stays fail-closed: **`main` merge does not activate production**.
 
@@ -91,8 +93,8 @@ Verification plan before any `main` merge:
 
 ## Promotion checkpoints (parent / owner)
 
-1. ~~Staging visual browser QA~~ **PASS** 23 Nov 15:11 (EN/PT/zh, desktop/390/320). Inbox proof still parent.
-2. ~~Independent config review of `3baf3f6`~~ **PASS**. Full 171-file `main` audit still required.
+1. ~~Staging visual browser QA~~ **PASS** 23 Nov 15:11 (EN/PT/zh, desktop/390/320). Parent created synthetic `KY00001` once 15:21:33; inbox/status tests still parent (t328 owner-only lifecycle mail authorized).
+2. ~~Independent config review of `3baf3f6`~~ **PASS**. Sign-in 413 bound needs rereview. Full 171-file `main` audit still required.
 3. Parent finishes staging lifecycle inbox proof (`scalingsmb@gmail.com` only). Quote widget SKIPPED; never `KY-PYPM8Y3E`.
 4. Apply `0011` to `06cf879d`; SELECT-only confirm `last_issued=0`.
 5. Build with `PUBLIC_SITE_URL=https://kaiyuemacau.com`.

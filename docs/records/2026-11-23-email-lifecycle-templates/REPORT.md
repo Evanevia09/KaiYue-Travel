@@ -143,7 +143,7 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 3. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
 4. Native wording review of confirm/cancel sentences.
 5. Dedicated mail-retry after `confirm_mail_state=failed` — **done in t339u** (`POST /api/v1/admin/bookings/{reference}/lifecycle-mail`). Do not re-PATCH a terminal `confirmed`.
-6. Production: see `PRODUCTION-CANDIDATE.md`. Staging visual QA PASS 23 Nov 15:11; config review PASS `3baf3f6`. EMAIL preflight: account `recipient_mode=arbitrary`, notify DNS ready — sender-only binding can reach Daniel + guests (entitlement, not a send). `0011` on `06cf879d` with `last_issued=0`. Do not merge prod #61. `main` promote is the **171-file** staging delta, not the 14-file PR #65 review. HOLD upload/`main`. This writer does not deploy `main` or write production D1.
+6. Production: see `PRODUCTION-CANDIDATE.md`. Staging visual QA PASS 23 Nov 15:11; parent `KY00001` once 15:21:33. Sign-in oversize now 413-before-auth (rereview). EMAIL preflight: `recipient_mode=arbitrary`. Do not merge prod #61. `main` promote is the cumulative staging delta, not the overlay-only review. HOLD upload/`main`. This writer does not deploy `main` or write production D1.
 7. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
 
 ## Self-review (this head)

@@ -84,12 +84,12 @@ Live production Worker still has no `EMAIL` / no `NOTIFY_STAFF_TO` / mail off. T
 
 ## Parent staging visual QA (23 Nov 15:11 Macau)
 
-PASS. EN / PT / zh-Hant, desktop + 390 + 320: no overlap, overflow, console errors, or mixed content. New WA `+85363128081` and real WeChat JPEG verified on live staging. Independent config review PASS exact `3baf3f6`; CI green. Parent still resolving staging **lifecycle inbox** proof (dest `scalingsmb@gmail.com` only). This VM did not send.
+PASS. EN / PT / zh-Hant, desktop + 390 + 320: no overlap, overflow, console errors, or mixed content. New WA `+85363128081` and real WeChat JPEG verified on live staging. Independent config review PASS exact `3baf3f6`. Parent created synthetic `KY00001` once 15:21:33; inbox/status tests still parent. This VM did not send, book, or change status.
 
 ## Next (not this VM)
 
-1. Parent staging inbox proof (`scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
-2. HOLD production upload/`0011`/`main`. Email Sending preflight (arbitrary + notify DNS ready) is in `PRODUCTION-CANDIDATE.md`. Narrow PR #65 review is **not** the 171-file `main` audit. Do **not** merge prod PR #61.
+1. Parent staging inbox/status proof (`scalingsmb@gmail.com` only). Do not use skipped quote `KY-PYPM8Y3E`.
+2. HOLD production upload/`0011`/`main` until sign-in 413 bound is rereviewed with the 171-file audit. Do **not** merge prod PR #61.
 3. Owner: **one** live production booking after a verified production release of this feature.
 
 Held: PRs #51–#53, CodeMode #63 `16e06ba`, prod #61 `f774f69`. Quote widget SKIPPED.
