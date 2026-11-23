@@ -23,9 +23,10 @@
       "0007_booking_offer.sql",
       "0008_booking_tour_guide.sql",
       "0009_admin_operator.sql",
-      "0010_admin_operator_last_super.sql"
+      "0010_admin_operator_last_super.sql",
+      "0011_chauffeur_booking_serial.sql"
     ],
-    "note": "Attests the exact applied set 0001–0010 on D1 043cd0ff (0001–0008 already present; 0009/0010 applied 07:17). This file is a source contract, not a live D1 readback, and not tamperproof: editing this file together with source SQL can still pass. CI must not apply migrations or query D1. Remote drift after attestation is undetected until a reviewed contract update. Divergent file list, order, or hashes must fail closed."
+    "note": "Source contract for migration files 0001–0011. 0001–0010 were applied on D1 043cd0ff as of 2026-11-16. 0011 is additive chauffeur serial support and must be applied to staging D1 before Worker activation; this file is not a live D1 readback and is not tamperproof. CI must not apply migrations or query D1. Remote drift after attestation is undetected until a reviewed contract update. Divergent file list, order, or hashes must fail closed."
   },
   "required_migration_files": [
     {
@@ -67,9 +68,13 @@
     {
       "file": "0010_admin_operator_last_super.sql",
       "sha256": "8eb9f0a6bd18812232605154bbb64f9ca48db6a629b0e8d728dd941b8d5c3502"
+    },
+    {
+      "file": "0011_chauffeur_booking_serial.sql",
+      "sha256": "9a14197dcee31a2a87881338f50225ab0903c4cb2ee427fcc794671837244f81"
     }
   ],
-  "required_objects": ["admin_operator", "operator_audit_events"],
+  "required_objects": ["admin_operator", "operator_audit_events", "chauffeur_booking_serial"],
   "ci_must_not": [
     "d1 migrations apply",
     "d1 execute",

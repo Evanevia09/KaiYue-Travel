@@ -10,6 +10,8 @@ import {
 import {
   emailLogoUrl,
   renderCustomerAck,
+  renderCustomerCancelled,
+  renderCustomerConfirmed,
   renderStaffMessage,
   type DetailRow,
   type RenderedEmail,
@@ -147,4 +149,91 @@ export async function sendNotifications(
       : "skipped";
 
   return combineOutcomes(staff, customer);
+}
+
+export type LifecycleMailKind = "confirmed" | "cancelled";
+
+export type LifecycleMailInput = {
+  kind: LifecycleMailKind;
+  reference: string;
+  requestId: string;
+  communicationChannel: "whatsapp" | "email" | "admin";
+  locale: string;
+  name: string | null;
+  email: string | null;
+  details?: DetailRow[];
+  alreadySent?: boolean;
+};
+
+export async function sendLifecycleCustomerMail(
+  env: AppEnv,
+  input: LifecycleMailInput,
+): Promise<"sent" | "failed" | "skipped"> {
+  const log = {
+    kind: "booking",
+    reference: input.reference,
+    requestId: input.requestId,
+    audience: "customer" as const,
+    lifecycle: input.kind,
+  };
+  if (input.alreadySent) {
+    logSafe("info", "notification_skipped", { ...log, reason: "already_sent" });
+    return "skipped";
+  }
+  if (input.communicationChannel !== "email") {
+    logSafe("info", "notification_skipped", { ...log, reason: "not_email_channel" });
+    return "skipped";
+  }
+  const policy = resolveMailPolicy(env);
+  if (!policy.ok) {
+    logSafe(policy.state === "failed" ? "warn" : "info", `notification_${policy.state}`, {
+      ...log,
+      reason: policy.reason,
+    });
+    return policy.state === "failed" ? "failed" : "skipped";
+  }
+  const customerEmail = normalizeAddress(input.email);
+  if (!customerEmail) {
+    logSafe("info", "notification_skipped", { ...log, reason: "missing_guest_email" });
+    return "skipped";
+  }
+  if (!recipientAllowed(policy, customerEmail)) {
+    logSafe("warn", "notification_skipped", { ...log, reason: "recipient_not_allowed" });
+    return "skipped";
+  }
+  const siteUrl = env.PUBLIC_SITE_URL;
+  const brand = { logoUrl: emailLogoUrl(siteUrl), siteUrl };
+  const guest = {
+    locale: input.locale,
+    name: input.name,
+    reference: input.reference,
+    timezone: businessTimezone(env),
+    siteUrl: new URL(siteUrl!).origin,
+    details: input.details,
+  };
+  let rendered: RenderedEmail;
+  switch (input.kind) {
+    case "confirmed":
+      rendered = renderCustomerConfirmed(policy.site, guest, brand);
+      break;
+    case "cancelled":
+      rendered = renderCustomerCancelled(policy.site, guest, brand);
+      break;
+    default: {
+      const unreachable: never = input.kind;
+      return unreachable;
+    }
+  }
+  return deliver(
+    policy,
+    {
+      kind: "booking",
+      reference: input.reference,
+      requestId: input.requestId,
+      summary: input.kind,
+    },
+    "customer",
+    customerEmail,
+    rendered,
+  );
 }

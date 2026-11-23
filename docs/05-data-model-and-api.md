@@ -9,7 +9,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | Field | Notes |
 |---|---|
 | `id` | Internal UUID/text primary key |
-| `reference` | Unique public reference; non-sequential |
+| `reference` | Unique public booking reference. New chauffeur rows use `KY` + at least five digits with no hyphen (`KY00042`). Legacy rows keep `KY-xxxxxxxx` and are never rewritten. |
 | `status` | `enquiry`, `assigned`, `completed`, `cancelled` |
 | `service_type` | Validated service identifier |
 | `pickup_location` | Required normalized text |
@@ -30,10 +30,16 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `tour_guide_requested` | Optional 1/0/NULL from `migrations/0008_booking_tour_guide.sql`. Set on half-day and full-day Macau city-tour packages when the guest answers the professional tour-guide question. NULL on other journeys. No published guide price. |
 | `source_page`, `source_trigger` | Attribution without sensitive content |
 | `locale` | Submitted locale |
-| `notification_state` | e.g. `pending`, `sent`, `partial`, `failed` |
+| `notification_state` | Create-time staff/ack outcome: `pending`, `sent`, `partial`, `failed`, `skipped` |
+| `lifecycle_serial` | Integer serial allocated once at persist for new chauffeur rows; NULL on legacy `KY-xxxxxxxx` rows. Unique when present. |
+| `confirm_mail_state` / `cancel_mail_state` | Separate from create-time `notification_state`. `sent`, `failed`, or `skipped` after the matching workflow transition. |
 | `created_at`, `updated_at` | UTC |
 
-Indexes: unique `reference`; `pickup_at`; `(status, pickup_at)`; `created_at`.
+Indexes: unique `reference`; unique `lifecycle_serial` where not null; `pickup_at`; `(status, pickup_at)`; `created_at`.
+
+### `chauffeur_booking_serial` (`migrations/0011_chauffeur_booking_serial.sql`)
+
+One row (`id = 1`). `last_issued` starts at 0 and increments atomically per new chauffeur booking. Per-D1; staging and production must never copy this counter. Overflow widens the display (`100000` → `KY100000`); never wrap or reuse. Do not seed from legacy `KY-` rows. Do not reuse `rate_limits`. Apply `0011` to a D1 before the Worker that allocates serials is activated. Official-staging CD does not apply migrations.
 
 ### `contacts`
 
@@ -55,7 +61,7 @@ Indexes: `(status, created_at)` and `created_at`.
 
 ### `rate_limits` (`migrations/0001_init.sql`)
 
-`bucket` (primary key), `count`, `window_start`. Public booking/contact throttles use IP buckets. Password sign-in lockout reuses the same table with hashed `signin:acct:<sha256>` and `signin:ip:<sha256>` keys (SHA-256 of `BETTER_AUTH_SECRET` plus the normalized email or IP; no raw email, IP, or password). Three failed password checks lock that account and source IP for five minutes. Failures 1–2 persist until the third failure, a success, or a later lock expiry. Hosted Cloudflare IP buckets use `CF-Connecting-IP` only; missing that header is `untrusted` and client `X-Forwarded-For` is not used. The only local/test exception is hostname `localhost` / `127.0.0.1` / `::1`, which may use the first `X-Forwarded-For` hop. `.workers.dev` and other non-loopback hosts never trust client `X-Forwarded-For` even when `ENVIRONMENT=development`. No `0011` migration: live D1 already has this table from `0001`. Applying schema live is not part of this increment. The official-staging schema contract remains attested `0001`–`0010` on disk.
+`bucket` (primary key), `count`, `window_start`. Public booking/contact throttles use IP buckets. Password sign-in lockout reuses the same table with hashed `signin:acct:<sha256>` and `signin:ip:<sha256>` keys (SHA-256 of `BETTER_AUTH_SECRET` plus the normalized email or IP; no raw email, IP, or password). Three failed password checks lock that account and source IP for five minutes. Failures 1–2 persist until the third failure, a success, or a later lock expiry. Hosted Cloudflare IP buckets use `CF-Connecting-IP` only; missing that header is `untrusted` and client `X-Forwarded-For` is not used. The only local/test exception is hostname `localhost` / `127.0.0.1` / `::1`, which may use the first `X-Forwarded-For` hop. `.workers.dev` and other non-loopback hosts never trust client `X-Forwarded-For` even when `ENVIRONMENT=development`. Password lockout did not add a table; live D1 already has `rate_limits` from `0001`. Chauffeur serials use `migrations/0011_chauffeur_booking_serial.sql`, not this table. The official-staging schema contract lists `0001`–`0011` on disk; live apply of `0011` is a separate staging operator step.
 
 ### `admin_operator` (sidecar, `migrations/0009_admin_operator.sql`)
 

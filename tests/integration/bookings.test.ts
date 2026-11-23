@@ -79,7 +79,7 @@ describe("POST /api/v1/bookings", () => {
       whatsappUrl?: string;
     };
     expect(firstBody.status).toBe("enquiry");
-    expect(firstBody.reference).toMatch(/^KY-/);
+    expect(firstBody.reference).toMatch(/^KY[0-9]{5,}$/);
     expect(firstBody.whatsappUrl).toBeUndefined();
 
     const replay = await handleApi(request(), env);

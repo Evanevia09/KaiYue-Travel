@@ -271,6 +271,7 @@ describe("official staging CI/CD source", () => {
       "0008_booking_tour_guide.sql",
       "0009_admin_operator.sql",
       "0010_admin_operator_last_super.sql",
+      "0011_chauffeur_booking_serial.sql",
     ]);
     expect(contract.required_migration_files.map((row) => row.file)).toEqual(
       constants.attested_applied_migrations,
@@ -349,7 +350,7 @@ describe("official staging schema contract tamper guards", () => {
     };
   }
 
-  it("accepts the attested 0001–0010 contract and rejects live-D1 or list/hash tampers", () => {
+  it("accepts the attested 0001–0011 contract and rejects live-D1 or list/hash tampers", () => {
     expect(evaluateSchemaContract(baseInput())).toEqual([]);
 
     const liveQuery = baseInput();
@@ -371,11 +372,11 @@ describe("official staging schema contract tamper guards", () => {
     );
     dropFile.contract.attested_applied.migration_files =
       dropFile.contract.attested_applied.migration_files.slice(0, 9);
-    expect(evaluateSchemaContract(dropFile).join("\n")).toMatch(/0001/);
+    expect(evaluateSchemaContract(dropFile).join("\n")).toMatch(/order|attest/);
 
     const extraFile = baseInput();
-    extraFile.diskFiles = [...extraFile.diskFiles, "0011_extra.sql"];
-    expect(evaluateSchemaContract(extraFile).join("\n")).toMatch(/0011_extra/);
+    extraFile.diskFiles = [...extraFile.diskFiles, "0012_extra.sql"];
+    expect(evaluateSchemaContract(extraFile).join("\n")).toMatch(/0012_extra/);
 
     const reorder = baseInput();
     const files = [...reorder.contract.required_migration_files];

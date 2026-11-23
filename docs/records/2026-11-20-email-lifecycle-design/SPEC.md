@@ -5,7 +5,7 @@
 
 This file on the template branch is the living approved spec. Historical PR #62 commit `106a217` remains the t327u checkpoint; do not treat its IN-KY / CF-KY / CL-KY table as current. **Not** a release waiver, merge, deploy, D1 implementation, or send authorization.
 
-**Out of the current template refinement (PR #64):** D1 migrations, counters, lookup regex, status-mail wiring, merge, deploy, fixture/business writes, real email from this VM, production overlay, PRs #51–#53, CodeMode PR #63, prod PR #61, quote widget (SKIPPED).
+**Implemented on PR #64 (t337u execute-live):** D1 serial `0011`, persist allocation, MCP/admin lookup of `KY#####` plus legacy `KY-xxxxxxxx`, persist-first confirm/cancel customer mail. **Still out:** merge/deploy until independent review + CI + staging `0011` apply; fixture/business writes and real email from this VM; production overlay/`0011`; PRs #51–#53; CodeMode PR #63; prod PR #61; quote widget (SKIPPED); tourist-board production publication.
 
 ---
 
@@ -14,8 +14,8 @@ This file on the template branch is the living approved spec. Historical PR #62 
 - Shared branded shell: **white `#ffffff` header**, existing PNG logo **only** (`/images/kai-yue-travel-group-logo.png`, 250×49; alt may stay “Kai Yue Travel”), **gold `#f3a600` divider**. No extra company-name text beside the logo. Do not invent a logo. Body sign-off “Kai Yue Travel” stays. Dark `#1a1a1a` text on white.
 - Filled enquiry details in a **2-column email-safe TABLE** (label | value). Omit empty fields. Readable in Gmail, Outlook, and phone. Matching plaintext `Label: value` with labels padded to a column. No CSS grid/flex. Overflow **widens**, never wraps the reference.
 - Request-received remains **not a confirmation**.
-- **Customer** confirmation email on the first authorized staff transition **to workflow `confirmed`** (future wiring).
-- **Customer** cancellation email on the first authorized staff transition **to workflow `cancelled`** (future wiring).
+- **Customer** confirmation email on the first authorized staff transition **to workflow `confirmed`**.
+- **Customer** cancellation email on the first authorized staff transition **to workflow `cancelled`**.
 - Existing **staff** new-request alert stays. **No** extra staff lifecycle blasts. **No** new admin recipients. **No** auto-confirm. **No** payment, refund, or cancellation-term invention.
 - Customer copy stays on existing locale machinery (`en` / `pt` / `zh-Hant`). Staff notices stay English. Staging `[Staging test]` prefix and recipient locks stay (`scalingsmb@gmail.com` only; Daniel is not a staging dest). Production mail stays off until a later operational handoff.
 - **One persistent booking reference** for one chauffeur booking: `KY00042` at enquiry, receipt, confirmation, and cancellation. English table label is exactly `Reference number`. Portuguese `Número de referência`. Traditional Chinese `參考編號`. Contact form refs stay `INQ-xxxxxxxx` until explicitly in scope. Legacy existing refs **unchanged**.
@@ -36,16 +36,16 @@ One persisted integer serial **per D1**, used only for **new chauffeur bookings*
 | 100000 | `KY100000` |
 
 - `bookings.reference` is the **immutable booking reference** for new chauffeur rows (`KY` + digits). Existing `KY-xxxxxxxx` legacy rows keep that exact value forever. Never overwrite, delete, or renumber a stored reference.
-- `lifecycle_serial` (integer, unique, null on legacy) is the numeric base. Allocate **once at persist** of a new chauffeur row. **Not implemented in the template slice.**
+- `lifecycle_serial` (integer, unique, null on legacy) is the numeric base. Allocate **once at persist** of a new chauffeur row (`migrations/0011_chauffeur_booking_serial.sql`).
 - **No** `confirmation_number` / `cancellation_number` columns. **No** IN-/CF-/CL- aliases. **No** original-enquiry history row in mail or admin chrome for the new model.
 - Primary **display** is always that one reference (or the untouched legacy `KY-xxxxxxxx`). Status-specific copy and titles remain; the number does not change.
 - Overflow: expand width, never truncate, wrap, or reuse. `padStart(5, "0")`; extra digits stay.
-- Counters (future): one chauffeur serial per D1. Staging and production independent. Start at **1**. Never reset. Do not seed from the count of legacy `KY-` rows. Do not reuse `rate_limits`.
+- Counters: one chauffeur serial per D1 (`chauffeur_booking_serial.last_issued`). Staging and production independent. Start at **1**. Never reset. Do not seed from the count of legacy `KY-` rows. Do not reuse `rate_limits`. Overflow widens (`KY100000`); never wrap or reuse.
 - Contacts stay `INQ-xxxxxxxx`. Do not convert contact refs to `KY#####`.
 
 ---
 
-## 3. Allocation, transitions, retries (future full lifecycle; not this template PR)
+## 3. Allocation, transitions, retries
 
 Key off **workflow** `nextStatus` (`decision_status` / latest `audit_events` `to_value` for `approved`/`confirmed`/`denied`), **not** the stored `bookings.status` column. Today `confirmed` is stored as `enquiry`; `denied` is stored as `cancelled`.
 
@@ -83,15 +83,15 @@ English field label is exactly `Reference number` on all four messages. Shared s
 
 ---
 
-## 5. Lookup compatibility (future; not this template PR)
+## 5. Lookup compatibility
 
 Find a chauffeur row by the **one** stored `reference` (`KY#####` for new rows, or legacy `KY-xxxxxxxx`). Contacts remain `INQ-` only. Do not add alias columns.
 
-| Path today | Required after (future) |
+| Path | Required |
 | --- | --- |
 | `getBookingByReference` / admin GET+PATCH `/api/v1/admin/bookings/:reference` / notes / assignment | Resolve `KY#####` or legacy `KY-xxxxxxxx`; canonical URL stays `reference` |
-| MCP `bookingReference` `/^KY-[A-Z2-9]{8}$/` | Accept new `KY` + digits **and** legacy `KY-xxxxxxxx` |
-| Staging quote `KY-` / `INQ-` 8-char regex | Compat later if quote is used; quote 10/10 stays SKIPPED |
+| MCP `bookingReference` | Accept new `KY` + digits **and** legacy `KY-xxxxxxxx` (`isChauffeurBookingReference`) |
+| Staging quote `KY-` / `INQ-` 8-char regex | Unchanged; quote widget stays SKIPPED |
 | Public 201, guest success screen, WhatsApp prepared heading | The same `reference` |
 | Admin list / detail chrome | Headline is **Reference number**; no original-enquiry secondary row |
 
@@ -116,13 +116,13 @@ Legacy **`KY-JWM6M8AT`**: never becomes `KY00000…`; confirm/cancel mail would 
 - **Contradiction:** Option A is **rejected**. t327u IN/CF/CL aliases are **superseded**. One durable `KY#####` labelled **Reference number**. Green header is **rejected**; approved shell is white + logo + gold divider.
 - **Safety:** persist-first; no auto-confirm; no new recipients; staging allowlist; no PII in logs; no payment/refund copy; admin auth unchanged.
 - **Overflow:** expand, never wrap/truncate/reuse.
-- **Concurrency (future):** atomic serial increment + unique constraints at create; CAS at transition; retries do not increment.
-- **Transition/retry:** workflow `confirmed`/`cancelled` only; assigned skip and denied do not allocate; mail failure keeps the same number.
-- **Lookups (future):** one reference column; no alias OR.
+- **Concurrency:** atomic serial increment (`UPDATE … RETURNING`) then insert; unique `reference` / `lifecycle_serial`; CAS at transition; retries do not increment.
+- **Transition/retry:** workflow `confirmed`/`cancelled` only; assigned skip and denied do not send lifecycle mail; mail failure keeps the same number. There is no dedicated mail-retry endpoint in this increment.
+- **Lookups:** one `reference` column; no alias OR.
 - **Retention:** stored `reference` never overwritten. Legacy `KY-xxxxxxxx` never rewritten.
 - **Stored vs actual state:** allocation and mail key off workflow status, not the compatibility `bookings.status` column.
-- **Per-D1 counters (future):** one chauffeur serial per database; never copy staging→production.
-- **Scope of PR #64 template refinement:** renderers, tests, fixtures, four English synthetic MIME artifacts, this spec update. **Not** D1/counter/lookup/status-mail.
+- **Per-D1 counters:** one chauffeur serial per database; never copy staging→production.
+- **Scope of PR #64 t337u:** renderers plus allocation, lookup, and status-mail required for a truthful staging live. **Not** production, not a send from this VM, not quote, not tourist-board waiver.
 
 ---
 
@@ -130,7 +130,7 @@ Legacy **`KY-JWM6M8AT`**: never becomes `KY00000…`; confirm/cancel mail would 
 
 **Legacy chauffeur rows (`KY-xxxxxxxx`) have no numeric base.** Default: never backfill `KY#####`; never renumber. Status mail (if policy permits) quotes the existing `KY-` ref. This does **not** block the new-row design. No extra owner decision is needed for that default.
 
-Non-material / later: exact native confirm/cancel wording review; D1 serial + unique `reference` + status-mail; MCP/admin regex; actual send of a later MIME set if the owner asks again. Previous four + resend deliveries of the IN/CF/CL set are complete and **must not** be resent from this run.
+Non-material / later: exact native confirm/cancel wording review; a dedicated mail-retry path after `confirm_mail_state=failed`; actual send of the synthetic MIME set if the owner asks again. Previous four + resend deliveries of the IN/CF/CL set are complete and **must not** be resent from this run. Staging live still requires independent review, CI, operator apply of `0011` to D1 `043cd0ff`, then merge of **this** PR only.
 
 ---
 
@@ -140,8 +140,8 @@ Non-material / later: exact native confirm/cancel wording review; D1 serial + un
 | --- | --- |
 | Writer | Sole RUNNING `bc-efa1f054-1bf7-5417-ae29-f3d6e04df58e` |
 | Template branch | `cursor/email-lifecycle-templates-f58e` (PR #64) from `official-staging` `3a70cff` |
-| Owner revision | t335u / t336u 23 Nov 2026 12:41–12:42 Macau |
+| Owner revision | t335u / t336u 12:41–12:42 Macau numbers; t337u 13:30 Macau execute-live |
 | CodeMode PR #63 | Frozen `16e06ba` |
 | Prod PR #61 | Frozen `f774f69` |
 | Held | PRs #51–#53 untouched |
-| Next | Parent inspects regenerated MIME. **Do not** declare full lifecycle implemented. **No send** from this VM. |
+| Next | Independent review, then staging `0011` apply + reviewed merge of PR #64 only. **No send** from this VM. **No production.** |

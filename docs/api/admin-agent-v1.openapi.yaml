@@ -53,7 +53,7 @@ components:
       name: reference
       in: path
       required: true
-      schema: { type: string, example: KY-ABCD1234 }
+      schema: { type: string, example: KY00042, description: "New chauffeur refs are KY + at least five digits. Legacy KY-xxxxxxxx still resolve." }
     ContactId:
       name: id
       in: path

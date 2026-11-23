@@ -36,7 +36,7 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 | Need | Request |
 | --- | --- |
 | New enquiries | `GET /api/v1/admin/bookings?status=enquiry` |
-| Find a guest or reference | `GET /api/v1/admin/bookings?q=<2-100 chars>` (reference, name, email, phone) |
+| Find a guest or reference | `GET /api/v1/admin/bookings?q=<2-100 chars>` (reference, name, email, phone). New chauffeur refs are `KY#####` (example `KY00042`); legacy `KY-xxxxxxxx` still match. |
 | Find an inquiry | `GET /api/v1/admin/contacts?q=<text>` (adds company) |
 | Changes since the last poll | `...?updatedSince=2026-11-16T10:00:00Z` (time zone required) |
 

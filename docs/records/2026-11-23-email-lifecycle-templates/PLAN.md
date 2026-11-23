@@ -1,10 +1,10 @@
 # Email lifecycle templates (render/preview) Implementation Plan
 
-> **For agentic workers:** Use executing-plans in this same writer. Owner t333u selected execute; t335u/t336u is an in-place refinement on PR #64. Do **not** open a new branch. **No** six-question/design approval loop. **No** subagent-driven-development unless the owner later asks.
+> **For agentic workers:** Use executing-plans in this same writer. Owner t333u selected execute; t335u/t336u is an in-place refinement on PR #64; t337u 13:30 Macau is execute-live of allocation/lookup/status-mail on the **same** branch. Do **not** open a new branch. **No** six-question/design approval loop. **No** subagent-driven-development unless the owner later asks.
 
-**Goal:** Shared production-intended email shell + staff enquiry / guest receipt / guest confirm / guest cancel renderers, with tests and four English synthetic MIME artifacts. Owner t335u/t336u: **one** `KY#####` labelled exactly **Reference number** through all statuses.
+**Goal:** Shared production-intended email shell + staff enquiry / guest receipt / guest confirm / guest cancel renderers, one durable `KY#####` labelled exactly **Reference number**, persist allocation, consistent lookup, and persist-first confirm/cancel mail required for a truthful staging live.
 
-**Architecture:** Change `notification-templates.ts` (shared HTML/text shell and copy) plus call-site details threading in `notifications.ts`. Display-format `formatBookingReference` is a pure function. Do **not** add D1 counters, migrations, status-mail triggers, or lookup regex changes. A preview builder writes HTML/text/JSON from the same renderers.
+**Architecture:** Shared renderers in `notification-templates.ts`. `formatBookingReference` in `@kaiyue/contracts`. Per-D1 serial in `migrations/0011_chauffeur_booking_serial.sql`. Allocate at chauffeur persist. MCP `isChauffeurBookingReference`. Status PATCH to workflow `confirmed`/`cancelled` sends guest mail after persist.
 
 **Tech Stack:** TypeScript, Vitest, existing Cloudflare Email `OutboundEmail` shape, official-staging URLs.
 
@@ -15,9 +15,9 @@
 - Email-safe 2-column TABLE (label | value); omit empty fields; plaintext labels padded to a column. No CSS grid/flex. Overflow widens, never wraps.
 - Guest receipt is **not** a confirmation. Confirm and cancel copy are distinct. No payment/refund/cancellation-policy invention.
 - Staff notices English; customer copy `en` / `pt` / `zh-Hant`. Staging subject prefix `[Staging test] `.
-- Display example serial 42: **`KY00042`** (KY + five digits, no hyphen) on every message. English label exactly `Reference number`. No confirmation/cancellation aliases. No original-enquiry history rows. No DB allocation in this slice. Legacy `KY-xxxxxxxx` never rewritten. Contacts stay `INQ-`.
+- Display example serial 42: **`KY00042`** (KY + five digits, no hyphen) on every message. English label exactly `Reference number`. No confirmation/cancellation aliases. No original-enquiry history rows. Legacy `KY-xxxxxxxx` never rewritten. Contacts stay `INQ-`. Overflow widens, never wraps or reuses.
 - Four English preview messages only To `scalingsmb@gmail.com`; From `Kai Yue Travel <bookings@notify.kaiyuemacau.com>`. Official staging links. Visible synthetic/preview marking. No quote. No KY-PYPM8Y3E. No send from this VM.
-- Preserve CodeMode63@`16e06ba`, prod61@`f774f69`, held #51–#53. Stay on `cursor/email-lifecycle-templates-f58e`. No reset/rebase/force/autostash. No merge/deploy.
+- Preserve CodeMode63@`16e06ba`, prod61@`f774f69`, held #51–#53. Stay on `cursor/email-lifecycle-templates-f58e`. No reset/rebase/force/autostash. Staging merge only after independent review + CI + `0011` applied to D1 `043cd0ff`. No production.
 
 ---
 
@@ -93,6 +93,36 @@
 - [x] **Step 2:** Write artifacts from the builder (honest render). Screenshot desktop ~600px and mobile ~390px.
 - [x] **Step 3:** Record + PROJECT-STATE + docs/README. Push PR #64. Do not send.
 
+### Task 6: Durable chauffeur serial at persist
+
+**Files:**
+- Create: `migrations/0011_chauffeur_booking_serial.sql`
+- Modify: `apps/web/src/lib/server/bookings.ts`, `packages/contracts/src/ids.ts`
+- Modify: `deploy/official-staging/schema-contract.json`, `deploy/official-staging/constants.json`
+- Test: `packages/contracts/src/ids.test.ts`, `tests/integration/bookings.test.ts`, `tests/integration/booking-lifecycle-reference.test.ts`
+
+- [x] **Step 1:** Atomic `UPDATE … RETURNING last_issued`; store `KY#####` + `lifecycle_serial`; unique partial index; start at 0 so first issue is 1.
+- [x] **Step 2:** Overflow widens (`100000` → `KY100000`). Failed insert after increment may gap; never reuse. Do not seed from legacy `KY-` rows.
+- [x] **Step 3:** Attest `0011` on disk contract. CD does not apply it. Operator apply to staging D1 is a later reviewed step.
+
+### Task 7: Consistent lookup of serial + legacy refs
+
+**Files:**
+- Modify: `packages/agent-tools/server.mjs`, admin GET/PATCH already keyed on `bookings.reference`
+- Test: `tests/integration/booking-lifecycle-reference.test.ts`
+
+- [x] **Step 1:** `isChauffeurBookingReference` accepts `KY#####` and `KY-xxxxxxxx`, rejects `KY0001` and `INQ-`.
+- [x] **Step 2:** Quote widget stays SKIPPED; Worker quote regex is not expanded.
+
+### Task 8: Persist-first confirm/cancel customer mail
+
+**Files:**
+- Modify: `apps/web/src/lib/server/notifications.ts`, `apps/web/src/lib/server/admin.ts`
+- Test: `tests/integration/booking-lifecycle-reference.test.ts`
+
+- [x] **Step 1:** After successful workflow `confirmed`/`cancelled`, send guest mail if email-channel policy permits. No extra staff blast. WhatsApp/admin skip. Denied skip.
+- [x] **Step 2:** Store `confirm_mail_state` / `cancel_mail_state` separately from create-time `notification_state`. Mail failure does not roll back status. No dedicated retry endpoint in this increment.
+
 ## Self-review
 
 | Spec item | Task |
@@ -100,10 +130,12 @@
 | White / logo only / gold | 2 |
 | 2-col filled table + padded plaintext | 2–3 |
 | Receipt ≠ confirmation | 3 |
-| Customer confirm + cancel copy | 4 (render only) |
+| Customer confirm + cancel copy | 4 + 8 |
 | Staff new enquiry redesigned | 3 |
-| One KY##### Reference number | 1 + 4 + 5 |
 | Locales | 3–4 |
-| No DB/status/lookups | Global constraint |
+| One KY##### Reference number | 1 + 4 + 5 + 6 |
+| D1 serial + unique reference | 6 |
+| Lookup serial + legacy | 7 |
+| Confirm/cancel status mail | 8 |
 | Four English MIME + manifest | 5 |
-| Remaining: D1 serial, status-mail, lookup regex, native wording review | REPORT, not this plan. Future plan is **one durable reference**, not three aliases. |
+| Remaining: native wording review; staging `0011` apply + reviewed merge; production tourist-board gate | REPORT. |

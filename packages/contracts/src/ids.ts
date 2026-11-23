@@ -26,6 +26,21 @@ export function createContactReference(): string {
   return createPublicReference("INQ");
 }
 
+export const SERIAL_BOOKING_REFERENCE = /^KY[0-9]{5,}$/;
+export const LEGACY_BOOKING_REFERENCE = /^KY-[A-Z2-9]{8}$/;
+
+/** Display/store format for new chauffeur bookings: KY + at least five digits, no hyphen. */
+export function formatBookingReference(serial: number): string {
+  if (!Number.isInteger(serial) || serial < 1) {
+    throw new Error("invalid_booking_reference_serial");
+  }
+  return `KY${String(serial).padStart(5, "0")}`;
+}
+
+export function isChauffeurBookingReference(value: string): boolean {
+  return SERIAL_BOOKING_REFERENCE.test(value) || LEGACY_BOOKING_REFERENCE.test(value);
+}
+
 export async function sha256Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");

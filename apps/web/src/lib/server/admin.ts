@@ -6,14 +6,17 @@ import { all, first, nowIso } from "./db.ts";
 import { readJson } from "./http.ts";
 import {
   bookingAdminColumns,
+  bookingMailDetails,
   bookingStatusSql,
   bookingToAdmin,
   getBookingByReference,
   listBookings,
+  setLifecycleMailState,
   updateBookingStatus,
   type BookingRow,
 } from "./bookings.ts";
 import { contactToAdmin, listContacts, updateContactStatus, type ContactRow } from "./contacts.ts";
+import { sendLifecycleCustomerMail } from "./notifications.ts";
 
 function startOfToday(timezone: string): string {
   const now = new Date();
@@ -195,13 +198,28 @@ export async function handleAdminBookingStatus(
   ) {
     throw new AppError("VALIDATION_FAILED", "Choose a valid status.");
   }
-  const updated = await updateBookingStatus(
-    env.DB,
-    row,
-    body.status as (typeof BOOKING_STATUSES)[number],
-    actorId,
-    requestId,
-  );
+  const nextStatus = body.status as (typeof BOOKING_STATUSES)[number];
+  const updated = await updateBookingStatus(env.DB, row, nextStatus, actorId, requestId);
+  if (nextStatus === "confirmed" || nextStatus === "cancelled") {
+    const alreadySent =
+      nextStatus === "confirmed"
+        ? row.confirm_mail_state === "sent"
+        : row.cancel_mail_state === "sent";
+    const outcome = await sendLifecycleCustomerMail(env, {
+      kind: nextStatus,
+      reference: updated.reference,
+      requestId,
+      communicationChannel: updated.communication_channel,
+      locale: updated.locale,
+      name: updated.contact_name,
+      email: updated.email,
+      details: bookingMailDetails(updated, businessTimezone(env)),
+      alreadySent,
+    });
+    await setLifecycleMailState(env.DB, updated, nextStatus, outcome);
+    const afterMail = await getBookingByReference(env.DB, updated.reference);
+    return { booking: bookingToAdmin(afterMail ?? updated) };
+  }
   return { booking: bookingToAdmin(updated) };
 }
 

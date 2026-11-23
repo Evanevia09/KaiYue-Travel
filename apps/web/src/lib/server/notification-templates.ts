@@ -1,4 +1,4 @@
-import { renderQuote, type ServiceType } from "@kaiyue/contracts";
+import { formatBookingReference, renderQuote, type ServiceType } from "@kaiyue/contracts";
 import { STAGING_ADMIN_HOST, STAGING_MARKETING_HOST } from "./admin-gate.ts";
 import type { MailSite } from "./notification-policy.ts";
 
@@ -68,13 +68,7 @@ export function emailLogoUrl(siteUrl: string | undefined): string {
   }
 }
 
-/** Display-only chauffeur booking reference: KY + at least 5 digits, no hyphen. Overflow widens. */
-export function formatBookingReference(serial: number): string {
-  if (!Number.isInteger(serial) || serial < 1) {
-    throw new Error("invalid_booking_reference_serial");
-  }
-  return `KY${String(serial).padStart(5, "0")}`;
-}
+export { formatBookingReference };
 
 function escapeHtml(value: string): string {
   return value

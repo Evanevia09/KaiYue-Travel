@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import guide from "./guide.json" with { type: "json" };
+import { isChauffeurBookingReference } from "../contracts/src/ids.ts";
 import { BOOKING_STATUSES, BOOKING_TRANSITIONS } from "../contracts/src/status.ts";
 import { draftQuote, pricingInput, quoteCurrency, quoteOutput } from "./quotes.mjs";
 import { StagingError } from "./error.mjs";
@@ -8,11 +9,7 @@ import { StagingError } from "./error.mjs";
 const bookingStatus = z.enum(BOOKING_STATUSES);
 const inquiryStatus = z.enum(["new", "replied", "closed"]);
 const timestamp = z.iso.datetime({ offset: true });
-const bookingReference = z
-  .string()
-  .trim()
-  .toUpperCase()
-  .regex(/^KY-[A-Z2-9]{8}$/);
+const bookingReference = z.string().trim().toUpperCase().refine(isChauffeurBookingReference);
 const booking = z.object({
   reference: bookingReference,
   status: bookingStatus,
@@ -346,7 +343,7 @@ export function createServer(api, { approve, version = "0.4.0" } = {}) {
     quoteOutput,
     async (input) => {
       await api.get(
-        input.reference.startsWith("KY-")
+        isChauffeurBookingReference(input.reference)
           ? bookingPath(input.reference)
           : inquiryPath(input.reference),
       );
@@ -361,7 +358,7 @@ export function createServer(api, { approve, version = "0.4.0" } = {}) {
       .pick({ reference: true, currency: true, total: true })
       .extend({ status: z.literal("submitted") }),
     async (input) => {
-      const isBooking = input.reference.startsWith("KY-");
+      const isBooking = isChauffeurBookingReference(input.reference);
       const record = await api.get(
         isBooking ? bookingPath(input.reference) : inquiryPath(input.reference),
       );

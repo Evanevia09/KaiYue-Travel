@@ -2,7 +2,7 @@ import {
   AppError,
   bookingCreateSchema,
   canTransitionBooking,
-  createBookingReference,
+  formatBookingReference,
   getPublicConfig,
   isMacauTourGuidePackage,
   validatePickupNotice,
@@ -24,7 +24,7 @@ import {
   writeIdempotency,
 } from "./idempotency.ts";
 import { likePattern } from "./admin-list-query.ts";
-import { formatPickup } from "./notification-templates.ts";
+import { formatPickup, type DetailRow } from "./notification-templates.ts";
 import { sendNotifications } from "./notifications.ts";
 import { getPublicOffer } from "./offers/service.ts";
 import { enforceRateLimit } from "./rate-limit.ts";
@@ -55,6 +55,9 @@ export type BookingRow = {
   source_mode: string;
   locale: string;
   notification_state: NotificationState;
+  lifecycle_serial?: number | null;
+  confirm_mail_state?: string | null;
+  cancel_mail_state?: string | null;
   created_at: string;
   updated_at: string;
   driver_id: string | null;
@@ -195,6 +198,61 @@ export function bookingToPublic(row: BookingRow) {
   return response;
 }
 
+export function bookingMailDetails(row: BookingRow, timezone: string): DetailRow[] {
+  const destination =
+    row.destination ??
+    (row.offer_title
+      ? row.offer_title
+      : row.service_type === "city_tour"
+        ? "City tour"
+        : "Hourly service");
+  return [
+    ...(row.contact_name ? [{ label: "Guest", value: row.contact_name }] : []),
+    ...(row.email ? [{ label: "Email", value: row.email }] : []),
+    ...(row.phone_display ? [{ label: "Phone", value: row.phone_display }] : []),
+    { label: "Pickup", value: row.pickup_location },
+    { label: "Destination", value: destination },
+    ...(row.offer_title ? [{ label: "Special offer", value: row.offer_title }] : []),
+    { label: "Pickup time", value: formatPickup(row.pickup_at, "en-GB", timezone) },
+    { label: "Passengers", value: String(row.passenger_count) },
+    ...(row.luggage_count != null
+      ? [{ label: "Big luggage", value: String(row.luggage_count) }]
+      : []),
+    ...(handCarryFromNotes(row.notes) != null
+      ? [{ label: "Hand carry", value: String(handCarryFromNotes(row.notes)) }]
+      : []),
+    ...(row.message ? [{ label: "Message", value: row.message }] : []),
+  ];
+}
+
+export async function setLifecycleMailState(
+  db: D1Database,
+  row: BookingRow,
+  kind: "confirmed" | "cancelled",
+  state: "sent" | "failed" | "skipped",
+): Promise<void> {
+  let column: "confirm_mail_state" | "cancel_mail_state";
+  switch (kind) {
+    case "confirmed":
+      column = "confirm_mail_state";
+      break;
+    case "cancelled":
+      column = "cancel_mail_state";
+      break;
+    default: {
+      const unreachable: never = kind;
+      return unreachable;
+    }
+  }
+  await run(
+    db,
+    `UPDATE bookings SET ${column} = ?, updated_at = ? WHERE id = ?`,
+    state,
+    nowIso(),
+    row.id,
+  );
+}
+
 export function bookingToAdmin(row: BookingRow) {
   return {
     id: row.id,
@@ -291,20 +349,37 @@ function handCarryFromNotes(notes: string | null): number | null {
   return Number.isInteger(count) && count >= 0 && count <= 20 ? count : null;
 }
 
+async function allocateChauffeurSerial(
+  db: D1Database,
+): Promise<{ serial: number; reference: string }> {
+  const issued = await first<{ last_issued: number }>(
+    db,
+    "UPDATE chauffeur_booking_serial SET last_issued = last_issued + 1 WHERE id = 1 RETURNING last_issued",
+  );
+  if (!issued || !Number.isInteger(issued.last_issued) || issued.last_issued < 1) {
+    throw new AppError("UNAVAILABLE", "Could not store the booking request.");
+  }
+  return {
+    serial: issued.last_issued,
+    reference: formatBookingReference(issued.last_issued),
+  };
+}
+
 async function persistBooking(env: AppEnv, payload: BookingCreatePayload): Promise<BookingRow> {
   const id = crypto.randomUUID();
-  const reference = createBookingReference();
+  const { serial, reference } = await allocateChauffeurSerial(env.DB);
   const now = nowIso();
   await run(
     env.DB,
     `INSERT INTO bookings (
-      id, reference, status, service_type, pickup_location, destination, pickup_at, return_at,
+      id, reference, lifecycle_serial, status, service_type, pickup_location, destination, pickup_at, return_at,
       passenger_count, luggage_count, tour_guide_requested, vehicle_preference, communication_channel, contact_name, phone, phone_display,
       email, company, message, notes, offer_id, offer_title, source_page, source_trigger, source_mode, locale, notification_state,
       created_at, updated_at
-    ) VALUES (?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+    ) VALUES (?, ?, ?, 'enquiry', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
     id,
     reference,
+    serial,
     payload.serviceType,
     payload.pickupLocation,
     payload.destination ?? null,
@@ -414,7 +489,10 @@ export async function createBooking(
   try {
     row = await persistBooking(env, parsed.data);
   } catch (error) {
-    logSafe("error", "booking_persist_failed", { requestId });
+    logSafe("error", "booking_persist_failed", {
+      requestId,
+      reason: error instanceof Error ? error.message : "unknown",
+    });
     throw new AppError("UNAVAILABLE", "Could not store the booking request.", { cause: error });
   }
 

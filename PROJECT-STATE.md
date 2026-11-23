@@ -1,6 +1,6 @@
 # Kai Yue Travel — Project State
 
-**2026-11-23 email lifecycle templates (one KY##### Reference number; no send):** Owner t335u/t336u supersede IN/CF/CL. Same PR #64 branch `cursor/email-lifecycle-templates-f58e`. One persistent `KY00042` labelled exactly `Reference number` on staff/receipt/confirmed/cancelled. Living spec on this branch. No D1/counter/lookup, no send, no merge/deploy. CodeMode63 and prod61 frozen. Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
+**2026-11-23 email lifecycle allocation + status mail (PR #64, staging candidate):** Owner t337u 23 Nov 2026 13:30 Macau: get the one-reference templates live. Same writer/task on `cursor/email-lifecycle-templates-f58e`. Durable per-D1 `KY#####` at persist, MCP/admin lookup of serial + legacy `KY-xxxxxxxx`, persist-first confirm/cancel customer mail. English label exactly `Reference number`. Staging dest lock `scalingsmb@gmail.com` only. No VM send. No production merge/deploy/D1/`0011`. Tourist-board/MGTO publication gate is **not waived** for production (15 Nov 06:06 YES applied only to that dashboard UX site publication; `docs/records/2026-11-15-production-staff-dashboard-ux-candidate.md`). Quote widget stays SKIPPED. CodeMode63 and prod61 frozen. Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
 
 **2026-11-20 staging ack+admin notifications (source switch):** Owner t322u / parent: turn on staging staff notices and customer request-received acks, lock `scalingsmb@gmail.com`. Overlay `NOTIFICATIONS_ENABLED="true"` on official-staging only. Production stays `"false"` with no `EMAIL`. Live Worker still `"false"` until this PR merges and CD runs. Quote widget SKIPPED. No send from this writer. Record: `docs/records/2026-11-20-staging-ack-admin-email/REPORT.md`.
 
@@ -161,7 +161,7 @@ Legal names and B2B offer copy are owner-directed to the group portfolio (2026-0
 - Public site: English, Portuguese, and Traditional Chinese. Staff admin: English (default) or Traditional Chinese via a persisted switch.
 - 24-hour booking notice, configurable via `BOOKING_NOTICE_HOURS`.
 - Session storage may keep non-sensitive journey fields only.
-- Admin status changes do not email customers in Release 1.
+- Admin status changes do not invent payment/refund terms. Email-channel workflow `confirmed` / `cancelled` send the matching guest lifecycle mail when policy permits; WhatsApp-channel and denied do not.
 
 ## Risks and safeguards
 
@@ -262,6 +262,13 @@ Workflow resume action (2026-10-03): the owning agent should trial a bounded rea
 | 2026-09-19 | Footer services column grouped like the header                                                                                                  | Real browser at 1440 and 390. `[Services]` renders the two groups only (Point To Point → Airport Transfer, Cross Border Rides, Local Transfers; By The Hour → Local Chauffeur, Weddings, City Tours); Pricing now sits in the Company column; no duplicate footer hrefs; 0 console errors. Mobile panel 390 wide, `overflow-y: auto`, 285 collapsed → 447 with a group expanded, all links reachable. `pnpm typecheck` 67 files clean; `pnpm test` 29/29.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `/booking` hydration race still reproduces 4/10 fresh loads. Brand mark still undecided (`mark.svg` vs the gold CSS diamond). Not a deployed preview.                                                                                                                                                                                                                  |
 
 ## Change log
+
+### 2026-11-23 — Durable KY##### allocation + confirm/cancel mail (PR #64)
+
+- Owner t337u 13:30 Macau: execute the one-reference templates live on staging after independent review. Same branch `cursor/email-lifecycle-templates-f58e`. t327u IN/CF/CL remains superseded.
+- Added `migrations/0011_chauffeur_booking_serial.sql` (per-D1 counter, `lifecycle_serial`, confirm/cancel mail columns). New chauffeur persist stores `KY#####`. Legacy `KY-xxxxxxxx` untouched. MCP `bookingReference` accepts both. Email-channel workflow `confirmed`/`cancelled` send guest lifecycle mail persist-first. English label `Reference number`.
+- Staging CD still does not apply D1 migrations. `0011` must be applied to D1 `043cd0ff` before Worker activation. Production D1 `06cf879d`, PRs #61/#63/#51–#53, and quote widget are untouched. No send from this VM. Tourist-board gate not waived for production.
+- Record: `docs/records/2026-11-23-email-lifecycle-templates/REPORT.md`.
 
 ### 2026-11-18 — Hosted staging MCP and booking decisions
 
