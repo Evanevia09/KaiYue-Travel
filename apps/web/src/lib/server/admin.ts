@@ -16,6 +16,7 @@ import {
   bookingToAdmin,
   claimLifecycleMailSend,
   getBookingByReference,
+  markLifecycleMailSkipped,
   listBookings,
   setLifecycleMailState,
   updateBookingStatus,
@@ -209,7 +210,10 @@ export async function handleAdminBookingStatus(
   const nextStatus = body.status as (typeof BOOKING_STATUSES)[number];
   const updated = await updateBookingStatus(env.DB, row, nextStatus, actorId, requestId);
   if (nextStatus === "confirmed" || nextStatus === "cancelled") {
-    await deliverLifecycleMail(env, updated, nextStatus, requestId);
+    await deliverLifecycleMail(env, updated, nextStatus, requestId, {
+      id: actorId,
+      requestId,
+    });
     const afterMail = await getBookingByReference(env.DB, updated.reference);
     return { booking: bookingToAdmin(afterMail ?? updated) };
   }
@@ -220,6 +224,7 @@ export async function handleAdminLifecycleMail(
   request: Request,
   env: AppEnv,
   reference: string,
+  actorId: string,
   requestId: string,
 ) {
   const row = await getBookingByReference(env.DB, reference);
@@ -238,7 +243,13 @@ export async function handleAdminLifecycleMail(
       `Guest ${kind} email can only be retried when the booking is ${kind}.`,
     );
   }
-  const outcome = await deliverLifecycleMail(env, row, kind, requestId);
+  const outcome = await deliverLifecycleMail(env, row, kind, requestId, {
+    id: actorId,
+    requestId,
+  });
+  if (outcome === "stale") {
+    throw new AppError("CONFLICT", "This booking changed. Refresh and try again.");
+  }
   if (outcome === "pending") {
     throw new AppError(
       "CONFLICT",
@@ -257,15 +268,31 @@ async function deliverLifecycleMail(
   row: BookingRow,
   kind: LifecycleMailKind,
   requestId: string,
-): Promise<LifecycleMailState> {
+  actor: { id: string; requestId: string },
+): Promise<LifecycleMailState | "stale"> {
   if (row.communication_channel !== "email") {
-    await setLifecycleMailState(env.DB, row, kind, "skipped");
-    return "skipped";
+    const skipped = await markLifecycleMailSkipped(env.DB, row, kind, actor);
+    switch (skipped) {
+      case "claimed":
+      case "stale":
+        return "stale";
+      case "sent":
+      case "skipped":
+      case "pending":
+      case "failed":
+        return skipped;
+      default: {
+        const unreachable: never = skipped;
+        return unreachable;
+      }
+    }
   }
-  const claim = await claimLifecycleMailSend(env.DB, row, kind);
+  const claim = await claimLifecycleMailSend(env.DB, row, kind, actor);
   switch (claim) {
     case "claimed":
       break;
+    case "stale":
+      return "stale";
     case "sent":
     case "skipped":
     case "pending":
@@ -289,7 +316,7 @@ async function deliverLifecycleMail(
   });
   const stored: LifecycleMailState =
     outcome === "sent" ? "sent" : outcome === "skipped" ? "skipped" : "failed";
-  await setLifecycleMailState(env.DB, row, kind, stored);
+  await setLifecycleMailState(env.DB, row, kind, stored, actor);
   return stored;
 }
 

@@ -59,9 +59,9 @@ Key off **workflow** `nextStatus` (`decision_status` / latest `audit_events` `to
 | `denied` | None | No cancellation |
 | `approved` / `completed` | None | None |
 | Repeat PATCH of the same terminal status | None | `INVALID_TRANSITION`; does not resend |
-| `POST …/lifecycle-mail` | None | Retry unsent or `failed` only; `pending`/`sent`/`skipped` do not send |
+| `POST …/lifecycle-mail` | None | Retry unsent or `failed` only; claim requires current workflow + `updated_at`; `pending`/`sent`/`skipped` do not send |
 
-- Persist status **first**. Mail failure does not roll back status or consume a second number. Store status-mail outcome **separately** from create-time `notification_state`. Claim `pending` before send; `failed` is proven failure (retry OK); `pending` is ambiguous (do not blindly resend). No new queue/cron/Durable Object. Not exactly-once without provider idempotency.
+- Persist status **first**. Mail failure does not roll back status or consume a second number. Store status-mail outcome **separately** from create-time `notification_state`. Claim `pending` only when workflow still matches the intended kind and `updated_at` is unchanged; a stale claim conflicts without sending. The same guard applies to the first confirm/cancel delivery after status PATCH. `failed` is proven failure (retry OK); `pending` is ambiguous (do not blindly resend). Do not retract in-flight `pending` after a later cancel. No new queue/cron/Durable Object. Not exactly-once without provider idempotency.
 - Booking create: unique `idempotency_keys` claim (`202`) before persist; bind `reference` in the booking insert batch; finish `201`. Concurrent identical keys create one booking. A `202` with a stored reference recovers without a second persist or notify.
 - Concurrency: serial increment is `UPDATE chauffeur_booking_serial SET last_issued = last_issued + 1 WHERE id = 1 AND last_issued < 99999 RETURNING last_issued`; empty result is exhaustion. Unique `reference` / `lifecycle_serial` reject duplicates. Status PATCH keeps `updated_at` CAS; the loser gets `CONFLICT` and allocates nothing.
 - Terminal states do not re-enter; no reconfirm path in current `BOOKING_TRANSITIONS`.

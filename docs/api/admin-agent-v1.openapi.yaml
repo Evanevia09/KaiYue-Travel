@@ -264,6 +264,7 @@ paths:
                 kind: { type: string, enum: [confirmed, cancelled] }
       responses:
         "200": { description: Booking with current mail state; does not change workflow status }
+        "409": { description: Booking changed since the claim, delivery is pending/unconfirmed, or the channel does not send guest mail }
         default: { $ref: "#/components/responses/Error" }
   /api/v1/admin/bookings/{reference}/assignment:
     patch:

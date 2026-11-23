@@ -90,7 +90,7 @@ Scrub request bodies and query strings. Do not log names, contact details, full 
 - Map expected validation/auth/rate errors to stable codes and safe messages.
 - Preserve the booking/contact record when notification fails; mark notification state and alert staff.
 - For unknown public submission outcomes, retry with the same idempotency key. Concurrent identical keys create one booking.
-- Guest confirm/cancel mail: retry only `null`/`failed` via `POST …/lifecycle-mail`. Do not re-PATCH status. Do not resend `pending`, `sent`, or `skipped`.
+- Guest confirm/cancel mail: retry only `null`/`failed` via `POST …/lifecycle-mail` when the booking is still that workflow. The send claim requires matching workflow and `updated_at`; a stale claim does not send. Do not re-PATCH status. Do not resend `pending`, `sent`, or `skipped`. An abandoned empty idempotency `202` (crash before the claim is deleted) returns `409` until the key expires at 24 hours — that is not “retry shortly”. A recovered persisted `201` can lack the initial staff/ack send if the process crashed after persist. `pending` lifecycle mail is ambiguous and non-retryable. No MCP retry tool and no automatic reconciler.
 - Public UI gives a safe retry/contact path; admin UI distinguishes empty, unauthorized, unavailable, and partial-failure states.
 - Error details remain server-side, sanitized, and searchable by request ID.
 

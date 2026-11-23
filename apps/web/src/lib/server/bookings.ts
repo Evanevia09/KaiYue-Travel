@@ -251,47 +251,145 @@ function lifecycleMailColumn(kind: LifecycleMailKind): "confirm_mail_state" | "c
   }
 }
 
+export type LifecycleMailActor = { id: string; requestId: string };
+
+export type LifecycleMailClaim = "claimed" | "stale" | LifecycleMailState;
+
+function lifecycleMailStateOf(
+  row: BookingRow | null | undefined,
+  kind: LifecycleMailKind,
+): string | null | undefined {
+  return kind === "confirmed" ? row?.confirm_mail_state : row?.cancel_mail_state;
+}
+
 export async function setLifecycleMailState(
   db: D1Database,
   row: BookingRow,
   kind: LifecycleMailKind,
   state: LifecycleMailState,
+  actor?: LifecycleMailActor,
 ): Promise<void> {
   const column = lifecycleMailColumn(kind);
-  await run(
-    db,
-    `UPDATE bookings SET ${column} = ?, updated_at = ? WHERE id = ?`,
-    state,
-    nowIso(),
-    row.id,
-  );
+  const updatedAt = nowIso();
+  const statements = [
+    db
+      .prepare(
+        `UPDATE bookings SET ${column} = ?, updated_at = ? WHERE id = ? AND ${column} = 'pending'`,
+      )
+      .bind(state, updatedAt, row.id),
+  ];
+  if (actor) {
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           SELECT ?, 'booking', ?, 'lifecycle_mail', ?, ?, ?, ?, ? WHERE changes() = 1`,
+        )
+        .bind(crypto.randomUUID(), row.id, actor.id, kind, state, actor.requestId, updatedAt),
+    );
+  }
+  const [result] = await db.batch(statements);
+  if (result?.meta.changes !== 1) return;
+  row.updated_at = updatedAt;
 }
 
 export async function claimLifecycleMailSend(
   db: D1Database,
   row: BookingRow,
   kind: LifecycleMailKind,
-): Promise<"claimed" | LifecycleMailState> {
+  actor?: LifecycleMailActor,
+): Promise<LifecycleMailClaim> {
   const column = lifecycleMailColumn(kind);
-  const current = kind === "confirmed" ? row.confirm_mail_state : row.cancel_mail_state;
+  const current = lifecycleMailStateOf(row, kind);
   if (current === "sent" || current === "skipped" || current === "pending") {
     return current;
   }
   const updatedAt = nowIso();
-  const result = await run(
+  const statements = [
+    db
+      .prepare(
+        `UPDATE bookings SET ${column} = 'pending', updated_at = ?
+         WHERE id = ? AND updated_at = ?
+         AND (${column} IS NULL OR ${column} = 'failed')
+         AND ${bookingStatusSql} = ?`,
+      )
+      .bind(updatedAt, row.id, row.updated_at, kind),
+  ];
+  if (actor) {
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           SELECT ?, 'booking', ?, 'lifecycle_mail', ?, ?, 'pending', ?, ? WHERE changes() = 1`,
+        )
+        .bind(crypto.randomUUID(), row.id, actor.id, kind, actor.requestId, updatedAt),
+    );
+  }
+  const [result] = await db.batch(statements);
+  if (result?.meta.changes === 1) {
+    row.updated_at = updatedAt;
+    row.confirm_mail_state = kind === "confirmed" ? "pending" : row.confirm_mail_state;
+    row.cancel_mail_state = kind === "cancelled" ? "pending" : row.cancel_mail_state;
+    return "claimed";
+  }
+  const latest = await first<BookingRow>(
     db,
-    `UPDATE bookings SET ${column} = 'pending', updated_at = ?
-     WHERE id = ? AND (${column} IS NULL OR ${column} = 'failed')`,
-    updatedAt,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE id = ?`,
     row.id,
   );
-  if (result.meta.changes === 1) return "claimed";
-  const latest = await first<BookingRow>(db, "SELECT * FROM bookings WHERE id = ?", row.id);
-  const after = kind === "confirmed" ? latest?.confirm_mail_state : latest?.cancel_mail_state;
-  if (after === "sent" || after === "skipped" || after === "pending" || after === "failed") {
+  const after = lifecycleMailStateOf(latest, kind);
+  if (after === "sent" || after === "skipped" || after === "pending") {
     return after;
   }
-  return "pending";
+  return "stale";
+}
+
+export async function markLifecycleMailSkipped(
+  db: D1Database,
+  row: BookingRow,
+  kind: LifecycleMailKind,
+  actor?: LifecycleMailActor,
+): Promise<LifecycleMailClaim> {
+  const column = lifecycleMailColumn(kind);
+  const current = lifecycleMailStateOf(row, kind);
+  if (current === "sent" || current === "skipped" || current === "pending") {
+    return current;
+  }
+  const updatedAt = nowIso();
+  const statements = [
+    db
+      .prepare(
+        `UPDATE bookings SET ${column} = 'skipped', updated_at = ?
+         WHERE id = ? AND updated_at = ?
+         AND (${column} IS NULL OR ${column} = 'failed')
+         AND ${bookingStatusSql} = ?`,
+      )
+      .bind(updatedAt, row.id, row.updated_at, kind),
+  ];
+  if (actor) {
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           SELECT ?, 'booking', ?, 'lifecycle_mail', ?, ?, 'skipped', ?, ? WHERE changes() = 1`,
+        )
+        .bind(crypto.randomUUID(), row.id, actor.id, kind, actor.requestId, updatedAt),
+    );
+  }
+  const [result] = await db.batch(statements);
+  if (result?.meta.changes === 1) {
+    return "skipped";
+  }
+  const latest = await first<BookingRow>(
+    db,
+    `SELECT ${bookingAdminColumns} FROM bookings WHERE id = ?`,
+    row.id,
+  );
+  const after = lifecycleMailStateOf(latest, kind);
+  if (after === "sent" || after === "skipped" || after === "pending") {
+    return after;
+  }
+  return "stale";
 }
 
 export function bookingToAdmin(row: BookingRow) {

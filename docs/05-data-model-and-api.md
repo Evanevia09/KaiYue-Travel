@@ -32,7 +32,7 @@ This is the Release 1 logical model. Exact SQL types and constraints belong in r
 | `locale` | Submitted locale |
 | `notification_state` | Create-time staff/ack outcome: `pending`, `sent`, `partial`, `failed`, `skipped` |
 | `lifecycle_serial` | Integer serial allocated once at persist for new chauffeur rows; NULL on legacy `KY-xxxxxxxx` rows. Unique when present. |
-| `confirm_mail_state` / `cancel_mail_state` | Separate from create-time `notification_state`. `pending` (send in flight or unconfirmed), `sent`, `failed`, or `skipped` after the matching workflow transition. `pending` is not a proven failure and must not be retried blindly. |
+| `confirm_mail_state` / `cancel_mail_state` | Separate from create-time `notification_state`. `pending` (send in flight or unconfirmed), `sent`, `failed`, or `skipped` after the matching workflow transition. Claim `pending` only when `updated_at` and workflow still match the intended kind and the column is `NULL` or `failed`. `pending` is not a proven failure and must not be retried blindly. |
 | `created_at`, `updated_at` | UTC |
 
 Indexes: unique `reference`; unique `lifecycle_serial` where not null; `pickup_at`; `(status, pickup_at)`; `created_at`.

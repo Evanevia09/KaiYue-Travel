@@ -48,7 +48,7 @@ curl -sS -b jar -H "Origin: $ORIGIN" -X POST "$ORIGIN/api/auth/sign-out"
 - Booking edits, assignment, and MCP status changes use `expectedUpdatedAt` from the latest read. A `409 CONFLICT` means someone else changed the record: re-read it, then decide.
 - Every change is audited under the agent's account.
 - Never tell a guest a booking is confirmed from the API alone. Confirmation stays a human decision on WhatsApp or email.
-- Retry failed guest confirm/cancel mail with `POST /api/v1/admin/bookings/{reference}/lifecycle-mail` and `{ "kind": "confirmed" | "cancelled" }`. That does not change workflow status. `409` means delivery is unconfirmed (`pending`) or not applicable to the channel. Do not repeat a terminal status PATCH to resend.
+- Retry failed guest confirm/cancel mail with `POST /api/v1/admin/bookings/{reference}/lifecycle-mail` and `{ "kind": "confirmed" | "cancelled" }`. That does not change workflow status. `409` means the booking changed, delivery is unconfirmed (`pending`), or the channel does not send guest mail. Do not repeat a terminal status PATCH to resend. There is no MCP retry tool.
 
 ## Data handling
 

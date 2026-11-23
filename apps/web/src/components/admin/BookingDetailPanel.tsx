@@ -505,7 +505,8 @@ export function BookingDetailPanel({
                   <small>
                     {formatWhen(item.created_at, locale)} · {item.actor_id}
                   </small>
-                  {item.event_type === "status_change" && (
+                  {(item.event_type === "status_change" ||
+                    item.event_type === "lifecycle_mail") && (
                     <small>
                       {prefixedLabel(locale, "status", item.from_value ?? "")} →{" "}
                       {prefixedLabel(locale, "status", item.to_value ?? "")}

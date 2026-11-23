@@ -292,6 +292,7 @@ export const adminEn = {
   "event.details_edit": "Details edit",
   "event.assignment_change": "Assignment change",
   "event.note_added": "Note added",
+  "event.lifecycle_mail": "Guest email",
 
   "cal.eyebrow": "Schedule",
   "cal.heading": "Booking calendar",
@@ -828,6 +829,7 @@ export const adminZhHant: Record<AdminMessageKey, string> = {
   "event.details_edit": "編輯資料",
   "event.assignment_change": "編配變更",
   "event.note_added": "新增備註",
+  "event.lifecycle_mail": "顧客電郵",
 
   "cal.eyebrow": "行程表",
   "cal.heading": "預約日曆",

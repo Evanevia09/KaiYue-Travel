@@ -107,8 +107,17 @@ Review findings at `0c8494d` were verified in source before edits. Evidence-base
 | Concurrent same idempotency key could persist twice | Unique `202` claim → persist+bind reference in one D1 batch → `201`; empty `202` is `409`; persist failure deletes empty claim |
 | Failed confirm/cancel mail had no retry | Status still commits first; `pending` before send; `POST /api/v1/admin/bookings/{reference}/lifecycle-mail`; retry `null`/`failed` only |
 | nowrap overflow + English pickup-time duplicate | nowrap on reference only; addresses wrap; semantic label aliases collapse Pickup time / Hora de recolha / 接載時間 |
+| HOLD at `a735855`: JS workflow check then id-only claim | Atomic claim `WHERE updated_at AND workflow=kind AND (NULL or failed)`; stale `409` without send; same guard on initial delivery; `lifecycle_mail` audit with actor id |
 
 **No new hosted resource.** Remaining mail risk: crash after provider accepted the message but before `sent` is stored leaves `pending`; staff must not blindly resend. Not exactly-once without Cloudflare Email idempotency.
+
+**Honest residuals (not in this increment):**
+- Abandoned empty idempotency `202` (crash before the claim is deleted) returns `409` until 24h expiry. That is not “retry shortly” if the first request died before abandon.
+- Recovered persisted `201` can lack the initial staff/ack send if the process crashed after persist and before notify.
+- `pending` lifecycle mail is ambiguous and non-retryable (do not claim-retract in-flight).
+- No MCP retry tool. No automatic scheduler/reconciler.
+
+**Preview artifacts:** `preview-mime/*.html|*.txt|manifest.json` regenerated from current renderers at `generatedAt` `2026-11-23T06:37:14.168Z`. Screenshots recaptured at **320** and **390** (`*-320.png`, `*-390.png`). Prior `*-mobile.png` / `*-desktop.png` removed so they are not reused. Staff 320 and 390 PNGs are byte-identical (the staff table does not reflow between those widths); the three guest messages differ.
 
 **Migration / back-compat:** no `0012`. Existing `0011` on staging `043cd0ff` (`last_issued=0`) is preserved. Legacy `KY-xxxxxxxx` still lookup/mail. Contacts still `INQ-`. Failed insert after increment may still gap.
 
@@ -129,7 +138,7 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 
 ## Remaining
 
-1. **Exact review gate:** independent re-review of this PR #64 HEAD SHA, then GitHub review (`mergeable_state` currently blocked). Self-test is not review. This agent cannot merge.
+1. **Exact review gate:** parent new independent targeted GitHub review of **this PR #64 HEAD SHA** (not `a735855`, not `0c8494d`, not this writer). `mergeable_state` currently blocked. Self-test is not review. This agent cannot merge or treat actor self-approval as possible.
 2. Parent merge of **reviewed PR #64 only**, then official-staging CD. Staging Worker is still `3b9240e7` until then. Do not merge #61/#62/#63/#51–#53.
 3. Parent staging browser / DevTools / security check after CD. This VM does not send and does not PATCH live staging status.
 4. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
@@ -146,8 +155,10 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 - Contact INQ unchanged; quote widget SKIPPED. **Pass.**
 - CodeMode63 / prod61 / held 51–53 not touched. **Pass.**
 - Staging live **not** claimed until GitHub merge + CD. Production **not** claimed.
-- Local verification this increment: `pnpm test` 363/363; `pnpm typecheck` 0 errors (6 existing hints).
+- Local verification this increment: `pnpm test` 367/367; `pnpm typecheck` 0 errors (6 existing hints).
 - t338u: this VM did not submit a booking, did not start computerUse, did not send mail, did not PATCH status.
+- HOLD-1: concurrent cancel-after-read cannot send confirmation; claim guards workflow+version. **Pass in tests.** In-flight `pending` after a later cancel remains a residual (not retracted).
+- GitHub review gate: parent new independent targeted review of **this HEAD SHA**. Self-test and this writer’s approval are not GitHub review. `mergeable_state` remains blocked until that review. This agent cannot merge.
 
 ---
 

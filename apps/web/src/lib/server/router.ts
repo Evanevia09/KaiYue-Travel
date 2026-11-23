@@ -270,7 +270,13 @@ export async function handleApi(
       );
       if (request.method === "POST" && lifecycleMailParams) {
         return json(
-          await handleAdminLifecycleMail(request, env, lifecycleMailParams.reference!, requestId),
+          await handleAdminLifecycleMail(
+            request,
+            env,
+            lifecycleMailParams.reference!,
+            actor.id,
+            requestId,
+          ),
           200,
           requestId,
         );

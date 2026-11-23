@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+  claimLifecycleMailSend,
+  getBookingByReference,
+} from "../../apps/web/src/lib/server/bookings.ts";
 import type { OutboundEmail } from "../../apps/web/src/lib/server/env.ts";
 import { sendLifecycleCustomerMail } from "../../apps/web/src/lib/server/notifications.ts";
 import { handleApi } from "../../apps/web/src/lib/server/router.ts";
-import { createTestEnv, futurePickup } from "../helpers/memory-d1.ts";
+import { createTestEnv, futurePickup, setD1BeforeBatch } from "../helpers/memory-d1.ts";
 
 const LOCK = "scalingsmb@gmail.com";
 const LEGACY = "KY-ABCDEFGH";
@@ -421,5 +425,201 @@ describe("lifecycle mail recovery", () => {
     );
     const waRetry = await retryLifecycleMail(env, waRef, "confirmed");
     expect(waRetry.status).toBe(409);
+  });
+
+  it("does not send a stale confirmation when cancel wins between read and claim", async () => {
+    const { env, sent, send } = lifecycleEnv();
+    const created = await postBooking(env);
+    const reference = created.body.reference!;
+    const enquiry = await getBooking(env, reference);
+    expect((await patchStatus(env, reference, "approved", enquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    send.mockImplementationOnce(async () => {
+      throw new Error("smtp_down");
+    });
+    const approved = await getBooking(env, reference);
+    expect(
+      (await patchStatus(env, reference, "confirmed", approved.booking!.updatedAt)).status,
+    ).toBe(200);
+    const failedRow = await getBookingByReference(env.DB, reference);
+    expect(failedRow?.confirm_mail_state).toBe("failed");
+    expect(failedRow?.decision_status ?? failedRow?.status).toBe("confirmed");
+    const beforeRetry = customerMails(sent).length;
+
+    const afterFail = await getBooking(env, reference);
+    expect(
+      (await patchStatus(env, reference, "cancelled", afterFail.booking!.updatedAt)).status,
+    ).toBe(200);
+    expect(customerMails(sent).length).toBe(beforeRetry + 1);
+
+    expect(await claimLifecycleMailSend(env.DB, failedRow!, "confirmed")).toBe("stale");
+    expect(customerMails(sent).length).toBe(beforeRetry + 1);
+    const confirmState = await env.DB.prepare(
+      "SELECT confirm_mail_state FROM bookings WHERE reference = ?",
+    )
+      .bind(reference)
+      .first<{ confirm_mail_state: string | null }>();
+    expect(confirmState?.confirm_mail_state).toBe("failed");
+
+    const retried = await retryLifecycleMail(env, reference, "confirmed");
+    expect(retried.status).toBe(409);
+    const retriedBody = (await retried.json()) as { error?: { code?: string; message?: string } };
+    expect(retriedBody.error?.code).toBe("INVALID_TRANSITION");
+    expect(customerMails(sent).length).toBe(beforeRetry + 1);
+
+    const { env: raceEnv, sent: raceSent, send: raceSend } = lifecycleEnv();
+    const raced = await postBooking(raceEnv);
+    const raceRef = raced.body.reference!;
+    const raceEnquiry = await getBooking(raceEnv, raceRef);
+    expect(
+      (await patchStatus(raceEnv, raceRef, "approved", raceEnquiry.booking!.updatedAt)).status,
+    ).toBe(200);
+    raceSend.mockImplementationOnce(async () => {
+      throw new Error("smtp_down");
+    });
+    const raceApproved = await getBooking(raceEnv, raceRef);
+    expect(
+      (await patchStatus(raceEnv, raceRef, "confirmed", raceApproved.booking!.updatedAt)).status,
+    ).toBe(200);
+    const raceBefore = customerMails(raceSent).length;
+    setD1BeforeBatch(raceEnv.DB, (sqlite) => {
+      const row = sqlite
+        .prepare("SELECT id, updated_at FROM bookings WHERE reference = ?")
+        .get(raceRef) as { id: string; updated_at: string };
+      const next = new Date(Math.max(Date.now(), Date.parse(row.updated_at) + 1)).toISOString();
+      sqlite
+        .prepare("UPDATE bookings SET status = 'cancelled', updated_at = ? WHERE id = ?")
+        .run(next, row.id);
+      sqlite
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           VALUES (?, 'booking', ?, 'status_change', 'dev-admin', 'confirmed', 'cancelled', 'injected-retry-cancel', ?)`,
+        )
+        .run(crypto.randomUUID(), row.id, next);
+    });
+    const racedRetry = await retryLifecycleMail(raceEnv, raceRef, "confirmed");
+    setD1BeforeBatch(raceEnv.DB, null);
+    expect(racedRetry.status).toBe(409);
+    const racedBody = (await racedRetry.json()) as { error?: { code?: string; message?: string } };
+    expect(racedBody.error?.code).toBe("CONFLICT");
+    expect(racedBody.error?.message).toMatch(/changed/i);
+    expect(customerMails(raceSent).length).toBe(raceBefore);
+  });
+
+  it("lets only one concurrent retry claim the send", async () => {
+    const { env, sent, send } = lifecycleEnv();
+    const created = await postBooking(env);
+    const reference = created.body.reference!;
+    const enquiry = await getBooking(env, reference);
+    expect((await patchStatus(env, reference, "approved", enquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    send.mockImplementationOnce(async () => {
+      throw new Error("smtp_down");
+    });
+    const approved = await getBooking(env, reference);
+    expect(
+      (await patchStatus(env, reference, "confirmed", approved.booking!.updatedAt)).status,
+    ).toBe(200);
+    const beforeRetry = customerMails(sent).length;
+
+    const [first, second] = await Promise.all([
+      retryLifecycleMail(env, reference, "confirmed"),
+      retryLifecycleMail(env, reference, "confirmed"),
+    ]);
+    const statuses = [first.status, second.status].sort();
+    expect(statuses[0]).toBe(200);
+    expect([200, 409]).toContain(statuses[1]);
+    expect(customerMails(sent).length).toBe(beforeRetry + 1);
+    const sentState = await env.DB.prepare(
+      "SELECT confirm_mail_state FROM bookings WHERE reference = ?",
+    )
+      .bind(reference)
+      .first<{ confirm_mail_state: string }>();
+    expect(sentState?.confirm_mail_state).toBe("sent");
+    const audits = await env.DB.prepare(
+      "SELECT actor_id, from_value, to_value FROM audit_events WHERE entity_id = (SELECT id FROM bookings WHERE reference = ?) AND event_type = 'lifecycle_mail' ORDER BY created_at, rowid",
+    )
+      .bind(reference)
+      .all<{ actor_id: string; from_value: string; to_value: string }>();
+    expect(audits.results.some((event) => event.to_value === "pending")).toBe(true);
+    expect(audits.results.some((event) => event.to_value === "sent")).toBe(true);
+    expect(audits.results.every((event) => event.actor_id === "dev-admin")).toBe(true);
+    expect(audits.results.every((event) => event.from_value === "confirmed")).toBe(true);
+  });
+
+  it("does not send confirmation when cancel lands between status commit and the mail claim", async () => {
+    const { env, sent } = lifecycleEnv();
+    const created = await postBooking(env);
+    const reference = created.body.reference!;
+    const enquiry = await getBooking(env, reference);
+    expect((await patchStatus(env, reference, "approved", enquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    const approved = await getBooking(env, reference);
+    const beforeConfirm = customerMails(sent).length;
+    let batches = 0;
+    setD1BeforeBatch(env.DB, (sqlite) => {
+      batches += 1;
+      if (batches !== 2) return;
+      const row = sqlite
+        .prepare("SELECT id, updated_at FROM bookings WHERE reference = ?")
+        .get(reference) as { id: string; updated_at: string };
+      const next = new Date(Math.max(Date.now(), Date.parse(row.updated_at) + 1)).toISOString();
+      sqlite
+        .prepare("UPDATE bookings SET status = 'cancelled', updated_at = ? WHERE id = ?")
+        .run(next, row.id);
+      sqlite
+        .prepare(
+          `INSERT INTO audit_events (id, entity_type, entity_id, event_type, actor_id, from_value, to_value, request_id, created_at)
+           VALUES (?, 'booking', ?, 'status_change', 'dev-admin', 'confirmed', 'cancelled', 'injected-cancel', ?)`,
+        )
+        .run(crypto.randomUUID(), row.id, next);
+    });
+    const confirmed = await patchStatus(env, reference, "confirmed", approved.booking!.updatedAt);
+    setD1BeforeBatch(env.DB, null);
+    expect(confirmed.status).toBe(200);
+    expect(customerMails(sent).length).toBe(beforeConfirm);
+    const stored = await env.DB.prepare(
+      "SELECT confirm_mail_state FROM bookings WHERE reference = ?",
+    )
+      .bind(reference)
+      .first<{ confirm_mail_state: string | null }>();
+    expect(stored?.confirm_mail_state ?? null).toBeNull();
+  });
+
+  it("refuses lifecycle-mail retry from a foreign origin and without admin auth", async () => {
+    const { env, send } = lifecycleEnv();
+    const created = await postBooking(env);
+    const reference = created.body.reference!;
+    const enquiry = await getBooking(env, reference);
+    expect((await patchStatus(env, reference, "approved", enquiry.booking!.updatedAt)).status).toBe(
+      200,
+    );
+    send.mockImplementationOnce(async () => {
+      throw new Error("smtp_down");
+    });
+    const approved = await getBooking(env, reference);
+    expect(
+      (await patchStatus(env, reference, "confirmed", approved.booking!.updatedAt)).status,
+    ).toBe(200);
+
+    const foreignOrigin = await handleApi(
+      new Request(`http://localhost/api/v1/admin/bookings/${reference}/lifecycle-mail`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "https://evil.example",
+        },
+        body: JSON.stringify({ kind: "confirmed" }),
+      }),
+      env,
+    );
+    expect(foreignOrigin.status).toBe(403);
+
+    const locked = { ...env, DEV_ADMIN_BYPASS: "false" };
+    const unauthenticated = await retryLifecycleMail(locked, reference, "confirmed");
+    expect(unauthenticated.status).toBe(401);
   });
 });

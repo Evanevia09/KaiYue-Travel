@@ -131,7 +131,7 @@
 
 - [x] **Step 1:** Strict `KY` + five digits `1..99999`; atomic `WHERE last_issued < 99999`; exhaustion `503`; no wrap/reuse. Owner already decided; overflow-widens recorded as superseded.
 - [x] **Step 2:** Unique `202` claim before persist; bind reference with the booking insert; finish `201`; abandon empty `202` on persist failure; concurrent identical keys one booking.
-- [x] **Step 3:** Claim `pending` before confirm/cancel send; `POST …/lifecycle-mail` retries `null`/`failed` only; PATCH cannot replay a terminal status; no new queue/cron.
+- [x] **Step 3:** Claim `pending` before confirm/cancel send only when workflow + `updated_at` still match; stale claim conflicts without send; `POST …/lifecycle-mail` retries `null`/`failed` only; PATCH cannot replay a terminal status; no new queue/cron.
 - [x] **Step 4:** Nowrap reference only; wrap long addresses; semantic locale pickup-time dedup in PT/zh-Hant.
 
 ## Self-review
