@@ -1,0 +1,51 @@
+// DOCUMENTATION ONLY. Not wired to any workflow. Do not upload.
+// Minimal production overlay candidate from official-staging ef70396.
+// Preserves production D1 06cf879d and R2 kaiyue-offers-production.
+// EMAIL + sender included; dest omitted until owner names a production inbox.
+// daniel@kaiyuemacau.com must not appear here (admission, not mail dest).
+// MCP_STAGING_DIRECT_WRITES must stay absent. NOTIFICATIONS_ENABLED stays false
+// until dest is written so a mistaken upload cannot send.
+{
+  "name": "kaiyue-travel",
+  "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",
+  "main": "../../apps/web/dist/server/entry.mjs",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "keep_vars": false,
+  "assets": {
+    "directory": "../../apps/web/dist/client",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "kaiyue-travel-production",
+      "database_id": "06cf879d-8fea-4088-8881-7d382e1b8c11",
+      "migrations_dir": "../../migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "OFFERS_BUCKET",
+      "bucket_name": "kaiyue-offers-production",
+    },
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["bookings@notify.kaiyuemacau.com"],
+    },
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "PUBLIC_SITE_URL": "https://kaiyuemacau.com",
+    "BUSINESS_TIMEZONE": "Asia/Macau",
+    "BOOKING_NOTICE_HOURS": "24",
+    "WHATSAPP_NUMBER": "+85363128081",
+    "DEV_ADMIN_BYPASS": "false",
+    "NOTIFICATIONS_ENABLED": "false",
+    "NOTIFY_FROM_EMAIL": "bookings@notify.kaiyuemacau.com",
+    "NOTIFY_FROM_NAME": "Kai Yue Travel",
+  },
+}

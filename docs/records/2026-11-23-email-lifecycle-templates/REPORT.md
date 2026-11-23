@@ -4,7 +4,7 @@
 **Authority:** Owner t333u 23 Nov 2026 12:18 Asia/Macau (implement/preview). Owner t335u/t336u 23 Nov 2026 12:41–12:42 Asia/Macau: one reference through all statuses, KY + 5 digits, label exactly **Reference number**. Owner t337u 23 Nov 2026 13:30 Macau: **ok get this live** — execute allocation, lookup, and status-mail required for a truthful staging live. Owner t338u 23 Nov 2026 13:58 Macau: once live, one full BOX computerUse booking from the live site to verify enquiry receipt. Owner t339u 23 Nov 2026 14:13 Macau: **ok proceed** lifts implementation HOLD for scoped reliability (strict five-digit cap, booking-create idempotency, guarded confirm/cancel mail retry, wrap/locale). It does **not** lift protected review/prod gates. Previous four + resend deliveries of the IN/CF/CL set are complete. This writer did **not** send and did **not** submit a booking.
 
 **Living spec:** `docs/records/2026-11-20-email-lifecycle-design/SPEC.md` on this branch (t327u IN/CF/CL number model **superseded**). Historical PR #62 `106a217` is not current for numbers.  
-**Branch:** `cursor/email-lifecycle-templates-f58e` (PR #64) from `official-staging` `3a70cffca8ff6a8cc4b0a6d4958db7375c7d2fd2`  
+**Branch:** `cursor/email-lifecycle-templates-f58e` (PR #64) from `official-staging` `3a70cffca8ff6a8cc4b0a6d4958db7375c7d2fd2`. **Merged** squash `ef703969381894597f0ed5db3d8023232253862c`. Staging live closeout: `CLOSEOUT-20261123-staging.md`.  
 **Preserved:** CodeMode63 `16e06ba`; prod61 `f774f69`; held #51–#53.
 
 ---
@@ -26,7 +26,7 @@ Production-intended shared shell and four message types, plus the persist path n
 
 Shell: white `#ffffff` header, existing PNG logo only (250×49), gold `#f3a600` divider, dark body, footer brand + staging origin. English table label is exactly `Reference number`. Portuguese `Número de referência`. Traditional Chinese `參考編號`. Guest receipt still says this is not a booking confirmation. Confirm/cancel copy does not invent payment, refund, or cancellation-policy terms. Quote widget stays SKIPPED. Contact `INQ-` refs unchanged. Legacy `KY-xxxxxxxx` rows are never rewritten. **t339u:** serials are `KY00001`–`KY99999` only; overflow-widens (`KY100000`) is superseded. Reference values nowrap; long addresses wrap.
 
-**Not claimed live:** staging merge/deploy until GitHub review + merge of PR #64 + CD activation. Production merge/deploy/mail/`0011`. Any send from this VM. Tourist-board/MGTO production publication (15 Nov 06:06 YES applied only to that dashboard UX site publication). Quote widget. Independent source review PASS; CI `check` SUCCESS on `08be249`; staging D1 `0011` applied. GitHub PR still `mergeable_state=blocked` (0 reviews). This agent cannot merge.
+**Staging live (2026-11-23 CD):** PR #64 squash `ef70396` on `official-staging`; Worker `256f1788` @100% / deployment `d178b6c2`; D1 `043cd0ff` `0011` `last_issued=0`; dest lock `scalingsmb@gmail.com`. **Not claimed:** production merge/deploy/mail/`0011` on `06cf879d`; any send or booking from this VM; tourist-board/MGTO production publication (15 Nov 06:06 YES applied only to that dashboard UX site publication); quote widget. Independent source review PASS of `3823d48`. Parent handles staging browser send.
 
 ---
 
@@ -138,14 +138,13 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 
 ## Remaining
 
-1. **Exact review gate:** parent new independent targeted GitHub review of **this PR #64 HEAD SHA** (not `a735855`, not `0c8494d`, not this writer). `mergeable_state` currently blocked. Self-test is not review. This agent cannot merge or treat actor self-approval as possible.
-2. Parent merge of **reviewed PR #64 only**, then official-staging CD. Staging Worker is still `3b9240e7` until then. Do not merge #61/#62/#63/#51–#53.
-3. Parent staging browser / DevTools / security check after CD. This VM does not send and does not PATCH live staging status.
-4. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
-5. Native wording review of confirm/cancel sentences.
-6. Dedicated mail-retry after `confirm_mail_state=failed` — **done in t339u** (`POST /api/v1/admin/bookings/{reference}/lifecycle-mail`). Do not re-PATCH a terminal `confirmed`.
-7. Production: tourist-board gate (preserve 15 Nov widget verification; do not re-ask as a new product question), production `0011` on `06cf879d`, EMAIL + `NOTIFY_STAFF_TO` + `NOTIFICATIONS_ENABLED=true` overlay — later parent decision. Do not merge prod #61 umbrella. CodeRabbit auth remains a process gap, not a merge substitute.
-8. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
+1. ~~Exact review gate / merge PR #64~~ **done:** parent native merge of `3823d48` → squash `ef70396`; CD `45127576945` SUCCESS; Worker `256f1788` @100%.
+2. Parent staging browser / DevTools / actual send (dest `scalingsmb@gmail.com` only). This VM does not send and does not PATCH live staging status. Do not merge #61/#62/#63/#51–#53.
+3. Parent executes the fixture matrix above (dest `scalingsmb@gmail.com` only).
+4. Native wording review of confirm/cancel sentences.
+5. Dedicated mail-retry after `confirm_mail_state=failed` — **done in t339u** (`POST /api/v1/admin/bookings/{reference}/lifecycle-mail`). Do not re-PATCH a terminal `confirmed`.
+6. Production: see `PRODUCTION-CANDIDATE.md`. Tourist-board gate preserved. `0011` on `06cf879d` with `last_issued=0`; EMAIL + sender; dest OPEN (not Daniel unless owner names it as mail dest); WA `+85363128081`; WeChat JPEG from this tree. Do not merge prod #61. This writer does not deploy `main` or write production D1.
+7. t338u BOX computerUse: **after** a verified production release of this feature, not against current `5eebf7b6` / `ff119f2c`. One clearly marked live booking. This VM must not submit a duplicate.
 
 ## Self-review (this head)
 
@@ -154,11 +153,11 @@ Do **not** merge prod #61 (`f774f69`) or unrelated PRs. Do **not** apply `0011` 
 - No wrap/reuse; strict five-digit cap (overflow-widens superseded). **Pass in tests.**
 - Contact INQ unchanged; quote widget SKIPPED. **Pass.**
 - CodeMode63 / prod61 / held 51–53 not touched. **Pass.**
-- Staging live **not** claimed until GitHub merge + CD. Production **not** claimed.
+- Staging live **claimed** after parent merge + CD `45127576945` SUCCESS (`256f1788` @100%). Production **not** claimed.
 - Local verification this increment: `pnpm test` 367/367; `pnpm typecheck` 0 errors (6 existing hints).
 - t338u: this VM did not submit a booking, did not start computerUse, did not send mail, did not PATCH status.
 - HOLD-1: concurrent cancel-after-read cannot send confirmation; claim guards workflow+version. **Pass in tests.** In-flight `pending` after a later cancel remains a residual (not retracted).
-- GitHub review gate: parent new independent targeted review of **this HEAD SHA**. Self-test and this writer’s approval are not GitHub review. `mergeable_state` remains blocked until that review. This agent cannot merge.
+- GitHub review/merge of PR #64: parent completed native squash to `ef70396`. Staging CD SUCCESS. Production still not authorized.
 
 ---
 
@@ -191,7 +190,7 @@ Desktop: hero embedded widget (`sourceTrigger=hero-embed`, `sourceMode=embedded`
 
 Current live persist still allocates `KY-xxxxxxxx`. Success copy on live is `Reference <strong>…</strong>` (this PR changes it to **Reference number** after a production promote that is **not** authorized here).
 
-Task branch / not live: `08be2499d728e09f79eba05691e4b7ef53c7d868` PR #64. Staging Worker still `kaiyue-travel-staging` `3b9240e7-2f67-408c-a16c-92fa9645974d` @100% since 2026-11-20T05:13:26Z.
+Staging live: squash `ef703969381894597f0ed5db3d8023232253862c`. Worker `kaiyue-travel-staging` `256f1788-34f1-4012-bc32-e97367588c8a` @100% / deployment `d178b6c2-6e74-4c3c-aa5b-f991be481971`. Closeout: `CLOSEOUT-20261123-staging.md`.
 
 ### Actual production staff notification recipient
 
