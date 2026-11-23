@@ -1,4 +1,5 @@
-// Production upload overlay for kaiyue-travel on account 33ecc. Not wired to any workflow.
+// Production upload overlay for kaiyue-travel on account 33ecc.
+// Wired to .github/workflows/production.yml on merge/push to main.
 // Build first with PUBLIC_SITE_URL=https://kaiyuemacau.com (baked into the client build).
 // Do not upload git wrangler.jsonc. Secrets stay Worker-only and are never listed here.
 // No ACCESS_*, ADMIN_EMAILS, ADMIN_PRIMARY_EMAIL, ADMIN_STAGING_TEST_PASSWORD_MIN,
@@ -10,8 +11,6 @@
 // are in scope. Guest destinations cannot use the staging single-inbox lock. Binding
 // restricts sender only; code pins staff To.
 // Tree: official-staging ef70396 (KY##### + lifecycle mail). Do not merge prod PR #61.
-// HOLD: do not upload, activate, apply 0011 to 06cf879d, or send mail until parent
-// staging browser QA and technical review PASS.
 {
   "name": "kaiyue-travel",
   "account_id": "33ecc75158a1cdd23ba1a62eb70c5103",

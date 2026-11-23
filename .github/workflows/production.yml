@@ -1,28 +1,136 @@
-name: Production (fail-closed)
+name: Production (auto-deploy, fail-closed)
 
+# Automatic production deployment after green checks on a merge or push to
+# main. GitHub Environment name is production (no required reviewer in this
+# workflow). Uses canonical deploy/production/wrangler.jsonc only.
+# Checks and upload builds set PUBLIC_SITE_URL=https://kaiyuemacau.com
+# (Astro site is build-time; never a non-production or staging URL).
+# Pending production D1 migrations are applied additively only
+# (wrangler d1 migrations apply --remote). Upload is wrangler versions
+# upload --strict (inactive candidate). Activation is wrangler versions
+# deploy VERSION@100% after structured candidate validation. Fail-closed
+# on auth/build/migration/upload errors; a bad artifact is never activated.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: production
+  cancel-in-progress: false
+
 jobs:
-  reserved-environment:
-    if: false
+  refuse-other-refs:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse non-release refs
+        run: |
+          echo "production CD only runs on refs/heads/main"
+          exit 1
+
+  checks:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: npm --prefix plugins/kaiyue-travel-staging ci
+      - run: npm --prefix plugins/kaiyue-travel-staging run build
+      - run: npm --prefix plugins/kaiyue-travel-staging test
+      - run: pnpm build
+        env:
+          PUBLIC_SITE_URL: https://kaiyuemacau.com
+      - run: node scripts/production-guard.mjs
+
+  migrate:
+    needs: checks
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Never activate production
-        run: exit 1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/production-migrate.mjs
 
-  refuse:
+  upload:
+    needs: [checks, migrate]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      worker_version_id: ${{ steps.upload.outputs.worker_version_id }}
     steps:
-      - name: Production deploy is fail-closed and unconnected
-        run: |
-          echo "Production automation is fail-closed and unconnected."
-          echo "This workflow has no Cloudflare credentials and does not invoke the Cloudflare CLI."
-          echo "GitHub environment production must require an owner reviewer in the UI."
-          echo "This workflow stays disabled and fail-closed with no credentials."
-          echo "Do not add production credentials, merge or push main, or rewire Workers Builds."
-          exit 1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          PUBLIC_SITE_URL: https://kaiyuemacau.com
+      - id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/production-upload.mjs
+
+  verify:
+    needs: upload
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_VERSION_ID: ${{ needs.upload.outputs.worker_version_id }}
+        run: node scripts/production-candidate-check.mjs
+
+  activate:
+    needs: [upload, verify]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_VERSION_ID: ${{ needs.upload.outputs.worker_version_id }}
+        run: node scripts/production-activate.mjs
+      - run: node scripts/production-smoke.mjs

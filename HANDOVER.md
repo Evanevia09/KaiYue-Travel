@@ -2,6 +2,14 @@
 
 Newest first. Public-safe notes only. Do not add secrets, passwords, private host paths, or credentials.
 
+## Current state — 2026-11-24 production auto-deploy on merge to main (PR open, not merged)
+
+- **Owner request:** t353u 24 Nov 2026 07:23 Asia/Macau — merge to main should automatically deploy the whole live project.
+- **Branch:** `production-autodeploy-on-main` from `origin/main` `81e864ff`. Isolated worktree; primary checkout and the in-flight production release worktree were not touched.
+- **Change:** `.github/workflows/production.yml` now runs on push to `main`: checks, additive production D1 migrations, `wrangler versions upload --strict` against `deploy/production/wrangler.jsonc`, candidate check, then `versions deploy` @100% and HTTP smoke. Build sets `PUBLIC_SITE_URL=https://kaiyuemacau.com`. Fail-closed on auth/build/migration/upload errors.
+- **Not done:** this PR is not merged; this work did not deploy or apply production migrations. GitHub Environment `production` and its `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` secrets are still missing, so auto-deploy cannot go live until those are added (do not copy the staging token).
+- **Record:** `docs/08-delivery-and-operations.md`.
+
 ## Current state — 2026-11-20 staging ack+admin notifications overlay on
 
 - **task_id:** `kaiyue-staging-ack-admin-email-20261120`
