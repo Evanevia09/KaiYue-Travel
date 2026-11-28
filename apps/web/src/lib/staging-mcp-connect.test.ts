@@ -19,6 +19,11 @@ describe("staging MCP connect copy", () => {
     expect(connection.authentication).toMatch(/cannot inject credentials/i);
     expect(connection.authentication).toMatch(/Do not impersonate a browser/);
     expect(connection.authentication).toMatch(/do not wait for a browser review ticket/i);
+    expect(connection.authentication).toMatch(/not in the public plugin catalog/);
+    expect(connection.authentication).toMatch(/no refresh hook on a static header/);
+    expect(connection.authentication).toMatch(/local command/);
+    expect(connection.authentication).toMatch(/line-delimited JSON/);
+    expect(connection.authentication).toMatch(/Never log the password or token/);
     expect(connection.writeApproval).toBe("none");
     expect(connection.authentication).not.toMatch(/Mozilla\//);
     expect(connection.failures.browserIntegrity).toMatch(/1010/);

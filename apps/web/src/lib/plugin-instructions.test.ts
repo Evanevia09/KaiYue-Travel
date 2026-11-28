@@ -29,6 +29,15 @@ describe("plugin public instructions", () => {
     expect(body).toContain("Do not impersonate a browser");
     expect(body).toContain("error 1010");
     expect(body).toContain("cannot inject credentials into HTTP APIs");
+    expect(body).toContain("not in the public plugin catalog");
+    expect(body).toContain("no refresh hook on a static header");
+    expect(body).toContain("Write a small helper on the bot's own computer");
+    expect(body).toContain("Add a custom connector as a local command");
+    expect(body).toContain("Content-Length (LSP-style) and line-delimited JSON");
+    expect(body).toContain("about 60 seconds");
+    expect(body).toContain("Never log the password or token");
+    expect(body).toContain("Refresh it before it expires");
+    expect(body).toContain("designated test inbox");
     expect(body).toMatch(/1800 seconds/);
     expect(body).toMatch(/do not wait for a browser review ticket/i);
     expect(body).not.toMatch(/Write tools still need/);
